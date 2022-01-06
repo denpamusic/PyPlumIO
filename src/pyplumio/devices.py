@@ -41,7 +41,7 @@ class EcoMax:
         self.updated = datetime.now()
 
     def set_parameters(self, parameters: dict) -> None:
-        self.parameters = parameters
+        self._parameters = parameters
 
     def data(self, *args):
         data = []
