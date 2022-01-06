@@ -1,4 +1,4 @@
-VERSION: str = '1.0.0'
+VERSION: str = '0.0.2'
 
 FRAME_START: int = 0x68
 FRAME_END: int = 0x16

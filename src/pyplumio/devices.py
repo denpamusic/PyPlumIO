@@ -47,7 +47,7 @@ class EcoMax:
         data = []
         for arg in args:
             if self._data[arg] is not None:
-                data.append(arg)
+                data.append(self._data[arg])
 
         return data
 
