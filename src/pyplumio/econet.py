@@ -5,7 +5,7 @@ from collections.abc import Callable
 import os
 import sys
 
-from .devices import EcoMax
+from .devices import EcoMAX
 from .exceptions import ChecksumError, LengthError
 from .frame import Frame
 from .frames import requests, responses
@@ -13,8 +13,10 @@ from .storage import FrameBucket
 from .stream import FrameReader, FrameWriter
 
 
-class EcoNet:
-
+class EcoNET:
+    """Allows to interact with ecoNET connection, handles sending and
+        receiving frames and calling async callback.
+    """
 
     closed: bool = True
 
@@ -29,14 +31,14 @@ class EcoNet:
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    async def _callback(self, callback: Callable[EcoMax, EcoNet],
-            ecomax: EcoMax, interval: int) -> None:
+    async def _callback(self, callback: Callable[EcoMAX, EcoNET],
+            ecomax: EcoMAX, interval: int) -> None:
         while True:
             await callback(ecomax = ecomax, connection = self)
             await asyncio.sleep(interval)
 
     async def _process(self, frame: Frame, writer: FrameWriter,
-            ecomax: EcoMax, bucket: FrameBucket) -> None:
+            ecomax: EcoMAX, bucket: FrameBucket) -> None:
 
         if frame.is_type(requests.ProgramVersion):
             writer.queue(frame.response())
@@ -64,7 +66,7 @@ class EcoNet:
         elif frame.is_type(requests.CheckDevice):
             if writer.queue_empty(): return writer.queue(frame.response())
 
-    async def run(self, callback: Callable[EcoMax, EcoNet],
+    async def run(self, callback: Callable[EcoMAX, EcoNET],
             interval: int = 1) -> None:
         try:
             reader, writer = await asyncio.open_connection(
@@ -77,7 +79,7 @@ class EcoNet:
         writer.queue(requests.UID())
         writer.queue(requests.Password())
         bucket = FrameBucket(writer)
-        ecomax = EcoMax()
+        ecomax = EcoMAX()
         asyncio.create_task(self._callback(callback, ecomax, interval))
         while True:
             if self.closed:
@@ -101,7 +103,7 @@ class EcoNet:
 
             await writer.process_queue()
 
-    def loop(self, callback: Callable[EcoMax, EcoNet],
+    def loop(self, callback: Callable[EcoMAX, EcoNET],
             interval: int = 1) -> None:
         try:
             if os.name == 'nt':

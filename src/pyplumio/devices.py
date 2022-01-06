@@ -5,8 +5,7 @@ from datetime import datetime
 from . import util
 
 
-class EcoMax:
-    """ """
+class EcoMAX:
 
     software: str = None
     updated: str = None
