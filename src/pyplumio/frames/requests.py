@@ -7,17 +7,13 @@ class ProgramVersion(Frame):
     type_: int = 0x40
 
     def response(self, **args):
-        return responses.ProgramVersion(
-            recipient = self.sender,
-            econet_version = self.econet_version, **args)
+        return responses.ProgramVersion(recipient = self.sender, **args)
 
 class CheckDevice(Frame):
     type_: int = 0x30
 
     def response(self, **args):
-        return responses.CheckDevice(
-            recipient = self.sender,
-            econet_version = self.econet_version, **args)
+        return responses.CheckDevice(recipient = self.sender, **args)
 
 class UID(Frame):
     type_: int = 0x39

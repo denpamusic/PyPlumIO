@@ -5,7 +5,6 @@ from collections.abc import Callable
 import os
 import sys
 
-from .constants import VERSION
 from .devices import EcoMax
 from .exceptions import ChecksumError, LengthError
 from .frame import Frame
@@ -38,8 +37,9 @@ class EcoNet:
 
     async def _process(self, frame: Frame, writer: FrameWriter,
             ecomax: EcoMax, bucket: FrameBucket) -> None:
+
         if frame.is_type(requests.ProgramVersion):
-            writer.queue(frame.response(data={'version' : VERSION}))
+            writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
             ecomax.uid = frame.data()['UID']

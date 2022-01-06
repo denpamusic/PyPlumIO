@@ -1,7 +1,7 @@
 import struct
 
 from pyplumio import structures, util
-from pyplumio.constants import EDITABLE_PARAMS, MODES
+from pyplumio.constants import EDITABLE_PARAMS, MODES, VERSION
 from pyplumio.frame import Frame
 
 
@@ -9,7 +9,7 @@ class ProgramVersion(Frame):
     type_: int = 0xC0
 
     _defaults: dict = {
-        'version': '3.2.3781',
+        'version': VERSION,
         'struct_tag': b'\xFF\xFF',
         'struct_version': 5,
         'device_id': b'\x7A\x00',
