@@ -64,29 +64,19 @@ class EcoMAX:
 
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""
-        co_temp = util.celsius(self._data['co_temp'])
-        co_target = util.celsius(self._data['co_target'])
-        cwu_temp = util.celsius(self._data['cwu_temp'])
-        cwu_target = util.celsius(self._data['cwu_target'])
 
-        return f"""
-Product:    {self.product}
-Version:    {self.software}
-UID:        {self.uid}
-Password:   {self.password}
-Mode:       {self._data['mode']}
-Power:      {util.kw(self._data['power'])}
-Fan:        {util.is_working(self._data['fan'])}
-Fan Power:  {util.percent(self._data['fan_power'])}
-CO Temp:    {co_temp} / {co_target}
-CO Pump:    {util.is_working(self._data['co_pump'])}
-CWU Temp:   {cwu_temp} / {cwu_target}
-CWU Pump:   {util.is_working(self._data['cwu_pump'])}
-Exhaust:    {util.celsius(self._data['exhaust_temp'])}
-Outdoor:    {util.celsius(self._data['outdoor_temp'])}
-Feeder:     {util.celsius(self._data['feeder_temp'])}
-Fuel Level: {util.percent(self._data['fuel_level'])}
-Fuel Flow:  {util.kgh(self._data['fuel_flow'])}
-Updated:    {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
-Drawn:      {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}
-""".strip()
+        output = f"""
+Product:   {self.product}
+Version:   {self.software}
+UID:       {self.uid}
+Password:  {self.password}
+Updated:   {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
+Drawn:     {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}
+"""
+
+        if self.has_data():
+            output += '\nCurrent Data:\n'
+            for k, v in self._data.items():
+                output += f' -- {k}: {v}\n'
+
+        return output.lstrip()
