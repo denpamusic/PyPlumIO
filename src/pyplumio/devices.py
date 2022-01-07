@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from . import util
-
 
 class EcoMAX:
     """ Class for storing ecoMAX device state.
