@@ -18,6 +18,16 @@ class EcoMAX:
     _parameters: dict = {}
     _data: dict = {}
 
+    def __getattr__(self, item: str):
+        """ Gets current data item as class atribute.
+
+        Keyword arguments:
+        item -- name of property to get
+        """
+        item = item.upper()
+        if item in self._data.keys():
+            return self._data[item]
+
     def has_data(self) -> bool:
         """Checks if EcoMAX instance has any data."""
         return bool(self._data)
