@@ -1,6 +1,6 @@
 """Contains contants."""
 
-VERSION: str = '0.0.3'
+VERSION: str = '0.0.4'
 
 FRAME_START: int = 0x68
 FRAME_END: int = 0x16
