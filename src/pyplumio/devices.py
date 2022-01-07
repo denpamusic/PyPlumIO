@@ -30,7 +30,6 @@ class EcoMAX:
         Keyword arguments:
         data - data parsed from CurrentData response frame
         """
-        self._data['software'] = data['versions']['moduleASoftVer']
         self._data['mode'] = data['modeString']
         self._data['power'] = data['boilerPowerKW']
         self._data['co_target'] = data['tempCOSet']
@@ -47,6 +46,7 @@ class EcoMAX:
         self._data['fuel_level'] = data['fuelLevel']
         self._data['fuel_flow'] = data['fuelStream']
 
+        self.software = data['versions']['moduleASoftVer']
         self.updated = datetime.now()
 
     def set_parameters(self, parameters: dict) -> None:
