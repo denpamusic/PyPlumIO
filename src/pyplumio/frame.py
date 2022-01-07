@@ -19,6 +19,13 @@ class Frame:
     frames.
     """
 
+    type_: int = None
+    sender: int = None
+    recipient: int = None
+    sender_type: int = ECONET_TYPE
+    econet_version: int = ECONET_VERSION
+    _data = None
+
     def __init__(self, type_: int = None, recipient: int = BROADCAST_ADDRESS,
             message: bytearray = bytearray(),
             sender: int = ECONET_ADDRESS,
@@ -54,11 +61,17 @@ class Frame:
             self.message = message
 
     def __repr__(self) -> str:
-        """Creates readable frame respresentation."""
-        name = self.__class__.__name__
-        module = self.__module__.rsplit('.', maxsplit=1)[-1]
-
-        return f'{module[:-1]}: {name}'
+        """Creates string respresentation of class."""
+        return f"""{self.__class__.__name__}(
+    type = {self.type_},
+    recipient = {self.recipient},
+    message = {self.message},
+    sender = {self.sender},
+    sender_type = {self.sender_type},
+    econet_version = {self.econet_version},
+    data = {self._data}
+)
+""".strip()
 
     def __len__(self) -> int:
         """Returns frame length.

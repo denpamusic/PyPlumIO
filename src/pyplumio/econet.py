@@ -47,6 +47,15 @@ class EcoNET:
         """Provides exit point for context manager."""
         self.close()
 
+    def __repr__(self):
+        """Creates string respresentation of class."""
+        return f"""{self.__class__.__name__}(
+    host = {self.host},
+    port = {self.port},
+    kwargs = {self.kwargs}
+)
+""".strip()
+
     async def _callback(self, callback: Callable[EcoMAX, EcoNET],
             ecomax: EcoMAX, interval: int) -> None:
         """ Calls provided callback method with specified interval.
