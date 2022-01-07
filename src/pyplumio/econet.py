@@ -22,7 +22,11 @@ class EcoNET:
     receiving frames and calling async callback.
     """
 
+    host: str = None
+    port: int = None
     closed: bool = True
+    reader: FrameReader = None
+    writer: FrameWriter = None
 
     def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET connection instance.
@@ -69,18 +73,17 @@ class EcoNET:
             await callback(ecomax = ecomax, econet = self)
             await asyncio.sleep(interval)
 
-    async def _process(self, frame: Frame, writer: FrameWriter,
-            ecomax: EcoMAX, bucket: FrameBucket) -> None:
+    async def _process(self, frame: Frame, ecomax: EcoMAX,
+            bucket: FrameBucket) -> None:
         """ Processes received frame.
 
         Keyword arguments:
-        frame -- instance of received Frame
-        writer -- instance of FrameWriter to schedule response with
+        frame -- received Frame instance
         ecomax -- ecoMAX device instance
-        bucket -- frame version storage
+        bucket -- version storage instance
         """
         if frame.is_type(requests.ProgramVersion):
-            writer.queue(frame.response())
+            self.writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
             ecomax.uid = frame.data()['UID']
@@ -103,9 +106,9 @@ class EcoNET:
             ecomax.struct = frame.data()
 
         elif frame.is_type(requests.CheckDevice):
-            if writer.queue_is_empty():
+            if self.writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
-                return writer.queue(frame.response())
+                return self.writer.queue(frame.response())
 
     async def run(self, callback: Callable[EcoMAX, EcoNET],
             interval: int = 1) -> None:
@@ -122,19 +125,19 @@ class EcoNET:
             pass
 
         self.closed = False
-        reader, writer = [FrameReader(reader), FrameWriter(writer)]
-        writer.queue(requests.UID())
-        writer.queue(requests.Password())
-        bucket = FrameBucket(writer)
+        self.reader, self.writer = [FrameReader(reader), FrameWriter(writer)]
+        self.writer.queue(requests.UID())
+        self.writer.queue(requests.Password())
+        bucket = FrameBucket(self.writer)
         ecomax = EcoMAX()
         asyncio.create_task(self._callback(callback, ecomax, interval))
         while True:
             if self.closed:
-                writer.close()
+                self.writer.close()
                 return
 
             try:
-                frame = await reader.read()
+                frame = await self.reader.read()
             except ChecksumError:
                 pass
             except LengthError:
@@ -143,12 +146,11 @@ class EcoNET:
             if frame is not None:
                 asyncio.create_task(self._process(
                     frame = frame,
-                    writer = writer,
                     ecomax = ecomax,
                     bucket = bucket
                 ))
 
-            await writer.process_queue()
+            await self.writer.process_queue()
 
     def loop(self, callback: Callable[EcoMAX, EcoNET],
             interval: int = 1) -> None:

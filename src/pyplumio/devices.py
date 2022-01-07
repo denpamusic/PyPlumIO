@@ -20,7 +20,7 @@ class EcoMAX:
 
     def has_data(self) -> bool:
         """Checks if EcoMAX instance has any data."""
-        return self.updated is not None
+        return bool(self._data)
 
     def set_data(self, data: dict) -> None:
         """Sets EcoMAX data received in CurrentData frame.
@@ -47,22 +47,20 @@ class EcoMAX:
         self.software = data['versions']['moduleASoftVer']
         self.updated = datetime.now()
 
+    def has_parameters(self) -> bool:
+        """Check if ecoMAX instance has parameters."""
+        return bool(self._parameters)
+
     def set_parameters(self, parameters: dict) -> None:
         """Sets EcoMAX settings received in Parameters frame."""
         self._parameters = parameters
 
-    def data(self, *args):
+    def data(self):
         """Returns EcoMAX data as a tuple. Accepts list of keys."""
-        data = []
-        for arg in args:
-            if self._data[arg] is not None:
-                data.append(self._data[arg])
-
-        return data
+        return self._data
 
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""
-
         output = f"""
 Product:   {self.product}
 Version:   {self.software}
@@ -76,5 +74,11 @@ Drawn:     {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}
             output += '\nCurrent Data:\n'
             for k, v in self._data.items():
                 output += f' -- {k}: {v}\n'
+
+        if self.has_parameters():
+            output += '\nCurrent Parameters:\n'
+            for k, v in self._parameters.items():
+                parameter_str = f"{v['value']} (range: {v['min']}:{v['max']})"
+                output += f' -- {k}: {parameter_str}\n'
 
         return output.lstrip()
