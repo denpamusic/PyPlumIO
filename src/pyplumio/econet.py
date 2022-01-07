@@ -24,7 +24,7 @@ class EcoNET:
 
     closed: bool = True
 
-    def __init__(self, host: str, port: str, **kwargs):
+    def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET connection instance.
 
         Keyword arguments:
