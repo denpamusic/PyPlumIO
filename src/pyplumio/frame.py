@@ -53,8 +53,6 @@ class Frame:
         else:
             self.message = message
 
-        self.length = HEADER_SIZE + 1 + len(self.message) + 1 + 1
-
     def __repr__(self) -> str:
         """Creates readable frame respresentation."""
         name = self.__class__.__name__
@@ -63,8 +61,14 @@ class Frame:
         return f'{module[:-1]}: {name}'
 
     def __len__(self) -> int:
-        """Returns frame length."""
-        return len(self.to_bytes())
+        """Returns frame length.
+        HEADER_SIZE bytes
+        + 1 bytes frame type
+        + length of message
+        + 1 byte crc
+        + 1 byte end delimiter
+        """
+        return HEADER_SIZE + 1 + len(self.message) + 1 + 1
 
     def data(self):
         """Gets data parsed from frame."""
@@ -79,7 +83,7 @@ class Frame:
         buffer = bytearray(HEADER_SIZE)
         util.pack_header(buffer, 0, *[
             FRAME_START,
-            self.length,
+            len(self),
             self.recipient,
             self.sender,
             self.sender_type,
