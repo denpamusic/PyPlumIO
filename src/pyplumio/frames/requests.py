@@ -10,7 +10,7 @@ class Request(Frame):
         """Returns instance of Frame
         for response to request, if needed.
         """
-        raise NotImplementedError()
+        return None
 
 class ProgramVersion(Request):
     """ProgramVersion requests version info from ecoMAX device."""
