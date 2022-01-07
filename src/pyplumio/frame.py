@@ -128,9 +128,3 @@ class Frame:
         message - bytearray message to parse
         """
         raise NotImplementedError()
-
-    def response(self, **args) -> Frame:
-        """Returns instance of Frame
-        for response to request, if needed.
-        """
-        raise NotImplementedError()

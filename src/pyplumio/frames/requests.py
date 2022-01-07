@@ -4,8 +4,15 @@ from pyplumio.frame import Frame
 
 from . import responses
 
+class Request(Frame):
+    """Base class for all requests frames."""
+    def response(self, **args) -> Frame:
+        """Returns instance of Frame
+        for response to request, if needed.
+        """
+        raise NotImplementedError()
 
-class ProgramVersion(Frame):
+class ProgramVersion(Request):
     """ProgramVersion requests version info from ecoMAX device."""
     type_: int = 0x40
 
@@ -17,7 +24,7 @@ class ProgramVersion(Frame):
         """
         return responses.ProgramVersion(recipient = self.sender, **args)
 
-class CheckDevice(Frame):
+class CheckDevice(Request):
     """CheckDevice requests if device is available."""
     type_: int = 0x30
 
@@ -29,26 +36,26 @@ class CheckDevice(Frame):
         """
         return responses.CheckDevice(recipient = self.sender, **args)
 
-class UID(Frame):
+class UID(Request):
     """Requests device UID."""
     type_: int = 0x39
 
-class Password(Frame):
+class Password(Request):
     """Requests service password."""
     type_: int = 0x3A
 
-class Timezones(Frame):
+class Timezones(Request):
     """Requests timezones."""
     type_: int = 0x36
 
-class Parameters(Frame):
+class Parameters(Request):
     """Requests current editable parameters."""
     type_: int = 0x31
 
-class MixerParameters(Frame):
+class MixerParameters(Request):
     """Requests current mixer parameters."""
     type_: int = 0x32
 
-class DataStructure(Frame):
+class DataStructure(Request):
     """Requests current regulator data structure."""
     type_: int = 0x55
