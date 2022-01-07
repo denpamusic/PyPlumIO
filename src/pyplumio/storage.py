@@ -44,7 +44,7 @@ class FrameBucket:
         version -- new frame version to update to
         """
         try:
-            frame = FrameFactory.get_frame(type)
+            frame = FrameFactory().get_frame(type)
             if frame.__module__ == 'frames.requests':
                 # Do not process responses.
                 self.versions[type_] = version

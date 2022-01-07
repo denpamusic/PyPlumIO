@@ -106,7 +106,7 @@ class FrameReader:
                     raise ChecksumError()
 
                 try:
-                    return FrameFactory.get_frame(
+                    return FrameFactory().get_frame(
                         type_ = payload[0],
                         recipient = recipient,
                         message = payload[1:-2],

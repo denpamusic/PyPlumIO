@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import inspect
+
 from .exceptions import FrameTypeError
 from .frame import Frame
 from .frames import requests, responses
@@ -10,36 +12,48 @@ from .frames import requests, responses
 class FrameFactory:
     """Used to create frame objects based on frame class."""
 
-    _types: dict = {
-        requests.CheckDevice.type_: requests.CheckDevice,
-        requests.ProgramVersion.type_: requests.ProgramVersion,
-        requests.UID.type_: responses.UID,
-        requests.Password.type_: requests.Password,
-        requests.DataStructure.type_: requests.DataStructure,
-        requests.Timezones.type_: requests.Timezones,
-        requests.Parameters.type_: requests.Parameters,
-        requests.MixerParameters.type_: requests.MixerParameters,
-        responses.CheckDevice.type_: responses.CheckDevice,
-        responses.CurrentData.type_: responses.CurrentData,
-        responses.ProgramVersion.type_: responses.ProgramVersion,
-        responses.UID.type_: responses.UID,
-        responses.Password.type_: responses.Password,
-        responses.RegData.type_: responses.RegData,
-        responses.DataStructure.type_: responses.DataStructure,
-        responses.Timezones.type_: responses.Timezones,
-        responses.Parameters.type_: responses.Parameters,
-        responses.MixerParameters.type_: responses.MixerParameters,
-    }
+    _types: dict = {}
 
-    @staticmethod
-    def get_frame(type_: int, **args) -> Frame:
+    def __new__(cls: str) -> FrameFactory:
+        """Implements singleton pattern.
+
+        Keyword arguments:
+        cls - current class name
+        """
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(FrameFactory, cls).__new__(cls)
+
+        return cls.instance
+
+    def __init__(self) -> None:
+        """Calls method to make type list.
+        """
+        self.types()
+
+
+    def types(self) -> dict:
+        """Constructs and return a list of available frame
+        types and handlers.
+        """
+        if not self._types:
+            ignores = ['Request']
+            for module in [requests, responses]:
+                for _, obj in inspect.getmembers(module, inspect.isclass):
+                    if (obj.__module__ == module.__name__
+                        and obj.__name__ not in ignores):
+                        # Object is within the module and not ignored.
+                        self._types[obj.type_] = obj
+
+        return self._types
+
+    def get_frame(self, type_: int, **kwargs) -> Frame:
         """Gets frame by frame type.
 
         Keyword arguments:
         type -- integer, repsenting frame type
-        args -- arguments passed to frame class
+        kwargs -- keywords arguments to pass to the frame class
         """
-        if type_ in FrameFactory._types:
-            return FrameFactory._types[type_](**args)
+        if type_ in self._types:
+            return self._types[type_](**kwargs)
 
         raise FrameTypeError()

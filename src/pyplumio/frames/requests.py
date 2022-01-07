@@ -4,6 +4,7 @@ from pyplumio.frame import Frame
 
 from . import responses
 
+
 class Request(Frame):
     """Base class for all requests frames."""
     def response(self, **args) -> Frame:
