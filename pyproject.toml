@@ -17,6 +17,7 @@ good-names = [
     "i",
     "j",
     "k",
+    "v",
 ]
 
 [build-system]
