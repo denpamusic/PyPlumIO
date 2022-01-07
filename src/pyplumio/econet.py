@@ -57,7 +57,7 @@ class EcoNET:
         interval -- update interval in seconds
         """
         while True:
-            await callback(ecomax = ecomax, connection = self)
+            await callback(ecomax = ecomax, econet = self)
             await asyncio.sleep(interval)
 
     async def _process(self, frame: Frame, writer: FrameWriter,

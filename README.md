@@ -3,7 +3,7 @@
 ```python
 from pyplumio import econet_connection
 
-async def main(ecomax, connection):
+async def main(ecomax, econet):
     if ecomax.has_data():
         print(ecomax)
 
