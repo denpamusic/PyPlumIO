@@ -103,7 +103,7 @@ class EcoNET:
             ecomax.struct = frame.data()
 
         elif frame.is_type(requests.CheckDevice):
-            if writer.queue_empty():
+            if writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
                 return writer.queue(frame.response())
 

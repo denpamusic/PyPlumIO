@@ -40,13 +40,13 @@ class FrameWriter:
         if isinstance(frame, Frame):
             self._queue.append(frame)
 
-    def queue_empty(self) -> bool:
-        """Empties write queue."""
+    def queue_is_empty(self) -> bool:
+        """Checks if write queue is empty."""
         return len(self._queue) == 0
 
     async def process_queue(self) -> None:
         """Processes top-most write request from the stack."""
-        if len(self._queue) > 0:
+        if self._queue:
             frame = self._queue.pop(0)
             await self.write(frame)
 
