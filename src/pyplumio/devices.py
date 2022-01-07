@@ -75,23 +75,22 @@ class EcoMAX:
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""
         output = f"""
-Product:   {self.product}
-Version:   {self.software}
-UID:       {self.uid}
-Password:  {self.password}
-Updated:   {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
-Drawn:     {datetime.now().strftime('%d.%m.%Y %H:%M:%S')}
+Product:        {self.product}
+Software Ver.:  {self.software}
+UID:            {self.uid}
+Password:       {self.password}
+Updated:        {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
 """
 
         if self.has_data():
-            output += '\nCurrent Data:\n'
+            output += '\nCurrent data:\n'
             for k, v in self._data.items():
                 output += f' -- {k}: {v}\n'
 
         if self.has_parameters():
-            output += '\nCurrent Parameters:\n'
+            output += '\n Regulator parameters:\n'
             for k, v in self._parameters.items():
-                parameter_str = f"{v['value']} (range: {v['min']}:{v['max']})"
+                parameter_str = f"{v['value']} (range {v['min']} - {v['max']})"
                 output += f' -- {k}: {parameter_str}\n'
 
         return output.lstrip()
