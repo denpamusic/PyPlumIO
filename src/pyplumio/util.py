@@ -107,7 +107,7 @@ def uid_stamp(message: str) -> str:
     for byte in message:
         int_ = ord(byte)
         crc_ = crc_^int_
-        for i in range(8):
+        for _ in range(8):
             if crc_&1:
                 crc_ = (crc_>>1)^0xA001
             else:

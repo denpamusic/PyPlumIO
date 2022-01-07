@@ -25,7 +25,7 @@ class FrameVersions():
         data = {}
         frames_number = message[offset]
         offset += 1
-        for i in range(frames_number):
+        for _ in range(frames_number):
             frame_type = message[offset]
             version = util.unpack_ushort(message[offset+1 : offset+3])
             data[frame_type] = version
@@ -295,7 +295,7 @@ class UID:
         conv_int = 0
         conv_size =  0
         j = 0
-        for i in range(output_length):
+        for _ in range(output_length):
             if conv_size < self.UID_BASE_BITS and j < len(input_):
                 conv_int += (ord(input_[j])<<conv_size)
                 conv_size += self.CHAR_BITS

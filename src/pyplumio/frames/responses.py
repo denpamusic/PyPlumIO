@@ -327,7 +327,7 @@ class DataStructure(Frame):
         offset += 2
         self._data = []
         if integrity_blocks_number > 0:
-            for i in range(integrity_blocks_number):
+            for _ in range(integrity_blocks_number):
                 param_type = message[offset]
                 param_id = (
                     util.unpack_ushort(message[offset+1 : offset+3]))
