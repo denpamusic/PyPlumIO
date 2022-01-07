@@ -126,7 +126,6 @@ class EcoNET:
 
         self.closed = False
         self.reader, self.writer = [FrameReader(reader), FrameWriter(writer)]
-        self.writer.queue(requests.UID())
         self.writer.queue(requests.Password())
         bucket = FrameBucket(self.writer)
         ecomax = EcoMAX()
