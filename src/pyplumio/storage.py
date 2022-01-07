@@ -15,7 +15,7 @@ class FrameBucket:
     def __init__(self, writer: FrameWriter):
         """Created FrameBucket instance.
 
-        Keyword Argu
+        Keyword arguments:
         writer -- instance of FrameWriter. Used to schedule updates
         """
         self.writer = writer
