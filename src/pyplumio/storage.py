@@ -32,9 +32,9 @@ class FrameBucket:
         """
         for type_, version in frames.items():
             if (not type_ in self.versions
-                or self.versions[type] != version):
+                or self.versions[type_] != version):
                 # We don't have this frame or it's version has changed.
-                self.update(type, version)
+                self.update(type_, version)
 
     def update(self, type_: int, version: int) -> None:
         """Schedules frame update.
@@ -44,8 +44,8 @@ class FrameBucket:
         version -- new frame version to update to
         """
         try:
-            frame = FrameFactory().get_frame(type)
-            if frame.__module__ == 'frames.requests':
+            frame = FrameFactory().get_frame(type_ = type_)
+            if frame.__module__.split('.')[-1] == 'requests':
                 # Do not process responses.
                 self.versions[type_] = version
                 self.writer.queue(frame)
