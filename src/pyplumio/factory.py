@@ -1,3 +1,5 @@
+"""Contains frame factory class."""
+
 from __future__ import annotations
 
 from .exceptions import FrameTypeError
@@ -6,7 +8,7 @@ from .frames import requests, responses
 
 
 class FrameFactory:
-    """ """
+    """Used to create frame objects based on frame class."""
 
     _types: dict = {
         requests.CheckDevice.type_: requests.CheckDevice,
@@ -31,6 +33,12 @@ class FrameFactory:
 
     @staticmethod
     def get_frame(type_: int, **args) -> Frame:
+        """Gets frame by frame type.
+
+        Keyword arguments:
+        type -- integer, repsenting frame type
+        args -- arguments passed to frame class
+        """
         if type_ in FrameFactory._types:
             return FrameFactory._types[type_](**args)
 

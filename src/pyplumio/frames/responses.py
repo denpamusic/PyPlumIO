@@ -1,3 +1,5 @@
+"""Contains response frame classes."""
+
 import struct
 
 from pyplumio import structures, util
@@ -6,6 +8,7 @@ from pyplumio.frame import Frame
 
 
 class ProgramVersion(Frame):
+    """Contains information about device software and hardware version."""
     type_: int = 0xC0
 
     _defaults: dict = {
@@ -17,6 +20,7 @@ class ProgramVersion(Frame):
     }
 
     def create_message(self) -> bytearray:
+        """Creates ProgramVersion message."""
         data = util.merge(self._defaults, self._data)
         version = data['version'].split('.')
         message = bytearray(15)
@@ -32,6 +36,11 @@ class ProgramVersion(Frame):
         return message
 
     def parse_message(self, message: bytearray):
+        """Parses ProgramVersion message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         self._data = {}
         [
             self._data['struct_tag'],
@@ -47,6 +56,7 @@ class ProgramVersion(Frame):
             map(str, [version1, version2, version3]))
 
 class CheckDevice(Frame):
+    """Contains ecoNET device information."""
     type_: int = 0xB0
 
     _defaults: dict = {
@@ -71,18 +81,19 @@ class CheckDevice(Frame):
     }
 
     def create_message(self) -> bytearray:
+        """Creates CheckDevice message."""
         message = bytearray()
         message += b'\x01'
         data = util.merge(self._defaults, self._data)
         eth = data['eth']
         wlan = data['wlan']
         server = data['server']
-        for type in ('ip', 'netmask', 'gateway'):
-            message += util.ip_to_bytes(eth[type])
+        for address in ('ip', 'netmask', 'gateway'):
+            message += util.ip_to_bytes(eth[address])
 
         message.append(eth['status'])
-        for type in ('ip', 'netmask', 'gateway'):
-            message += util.ip_to_bytes(wlan[type])
+        for address in ('ip', 'netmask', 'gateway'):
+            message += util.ip_to_bytes(wlan[address])
 
         message.append(wlan['status'])
         message.append(wlan['encryption'])
@@ -95,6 +106,11 @@ class CheckDevice(Frame):
         return message
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses CheckDevice message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         self._data = {
             'eth': {},
             'wlan': {},
@@ -122,9 +138,15 @@ class CheckDevice(Frame):
             structures.VarString().from_bytes(message, offset))
 
 class CurrentData(Frame):
+    """Contains current device state data."""
     type_: int = 0x35
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses CurrentData message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         offset = 0
         self._data = {}
         self._data['frame_versions'], offset = (
@@ -166,9 +188,15 @@ class CurrentData(Frame):
             structures.Mixers().from_bytes(message, offset))
 
 class UID(Frame):
+    """Contains device UID."""
     type_: int = 0xB9
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses UID message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         self._data = {}
         offset = 0
         self._data['reg_type'] = message[offset]
@@ -187,14 +215,21 @@ class UID(Frame):
             structures.VarString().from_bytes(message, offset))
 
 class Password(Frame):
+    """Contains device service password."""
     type_: int = 0xBA
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses ProgramVersion message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         password = message[1:]
         if password:
             self._data = password.decode()
 
 class RegData(Frame):
+    """Contains current regulator data."""
     type_: int = 0x08
     struct: list = []
 
@@ -221,6 +256,11 @@ class RegData(Frame):
     DATATYPE_IPv6: int = 16
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses RegData message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         offset = 2
         frame_version = f'{message[offset+1]}.{message[offset]}'
         offset += 2
@@ -230,12 +270,19 @@ class RegData(Frame):
                 structures.FrameVersions().from_bytes(message, offset))
 
 class Timezones(Frame):
+    """Contains device timezone info."""
     type_: int = 0xB6
 
 class Parameters(Frame):
+    """Contains editable parameters."""
     type_: int = 0xB1
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses Parameters message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         first = message[1]
         offset = 3
         parameters_number = message[2]
@@ -261,12 +308,19 @@ class Parameters(Frame):
                     offset += parameter_size*3
 
 class MixerParameters(Frame):
+    """Contains current mixers parameters."""
     type_: int = 0xD5
 
 class DataStructure(Frame):
+    """Contains device data structure."""
     type_: int = 0xD5
 
     def parse_message(self, message: bytearray) -> None:
+        """Parses DataStructure message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
         offset = 0
         integrity_blocks_number = (
             util.unpack_ushort(message[offset : offset+2]))

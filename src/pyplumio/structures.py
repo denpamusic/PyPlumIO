@@ -1,3 +1,5 @@
+"""Contains structure classes, that are used to parse frames."""
+
 from __future__ import annotations
 
 import math
@@ -8,10 +10,18 @@ from .constants import TEMP_NAMES
 
 
 class FrameVersions():
-    """ """
+    """Used to parse versioning data in CurrentData
+    and RegData responses.
+    """
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (list, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         frames_number = message[offset]
         offset += 1
@@ -24,10 +34,16 @@ class FrameVersions():
         return data, offset
 
 class Outputs():
-    """ """
+    """Used to parse output structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         outputs = util.unpack_ushort(message[offset : offset+4])
         data['fanWorks'] = bool(outputs&0x0001)
@@ -51,10 +67,16 @@ class Outputs():
         return data, offset
 
 class OutputFlags():
-    """ """
+    """Parses output flags structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         output_flags = util.unpack_ushort(message[offset : offset+4])
         data['pumpCO'] = bool(output_flags&0x004)
@@ -66,20 +88,26 @@ class OutputFlags():
         return data, offset
 
 class Temperatures():
-    """ """
+    """Parses temperature structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         temp_number = message[offset]
         offset += 1
-        for i in range(temp_number):
+        for _ in range(temp_number):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            if (not math.isnan(temp)
+            if ((not math.isnan(temp))
                 and index < len(TEMP_NAMES)
                 and index >= 0):
-                # Temperature exists and index is in correct range.
+                # Temperature exists and index is in the correct range.
                 data[TEMP_NAMES[index]] = temp
 
             offset += 5
@@ -87,10 +115,16 @@ class Temperatures():
         return data, offset
 
 class Alarms:
-    """ """
+    """Parses alarm structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         alarms_number = message[offset]
         offset += alarms_number + 1
@@ -98,7 +132,7 @@ class Alarms:
         return data, offset
 
 class Versions:
-    """ """
+    """Parses versions structure for CurrentData message."""
 
     _modules: list = (
         'moduleASoftVer',
@@ -111,6 +145,12 @@ class Versions:
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         for module in self._modules:
             if module == 'moduleASoftVer':
@@ -134,10 +174,16 @@ class Versions:
         return data, offset
 
 class Lambda:
-    """ """
+    """Parses lambda structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (dict, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = {}
         if message[offset] == 0xFF:
             offset += 1
@@ -155,10 +201,16 @@ class Lambda:
         return data, offset
 
 class Thermostats:
-    """ """
+    """Parses thermostats structure for CurrentData message."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (list, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = []
         if message[offset] == 0xFF:
             offset += 1
@@ -188,15 +240,21 @@ class Thermostats:
         return data, offset
 
 class Mixers:
-    """ """
+    """Parses mixers structure for CurrentData message."""
 
     def from_bytes( self, message: bytearray,
             offset: int = 0 ) -> (list, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         data = []
         mixers_number = message[offset]
         offset += 1
         if mixers_number > 0:
-            for m in range(1, mixers_number+1):
+            for _ in range(1, mixers_number+1):
                 mixer = {}
                 mixer['mixerTemp'] = util.unpack_float(
                     message[offset : offset+4])[0]
@@ -209,7 +267,7 @@ class Mixers:
         return data, offset
 
 class UID:
-    """ """
+    """Parses UID string for UID response message."""
 
     UID_BASE: int = 32
     UID_BASE_BITS: int = 5
@@ -217,6 +275,12 @@ class UID:
 
     def from_bytes(self, message: bytearray,
             offset: int = 0) -> (str, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         uid_length = message[offset]
         offset += 1
         uid = message[offset : uid_length+offset].decode()
@@ -245,10 +309,16 @@ class UID:
         return ''.join(output), offset
 
 class VarString:
-    """ """
+    """Parses variable length string."""
 
     def from_bytes(self, message: bytearray,
             offset: int = 0 ) -> (str, int):
+        """Parses frame message into usable data.
+
+        Keyword arguments:
+        message -- ecoNET message
+        offset -- current data offset
+        """
         string_length = message[offset]
         offset += 1
 

@@ -1,3 +1,4 @@
+"""Contains classes for supported devices."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -6,7 +7,10 @@ from . import util
 
 
 class EcoMAX:
+    """ Class for storing ecoMAX device state.
 
+        Passed to callback method when receiving frame.
+    """
     software: str = None
     updated: str = None
     product: str = None
@@ -17,9 +21,15 @@ class EcoMAX:
     _data: dict = {}
 
     def has_data(self) -> bool:
+        """Checks if EcoMAX instance has any data."""
         return self.updated is not None
 
     def set_data(self, data: dict) -> None:
+        """Sets EcoMAX data received in CurrentData frame.
+
+        Keyword arguments:
+        data - data parsed from CurrentData response frame
+        """
         self._data['software'] = data['versions']['moduleASoftVer']
         self._data['mode'] = data['modeString']
         self._data['power'] = data['boilerPowerKW']
@@ -40,9 +50,11 @@ class EcoMAX:
         self.updated = datetime.now()
 
     def set_parameters(self, parameters: dict) -> None:
+        """Sets EcoMAX settings received in Parameters frame."""
         self._parameters = parameters
 
     def data(self, *args):
+        """Returns EcoMAX data as a tuple. Accepts list of keys."""
         data = []
         for arg in args:
             if self._data[arg] is not None:
@@ -51,6 +63,7 @@ class EcoMAX:
         return data
 
     def __str__(self) -> str:
+        """Converts EcoMAX instance to a string."""
         co_temp = util.celsius(self._data['co_temp'])
         co_target = util.celsius(self._data['co_target'])
         cwu_temp = util.celsius(self._data['cwu_temp'])

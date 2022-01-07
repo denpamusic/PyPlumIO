@@ -1,15 +1,10 @@
+"""Contains exceptions."""
 
 class ChecksumError(Exception):
-    """ """
-
-    pass
+    """Raised on checksum error while parsing frame content."""
 
 class LengthError(Exception):
-    """ """
-
-    pass
+    """Raised on unexpected frame length while parsing frame content."""
 
 class FrameTypeError(Exception):
-    """ """
-
-    pass
+    """Raised on unknown frame type."""
