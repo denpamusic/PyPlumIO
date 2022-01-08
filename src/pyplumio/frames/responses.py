@@ -26,7 +26,7 @@ class ProgramVersion(Frame):
         version = data["version"].split(".")
         message = bytearray(15)
         struct.pack_into(
-            "<2sB2s3sBHHH",
+            "<2sB2s3sHHHB",
             message,
             0,
             data["struct_tag"],
@@ -55,7 +55,7 @@ class ProgramVersion(Frame):
             version2,
             version3,
             self._data["address"],
-        ] = struct.unpack_from("<2sB2s3sBHHH", message)
+        ] = struct.unpack_from("<2sB2s3sHHHB", message)
         self._data["version"] = ".".join(map(str, [version1, version2, version3]))
 
 
