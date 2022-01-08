@@ -60,9 +60,10 @@ class EcoNET:
 )
 """.strip()
 
-    async def _callback(self, callback: Callable[EcoMAX, EcoNET],
-            ecomax: EcoMAX, interval: int) -> None:
-        """ Calls provided callback method with specified interval.
+    async def _callback(
+        self, callback: Callable[EcoMAX, EcoNET], ecomax: EcoMAX, interval: int
+    ) -> None:
+        """Calls provided callback method with specified interval.
 
         Keyword arguments:
         callback -- callback method
@@ -70,12 +71,11 @@ class EcoNET:
         interval -- update interval in seconds
         """
         while True:
-            await callback(ecomax = ecomax, econet = self)
+            await callback(ecomax=ecomax, econet=self)
             await asyncio.sleep(interval)
 
-    async def _process(self, frame: Frame, ecomax: EcoMAX,
-            bucket: FrameBucket) -> None:
-        """ Processes received frame.
+    async def _process(self, frame: Frame, ecomax: EcoMAX, bucket: FrameBucket) -> None:
+        """Processes received frame.
 
         Keyword arguments:
         frame -- received Frame instance
@@ -86,18 +86,18 @@ class EcoNET:
             self.writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
-            ecomax.uid = frame.data()['UID']
-            ecomax.product = frame.data()['reg_name']
+            ecomax.uid = frame.data()["UID"]
+            ecomax.product = frame.data()["reg_name"]
 
         elif frame.is_type(responses.Password):
             ecomax.password = frame.data()
 
         elif frame.is_type(responses.CurrentData):
-            bucket.fill(frame.data()['frame_versions'])
+            bucket.fill(frame.data()["frame_versions"])
             ecomax.set_data(frame.data())
 
         elif frame.is_type(responses.RegData):
-            bucket.fill(frame.data()['frame_versions'])
+            bucket.fill(frame.data()["frame_versions"])
 
         elif frame.is_type(responses.Parameters):
             ecomax.set_parameters(frame.data())
@@ -110,8 +110,7 @@ class EcoNET:
                 # Respond to check device frame only if queue is empty.
                 return self.writer.queue(frame.response())
 
-    async def run(self, callback: Callable[EcoMAX, EcoNET],
-            interval: int = 1) -> None:
+    async def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Establishes connection and continuously reads new frames.
 
         Keyword arguments:
@@ -120,7 +119,8 @@ class EcoNET:
         """
         try:
             reader, writer = await asyncio.open_connection(
-                host = self.host, port = self.port, **self.kwargs)
+                host=self.host, port=self.port, **self.kwargs
+            )
         except RuntimeError:
             pass
 
@@ -143,16 +143,13 @@ class EcoNET:
                 pass
 
             if frame is not None:
-                asyncio.create_task(self._process(
-                    frame = frame,
-                    ecomax = ecomax,
-                    bucket = bucket
-                ))
+                asyncio.create_task(
+                    self._process(frame=frame, ecomax=ecomax, bucket=bucket)
+                )
 
             await self.writer.process_queue()
 
-    def loop(self, callback: Callable[EcoMAX, EcoNET],
-            interval: int = 1) -> None:
+    def loop(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Run connection in the event loop.
 
         Keyword arguments:
@@ -160,9 +157,8 @@ class EcoNET:
         interval -- user-defined update interval in seconds
         """
         try:
-            if os.name == 'nt':
-                asyncio.set_event_loop_policy(
-                    asyncio.WindowsSelectorEventLoopPolicy())
+            if os.name == "nt":
+                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
             sys.exit(asyncio.run(self.run(callback, interval)))
         except KeyboardInterrupt:

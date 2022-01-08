@@ -5,10 +5,11 @@ from os import name, system
 import socket
 import struct
 
-DEGREE_SIGN = '\N{DEGREE SIGN}'
-unpack_float = struct.Struct('<f').unpack
-pack_header = struct.Struct('<BH4B').pack_into
-unpack_header = struct.Struct('<BH4B').unpack_from
+DEGREE_SIGN = "\N{DEGREE SIGN}"
+unpack_float = struct.Struct("<f").unpack
+pack_header = struct.Struct("<BH4B").pack_into
+unpack_header = struct.Struct("<BH4B").unpack_from
+
 
 def crc(data: bytearray) -> int:
     """Calculates frame checksum.
@@ -16,7 +17,8 @@ def crc(data: bytearray) -> int:
     Keyword arguments:
     data - data to calculate checksum for
     """
-    return functools.reduce(lambda x, y: x^y, data)
+    return functools.reduce(lambda x, y: x ^ y, data)
+
 
 def to_hex(data: bytearray) -> str:
     """Converts bytearray to list of hex strings.
@@ -24,7 +26,8 @@ def to_hex(data: bytearray) -> str:
     Keyword arguments:
     data - data for convesion
     """
-    return [f'{data[i]:02X}' for i in range(0, len(data))]
+    return [f"{data[i]:02X}" for i in range(0, len(data))]
+
 
 def unpack_ushort(data: bytearray) -> int:
     """Unpacks unsigned short number from bytes.
@@ -32,7 +35,8 @@ def unpack_ushort(data: bytearray) -> int:
     Keyword arguments:
     data - bytes to unpack number from
     """
-    return int.from_bytes(data, byteorder = 'little', signed = False)
+    return int.from_bytes(data, byteorder="little", signed=False)
+
 
 def dump_dictionary(dictionary: dict) -> None:
     """Dumps dictionary to console.
@@ -41,7 +45,8 @@ def dump_dictionary(dictionary: dict) -> None:
     dictionary -- dictionary to print out
     """
     for key, value in dictionary.items():
-        print(f'{key}: {str(value)}')
+        print(f"{key}: {str(value)}")
+
 
 def ip_to_bytes(address: str) -> bytearray:
     """Converts ip address to bytes.
@@ -51,6 +56,7 @@ def ip_to_bytes(address: str) -> bytearray:
     """
     return socket.inet_aton(address)
 
+
 def ip_from_bytes(data: bytearray) -> str:
     """Converts ip address from bytes to string representation.
 
@@ -59,6 +65,7 @@ def ip_from_bytes(data: bytearray) -> str:
     """
     return socket.inet_ntoa(data)
 
+
 def append_bytes(arr, data) -> None:
     """Appends string as bytes to byte array.
 
@@ -66,7 +73,8 @@ def append_bytes(arr, data) -> None:
     arr -- array of bytes
     data -- string to append to array
     """
-    return [ arr.append(ord(b)) for b in data ]
+    return [arr.append(ord(b)) for b in data]
+
 
 def merge(defaults: dict, options: dict) -> dict:
     """Merges two dictionary with options overriding defaults.
@@ -85,6 +93,7 @@ def merge(defaults: dict, options: dict) -> dict:
 
     return options
 
+
 def check_parameter(data: bytearray) -> bool:
     """Checks if parameter contains any bytes besides 0xFF.
 
@@ -97,6 +106,7 @@ def check_parameter(data: bytearray) -> bool:
 
     return False
 
+
 def uid_stamp(message: str) -> str:
     """Calculates UID stamp.
 
@@ -106,14 +116,15 @@ def uid_stamp(message: str) -> str:
     crc_ = 0xA3A3
     for byte in message:
         int_ = ord(byte)
-        crc_ = crc_^int_
+        crc_ = crc_ ^ int_
         for _ in range(8):
-            if crc_&1:
-                crc_ = (crc_>>1)^0xA001
+            if crc_ & 1:
+                crc_ = (crc_ >> 1) ^ 0xA001
             else:
-                crc_ = crc_>>1
+                crc_ = crc_ >> 1
 
-    return chr(crc_%256) + chr((crc_//256)%256)
+    return chr(crc_ % 256) + chr((crc_ // 256) % 256)
+
 
 def uid_bits_to_char(number: int) -> str:
     """Converts UID bits to ASCII characters.
@@ -122,21 +133,23 @@ def uid_bits_to_char(number: int) -> str:
     number -- byte for conversion
     """
     if number < 0 or number >= 32:
-        return '#'
+        return "#"
 
     if number < 10:
-        return chr(ord('0') + number)
+        return chr(ord("0") + number)
 
-    char = chr(ord('A') + number - 10)
+    char = chr(ord("A") + number - 10)
 
-    return 'Z' if char == 'O' else char
+    return "Z" if char == "O" else char
+
 
 def clear_screen() -> None:
     """Clears console screen."""
-    if name == 'nt':
-        _ = system('cls')
+    if name == "nt":
+        _ = system("cls")
     else:
-        _ = system('clear')
+        _ = system("clear")
+
 
 def is_working(state: bool) -> str:
     """Converts boolean to text message.
@@ -144,7 +157,8 @@ def is_working(state: bool) -> str:
     Keyword arguments:
     state -- boolean respresenting state
     """
-    return 'working' if state else 'stopped'
+    return "working" if state else "stopped"
+
 
 def celsius(number) -> str:
     """Returns rounded number as string and append celsius suffix.
@@ -152,7 +166,8 @@ def celsius(number) -> str:
     Keyword arguments:
     number -- number to round and append suffix to
     """
-    return f'{str(round(number, 2))} {DEGREE_SIGN}C'
+    return f"{str(round(number, 2))} {DEGREE_SIGN}C"
+
 
 def kw(number) -> str:
     """Returns rounded number as string and append "kW" suffix.
@@ -160,7 +175,8 @@ def kw(number) -> str:
     Keyword arguments:
     number -- number to round and append suffix to
     """
-    return str(round(number, 2)) + ' kW'
+    return str(round(number, 2)) + " kW"
+
 
 def percent(number) -> str:
     """Returns rounded number as string and append percent suffix.
@@ -168,7 +184,8 @@ def percent(number) -> str:
     Keyword arguments:
     number -- number to round and append suffix to
     """
-    return str(round(number, 2)) + ' %'
+    return str(round(number, 2)) + " %"
+
 
 def kgh(number) -> str:
     """Returns rounded number as string and append "kg/h" suffix.
@@ -176,4 +193,4 @@ def kgh(number) -> str:
     Keyword arguments:
     number -- number to round and append suffix to
     """
-    return str(round(number, 2)) + ' kg/h'
+    return str(round(number, 2)) + " kg/h"

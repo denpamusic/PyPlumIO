@@ -26,11 +26,16 @@ class Frame:
     econet_version: int = ECONET_VERSION
     _data = None
 
-    def __init__(self, type_: int = None, recipient: int = BROADCAST_ADDRESS,
-            message: bytearray = bytearray(),
-            sender: int = ECONET_ADDRESS,
-            sender_type: int = ECONET_TYPE,
-            econet_version: int = ECONET_VERSION, data = None):
+    def __init__(
+        self,
+        type_: int = None,
+        recipient: int = BROADCAST_ADDRESS,
+        message: bytearray = bytearray(),
+        sender: int = ECONET_ADDRESS,
+        sender_type: int = ECONET_TYPE,
+        econet_version: int = ECONET_VERSION,
+        data=None,
+    ):
         """Creates new Frame object.
 
         Keyword arguments:
@@ -75,6 +80,8 @@ class Frame:
 
     def __len__(self) -> int:
         """Returns frame length.
+
+        Structure:
         HEADER_SIZE bytes
         + 1 bytes frame type
         + length of message
@@ -94,14 +101,18 @@ class Frame:
     def header(self) -> bytearray:
         """Gets frame header as bytearray."""
         buffer = bytearray(HEADER_SIZE)
-        util.pack_header(buffer, 0, *[
-            FRAME_START,
-            len(self),
-            self.recipient,
-            self.sender,
-            self.sender_type,
-            self.econet_version
-        ])
+        util.pack_header(
+            buffer,
+            0,
+            *[
+                FRAME_START,
+                len(self),
+                self.recipient,
+                self.sender,
+                self.sender_type,
+                self.econet_version,
+            ],
+        )
 
         return buffer
 

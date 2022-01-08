@@ -5,6 +5,7 @@ from .econet import EcoNET
 
 __version__ = VERSION
 
+
 def econet_connection(host: str, port: int, **kwargs):
     """Creates ecoNET connection instance.
 

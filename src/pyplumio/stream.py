@@ -60,8 +60,9 @@ class FrameWriter:
         await self.writer.drain()
 
     def close(self) -> None:
-        """ Closes StreamWriter. """
+        """Closes StreamWriter."""
         self.writer.close()
+
 
 class FrameReader:
     """Used to read and parse received frames
@@ -85,19 +86,19 @@ class FrameReader:
         buffer = await self.reader.read(FrameReader.BUFFER_SIZE)
 
         if len(buffer) >= HEADER_SIZE:
-            header = buffer[ 0 : HEADER_SIZE ]
+            header = buffer[0:HEADER_SIZE]
             [
                 _,
                 length,
                 recipient,
                 sender,
                 sender_type,
-                econet_version
+                econet_version,
             ] = util.unpack_header(header)
 
             if recipient in [ECONET_ADDRESS, BROADCAST_ADDRESS]:
                 # Destination address is econet or broadcast.
-                payload = buffer[HEADER_SIZE : length]
+                payload = buffer[HEADER_SIZE:length]
 
                 if HEADER_SIZE + len(payload) != length:
                     raise LengthError()
@@ -107,12 +108,12 @@ class FrameReader:
 
                 try:
                     return FrameFactory().get_frame(
-                        type_ = payload[0],
-                        recipient = recipient,
-                        message = payload[1:-2],
-                        sender = sender,
-                        sender_type = sender_type,
-                        econet_version = econet_version
+                        type_=payload[0],
+                        recipient=recipient,
+                        message=payload[1:-2],
+                        sender=sender,
+                        sender_type=sender_type,
+                        econet_version=econet_version,
                     )
                 except FrameTypeError:
                     pass

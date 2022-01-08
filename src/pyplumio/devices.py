@@ -5,10 +5,11 @@ from datetime import datetime
 
 
 class EcoMAX:
-    """ Class for storing ecoMAX device state.
+    """Class for storing ecoMAX device state.
 
-        Passed to callback method when receiving frame.
+    Passed to callback method when receiving frame.
     """
+
     software: str = None
     updated: str = None
     product: str = None
@@ -19,7 +20,7 @@ class EcoMAX:
     _data: dict = {}
 
     def __getattr__(self, item: str):
-        """ Gets current data item as class atribute.
+        """Gets current data item as class atribute.
 
         Keyword arguments:
         item -- name of property to get
@@ -38,26 +39,26 @@ class EcoMAX:
         Keyword arguments:
         data - data parsed from CurrentData response frame
         """
-        self._data['MODE'] = data['modeString']
-        self._data['POWER'] = data['boilerPowerKW']
-        self._data['POWER_PCT'] = data['boilerPower']
-        self._data['CO_TARGET'] = data['tempCOSet']
-        self._data['CO_TEMP'] = data['temperatures']['tempCO']
-        self._data['CO_PUMP'] = data['outputs']['pumpCOWorks']
-        self._data['EXHAUST_TEMP'] = data['temperatures']['tempFlueGas']
-        self._data['OUTSIDE_TEMP'] = data['temperatures']['tempExternalSensor']
-        self._data['FAN'] = data['outputs']['fanWorks']
-        self._data['FAN_POWER'] = data['fanPower']
-        self._data['CWU_TARGET'] = data['tempCWUSet']
-        self._data['CWU_TEMP'] = data['temperatures']['tempCWU']
-        self._data['CWU_PUMP'] = data['outputs']['pumpCWUWorks']
-        self._data['FEEDER'] = data['outputs']['feederWorks']
-        self._data['FEEDER_TEMP'] = data['temperatures']['tempFeeder']
-        self._data['FUEL_LEVEL'] = data['fuelLevel']
-        self._data['FUEL_FLOW'] = data['fuelStream']
-        self._data['LIGHTER'] = data['outputs']['lighterWorks']
+        self._data["MODE"] = data["modeString"]
+        self._data["POWER"] = data["boilerPowerKW"]
+        self._data["POWER_PCT"] = data["boilerPower"]
+        self._data["CO_TARGET"] = data["tempCOSet"]
+        self._data["CO_TEMP"] = data["temperatures"]["tempCO"]
+        self._data["CO_PUMP"] = data["outputs"]["pumpCOWorks"]
+        self._data["EXHAUST_TEMP"] = data["temperatures"]["tempFlueGas"]
+        self._data["OUTSIDE_TEMP"] = data["temperatures"]["tempExternalSensor"]
+        self._data["FAN"] = data["outputs"]["fanWorks"]
+        self._data["FAN_POWER"] = data["fanPower"]
+        self._data["CWU_TARGET"] = data["tempCWUSet"]
+        self._data["CWU_TEMP"] = data["temperatures"]["tempCWU"]
+        self._data["CWU_PUMP"] = data["outputs"]["pumpCWUWorks"]
+        self._data["FEEDER"] = data["outputs"]["feederWorks"]
+        self._data["FEEDER_TEMP"] = data["temperatures"]["tempFeeder"]
+        self._data["FUEL_LEVEL"] = data["fuelLevel"]
+        self._data["FUEL_FLOW"] = data["fuelStream"]
+        self._data["LIGHTER"] = data["outputs"]["lighterWorks"]
 
-        self.software = data['versions']['moduleASoftVer']
+        self.software = data["versions"]["moduleASoftVer"]
         self.updated = datetime.now()
 
     def has_parameters(self) -> bool:
@@ -83,14 +84,14 @@ Updated:        {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
 """
 
         if self.has_data():
-            output += '\nCurrent data:\n'
+            output += "\nCurrent data:\n"
             for k, v in self._data.items():
-                output += f' -- {k}: {v}\n'
+                output += f" -- {k}: {v}\n"
 
         if self.has_parameters():
-            output += '\n Regulator parameters:\n'
+            output += "\n Regulator parameters:\n"
             for k, v in self._parameters.items():
                 parameter_str = f"{v['value']} (range {v['min']} - {v['max']})"
-                output += f' -- {k}: {parameter_str}\n'
+                output += f" -- {k}: {parameter_str}\n"
 
         return output.lstrip()
