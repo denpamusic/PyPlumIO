@@ -31,7 +31,7 @@ class FrameBucket:
         frames -- dictionary of frames keyed by frame versions
         """
         for type_, version in frames.items():
-            if not type_ in self.versions or self.versions[type_] != version:
+            if type_ not in self.versions or self.versions[type_] != version:
                 # We don't have this frame or it's version has changed.
                 self.update(type_, version)
 

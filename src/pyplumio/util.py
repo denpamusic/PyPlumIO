@@ -24,7 +24,7 @@ def to_hex(data: bytearray) -> str:
     """Converts bytearray to list of hex strings.
 
     Keyword arguments:
-    data - data for convesion
+    data - data for conversion
     """
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 
@@ -88,7 +88,7 @@ def merge(defaults: dict, options: dict) -> dict:
         return defaults
 
     for key in defaults.keys():
-        if not key in options:
+        if key not in options:
             options[key] = defaults[key]
 
     return options

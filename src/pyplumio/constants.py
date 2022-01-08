@@ -1,4 +1,4 @@
-"""Contains contants."""
+"""Contains constants."""
 
 VERSION: str = "0.0.5"
 
@@ -13,7 +13,7 @@ ECONET_VERSION: int = 0x05
 MODES: list = (
     "OFF",
     "STARTING",
-    "STARTING",
+    "KINDLING",
     "HEATING",
     "STANDBY",
     "EXTINGUISHED",

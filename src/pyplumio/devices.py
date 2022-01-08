@@ -20,7 +20,7 @@ class EcoMAX:
     _data: dict = {}
 
     def __getattr__(self, item: str):
-        """Gets current data item as class atribute.
+        """Gets current data item as class attribute.
 
         Keyword arguments:
         item -- name of property to get
