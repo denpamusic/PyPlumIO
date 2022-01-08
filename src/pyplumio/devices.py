@@ -89,7 +89,7 @@ Updated:        {self.updated.strftime('%d.%m.%Y %H:%M:%S')}
                 output += f" -- {k}: {v}\n"
 
         if self.has_parameters():
-            output += "\n Regulator parameters:\n"
+            output += "\nRegulator parameters:\n"
             for k, v in self._parameters.items():
                 parameter_str = f"{v['value']} (range {v['min']} - {v['max']})"
                 output += f" -- {k}: {parameter_str}\n"

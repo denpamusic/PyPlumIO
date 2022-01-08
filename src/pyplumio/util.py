@@ -38,16 +38,6 @@ def unpack_ushort(data: bytearray) -> int:
     return int.from_bytes(data, byteorder="little", signed=False)
 
 
-def dump_dictionary(dictionary: dict) -> None:
-    """Dumps dictionary to console.
-
-    Keyword arguments:
-    dictionary -- dictionary to print out
-    """
-    for key, value in dictionary.items():
-        print(f"{key}: {str(value)}")
-
-
 def ip_to_bytes(address: str) -> bytearray:
     """Converts ip address to bytes.
 
@@ -64,16 +54,6 @@ def ip_from_bytes(data: bytearray) -> str:
     data -- 4 bytes to convert
     """
     return socket.inet_ntoa(data)
-
-
-def append_bytes(arr, data) -> None:
-    """Appends string as bytes to byte array.
-
-    Keyword arguments:
-    arr -- array of bytes
-    data -- string to append to array
-    """
-    return [arr.append(ord(b)) for b in data]
 
 
 def merge(defaults: dict, options: dict) -> dict:
@@ -126,8 +106,8 @@ def uid_stamp(message: str) -> str:
     return chr(crc_ % 256) + chr((crc_ // 256) % 256)
 
 
-def uid_bits_to_char(number: int) -> str:
-    """Converts UID bits to ASCII characters.
+def uid_5bits_to_char(number: int) -> str:
+    """Converts 5 bits from UID to ASCII character.
 
     Keyword arguments:
     number -- byte for conversion
@@ -141,56 +121,3 @@ def uid_bits_to_char(number: int) -> str:
     char = chr(ord("A") + number - 10)
 
     return "Z" if char == "O" else char
-
-
-def clear_screen() -> None:
-    """Clears console screen."""
-    if name == "nt":
-        _ = system("cls")
-    else:
-        _ = system("clear")
-
-
-def is_working(state: bool) -> str:
-    """Converts boolean to text message.
-
-    Keyword arguments:
-    state -- boolean respresenting state
-    """
-    return "working" if state else "stopped"
-
-
-def celsius(number) -> str:
-    """Returns rounded number as string and append celsius suffix.
-
-    Keyword arguments:
-    number -- number to round and append suffix to
-    """
-    return f"{str(round(number, 2))} {DEGREE_SIGN}C"
-
-
-def kw(number) -> str:
-    """Returns rounded number as string and append "kW" suffix.
-
-    Keyword arguments:
-    number -- number to round and append suffix to
-    """
-    return str(round(number, 2)) + " kW"
-
-
-def percent(number) -> str:
-    """Returns rounded number as string and append percent suffix.
-
-    Keyword arguments:
-    number -- number to round and append suffix to
-    """
-    return str(round(number, 2)) + " %"
-
-
-def kgh(number) -> str:
-    """Returns rounded number as string and append "kg/h" suffix.
-
-    Keyword arguments:
-    number -- number to round and append suffix to
-    """
-    return str(round(number, 2)) + " kg/h"

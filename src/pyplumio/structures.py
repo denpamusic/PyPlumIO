@@ -302,7 +302,7 @@ class UID:
             char_code = conv_int % self.UID_BASE
             conv_int //= self.UID_BASE
             conv_size -= self.UID_BASE_BITS
-            output.insert(0, util.uid_bits_to_char(char_code))
+            output.insert(0, util.uid_5bits_to_char(char_code))
 
         return "".join(output), offset
 

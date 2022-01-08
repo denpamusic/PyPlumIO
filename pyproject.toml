@@ -16,7 +16,6 @@ jobs = 2
 [tool.pylint.BASIC]
 good-names = [
     "_",
-    "kw",
     "i",
     "j",
     "k",
