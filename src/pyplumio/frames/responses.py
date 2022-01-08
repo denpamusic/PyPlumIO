@@ -3,7 +3,13 @@
 import struct
 
 from pyplumio import structures, util
-from pyplumio.constants import EDITABLE_PARAMS, MODES, VERSION
+from pyplumio.constants import (
+    EDITABLE_PARAMS,
+    MODES,
+    VERSION,
+    WLAN_ENCRYPTION,
+    WLAN_ENCRYPTION_NONE,
+)
 from pyplumio.frame import Frame
 
 
@@ -66,19 +72,19 @@ class CheckDevice(Frame):
 
     _defaults: dict = {
         "eth": {
-            "ip": "192.168.1.120",
-            "netmask": "255.255.255.0",
-            "gateway": "192.168.1.1",
-            "status": True,
+            "ip": "0.0.0.0",
+            "netmask": "0.0.0.0",
+            "gateway": "0.0.0.0",
+            "status": False,
         },
         "wlan": {
-            "ip": "192.168.1.106",
-            "netmask": "255.255.255.0",
-            "gateway": "192.168.1.1",
-            "status": True,
-            "encryption": 4,
+            "ip": "0.0.0.0",
+            "netmask": "0.0.0.0",
+            "gateway": "0.0.0.0",
+            "status": False,
+            "encryption": WLAN_ENCRYPTION[WLAN_ENCRYPTION_NONE],
             "quality": 100,
-            "ssid": "netfleet",
+            "ssid": "",
         },
         "server": {"status": True},
     }

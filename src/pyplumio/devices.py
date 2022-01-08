@@ -26,8 +26,8 @@ class EcoMAX:
         item -- name of property to get
         """
         item = item.upper()
-        if item in self._data.keys():
-            return self._data[item]
+        if item in self._data:
+            return item
 
     def has_data(self) -> bool:
         """Checks if EcoMAX instance has any data."""

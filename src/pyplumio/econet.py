@@ -15,6 +15,7 @@ from .frame import Frame
 from .frames import requests, responses
 from .storage import FrameBucket
 from .stream import FrameReader, FrameWriter
+from .constants import WLAN_ENCRYPTION
 
 
 class EcoNET:
@@ -27,6 +28,7 @@ class EcoNET:
     closed: bool = True
     reader: FrameReader = None
     writer: FrameWriter = None
+    _net: dict = {}
 
     def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET connection instance.
@@ -108,7 +110,7 @@ class EcoNET:
         elif frame.is_type(requests.CheckDevice):
             if self.writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
-                return self.writer.queue(frame.response())
+                return self.writer.queue(frame.response(self._net))
 
     async def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Establishes connection and continuously reads new frames.
@@ -163,6 +165,53 @@ class EcoNET:
             sys.exit(asyncio.run(self.run(callback, interval)))
         except KeyboardInterrupt:
             pass
+
+    def set_eth(
+        self, ip: str, netmask: str = "255.255.255.0", gateway: str = "0.0.0.0"
+    ) -> None:
+        """Sets eth parameters to pass to ecoMax device.
+        Used for informational purpoises only.
+
+        Keyword arguments:
+        ip -- ip address of eth device
+        netmask -- netmask of eth device
+        gateway -- gateway address of eth device
+        """
+        eth = {}
+        eth["ip"] = ip
+        eth["netmask"] = netmask
+        eth["gateway"] = gateway
+        eth["status"] = True
+        self._net["eth"] = eth
+
+    def set_wlan(
+        self,
+        ssid: str,
+        ip: str,
+        encryption: int = WLAN_ENCRYPTION[1],
+        netmask: str = "255.255.255.0",
+        gateway: str = "0.0.0.0",
+        quality: int = 100,
+    ) -> None:
+        """Sets wlan parameters to pass to ecoMAX device.
+        Used for informational purpoises only.
+
+        Keyword arguments:
+        ssid -- SSID string
+        encryption -- wlan encryption, must be passed with constant
+        ip -- ip address of wlan device
+        netmask -- netmask of wlan device
+        gateway -- gateway address of wlan device
+        """
+        wlan = {}
+        wlan["ssid"] = ssid
+        wlan["encryption"] = encryption
+        wlan["quality"] = quality
+        wlan["ip"] = ip
+        wlan["netmask"] = netmask
+        wlan["gateway"] = gateway
+        wlan["status"] = True
+        self._net["wlan"] = wlan
 
     def close(self) -> None:
         """Closes opened connection."""
