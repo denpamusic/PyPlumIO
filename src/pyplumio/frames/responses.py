@@ -104,10 +104,11 @@ class CheckDevice(Frame):
         for address in ("ip", "netmask", "gateway"):
             message += util.ip_to_bytes(wlan[address])
 
-        message.append(wlan["status"])
+        message.append(server["status"])
         message.append(wlan["encryption"])
         message.append(wlan["quality"])
-        message.append(server["status"])
+        message.append(wlan["status"])
+
         message += b"\x00" * 4
         message.append(len(wlan["ssid"]))
         message += wlan["ssid"].encode("utf-8")
@@ -132,10 +133,10 @@ class CheckDevice(Frame):
             self._data["wlan"][part] = util.ip_from_bytes(message[offset : offset + 4])
             offset += 4
 
-        self._data["wlan"]["status"] = bool(message[offset])
+        self._data["server"]["status"] = bool(message[offset])
         self._data["wlan"]["encryption"] = int(message[offset + 1])
         self._data["wlan"]["quality"] = int(message[offset + 2])
-        self._data["server"]["status"] = bool(message[offset + 3])
+        self._data["wlan"]["status"] = bool(message[offset + 3])
         offset += 8
         self._data["wlan"]["ssid"] = structures.VarString().from_bytes(message, offset)
 
