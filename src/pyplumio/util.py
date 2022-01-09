@@ -1,7 +1,6 @@
 """Contains various helper methods."""
 
 import functools
-from os import name, system
 import socket
 import struct
 

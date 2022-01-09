@@ -9,13 +9,13 @@ from collections.abc import Callable
 import os
 import sys
 
+from .constants import WLAN_ENCRYPTION
 from .devices import EcoMAX
 from .exceptions import ChecksumError, LengthError
 from .frame import Frame
 from .frames import requests, responses
 from .storage import FrameBucket
 from .stream import FrameReader, FrameWriter
-from .constants import WLAN_ENCRYPTION
 
 
 class EcoNET:
@@ -110,7 +110,7 @@ class EcoNET:
         elif frame.is_type(requests.CheckDevice):
             if self.writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
-                return self.writer.queue(frame.response(self._net))
+                return self.writer.queue(frame.response(data=self._net))
 
     async def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Establishes connection and continuously reads new frames.
@@ -212,6 +212,10 @@ class EcoNET:
         wlan["gateway"] = gateway
         wlan["status"] = True
         self._net["wlan"] = wlan
+
+    def connected(self) -> bool:
+        """Returns connection state."""
+        return not self.closed
 
     def close(self) -> None:
         """Closes opened connection."""

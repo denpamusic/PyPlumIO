@@ -27,7 +27,7 @@ class EcoMAX:
         """
         item = item.upper()
         if item in self._data:
-            return item
+            return self._data[item]
 
     def has_data(self) -> bool:
         """Checks if EcoMAX instance has any data."""
