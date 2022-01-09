@@ -1,6 +1,6 @@
 """Contains constants."""
 
-VERSION: str = "0.0.5"
+VERSION: str = "0.0.6"
 
 FRAME_START: int = 0x68
 FRAME_END: int = 0x16
