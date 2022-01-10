@@ -13,7 +13,11 @@ from pyplumio.constants import (
 from pyplumio.frame import Frame
 
 
-class ProgramVersion(Frame):
+class Response(Frame):
+    """Base class for all response frames."""
+
+
+class ProgramVersion(Response):
     """Contains information about device software and hardware version."""
 
     type_: int = 0xC0
@@ -65,7 +69,7 @@ class ProgramVersion(Frame):
         self._data["version"] = ".".join(map(str, [version1, version2, version3]))
 
 
-class CheckDevice(Frame):
+class CheckDevice(Response):
     """Contains ecoNET device information."""
 
     type_: int = 0xB0
@@ -141,7 +145,7 @@ class CheckDevice(Frame):
         self._data["wlan"]["ssid"] = structures.VarString.from_bytes(message, offset)
 
 
-class CurrentData(Frame):
+class CurrentData(Response):
     """Contains current device state data."""
 
     type_: int = 0x35
@@ -193,7 +197,7 @@ class CurrentData(Frame):
         self._data["mixers"], offset = structures.Mixers.from_bytes(message, offset)
 
 
-class UID(Frame):
+class UID(Response):
     """Contains device UID."""
 
     type_: int = 0xB9
@@ -218,7 +222,7 @@ class UID(Frame):
         self._data["reg_name"] = structures.VarString.from_bytes(message, offset)
 
 
-class Password(Frame):
+class Password(Response):
     """Contains device service password."""
 
     type_: int = 0xBA
@@ -234,7 +238,7 @@ class Password(Frame):
             self._data = password.decode()
 
 
-class RegData(Frame):
+class RegData(Response):
     """Contains current regulator data."""
 
     type_: int = 0x08
@@ -277,13 +281,13 @@ class RegData(Frame):
             ) = structures.FrameVersions.from_bytes(message, offset)
 
 
-class Timezones(Frame):
+class Timezones(Response):
     """Contains device timezone info."""
 
     type_: int = 0xB6
 
 
-class Parameters(Frame):
+class Parameters(Response):
     """Contains editable parameters."""
 
     type_: int = 0xB1
@@ -326,13 +330,13 @@ class Parameters(Frame):
                     offset += parameter_size * 3
 
 
-class MixerParameters(Frame):
+class MixerParameters(Response):
     """Contains current mixers parameters."""
 
     type_: int = 0xD5
 
 
-class DataStructure(Frame):
+class DataStructure(Response):
     """Contains device data structure."""
 
     type_: int = 0xD5
