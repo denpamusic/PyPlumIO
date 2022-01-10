@@ -78,7 +78,8 @@ class Frame:
 )
 """.strip()
 
-    def __len__(self) -> int:
+    @property
+    def length(self) -> int:
         """Returns frame length.
 
         Structure:
@@ -90,6 +91,11 @@ class Frame:
         """
         return HEADER_SIZE + 1 + len(self.message) + 1 + 1
 
+    def __len__(self) -> int:
+        """Returns frame length when calling len() on class instance."""
+        return self.length
+
+    @property
     def data(self):
         """Gets data parsed from frame."""
         if self._data is None:
@@ -98,6 +104,7 @@ class Frame:
 
         return self._data
 
+    @property
     def header(self) -> bytearray:
         """Gets frame header as bytearray."""
         buffer = bytearray(HEADER_SIZE)
@@ -130,7 +137,7 @@ class Frame:
 
     def to_bytes(self) -> bytes:
         """Converts frame to bytes respresentation."""
-        data = self.header()
+        data = self.header
         data.append(self.type_)
         for byte in self.message:
             data.append(byte)

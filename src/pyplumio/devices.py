@@ -29,6 +29,8 @@ class EcoMAX:
         if item in self._data:
             return self._data[item]
 
+        return None
+
     def has_data(self) -> bool:
         """Checks if EcoMAX instance has any data."""
         return bool(self._data)
@@ -69,9 +71,14 @@ class EcoMAX:
         """Sets EcoMAX settings received in Parameters frame."""
         self._parameters = parameters
 
+    @property
     def data(self):
         """Returns EcoMAX data as a tuple. Accepts list of keys."""
         return self._data
+
+    @property
+    def parameters(self):
+        return self._parameters
 
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""

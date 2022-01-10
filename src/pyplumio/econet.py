@@ -88,24 +88,24 @@ class EcoNET:
             self.writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
-            ecomax.uid = frame.data()["UID"]
-            ecomax.product = frame.data()["reg_name"]
+            ecomax.uid = frame.data["UID"]
+            ecomax.product = frame.data["reg_name"]
 
         elif frame.is_type(responses.Password):
-            ecomax.password = frame.data()
+            ecomax.password = frame.data
 
         elif frame.is_type(responses.CurrentData):
-            bucket.fill(frame.data()["frame_versions"])
-            ecomax.set_data(frame.data())
+            bucket.fill(frame.data["frame_versions"])
+            ecomax.set_data(frame.data)
 
         elif frame.is_type(responses.RegData):
-            bucket.fill(frame.data()["frame_versions"])
+            bucket.fill(frame.data["frame_versions"])
 
         elif frame.is_type(responses.Parameters):
-            ecomax.set_parameters(frame.data())
+            ecomax.set_parameters(frame.data)
 
         elif frame.is_type(responses.DataStructure):
-            ecomax.struct = frame.data()
+            ecomax.struct = frame.data
 
         elif frame.is_type(requests.CheckDevice):
             if self.writer.queue_is_empty():
