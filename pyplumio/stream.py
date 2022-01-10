@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
 
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS, HEADER_SIZE
+from pyplumio.constants import (
+    BROADCAST_ADDRESS,
+    ECONET_ADDRESS,
+    HEADER_SIZE,
+    READER_BUFFER_SIZE,
+)
 
 from . import util
 from .exceptions import ChecksumError, FrameTypeError, LengthError
@@ -69,8 +74,6 @@ class FrameReader:
     using asyncio's StreamReader.
     """
 
-    BUFFER_SIZE: int = 1000
-
     def __init__(self, reader: StreamReader):
         """Creates FrameReader instance.
 
@@ -80,10 +83,10 @@ class FrameReader:
         self.reader = reader
 
     async def read(self) -> Frame:
-        """Attempts to read FrameReader.BUFFER_SIZE bytes, find
+        """Attempts to read READER_BUFFER_SIZE bytes, find
         valid frame in it and return corresponding Frame instance.
         """
-        buffer = await self.reader.read(FrameReader.BUFFER_SIZE)
+        buffer = await self.reader.read(READER_BUFFER_SIZE)
 
         if len(buffer) >= HEADER_SIZE:
             header = buffer[0:HEADER_SIZE]
