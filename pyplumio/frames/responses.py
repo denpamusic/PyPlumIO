@@ -3,7 +3,6 @@
 import struct
 
 from pyplumio import structures, util
-from pyplumio._version import __version__
 from pyplumio.constants import (
     EDITABLE_PARAMS,
     MODES,
@@ -11,6 +10,7 @@ from pyplumio.constants import (
     WLAN_ENCRYPTION_NONE,
 )
 from pyplumio.frame import Frame
+from pyplumio.version import __version__
 
 
 class Response(Frame):
