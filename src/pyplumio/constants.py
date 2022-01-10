@@ -23,6 +23,26 @@ WLAN_ENCRYPTION = (
     WLAN_ENCRYPTION_WPA2,
 )
 
+MODULE_A: str = "moduleA"
+MODULE_B: str = "moduleB"
+MODULE_C: str = "moduleC"
+MODULE_LAMBDA: str = "moduleLambda"
+MODULE_ECOSTER: str = "moduleEcoSTER"
+MODULE_PANEL: str = "modulePanel"
+
+MODULES: list = (
+    MODULE_A,
+    MODULE_B,
+    MODULE_C,
+    MODULE_LAMBDA,
+    MODULE_ECOSTER,
+    MODULE_PANEL,
+)
+
+UID_BASE: int = 32
+UID_BASE_BITS: int = 5
+UID_CHAR_BITS: int = 8
+
 MODES: list = (
     "OFF",
     "STARTING",

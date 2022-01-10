@@ -138,7 +138,7 @@ class CheckDevice(Frame):
         self._data["wlan"]["quality"] = int(message[offset + 2])
         self._data["wlan"]["status"] = bool(message[offset + 3])
         offset += 8
-        self._data["wlan"]["ssid"] = structures.VarString().from_bytes(message, offset)
+        self._data["wlan"]["ssid"] = structures.VarString.from_bytes(message, offset)
 
 
 class CurrentData(Frame):
@@ -154,17 +154,17 @@ class CurrentData(Frame):
         """
         offset = 0
         self._data = {}
-        self._data["frame_versions"], offset = structures.FrameVersions().from_bytes(
+        self._data["frame_versions"], offset = structures.FrameVersions.from_bytes(
             message, offset
         )
         self._data["mode"] = message[offset]
         self._data["modeString"] = MODES[self._data["mode"]]
         offset += 1
-        self._data["outputs"], offset = structures.Outputs().from_bytes(message, offset)
-        self._data["output_flags"], offset = structures.OutputFlags().from_bytes(
+        self._data["outputs"], offset = structures.Outputs.from_bytes(message, offset)
+        self._data["output_flags"], offset = structures.OutputFlags.from_bytes(
             message, offset
         )
-        self._data["temperatures"], offset = structures.Temperatures().from_bytes(
+        self._data["temperatures"], offset = structures.Temperatures.from_bytes(
             message, offset
         )
         self._data["tempCOSet"] = message[offset]
@@ -172,7 +172,7 @@ class CurrentData(Frame):
         self._data["tempCWUSet"] = message[offset + 2]
         self._data["statusCWU"] = message[offset + 3]
         offset += 4
-        self._data["alarms"], offset = structures.Alarms().from_bytes(message, offset)
+        self._data["alarms"], offset = structures.Alarms.from_bytes(message, offset)
         self._data["fuelLevel"] = message[offset]
         self._data["transmission"] = message[offset + 1]
         self._data["fanPower"] = util.unpack_float(message[offset + 2 : offset + 6])[0]
@@ -185,14 +185,12 @@ class CurrentData(Frame):
         )[0]
         self._data["thermostat"] = message[offset + 15]
         offset += 16
-        self._data["versions"], offset = structures.Versions().from_bytes(
+        self._data["versions"], offset = structures.Versions.from_bytes(message, offset)
+        self._data["lambda"], offset = structures.Lambda.from_bytes(message, offset)
+        self._data["thermostats"], offset = structures.Thermostats.from_bytes(
             message, offset
         )
-        self._data["lambda"], offset = structures.Lambda().from_bytes(message, offset)
-        self._data["thermostats"], offset = structures.Thermostats().from_bytes(
-            message, offset
-        )
-        self._data["mixers"], offset = structures.Mixers().from_bytes(message, offset)
+        self._data["mixers"], offset = structures.Mixers.from_bytes(message, offset)
 
 
 class UID(Frame):
@@ -212,12 +210,12 @@ class UID(Frame):
         offset += 1
         self._data["reg_prod"] = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        self._data["UID"], offset = structures.UID().from_bytes(message, offset)
+        self._data["UID"], offset = structures.UID.from_bytes(message, offset)
         self._data["reg_logo"] = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
         self._data["reg_img"] = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        self._data["reg_name"] = structures.VarString().from_bytes(message, offset)
+        self._data["reg_name"] = structures.VarString.from_bytes(message, offset)
 
 
 class Password(Frame):
@@ -276,7 +274,7 @@ class RegData(Frame):
             (
                 self._data["frame_versions"],
                 offset,
-            ) = structures.FrameVersions().from_bytes(message, offset)
+            ) = structures.FrameVersions.from_bytes(message, offset)
 
 
 class Timezones(Frame):

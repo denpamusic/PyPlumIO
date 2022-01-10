@@ -6,7 +6,14 @@ import math
 import struct
 
 from . import util
-from .constants import TEMP_NAMES
+from .constants import (
+    MODULE_A,
+    MODULES,
+    TEMP_NAMES,
+    UID_BASE,
+    UID_BASE_BITS,
+    UID_CHAR_BITS,
+)
 
 
 class FrameVersions:
@@ -14,7 +21,8 @@ class FrameVersions:
     and RegData responses.
     """
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (list, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (list, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -36,7 +44,8 @@ class FrameVersions:
 class Outputs:
     """Used to parse output structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -69,7 +78,8 @@ class Outputs:
 class OutputFlags:
     """Parses output flags structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -90,7 +100,8 @@ class OutputFlags:
 class Temperatures:
     """Parses temperature structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -103,7 +114,10 @@ class Temperatures:
         for _ in range(temp_number):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            if (not math.isnan(temp)) and index < len(TEMP_NAMES) and index >= 0:
+            if math.isnan(temp):
+                continue
+
+            if 0 <= index < len(TEMP_NAMES):
                 # Temperature exists and index is in the correct range.
                 data[TEMP_NAMES[index]] = temp
 
@@ -115,7 +129,8 @@ class Temperatures:
 class Alarms:
     """Parses alarm structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -132,16 +147,8 @@ class Alarms:
 class Versions:
     """Parses versions structure for CurrentData message."""
 
-    _modules: list = (
-        "moduleASoftVer",
-        "moduleBSoftVer",
-        "moduleCSoftVer",
-        "moduleLambdaSoftVer",
-        "moduleEcoSTERSoftVer",
-        "modulePanelSoftVer",
-    )
-
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -149,8 +156,8 @@ class Versions:
         offset -- current data offset
         """
         data = {}
-        for module in self._modules:
-            if module == "moduleASoftVer":
+        for module in MODULES:
+            if module == MODULE_A:
                 version_data = struct.unpack("<BBBBB", message[offset : offset + 5])
                 version1 = ".".join(map(str, version_data[:3]))
                 version2 = "." + chr(version_data[3])
@@ -174,7 +181,8 @@ class Versions:
 class Lambda:
     """Parses lambda structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (dict, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -201,7 +209,8 @@ class Lambda:
 class Thermostats:
     """Parses thermostats structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (list, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (list, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -242,7 +251,8 @@ class Thermostats:
 class Mixers:
     """Parses mixers structure for CurrentData message."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (list, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (list, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -268,11 +278,8 @@ class Mixers:
 class UID:
     """Parses UID string for UID response message."""
 
-    UID_BASE: int = 32
-    UID_BASE_BITS: int = 5
-    CHAR_BITS: int = 8
-
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (str, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
@@ -284,24 +291,24 @@ class UID:
         uid = message[offset : uid_length + offset].decode()
         offset += uid_length
         input_ = uid + util.uid_stamp(uid)
-        input_length = len(input_) * self.CHAR_BITS
+        input_length = len(input_) * UID_CHAR_BITS
         output = []
-        output_length = input_length // self.UID_BASE_BITS
-        if input_length % self.UID_BASE_BITS:
+        output_length = input_length // UID_BASE_BITS
+        if input_length % UID_BASE_BITS:
             output_length += 1
 
         conv_int = 0
         conv_size = 0
         j = 0
         for _ in range(output_length):
-            if conv_size < self.UID_BASE_BITS and j < len(input_):
+            if conv_size < UID_BASE_BITS and j < len(input_):
                 conv_int += ord(input_[j]) << conv_size
-                conv_size += self.CHAR_BITS
+                conv_size += UID_CHAR_BITS
                 j += 1
 
-            char_code = conv_int % self.UID_BASE
-            conv_int //= self.UID_BASE
-            conv_size -= self.UID_BASE_BITS
+            char_code = conv_int % UID_BASE
+            conv_int //= UID_BASE
+            conv_size -= UID_BASE_BITS
             output.insert(0, util.uid_5bits_to_char(char_code))
 
         return "".join(output), offset
@@ -310,7 +317,8 @@ class UID:
 class VarString:
     """Parses variable length string."""
 
-    def from_bytes(self, message: bytearray, offset: int = 0) -> (str, int):
+    @staticmethod
+    def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
         """Parses frame message into usable data.
 
         Keyword arguments:
