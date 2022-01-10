@@ -53,7 +53,7 @@ def test_base_class_raises_not_implemented_on_parse():
         frame.parse_message(b"\x00")
 
 
-def tets_base_class_raises_not_implemented_on_create():
+def test_base_class_raises_not_implemented_on_create():
     frame = Frame(type_=ProgramVersion.type_)
     with pytest.raises(NotImplementedError):
         frame.create_message()
