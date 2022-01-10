@@ -30,5 +30,5 @@ def test_program_version_response_recipient_and_type():
 
 def test_check_device_response_recipient_and_type():
     frame = requests.CheckDevice(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    assert frame.response().is_type(responses.CheckDevice)
+    assert frame.response().is_type(responses.DeviceAvailable)
     assert frame.response().recipient == ECONET_ADDRESS

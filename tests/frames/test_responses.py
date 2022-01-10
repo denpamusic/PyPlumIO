@@ -5,7 +5,7 @@ import pyplumio.frames.responses as responses
 def test_responses_type():
     for response in [
         responses.ProgramVersion,
-        responses.CheckDevice,
+        responses.DeviceAvailable,
         responses.CurrentData,
         responses.UID,
         responses.Password,

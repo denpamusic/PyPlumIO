@@ -40,7 +40,7 @@ class CheckDevice(Request):
         Keyword arguments:
         args -- arguments to pass to response frame constructor
         """
-        return responses.CheckDevice(recipient=self.sender, **args)
+        return responses.DeviceAvailable(recipient=self.sender, **args)
 
 
 class UID(Request):

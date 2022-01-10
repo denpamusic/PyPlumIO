@@ -69,7 +69,7 @@ class ProgramVersion(Response):
         self._data["version"] = ".".join(map(str, [version1, version2, version3]))
 
 
-class CheckDevice(Response):
+class DeviceAvailable(Response):
     """Contains ecoNET device information."""
 
     type_: int = 0xB0
