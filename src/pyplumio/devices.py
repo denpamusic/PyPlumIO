@@ -73,11 +73,12 @@ class EcoMAX:
 
     @property
     def data(self):
-        """Returns EcoMAX data as a tuple. Accepts list of keys."""
+        """Returns EcoMAX data."""
         return self._data
 
     @property
     def parameters(self):
+        """Returns EcoMAX parameters."""
         return self._parameters
 
     def __str__(self) -> str:

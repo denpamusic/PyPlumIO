@@ -20,6 +20,15 @@ good-names = [
     "j",
     "k",
     "v",
+    "ip",
+]
+
+[tool.pylint."MESSAGES CONTROL"]
+disable = [
+    "abstract-method",
+    "unused-argument",
+    "too-many-arguments",
+    "too-few-public-methods",
 ]
 
 [build-system]
