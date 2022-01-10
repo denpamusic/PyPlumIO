@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from .constants import MODULE_A
+
 
 class EcoMAX:
     """Class for storing ecoMAX device state.
@@ -60,7 +62,7 @@ class EcoMAX:
         self._data["FUEL_FLOW"] = data["fuelStream"]
         self._data["LIGHTER"] = data["outputs"]["lighterWorks"]
 
-        self.software = data["versions"]["moduleASoftVer"]
+        self.software = data["versions"][MODULE_A]
         self.updated = datetime.now()
 
     def has_parameters(self) -> bool:
