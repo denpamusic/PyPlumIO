@@ -333,7 +333,7 @@ class Parameters(Response):
 class MixerParameters(Response):
     """Contains current mixers parameters."""
 
-    type_: int = 0xD5
+    type_: int = 0xB2
 
 
 class DataStructure(Response):
