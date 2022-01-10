@@ -3,10 +3,10 @@
 import struct
 
 from pyplumio import structures, util
+from pyplumio._version import __version__
 from pyplumio.constants import (
     EDITABLE_PARAMS,
     MODES,
-    VERSION,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
@@ -23,7 +23,7 @@ class ProgramVersion(Response):
     type_: int = 0xC0
 
     _defaults: dict = {
-        "version": VERSION,
+        "version": __version__,
         "struct_tag": b"\xFF\xFF",
         "struct_version": 5,
         "device_id": b"\x7A\x00",

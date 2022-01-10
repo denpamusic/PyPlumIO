@@ -1,7 +1,5 @@
 """Contains constants."""
 
-VERSION: str = "0.0.7"
-
 FRAME_START: int = 0x68
 FRAME_END: int = 0x16
 HEADER_SIZE: int = 7

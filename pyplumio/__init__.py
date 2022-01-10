@@ -1,9 +1,7 @@
-"""Contains module version data and econet connection shortcut."""
+"""Contains econet connection shortcut."""
 
-from .constants import VERSION
 from .econet import EcoNET
-
-__version__ = VERSION
+from .version import __version__  # noqa
 
 
 def econet_connection(host: str, port: int, **kwargs):
