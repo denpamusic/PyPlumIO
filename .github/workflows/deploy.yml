@@ -1,4 +1,4 @@
-name: PyPlumIO Deploy
+name: deploy
 
 on:
   release:

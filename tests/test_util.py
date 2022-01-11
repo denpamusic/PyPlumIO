@@ -83,3 +83,8 @@ def test_uid_5bits_to_char():
     assert (
         "".join([util.uid_5bits_to_char(x) for x in numbers]) == "0G50G8K1ZPCG3RKAP152D"
     )
+
+
+def test_uid_5bits_to_char_with_out_of_range():
+    numbers = (33, -1)
+    assert "".join([util.uid_5bits_to_char(x) for x in numbers]) == "##"

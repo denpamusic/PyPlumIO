@@ -1,4 +1,4 @@
-name: PyPlumIO Test
+name: test
 
 on:
   - push
