@@ -21,6 +21,13 @@ class EcoMAX:
     _parameters: dict = {}
     _data: dict = {}
 
+    def __init__(self, data: dict = None):
+        """Create ecoMAX device representation."""
+        if data is not None:
+            self.set_data(data)
+
+        self.updated = datetime.now()
+
     def __getattr__(self, item: str):
         """Gets current data item as class attribute.
 
