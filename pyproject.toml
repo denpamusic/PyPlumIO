@@ -29,6 +29,7 @@ disable = [
     "unused-argument",
     "too-many-arguments",
     "too-few-public-methods",
+    "too-many-instance-attributes",
 ]
 
 [build-system]
