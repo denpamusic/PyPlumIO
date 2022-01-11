@@ -114,10 +114,8 @@ class Temperatures:
         for _ in range(temp_number):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            if math.isnan(temp):
-                continue
 
-            if 0 <= index < len(TEMP_NAMES):
+            if (not math.isnan(temp)) and 0 <= index < len(TEMP_NAMES):
                 # Temperature exists and index is in the correct range.
                 data[TEMP_NAMES[index]] = temp
 
