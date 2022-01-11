@@ -163,3 +163,17 @@ class Frame:
         message - bytearray message to parse
         """
         raise NotImplementedError()
+
+
+class Request(Frame):
+    """Base class for all requests frames."""
+
+    def response(self, **args) -> Frame:  # pylint: disable=no-self-use
+        """Returns instance of Frame
+        for response to request, if needed.
+        """
+        return None
+
+
+class Response(Frame):
+    """Base class for all response frames."""

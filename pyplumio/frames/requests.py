@@ -1,18 +1,8 @@
 """Contains request frame classes."""
 
-from pyplumio.frame import Frame
+from pyplumio.frame import Request
 
 from . import responses
-
-
-class Request(Frame):
-    """Base class for all requests frames."""
-
-    def response(self, **args) -> Frame:  # pylint: disable=no-self-use
-        """Returns instance of Frame
-        for response to request, if needed.
-        """
-        return None
 
 
 class ProgramVersion(Request):
