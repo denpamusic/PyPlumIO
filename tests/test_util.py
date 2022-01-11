@@ -49,3 +49,37 @@ def test_check_parameter_valid():
 
 def test_check_parameter_invalid():
     assert not util.check_parameter(bytearray([0xFF, 0xFF, 0xFF, 0xFF]))
+
+
+def test_uid_stamp():
+    uid_bytes = b"\x00\x16\x00\x11\x0D\x38\x33\x38\x36\x55\x39".decode()
+    assert util.uid_stamp(uid_bytes) == "\x14\xD1"
+
+
+def test_uid_5bits_to_char():
+    numbers = (
+        0,
+        16,
+        5,
+        0,
+        16,
+        8,
+        20,
+        1,
+        24,
+        25,
+        12,
+        16,
+        3,
+        27,
+        20,
+        10,
+        25,
+        1,
+        5,
+        2,
+        13,
+    )
+    assert (
+        "".join([util.uid_5bits_to_char(x) for x in numbers]) == "0G50G8K1ZPCG3RKAP152D"
+    )
