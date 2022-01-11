@@ -28,7 +28,6 @@ setuptools.setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
     ],
-    package_dir={"": "pyplumio"},
-    packages=setuptools.find_packages(where="pyplumio"),
+    packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
     python_requires=">=3.8",
 )

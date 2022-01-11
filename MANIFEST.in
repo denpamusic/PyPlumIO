@@ -1,1 +1,3 @@
-include pyplumio/version.py LICENSE
+include LICENSE
+graft pyplumio
+recursive-exclude * *.py[co]
