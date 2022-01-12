@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
+from .frame import Request
 from .stream import FrameWriter
 
 
@@ -45,7 +46,7 @@ class FrameBucket:
         """
         try:
             frame = FrameFactory().get_frame(type_=type_)
-            if frame.__module__.split(".")[-1] == "requests":
+            if isinstance(frame, Request):
                 # Do not process responses.
                 self.versions[type_] = version
                 writer.queue(frame)
