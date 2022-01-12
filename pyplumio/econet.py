@@ -5,13 +5,14 @@ connection.
 from __future__ import annotations
 
 import asyncio
+from asyncio.exceptions import CancelledError
 from collections.abc import Callable
 import os
 import sys
 
 from .constants import WLAN_ENCRYPTION
 from .devices import EcoMAX
-from .exceptions import ChecksumError, LengthError
+from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
 from .storage import FrameBucket
@@ -56,7 +57,6 @@ class EcoNET:
 
     def __exit__(self, exc_type, exc_value, traceback):
         """Provides exit point for context manager."""
-        self.close()
 
     def __repr__(self):
         """Creates string respresentation of class."""
@@ -88,6 +88,9 @@ class EcoNET:
         frame -- received Frame instance
         """
 
+        if frame is None:
+            return
+
         if frame.is_type(requests.ProgramVersion):
             self.writer.queue(frame.response())
 
@@ -99,6 +102,7 @@ class EcoNET:
             self.ecomax.password = frame.data
 
         elif frame.is_type(responses.CurrentData):
+            self.bucket.fill(self.writer, frame.data["frame_versions"])
             self.ecomax.set_data(frame.data)
 
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
@@ -120,21 +124,14 @@ class EcoNET:
         while True:
             try:
                 frame = await self.reader.read()
+                asyncio.create_task(self._process(frame))
+                await self.writer.process_queue()
             except ChecksumError:
                 pass
             except LengthError:
                 pass
-
-            if frame is not None:
-                asyncio.create_task(self._process(frame))
-
-            await asyncio.sleep(0.1)
-
-    async def _write(self):
-        """Handles connection writes."""
-        while True:
-            await self.writer.process_queue()
-            await asyncio.sleep(0.1)
+            except FrameTypeError:
+                pass
 
     async def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Establishes connection and continuously reads new frames.
@@ -143,20 +140,17 @@ class EcoNET:
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        try:
-            reader, writer = await asyncio.open_connection(
-                host=self.host, port=self.port, **self.kwargs
-            )
-        except RuntimeError:
-            pass
+        reader, writer = await asyncio.open_connection(
+            host=self.host, port=self.port, **self.kwargs
+        )
 
         self.closed = False
         self.reader, self.writer = [FrameReader(reader), FrameWriter(writer)]
         self.writer.queue(requests.Password())
 
-        self._tasks = await asyncio.gather(
-            self._read(), self._write(), self._callback(callback, interval)
-        )
+        self._tasks = asyncio.gather(self._read(), self._callback(callback, interval))
+
+        await self._tasks
 
     def loop(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Run connection in the event loop.
@@ -165,12 +159,14 @@ class EcoNET:
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        try:
-            if os.name == "nt":
-                asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+        if os.name == "nt":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
+        try:
             sys.exit(asyncio.run(self.run(callback, interval)))
         except KeyboardInterrupt:
+            pass
+        except CancelledError:
             pass
 
     def set_eth(

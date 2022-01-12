@@ -12,7 +12,7 @@ from pyplumio.constants import (
 )
 
 from . import util
-from .exceptions import ChecksumError, FrameTypeError, LengthError
+from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
 from .frame import Frame
 
@@ -36,14 +36,15 @@ class FrameWriter:
         """Gets write queue length."""
         return len(self._queue)
 
-    def queue(self, frame: Frame) -> None:
+    def queue(self, *frames: list[Frame]) -> None:
         """Adds frame to write queue.
 
         Keyword arguments:
         frame -- Frame instance to add
         """
-        if isinstance(frame, Frame):
-            self._queue.append(frame)
+        for frame in frames:
+            if isinstance(frame, Frame):
+                self._queue.append(frame)
 
     def queue_is_empty(self) -> bool:
         """Checks if write queue is empty."""
@@ -109,14 +110,11 @@ class FrameReader:
                 if payload[-2] != util.crc(header + payload[:-2]):
                     raise ChecksumError()
 
-                try:
-                    return FrameFactory().get_frame(
-                        type_=payload[0],
-                        recipient=recipient,
-                        message=payload[1:-2],
-                        sender=sender,
-                        sender_type=sender_type,
-                        econet_version=econet_version,
-                    )
-                except FrameTypeError:
-                    pass
+                return FrameFactory().get_frame(
+                    type_=payload[0],
+                    recipient=recipient,
+                    message=payload[1:-2],
+                    sender=sender,
+                    sender_type=sender_type,
+                    econet_version=econet_version,
+                )
