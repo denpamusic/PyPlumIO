@@ -4,17 +4,18 @@ from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
 
-from pyplumio.constants import (
+from . import util
+from .constants import (
     BROADCAST_ADDRESS,
     ECONET_ADDRESS,
     HEADER_SIZE,
     READER_BUFFER_SIZE,
 )
-
-from . import util
+from .devices import Parameter
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
 from .frame import Frame
+from .frames.requests import Parameters, SetParameter
 
 
 class FrameWriter:
@@ -50,6 +51,17 @@ class FrameWriter:
         """Checks if write queue is empty."""
         return len(self._queue) == 0
 
+    def collect(self, parameters: dict[Parameter]) -> None:
+        """Collects changed parameters and adds them to write queue.
+
+        Keyword arguments:
+        parameters -- list of device parameters
+        """
+        for parameter in parameters:
+            self.queue(SetParameter(data=parameter.__dict__))
+
+        self.queue(Parameters())
+
     async def process_queue(self) -> None:
         """Processes top-most write request from the stack."""
         if self._queue:
@@ -65,9 +77,10 @@ class FrameWriter:
         self.writer.write(frame.to_bytes())
         await self.writer.drain()
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Closes StreamWriter."""
         self.writer.close()
+        await self.writer.wait_closed()
 
 
 class FrameReader:

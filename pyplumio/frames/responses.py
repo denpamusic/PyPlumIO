@@ -360,3 +360,17 @@ class DataStructure(Response):
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
                 self._data.append({"id": param_id, "type": param_type})
                 offset += 3
+
+
+class SetParameter(Response):
+    """Contains set parameter response."""
+
+    type_: int = 0xB3
+
+    def parse_message(self, message: bytearray) -> None:
+        """Parses BoilerControl message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
+        print(util.to_hex(message))

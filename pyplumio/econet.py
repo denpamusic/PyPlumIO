@@ -27,12 +27,9 @@ class EcoNET:
     host: str = None
     port: int = None
     closed: bool = True
-    ecomax: EcoMAX = None
-    reader: FrameReader = None
-    writer: FrameWriter = None
-    bucket: FrameBucket = None
     _net: dict = {}
     _tasks = None
+    _writer_close = None
 
     def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET connection instance.
@@ -48,8 +45,8 @@ class EcoNET:
         self.host = host
         self.port = port
         self.kwargs = kwargs
-        self.ecomax = EcoMAX()
         self.bucket = FrameBucket()
+        self.ecomax = EcoMAX()
 
     def __enter__(self):
         """Provides entry point for context manager."""
@@ -81,18 +78,19 @@ class EcoNET:
             await callback(ecomax=self.ecomax, econet=self)
             await asyncio.sleep(interval)
 
-    async def _process(self, frame: Frame) -> None:
+    async def _process(self, frame: Frame, writer: FrameWriter) -> None:
         """Processes received frame.
 
         Keyword arguments:
-        frame -- received Frame instance
+        frame -- instance of received frame
+        writer -- instance of writer
         """
 
         if frame is None:
             return
 
         if frame.is_type(requests.ProgramVersion):
-            self.writer.queue(frame.response())
+            writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
             self.ecomax.uid = frame.data["UID"]
@@ -102,11 +100,11 @@ class EcoNET:
             self.ecomax.password = frame.data
 
         elif frame.is_type(responses.CurrentData):
-            self.bucket.fill(self.writer, frame.data["frame_versions"])
+            self.bucket.fill(writer, frame.data["frame_versions"])
             self.ecomax.set_data(frame.data)
 
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
-            self.bucket.fill(self.writer, frame.data["frame_versions"])
+            self.bucket.fill(writer, frame.data["frame_versions"])
 
         elif frame.is_type(responses.Parameters):
             self.ecomax.set_parameters(frame.data)
@@ -115,17 +113,18 @@ class EcoNET:
             self.ecomax.struct = frame.data
 
         elif frame.is_type(requests.CheckDevice):
-            if self.writer.queue_is_empty():
+            if writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
-                return self.writer.queue(frame.response(data=self._net))
+                writer.queue(frame.response(data=self._net))
 
-    async def _read(self):
+    async def _read(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handles connection reads."""
         while True:
             try:
-                frame = await self.reader.read()
-                asyncio.create_task(self._process(frame))
-                await self.writer.process_queue()
+                frame = await reader.read()
+                asyncio.create_task(self._process(frame, writer))
+                writer.collect(self.ecomax.changes)
+                await writer.process_queue()
             except ChecksumError:
                 pass
             except LengthError:
@@ -133,7 +132,7 @@ class EcoNET:
             except FrameTypeError:
                 pass
 
-    async def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
+    async def task(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Establishes connection and continuously reads new frames.
 
         Keyword arguments:
@@ -145,14 +144,18 @@ class EcoNET:
         )
 
         self.closed = False
-        self.reader, self.writer = [FrameReader(reader), FrameWriter(writer)]
-        self.writer.queue(requests.Password())
+        reader, writer = [FrameReader(reader), FrameWriter(writer)]
+        writer.queue(requests.Password())
 
-        self._tasks = asyncio.gather(self._read(), self._callback(callback, interval))
+        self._tasks = asyncio.gather(
+            self._read(reader, writer), self._callback(callback, interval)
+        )
+
+        self._writer_close = writer.close  # Avoid stream garbage collection message.
 
         await self._tasks
 
-    def loop(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
+    def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Run connection in the event loop.
 
         Keyword arguments:
@@ -163,7 +166,7 @@ class EcoNET:
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
         try:
-            sys.exit(asyncio.run(self.run(callback, interval)))
+            sys.exit(asyncio.run(self.task(callback, interval)))
         except KeyboardInterrupt:
             pass
         except CancelledError:
@@ -223,7 +226,7 @@ class EcoNET:
     def close(self) -> None:
         """Closes opened connection."""
         if self._tasks is not None:
-            self.writer.close()
             self._tasks.cancel()
+            self._tasks = None
 
         self.closed = True

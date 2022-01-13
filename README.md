@@ -14,5 +14,5 @@ async def main(ecomax, econet):
         print(ecomax)
 
 with econet_connection("ecomax.home", 8899) as c:
-    c.loop(main)
+    c.run(main)
 ```

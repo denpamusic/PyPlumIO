@@ -1,5 +1,6 @@
 """Contains request frame classes."""
 
+from pyplumio.constants import EDITABLE_PARAMS
 from pyplumio.frame import Request
 
 from . import responses
@@ -67,3 +68,21 @@ class DataStructure(Request):
     """Requests current regulator data structure."""
 
     type_: int = 0x55
+
+
+class SetParameter(Request):
+    """Changes current regulator parameter."""
+
+    type_: int = 0x33
+
+    def create_message(self) -> bytearray:
+        """Creates SetParam message."""
+
+        message = bytearray()
+        name = self._data["name"]
+        value = self._data["value"]
+        if name in EDITABLE_PARAMS:
+            message.append(EDITABLE_PARAMS.index(name))
+            message.append(value)
+
+        return message
