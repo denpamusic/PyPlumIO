@@ -15,7 +15,7 @@ from .devices import Parameter
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
 from .frame import Frame
-from .frames.requests import Parameters, SetParameter
+from .frames.requests import Parameters
 
 
 class FrameWriter:
@@ -58,9 +58,10 @@ class FrameWriter:
         parameters -- list of device parameters
         """
         for parameter in parameters:
-            self.queue(SetParameter(data=parameter.__dict__))
+            self.queue(parameter.request)
 
-        self.queue(Parameters())
+        if parameters:
+            self.queue(Parameters())
 
     async def process_queue(self) -> None:
         """Processes top-most write request from the stack."""

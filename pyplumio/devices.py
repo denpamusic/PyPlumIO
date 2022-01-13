@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from .constants import EDITABLE_PARAMS, MODULE_A
+from .frame import Request
+from .frames.requests import BoilerControl, SetParameter
 
 
 class EcoMAX:
@@ -16,7 +18,6 @@ class EcoMAX:
     password: str = None
     struct: list = []
     _parameters: dict = {}
-    _parameters_changed: bool = False
     _data: dict = {}
 
     def __init__(self, data: dict = None, parameters: dict = None):
@@ -51,8 +52,7 @@ class EcoMAX:
         value -- attribute value
         """
         key = name.upper()
-        if key in self._parameters and self._parameters[key].value != value:
-            self._parameters_changed = True
+        if key in self._parameters:
             self._parameters[key].set(value)
         else:
             self.__dict__[name] = value
@@ -86,6 +86,9 @@ class EcoMAX:
         self._data["FUEL_FLOW"] = data["fuelStream"]
         self._data["LIGHTER"] = data["outputs"]["lighterWorks"]
         self.software = data["versions"][MODULE_A]
+        self._parameters["BOILER_CONTROL"] = Parameter(
+            name="BOILER_CONTROL", value=int(data["mode"] != 0), min_=0, max_=1
+        )
 
     def has_parameters(self) -> bool:
         """Check if ecoMAX instance has parameters."""
@@ -115,11 +118,9 @@ class EcoMAX:
     @property
     def changes(self) -> list[Parameter]:
         """Returns changed device parameters."""
-        changed = []
-        if self._parameters_changed:
-            changed = [v for _, v in self._parameters.items() if v.changed]
-
-        return changed
+        return [
+            v.queue() for _, v in self._parameters.items() if v.changed and not v.queued
+        ]
 
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""
@@ -146,11 +147,12 @@ Password:       {self.password}
 class Parameter:
     """Device parameter representation."""
 
-    changed = False
+    _changed = False
+    _queued = False
 
-    def __init__(self, name: str, value: int, min_: int, max_: int):
+    def __init__(self, name: str, value, min_: int, max_: int):
         self.name = name
-        self.value = value
+        self.value = int(value)
         self.min_ = min_
         self.max_ = max_
 
@@ -160,10 +162,32 @@ class Parameter:
         Keyword arguments:
         value -- new value to set parameter to
         """
-        if self.min_ <= value <= self.max_:
+        if self.value != value and self.min_ <= value <= self.max_:
             self.value = value
+            self._changed = True
 
-        self.changed = True
+    def queue(self) -> Parameter:
+        """Marks parameter as queued to write."""
+        self._queued = True
+        return self
+
+    @property
+    def request(self) -> Request:
+        """Returns request to change parameter."""
+        if self.name == "BOILER_CONTROL":
+            return BoilerControl(data=self.__dict__)
+
+        return SetParameter(data=self.__dict__)
+
+    @property
+    def queued(self) -> bool:
+        """Returns queued property."""
+        return self._queued
+
+    @property
+    def changed(self) -> bool:
+        """Returns changed property."""
+        return self._changed
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
@@ -171,8 +195,7 @@ class Parameter:
     name = {self.name},
     value = {self.value},
     min_ = {self.min_},
-    max_ = {self.max_},
-    changed = {self.changed}
+    max_ = {self.max_}
 )""".strip()
 
     def __str__(self) -> str:

@@ -76,7 +76,7 @@ class SetParameter(Request):
     type_: int = 0x33
 
     def create_message(self) -> bytearray:
-        """Creates SetParam message."""
+        """Creates SetParameter message."""
 
         message = bytearray()
         name = self._data["name"]
@@ -84,5 +84,19 @@ class SetParameter(Request):
         if name in EDITABLE_PARAMS:
             message.append(EDITABLE_PARAMS.index(name))
             message.append(value)
+
+        return message
+
+
+class BoilerControl(Request):
+    """Changes regulator state (on/off)."""
+
+    type_: int = 0x3B
+
+    def create_message(self) -> bytearray:
+        """Creates BoilerControl message."""
+
+        message = bytearray()
+        message.append(self._data["value"])
 
         return message

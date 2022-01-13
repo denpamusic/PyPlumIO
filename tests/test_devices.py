@@ -4,6 +4,7 @@ from pyplumio.constants import MODULE_A
 from pyplumio.devices import EcoMAX, Parameter
 
 _test_data = {
+    "mode": 3,
     "modeString": "Heating",
     "boilerPowerKW": 16,
     "boilerPower": 30,
@@ -131,8 +132,7 @@ def test_parameter__repr__(parameter: Parameter):
     name = AUTO_SUMMER,
     value = 1,
     min_ = 0,
-    max_ = 1,
-    changed = False
+    max_ = 1
 )""".strip()
 
     assert repr(parameter) == output

@@ -367,10 +367,11 @@ class SetParameter(Response):
 
     type_: int = 0xB3
 
-    def parse_message(self, message: bytearray) -> None:
-        """Parses BoilerControl message into usable data.
 
-        Keywords arguments:
-        message -- message to parse
-        """
-        print(util.to_hex(message))
+class BoilerControl(Response):
+    """Contains boiler control response."""
+
+    type_: int = 0xBB
+
+    def parse_message(self, message: bytearray) -> None:
+        print(message)
