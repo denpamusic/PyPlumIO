@@ -57,6 +57,14 @@ class Parameters(Request):
 
     type_: int = 0x31
 
+    def create_message(self) -> bytearray:
+        """Creates SetParameter message."""
+
+        message = bytearray()
+        message.append(0xFF)  # Number of parameters.
+        message.append(0x00)  # Index of parameters.
+        return message
+
 
 class MixerParameters(Request):
     """Requests current mixer parameters."""
