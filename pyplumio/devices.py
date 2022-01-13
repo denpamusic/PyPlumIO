@@ -52,7 +52,9 @@ class EcoMAX:
         value -- attribute value
         """
         key = name.upper()
-        if key in self._parameters:
+        if key in self._data:
+            raise NotImplementedError()
+        elif key in self._parameters:
             self._parameters[key].set(value)
         else:
             self.__dict__[name] = value
