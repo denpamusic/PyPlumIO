@@ -117,9 +117,7 @@ class EcoMAX:
         """Returns changed device parameters."""
         changed = []
         if self._parameters_changed:
-            for _, param in self._parameters.items():
-                if param.changed:
-                    changed.append(param)
+            changed = [v for _, v in self._parameters.items() if v.changed]
 
         return changed
 
@@ -148,14 +146,13 @@ Password:       {self.password}
 class Parameter:
     """Device parameter representation."""
 
-    def __init__(
-        self, name: str, value: int, min_: int, max_: int, changed: bool = False
-    ):
+    changed = False
+
+    def __init__(self, name: str, value: int, min_: int, max_: int):
         self.name = name
         self.value = value
         self.min_ = min_
         self.max_ = max_
-        self.changed = changed
 
     def set(self, value) -> None:
         """Sets parameter value.
