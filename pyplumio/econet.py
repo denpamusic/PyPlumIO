@@ -28,7 +28,7 @@ class EcoNET:
     port: int = None
     closed: bool = True
     _net: dict = {}
-    _tasks = None
+    _task = None
     _writer_close = None
 
     def __init__(self, host: str, port: int, **kwargs):
@@ -146,14 +146,10 @@ class EcoNET:
         self.closed = False
         reader, writer = [FrameReader(reader), FrameWriter(writer)]
         writer.queue(requests.Password())
-
-        self._tasks = asyncio.gather(
-            self._read(reader, writer), self._callback(callback, interval)
-        )
-
+        asyncio.create_task(self._callback(callback, interval))
+        self._task = self._read(reader, writer)
         self._writer_close = writer.close  # Avoid stream garbage collection message.
-
-        await self._tasks
+        await self._task
 
     def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Run connection in the event loop.
@@ -225,8 +221,8 @@ class EcoNET:
 
     def close(self) -> None:
         """Closes opened connection."""
-        if self._tasks is not None:
-            self._tasks.cancel()
-            self._tasks = None
+        if self._task is not None:
+            self._task.cancel()
+            self._task = None
 
         self.closed = True
