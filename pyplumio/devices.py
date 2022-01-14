@@ -42,7 +42,7 @@ class EcoMAX:
         if key in self._parameters:
             return self._parameters[key]
 
-        return self.__dict__[name]
+        return None
 
     def __setattr__(self, name: str, value) -> None:
         """Sets class attribute or device parameter.
@@ -53,7 +53,7 @@ class EcoMAX:
         """
         key = name.upper()
         if key in self._data:
-            raise NotImplementedError()
+            raise AttributeError()
 
         if key in self._parameters:
             self._parameters[key].set(value)
