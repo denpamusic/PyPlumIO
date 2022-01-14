@@ -10,7 +10,7 @@ from collections.abc import Callable
 import os
 import sys
 
-from .constants import DATA_FRAMES, WLAN_ENCRYPTION
+from .constants import DATA_FRAMES, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import EcoMAX
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
@@ -169,7 +169,7 @@ class EcoNET:
             pass
 
     def set_eth(
-        self, ip: str, netmask: str = "255.255.255.0", gateway: str = "0.0.0.0"
+        self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
     ) -> None:
         """Sets eth parameters to pass to ecoMax device.
         Used for informational purpoises only.
@@ -191,8 +191,8 @@ class EcoNET:
         ssid: str,
         ip: str,
         encryption: int = WLAN_ENCRYPTION[1],
-        netmask: str = "255.255.255.0",
-        gateway: str = "0.0.0.0",
+        netmask: str = DEFAULT_NETMASK,
+        gateway: str = DEFAULT_IP,
         quality: int = 100,
     ) -> None:
         """Sets wlan parameters to pass to ecoMAX device.

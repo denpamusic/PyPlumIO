@@ -12,6 +12,8 @@ from pyplumio.constants import (
     DATA_POWER_PCT,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
+    DEFAULT_IP,
+    DEFAULT_NETMASK,
     EDITABLE_PARAMS,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
@@ -93,15 +95,15 @@ class DeviceAvailable(Response):
 
     _defaults: dict = {
         "eth": {
-            "ip": "0.0.0.0",
-            "netmask": "0.0.0.0",
-            "gateway": "0.0.0.0",
+            "ip": DEFAULT_IP,
+            "netmask": DEFAULT_NETMASK,
+            "gateway": DEFAULT_IP,
             "status": False,
         },
         "wlan": {
-            "ip": "0.0.0.0",
-            "netmask": "0.0.0.0",
-            "gateway": "0.0.0.0",
+            "ip": DEFAULT_IP,
+            "netmask": DEFAULT_NETMASK,
+            "gateway": DEFAULT_IP,
             "status": False,
             "encryption": WLAN_ENCRYPTION[WLAN_ENCRYPTION_NONE],
             "quality": 100,
