@@ -370,6 +370,3 @@ class BoilerControl(Response):
     """Contains boiler control response."""
 
     type_: int = 0xBB
-
-    def parse_message(self, message: bytearray) -> None:
-        print(message)
