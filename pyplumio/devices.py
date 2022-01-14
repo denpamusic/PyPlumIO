@@ -1,7 +1,7 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
-from .constants import EDITABLE_PARAMS, MODULE_A
+from .constants import CURRENT_DATA, DATA_MODE, EDITABLE_PARAMS, MODES, MODULE_A
 from .frame import Request
 from .frames.requests import BoilerControl, SetParameter
 
@@ -42,7 +42,7 @@ class EcoMAX:
         if key in self._parameters:
             return self._parameters[key]
 
-        return None
+        return self.__dict__[name]
 
     def __setattr__(self, name: str, value) -> None:
         """Sets class attribute or device parameter.
@@ -54,7 +54,8 @@ class EcoMAX:
         key = name.upper()
         if key in self._data:
             raise NotImplementedError()
-        elif key in self._parameters:
+
+        if key in self._parameters:
             self._parameters[key].set(value)
         else:
             self.__dict__[name] = value
@@ -69,27 +70,13 @@ class EcoMAX:
         Keyword arguments:
         data - data parsed from CurrentData response frame
         """
-        self._data["MODE"] = data["modeString"]
-        self._data["POWER"] = data["boilerPowerKW"]
-        self._data["POWER_PCT"] = data["boilerPower"]
-        self._data["CO_TARGET"] = data["tempCOSet"]
-        self._data["CO_TEMP"] = data["temperatures"]["tempCO"]
-        self._data["CO_PUMP"] = data["outputs"]["pumpCOWorks"]
-        self._data["EXHAUST_TEMP"] = data["temperatures"]["tempFlueGas"]
-        self._data["OUTSIDE_TEMP"] = data["temperatures"]["tempExternalSensor"]
-        self._data["FAN"] = data["outputs"]["fanWorks"]
-        self._data["FAN_POWER"] = data["fanPower"]
-        self._data["CWU_TARGET"] = data["tempCWUSet"]
-        self._data["CWU_TEMP"] = data["temperatures"]["tempCWU"]
-        self._data["CWU_PUMP"] = data["outputs"]["pumpCWUWorks"]
-        self._data["FEEDER"] = data["outputs"]["feederWorks"]
-        self._data["FEEDER_TEMP"] = data["temperatures"]["tempFeeder"]
-        self._data["FUEL_LEVEL"] = data["fuelLevel"]
-        self._data["FUEL_FLOW"] = data["fuelStream"]
-        self._data["LIGHTER"] = data["outputs"]["lighterWorks"]
-        self.software = data["versions"][MODULE_A]
-        self._parameters["BOILER_CONTROL"] = Parameter(
-            name="BOILER_CONTROL", value=int(data["mode"] != 0), min_=0, max_=1
+        for name, value in data.items():
+            if name in CURRENT_DATA:
+                self._data[name] = value
+
+        self.software = data[MODULE_A]
+        self.set_parameters(
+            {"BOILER_CONTROL": {"value": int(self.is_on), "min": 0, "max": 1}}
         )
 
     def has_parameters(self) -> bool:
@@ -106,6 +93,26 @@ class EcoMAX:
                     min_=parameter["min"],
                     max_=parameter["max"],
                 )
+
+    @property
+    def is_on(self) -> bool:
+        """Returns current state."""
+        if self._data:
+            return bool(self._data[DATA_MODE] != 0)
+
+        return False
+
+    @property
+    def mode(self) -> str:
+        """Returns current mode."""
+        if self._data:
+            mode = self._data[DATA_MODE]
+            try:
+                return MODES[mode]
+            except IndexError:
+                pass
+
+        return "Unknown"
 
     @property
     def data(self):

@@ -5,14 +5,16 @@ import struct
 from pyplumio.constants import MODULE_A, MODULES
 
 
-def from_bytes(message: bytearray, offset: int = 0) -> (dict, int):
+def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
     """Parses frame message into usable data.
 
     Keyword arguments:
     message -- ecoNET message
     offset -- current data offset
     """
-    data = {}
+    if data is None:
+        data = {}
+
     for module in MODULES:
         if module == MODULE_A:
             version_data = struct.unpack("<BBBBB", message[offset : offset + 5])

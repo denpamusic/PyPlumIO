@@ -1,9 +1,6 @@
 """Contains outputs structure parser."""
 
-import math
-
-from pyplumio import util
-from pyplumio.constants import OUTPUTS
+from pyplumio.constants import STATUSES
 
 
 def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
@@ -16,9 +13,8 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict,
     if data is None:
         data = {}
 
-    outputs = util.unpack_ushort(message[offset : offset + 4])
-    for index, output in enumerate(OUTPUTS):
-        data[output] = bool(outputs & int(math.pow(2, index)))
+    for index, status in enumerate(STATUSES):
+        data[status] = message[offset + index]
 
     offset += 4
 

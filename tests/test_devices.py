@@ -1,35 +1,38 @@
 import pytest
 
-from pyplumio.constants import MODULE_A
+from pyplumio.constants import (
+    DATA_CO_TARGET,
+    DATA_CWU_TARGET,
+    DATA_FAN_POWER,
+    DATA_FUEL_CONSUMPTION,
+    DATA_FUEL_LEVEL,
+    DATA_MODE,
+    DATA_POWER,
+    DATA_POWER_PCT,
+    MODULE_A,
+)
 from pyplumio.devices import EcoMAX, Parameter
 
 _test_data = {
-    "mode": 3,
-    "modeString": "Heating",
-    "boilerPowerKW": 16,
-    "boilerPower": 30,
-    "temperatures": {
-        "tempCO": 60,
-        "tempFlueGas": 60,
-        "tempExternalSensor": 30,
-        "tempCWU": 40,
-        "tempFeeder": 51,
-    },
-    "tempCOSet": 60,
-    "tempCWUSet": 51,
-    "outputs": {
-        "pumpCOWorks": True,
-        "fanWorks": True,
-        "pumpCWUWorks": True,
-        "feederWorks": True,
-        "lighterWorks": True,
-    },
-    "fanPower": 100,
-    "fuelLevel": 70,
-    "fuelStream": 1.27,
-    "versions": {
-        MODULE_A: "1.1.15",
-    },
+    DATA_MODE: 3,
+    DATA_POWER: 16,
+    DATA_POWER_PCT: 30,
+    DATA_CO_TARGET: 60,
+    DATA_CWU_TARGET: 51,
+    DATA_FAN_POWER: 100,
+    DATA_FUEL_LEVEL: 70,
+    DATA_FUEL_CONSUMPTION: 1.27,
+    MODULE_A: "1.1.15",
+    "CO_TEMP": 60,
+    "EXHAUST_TEMP": 60,
+    "OUTSIDE_TEMP": 30,
+    "CWU_TEMP": 40,
+    "FEEDER_TEMP": 51,
+    "CO_PUMP": True,
+    "FAN": True,
+    "CWU_PUMP": True,
+    "FEEDER": True,
+    "LIGHTER": True,
 }
 
 _test_parameters = {
@@ -72,7 +75,7 @@ def test_has_data(ecomax_with_data: EcoMAX):
 
 def test_set_data(ecomax_with_data: EcoMAX):
     ecomax_with_data.set_data(_test_data)
-    assert ecomax_with_data.data["MODE"] == "Heating"
+    assert ecomax_with_data.data["MODE"] == 3
 
 
 def test_get_attr_from_data(ecomax_with_data: EcoMAX):

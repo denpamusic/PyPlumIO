@@ -10,7 +10,7 @@ from collections.abc import Callable
 import os
 import sys
 
-from .constants import WLAN_ENCRYPTION
+from .constants import DATA_FRAMES, WLAN_ENCRYPTION
 from .devices import EcoMAX
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
@@ -62,7 +62,7 @@ class EcoNET:
     port = {self.port},
     kwargs = {self.kwargs}
 )
-""".strip()
+"""
 
     async def _callback(
         self, callback: Callable[EcoMAX, EcoNET], interval: int
@@ -100,11 +100,11 @@ class EcoNET:
             self.ecomax.password = frame.data
 
         elif frame.is_type(responses.CurrentData):
-            self.bucket.fill(writer, frame.data["frame_versions"])
+            self.bucket.fill(writer, frame.data[DATA_FRAMES])
             self.ecomax.set_data(frame.data)
 
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
-            self.bucket.fill(writer, frame.data["frame_versions"])
+            self.bucket.fill(writer, frame.data[DATA_FRAMES])
 
         elif frame.is_type(responses.Parameters):
             self.ecomax.set_parameters(frame.data)

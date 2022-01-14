@@ -30,6 +30,7 @@ disable = [
     "too-many-arguments",
     "too-few-public-methods",
     "too-many-instance-attributes",
+    "duplicate-code"
 ]
 
 [build-system]

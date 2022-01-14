@@ -4,8 +4,15 @@ import struct
 
 from pyplumio import util
 from pyplumio.constants import (
+    DATA_FAN_POWER,
+    DATA_FUEL_CONSUMPTION,
+    DATA_FUEL_LEVEL,
+    DATA_MODE,
+    DATA_POWER,
+    DATA_POWER_PCT,
+    DATA_THERMOSTAT,
+    DATA_TRANSMISSION,
     EDITABLE_PARAMS,
-    MODES,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
@@ -17,6 +24,7 @@ from pyplumio.structures import (
     mixers,
     output_flags,
     outputs,
+    statuses,
     temperatures,
     thermostats,
     uid,
@@ -165,39 +173,32 @@ class CurrentData(Response):
         Keywords arguments:
         message -- message to parse
         """
-        offset = 0
         self._data = {}
-        self._data["frame_versions"], offset = frame_versions.from_bytes(
-            message, offset
-        )
-        self._data["mode"] = message[offset]
-        self._data["modeString"] = MODES[self._data["mode"]]
+        offset = 0
+        _, offset = frame_versions.from_bytes(message, offset, self._data)
+        self._data[DATA_MODE] = message[offset]
         offset += 1
-        self._data["outputs"], offset = outputs.from_bytes(message, offset)
-        self._data["output_flags"], offset = output_flags.from_bytes(message, offset)
-        self._data["temperatures"], offset = temperatures.from_bytes(message, offset)
-        self._data["tempCOSet"] = message[offset]
-        self._data["statusCO"] = message[offset + 1]
-        self._data["tempCWUSet"] = message[offset + 2]
-        self._data["statusCWU"] = message[offset + 3]
-        offset += 4
-        self._data["alarms"], offset = alarms.from_bytes(message, offset)
-        self._data["fuelLevel"] = message[offset]
-        self._data["transmission"] = message[offset + 1]
-        self._data["fanPower"] = util.unpack_float(message[offset + 2 : offset + 6])[0]
-        self._data["boilerPower"] = message[offset + 6]
-        self._data["boilerPowerKW"] = util.unpack_float(
-            message[offset + 7 : offset + 11]
+        _, offset = outputs.from_bytes(message, offset, self._data)
+        _, offset = output_flags.from_bytes(message, offset, self._data)
+        _, offset = temperatures.from_bytes(message, offset, self._data)
+        _, offset = statuses.from_bytes(message, offset, self._data)
+        _, offset = alarms.from_bytes(message, offset, self._data)
+        self._data[DATA_FUEL_LEVEL] = message[offset]
+        self._data[DATA_TRANSMISSION] = message[offset + 1]
+        self._data[DATA_FAN_POWER] = util.unpack_float(
+            message[offset + 2 : offset + 6]
         )[0]
-        self._data["fuelStream"] = util.unpack_float(
+        self._data[DATA_POWER_PCT] = message[offset + 6]
+        self._data[DATA_POWER] = util.unpack_float(message[offset + 7 : offset + 11])[0]
+        self._data[DATA_FUEL_CONSUMPTION] = util.unpack_float(
             message[offset + 11 : offset + 15]
         )[0]
-        self._data["thermostat"] = message[offset + 15]
+        self._data[DATA_THERMOSTAT] = message[offset + 15]
         offset += 16
-        self._data["versions"], offset = versions.from_bytes(message, offset)
-        self._data["lambda"], offset = lambda_.from_bytes(message, offset)
-        self._data["thermostats"], offset = thermostats.from_bytes(message, offset)
-        self._data["mixers"], offset = mixers.from_bytes(message, offset)
+        _, offset = versions.from_bytes(message, offset, self._data)
+        _, offset = lambda_.from_bytes(message, offset, self._data)
+        _, offset = thermostats.from_bytes(message, offset, self._data)
+        _, offset = mixers.from_bytes(message, offset, self._data)
 
 
 class UID(Response):
@@ -278,10 +279,7 @@ class RegData(Response):
         offset += 2
         self._data = {}
         if frame_version == self.VERSION:
-            (
-                self._data["frame_versions"],
-                offset,
-            ) = frame_versions.from_bytes(message, offset)
+            frame_versions.from_bytes(message, offset, self._data)
 
 
 class Timezones(Response):
