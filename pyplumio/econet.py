@@ -5,7 +5,6 @@ connection.
 from __future__ import annotations
 
 import asyncio
-from asyncio.exceptions import CancelledError
 from collections.abc import Callable
 import os
 import sys
@@ -28,7 +27,6 @@ class EcoNET:
     port: int = None
     closed: bool = True
     _net: dict = {}
-    _task = None
     _writer_close = None
 
     def __init__(self, host: str, port: int, **kwargs):
@@ -120,6 +118,10 @@ class EcoNET:
     async def _read(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handles connection reads."""
         while True:
+            if self.closed:
+                await writer.close()
+                break
+
             try:
                 frame = await reader.read()
                 asyncio.create_task(self._process(frame, writer))
@@ -147,9 +149,8 @@ class EcoNET:
         reader, writer = [FrameReader(reader), FrameWriter(writer)]
         writer.queue(requests.Password())
         asyncio.create_task(self._callback(callback, interval))
-        self._task = self._read(reader, writer)
         self._writer_close = writer.close  # Avoid stream garbage collection message.
-        await self._task
+        await self._read(reader, writer)
 
     def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
         """Run connection in the event loop.
@@ -164,8 +165,6 @@ class EcoNET:
         try:
             sys.exit(asyncio.run(self.task(callback, interval)))
         except KeyboardInterrupt:
-            pass
-        except CancelledError:
             pass
 
     def set_eth(
@@ -221,8 +220,4 @@ class EcoNET:
 
     def close(self) -> None:
         """Closes opened connection."""
-        if self._task is not None:
-            self._task.cancel()
-            self._task = None
-
         self.closed = True
