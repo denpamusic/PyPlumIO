@@ -146,7 +146,7 @@ Password:       {self.password}
                 output += f" -- {k}: {v}\n"
 
         if self.has_parameters():
-            output += "\nRegulator parameters:\n"
+            output += "\nEditable parameters:\n"
             for _, parameter in self._parameters.items():
                 output += f" -- {parameter}\n"
 

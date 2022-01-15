@@ -7,9 +7,9 @@ from pyplumio.constants import (
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
+    DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
-    DATA_POWER_PCT,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
     DEFAULT_IP,
@@ -190,7 +190,7 @@ class CurrentData(Response):
         self._data[DATA_FAN_POWER] = util.unpack_float(
             message[offset + 2 : offset + 6]
         )[0]
-        self._data[DATA_POWER_PCT] = message[offset + 6]
+        self._data[DATA_LOAD] = message[offset + 6]
         self._data[DATA_POWER] = util.unpack_float(message[offset + 7 : offset + 11])[0]
         self._data[DATA_FUEL_CONSUMPTION] = util.unpack_float(
             message[offset + 11 : offset + 15]
