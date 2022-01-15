@@ -6,9 +6,9 @@ from pyplumio.constants import (
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
+    DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
-    DATA_POWER_PCT,
     MODULE_A,
 )
 from pyplumio.devices import EcoMAX, Parameter
@@ -16,7 +16,7 @@ from pyplumio.devices import EcoMAX, Parameter
 _test_data = {
     DATA_MODE: 3,
     DATA_POWER: 16,
-    DATA_POWER_PCT: 30,
+    DATA_LOAD: 30,
     DATA_CO_TARGET: 60,
     DATA_CWU_TARGET: 51,
     DATA_FAN_POWER: 100,
