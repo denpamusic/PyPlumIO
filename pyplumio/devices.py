@@ -19,6 +19,7 @@ class EcoMAX:
     struct: list = []
     _parameters: dict = {}
     _data: dict = {}
+    _is_on: bool = None
 
     def __init__(self, data: dict = None, parameters: dict = None):
         """Create ecoMAX device representation."""
@@ -75,9 +76,7 @@ class EcoMAX:
                 self._data[name] = value
 
         self.software = data[MODULE_A]
-        self.set_parameters(
-            {"BOILER_CONTROL": {"value": int(self.is_on), "min": 0, "max": 1}}
-        )
+        self._is_on = bool(data[DATA_MODE] != 0)
 
     def has_parameters(self) -> bool:
         """Check if ecoMAX instance has parameters."""
@@ -94,13 +93,14 @@ class EcoMAX:
                     max_=parameter["max"],
                 )
 
+        self._parameters["BOILER_CONTROL"] = Parameter(
+            name="BOILER_CONTROL", value=int(self._is_on), min_=0, max_=1
+        )
+
     @property
     def is_on(self) -> bool:
         """Returns current state."""
-        if self._data:
-            return bool(self._data[DATA_MODE] != 0)
-
-        return False
+        return self._is_on
 
     @property
     def mode(self) -> str:
