@@ -4,16 +4,30 @@ from pyplumio.constants import (
     DATA_CO_TARGET,
     DATA_CWU_TARGET,
     DATA_FAN_POWER,
+    DATA_FRAMES,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
     DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
-    MODULE_A,
+    MODULE_PANEL,
 )
 from pyplumio.devices import EcoMAX, Parameter
+from pyplumio.frames import requests
 
 _test_data = {
+    DATA_FRAMES: {
+        49: 364,
+        50: 364,
+        54: 1,
+        56: 90,
+        57: 1,
+        61: 28217,
+        80: 1,
+        81: 1,
+        82: 1,
+        83: 1,
+    },
     DATA_MODE: 3,
     DATA_POWER: 16,
     DATA_LOAD: 30,
@@ -22,7 +36,7 @@ _test_data = {
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
-    MODULE_A: "1.1.15",
+    MODULE_PANEL: "1.1.15",
     "CO_TEMP": 60,
     "EXHAUST_TEMP": 60,
     "OUTSIDE_TEMP": 30,
@@ -102,7 +116,10 @@ def test_set_attr_from_parameters_out_of_range(ecomax_with_data: EcoMAX):
 
 def test_changed_parameters(ecomax_with_data: EcoMAX):
     ecomax_with_data.auto_summer = 0
-    assert ecomax_with_data.changes[0].name == "AUTO_SUMMER"
+    assert (
+        ecomax_with_data.changes[0].message
+        == requests.SetParameter(data={"name": "AUTO_SUMMER", "value": 0}).message
+    )
 
 
 def test_has_parameters(ecomax_with_data: EcoMAX):
