@@ -24,6 +24,7 @@ class EcoMAX:
     uid: str = None
     password: str = None
     struct: list = []
+    _queue: list[Request] = []
     _parameters: dict = {}
     _data: dict = {}
     _is_on: bool = None
@@ -67,6 +68,7 @@ class EcoMAX:
 
         if key in self._parameters:
             self._parameters[key].set(value)
+            self._queue.append(self._parameters[key].request)
         else:
             self.__dict__[name] = value
 
@@ -133,6 +135,13 @@ class EcoMAX:
         return "Unknown"
 
     @property
+    def queue(self):
+        """Clears and returns changed parameters queue."""
+        queue = self._queue
+        self._queue = []
+        return queue
+
+    @property
     def data(self):
         """Returns EcoMAX data."""
         return self._data
@@ -145,9 +154,7 @@ class EcoMAX:
     @property
     def changes(self) -> list[Parameter]:
         """Returns changed device parameters."""
-        changes = [
-            v.queue for _, v in self._parameters.items() if v.changed and not v.queued
-        ]
+        changes = self.queue
         changes.extend(self.bucket.queue)
         return changes
 
@@ -176,9 +183,6 @@ Password:       {self.password}
 class Parameter:
     """Device parameter representation."""
 
-    _changed = False
-    _queued = False
-
     def __init__(self, name: str, value, min_: int, max_: int):
         self.name = name
         self.value = int(value)
@@ -193,13 +197,6 @@ class Parameter:
         """
         if self.value != value and self.min_ <= value <= self.max_:
             self.value = value
-            self._changed = True
-
-    @property
-    def queue(self) -> Parameter:
-        """Marks parameter as queued to write."""
-        self._queued = True
-        return self.request
 
     @property
     def request(self) -> Request:
@@ -208,16 +205,6 @@ class Parameter:
             return BoilerControl(data=self.__dict__)
 
         return SetParameter(data=self.__dict__)
-
-    @property
-    def queued(self) -> bool:
-        """Returns queued property."""
-        return self._queued
-
-    @property
-    def changed(self) -> bool:
-        """Returns changed property."""
-        return self._changed
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""

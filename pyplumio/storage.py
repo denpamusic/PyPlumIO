@@ -60,7 +60,7 @@ class FrameBucket:
 
     @property
     def queue(self) -> list[Request]:
-        """Clears and returns current queue."""
+        """Clears and returns changed frames queue."""
         queue = self._queue
         self._queue = []
         return queue
