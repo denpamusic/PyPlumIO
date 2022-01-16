@@ -22,9 +22,16 @@ class FrameBucket:
         if versions is not None:
             self.versions = versions
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Gets number of versioned frames."""
         return len(self.versions)
+
+    def __repr__(self) -> str:
+        """Returns serializable string representation."""
+        return f"""FrameBucket(
+    versions: {self.versions}
+)
+"""
 
     def fill(self, frames: dict) -> None:
         """Fills storage with frame versions.
