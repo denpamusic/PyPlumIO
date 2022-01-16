@@ -1,9 +1,17 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
-from .constants import CURRENT_DATA, DATA_MODE, EDITABLE_PARAMS, MODES, MODULE_A
+from .constants import (
+    CURRENT_DATA,
+    DATA_FRAMES,
+    DATA_MODE,
+    EDITABLE_PARAMS,
+    MODES,
+    MODULE_PANEL,
+)
 from .frame import Request
 from .frames.requests import BoilerControl, SetParameter
+from .storage import FrameBucket
 
 
 class EcoMAX:
@@ -12,7 +20,6 @@ class EcoMAX:
     Passed to the user-defined callback method.
     """
 
-    software: str = None
     product: str = None
     uid: str = None
     password: str = None
@@ -29,6 +36,8 @@ class EcoMAX:
 
         if parameters is not None:
             self.set_parameters(parameters)
+
+        self.bucket = FrameBucket()
 
     def __getattr__(self, name: str) -> None:
         """Gets current data item as class attribute.
@@ -71,12 +80,10 @@ class EcoMAX:
         Keyword arguments:
         data - data parsed from CurrentData response frame
         """
+        self.bucket.fill(data[DATA_FRAMES])
         for name, value in data.items():
             if name in CURRENT_DATA:
                 self._data[name] = value
-
-        self.software = data[MODULE_A]
-        self._is_on = bool(data[DATA_MODE] != 0)
 
     def has_parameters(self) -> bool:
         """Check if ecoMAX instance has parameters."""
@@ -94,13 +101,24 @@ class EcoMAX:
                 )
 
         self._parameters["BOILER_CONTROL"] = Parameter(
-            name="BOILER_CONTROL", value=int(self._is_on), min_=0, max_=1
+            name="BOILER_CONTROL", value=int(self.is_on), min_=0, max_=1
         )
+
+    @property
+    def software(self) -> str:
+        """Returns software version."""
+        try:
+            return self._data[MODULE_PANEL]
+        except KeyError:
+            return None
 
     @property
     def is_on(self) -> bool:
         """Returns current state."""
-        return self._is_on
+        try:
+            return bool(self._data[DATA_MODE] != 0)
+        except KeyError:
+            return False
 
     @property
     def mode(self) -> str:
@@ -127,9 +145,11 @@ class EcoMAX:
     @property
     def changes(self) -> list[Parameter]:
         """Returns changed device parameters."""
-        return [
-            v.queue() for _, v in self._parameters.items() if v.changed and not v.queued
+        changes = [
+            v.queue for _, v in self._parameters.items() if v.changed and not v.queued
         ]
+        changes.extend(self.bucket.queue)
+        return changes
 
     def __str__(self) -> str:
         """Converts EcoMAX instance to a string."""
@@ -175,10 +195,11 @@ class Parameter:
             self.value = value
             self._changed = True
 
+    @property
     def queue(self) -> Parameter:
         """Marks parameter as queued to write."""
         self._queued = True
-        return self
+        return self.request
 
     @property
     def request(self) -> Request:

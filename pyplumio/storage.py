@@ -5,13 +5,13 @@ from __future__ import annotations
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
 from .frame import Request
-from .stream import FrameWriter
 
 
 class FrameBucket:
     """Keeps track of frame versions and stores versioning data."""
 
     versions: dict = {}
+    _queue: list[Request] = []
 
     def __init__(self, versions: dict = None):
         """Created FrameBucket instance.
@@ -26,7 +26,7 @@ class FrameBucket:
         """Gets number of versioned frames."""
         return len(self.versions)
 
-    def fill(self, writer: FrameWriter, frames: dict) -> None:
+    def fill(self, frames: dict) -> None:
         """Fills storage with frame versions.
 
         Keyword arguments:
@@ -35,9 +35,11 @@ class FrameBucket:
         for type_, version in frames.items():
             if type_ not in self.versions or self.versions[type_] != version:
                 # We don't have this frame or it's version has changed.
-                self.update(writer, type_, version)
+                request = self.update(type_, version)
+                if request is not None:
+                    self._queue.append(request)
 
-    def update(self, writer: FrameWriter, type_: int, version: int) -> None:
+    def update(self, type_: int, version: int) -> Request | None:
         """Schedules frame update.
 
         Keyword arguments:
@@ -46,9 +48,19 @@ class FrameBucket:
         """
         try:
             frame = FrameFactory().get_frame(type_=type_)
-            if isinstance(frame, Request):
-                # Do not process responses.
-                self.versions[type_] = version
-                writer.queue(frame)
         except FrameTypeError:
-            pass
+            return None
+
+        if not isinstance(frame, Request):
+            # Do not process responses.
+            return None
+
+        self.versions[type_] = version
+        return frame
+
+    @property
+    def queue(self) -> list[Request]:
+        """Clears and returns current queue."""
+        queue = self._queue
+        self._queue = []
+        return queue

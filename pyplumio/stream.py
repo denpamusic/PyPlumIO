@@ -11,11 +11,9 @@ from .constants import (
     HEADER_SIZE,
     READER_BUFFER_SIZE,
 )
-from .devices import Parameter
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
-from .frame import Frame
-from .frames.requests import Parameters
+from .frame import Frame, Request
 
 
 class FrameWriter:
@@ -51,17 +49,14 @@ class FrameWriter:
         """Checks if write queue is empty."""
         return len(self._queue) == 0
 
-    def collect(self, parameters: dict[Parameter]) -> None:
+    def collect(self, requests: dict[Request]) -> None:
         """Collects changed parameters and adds them to write queue.
 
         Keyword arguments:
         parameters -- list of device parameters
         """
-        for parameter in parameters:
-            self.queue(parameter.request)
-
-        if parameters:
-            self.queue(Parameters())
+        for request in requests:
+            self.queue(request)
 
     async def process_queue(self) -> None:
         """Processes top-most write request from the stack."""

@@ -9,12 +9,11 @@ from collections.abc import Callable
 import os
 import sys
 
-from .constants import DATA_FRAMES, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
+from .constants import DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import EcoMAX
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
-from .storage import FrameBucket
 from .stream import FrameReader, FrameWriter
 
 
@@ -43,7 +42,6 @@ class EcoNET:
         self.host = host
         self.port = port
         self.kwargs = kwargs
-        self.bucket = FrameBucket()
         self.ecomax = EcoMAX()
 
     def __enter__(self):
@@ -97,12 +95,8 @@ class EcoNET:
         elif frame.is_type(responses.Password):
             self.ecomax.password = frame.data
 
-        elif frame.is_type(responses.CurrentData):
-            self.bucket.fill(writer, frame.data[DATA_FRAMES])
-            self.ecomax.set_data(frame.data)
-
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
-            self.bucket.fill(writer, frame.data[DATA_FRAMES])
+            self.ecomax.set_data(frame.data)
 
         elif frame.is_type(responses.Parameters):
             self.ecomax.set_parameters(frame.data)
@@ -115,6 +109,8 @@ class EcoNET:
                 # Respond to check device frame only if queue is empty.
                 writer.queue(frame.response(data=self._net))
 
+        writer.collect(self.ecomax.changes)
+
     async def _read(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handles connection reads."""
         while True:
@@ -125,7 +121,6 @@ class EcoNET:
             try:
                 frame = await reader.read()
                 asyncio.create_task(self._process(frame, writer))
-                writer.collect(self.ecomax.changes)
                 await writer.process_queue()
             except ChecksumError:
                 pass

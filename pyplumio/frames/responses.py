@@ -24,6 +24,7 @@ from pyplumio.structures import (
     frame_versions,
     lambda_,
     mixers,
+    modules,
     output_flags,
     outputs,
     statuses,
@@ -31,7 +32,6 @@ from pyplumio.structures import (
     thermostats,
     uid,
     var_string,
-    versions,
 )
 from pyplumio.version import __version__
 
@@ -197,7 +197,7 @@ class CurrentData(Response):
         )[0]
         self._data[DATA_THERMOSTAT] = message[offset + 15]
         offset += 16
-        _, offset = versions.from_bytes(message, offset, self._data)
+        _, offset = modules.from_bytes(message, offset, self._data)
         _, offset = lambda_.from_bytes(message, offset, self._data)
         _, offset = thermostats.from_bytes(message, offset, self._data)
         _, offset = mixers.from_bytes(message, offset, self._data)
