@@ -6,7 +6,7 @@ from pyplumio.storage import FrameBucket
 
 @pytest.fixture()
 def frame_bucket():
-    return FrameBucket({})
+    return FrameBucket()
 
 
 def test_fill_with_nothing(frame_bucket):

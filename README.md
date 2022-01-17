@@ -9,9 +9,11 @@
 ```python
 from pyplumio import econet_connection
 
-async def main(ecomax, econet):
-    if ecomax.has_data():
-        print(ecomax)
+
+async def main(devices, econet):
+    if devices.has("ecomax") and devices.ecomax.has_data():
+        print(devices.ecomax)
+
 
 with econet_connection("ecomax.home", 8899) as c:
     c.run(main)

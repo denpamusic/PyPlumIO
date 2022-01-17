@@ -21,8 +21,6 @@ class FrameWriter:
     asyncio's StreamWriter and maintains write queue.
     """
 
-    _queue: list = []
-
     def __init__(self, writer: StreamWriter):
         """Creates instance of FrameWriter.
 
@@ -30,6 +28,7 @@ class FrameWriter:
         writer -- instance of asyncio.StreamWriter
         """
         self.writer = writer
+        self._queue = []
 
     def __len__(self) -> int:
         """Gets write queue length."""

@@ -13,24 +13,26 @@ from .frame import Request
 from .frames.requests import BoilerControl, SetParameter
 from .storage import FrameBucket
 
+ECOMAX_ADDRESS: int = 0x45
+ECOSTER_ADDRESS: int = 0x51
 
-class EcoMAX:
-    """EcoMAX device representation.
+
+class Device:
+    """A device representation.
 
     Passed to the user-defined callback method.
     """
 
-    product: str = None
-    uid: str = None
-    password: str = None
-    struct: list = []
-    _queue: list[Request] = []
-    _parameters: dict = {}
-    _data: dict = {}
-    _is_on: bool = None
-
     def __init__(self, data: dict = None, parameters: dict = None):
-        """Create ecoMAX device representation."""
+        """Creates device.
+
+        Keyword arguments:
+        data -- device data
+        parameters -- editable parameters
+        """
+
+        self.__dict__["_data"] = {}
+        self.__dict__["_parameters"] = {}
 
         if data is not None:
             self.set_data(data)
@@ -38,7 +40,13 @@ class EcoMAX:
         if parameters is not None:
             self.set_parameters(parameters)
 
+        self.product = None
+        self.uid = None
+        self.password = None
+        self.struct = []
         self.bucket = FrameBucket()
+        self._queue = []
+        self._is_on = False
 
     def __getattr__(self, name: str) -> None:
         """Gets current data item as class attribute.
@@ -73,11 +81,11 @@ class EcoMAX:
             self.__dict__[name] = value
 
     def has_data(self) -> bool:
-        """Checks if EcoMAX instance has any data."""
+        """Checks if device instance has any data."""
         return bool(self._data)
 
     def set_data(self, data: dict) -> None:
-        """Sets EcoMAX data received in CurrentData frame.
+        """Sets device data received in CurrentData frame.
 
         Keyword arguments:
         data - data parsed from CurrentData response frame
@@ -88,11 +96,11 @@ class EcoMAX:
                 self._data[name] = value
 
     def has_parameters(self) -> bool:
-        """Check if ecoMAX instance has parameters."""
+        """Check if device instance has parameters."""
         return bool(self._parameters)
 
     def set_parameters(self, parameters: dict) -> None:
-        """Sets EcoMAX settings received in Parameters frame."""
+        """Sets device settings received in parameters frame."""
         for name, parameter in parameters.items():
             if name in EDITABLE_PARAMS:
                 self._parameters[name] = Parameter(
@@ -143,12 +151,12 @@ class EcoMAX:
 
     @property
     def data(self):
-        """Returns EcoMAX data."""
+        """Returns device data."""
         return self._data
 
     @property
     def parameters(self):
-        """Returns EcoMAX parameters."""
+        """Returns device parameters."""
         return self._parameters
 
     @property
@@ -159,7 +167,7 @@ class EcoMAX:
         return changes
 
     def __str__(self) -> str:
-        """Converts EcoMAX instance to a string."""
+        """Converts device instance to a string."""
         output = f"""
 Product:        {self.product}
 Software Ver.:  {self.software}
@@ -180,10 +188,72 @@ Password:       {self.password}
         return output.lstrip()
 
 
+class EcoMAX(Device):
+    """ecoMAX device representation."""
+
+    address = ECOMAX_ADDRESS
+
+
+class EcoSTER(Device):
+    """ecoSTER device representation."""
+
+    address = ECOSTER_ADDRESS
+
+
+class DeviceCollection:
+    """Collection of ecoNET devices."""
+
+    def __init__(self):
+        """Creates device collection."""
+        self._classes = Device.__subclasses__()
+        self._addresses = [v.address for v in self._classes]
+        self._instances = {}
+        self._names = {}
+
+    def __getattr__(self, name: str) -> Device | None:
+        """Gets device by name.""
+
+        Keyword arguments:
+        name -- name of device to get
+        """
+        name = name.lower()
+        if name in self._names:
+            return self._instances[self._names[name]]
+
+        return None
+
+    def has(self, needle) -> bool:
+        """Checks if collection has device for specified address.
+
+        Keyword arguments:
+        needle -- address or name of device
+        """
+        return (needle in self._addresses) or (needle in self._names)
+
+    def get(self, address: int) -> Device | None:
+        """Gets device by address.
+
+        Keyword arguments:
+        address -- int address of device
+        """
+        if address not in self._instances:
+            try:
+                index = self._addresses.index(address)
+                cls = self._classes[index]
+            except KeyError:
+                return None
+
+            self._instances[address] = cls()
+            self._names[cls.__name__.lower()] = address
+
+        return self._instances[address]
+
+
 class Parameter:
     """Device parameter representation."""
 
     def __init__(self, name: str, value, min_: int, max_: int):
+        """Creates parameter."""
         self.name = name
         self.value = int(value)
         self.min_ = min_

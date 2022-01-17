@@ -10,15 +10,15 @@ from .frame import Request
 class FrameBucket:
     """Keeps track of frame versions and stores versioning data."""
 
-    versions: dict = {}
-    _queue: list[Request] = []
-
     def __init__(self, versions: dict = None):
         """Created FrameBucket instance.
 
         Keyword arguments:
         versions -- dictionary containing frame versions
         """
+        self.versions = {}
+        self._queue = []
+
         if versions is not None:
             self.versions = versions
 
@@ -42,11 +42,9 @@ class FrameBucket:
         for type_, version in frames.items():
             if type_ not in self.versions or self.versions[type_] != version:
                 # We don't have this frame or it's version has changed.
-                request = self.update(type_, version)
-                if request is not None:
-                    self._queue.append(request)
+                self.update(type_, version)
 
-    def update(self, type_: int, version: int) -> Request | None:
+    def update(self, type_: int, version: int) -> None:
         """Schedules frame update.
 
         Keyword arguments:
@@ -63,7 +61,8 @@ class FrameBucket:
             return None
 
         self.versions[type_] = version
-        return frame
+        self._queue.append(frame)
+        return None
 
     @property
     def queue(self) -> list[Request]:

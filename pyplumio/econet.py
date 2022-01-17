@@ -10,7 +10,7 @@ import os
 import sys
 
 from .constants import DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
-from .devices import EcoMAX
+from .devices import DeviceCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
@@ -21,12 +21,6 @@ class EcoNET:
     """Allows to interact with ecoNET connection, handles sending and
     receiving frames and calling async callback.
     """
-
-    host: str = None
-    port: int = None
-    closed: bool = True
-    _net: dict = {}
-    _writer_close = None
 
     def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET connection instance.
@@ -42,7 +36,10 @@ class EcoNET:
         self.host = host
         self.port = port
         self.kwargs = kwargs
-        self.ecomax = EcoMAX()
+        self.closed = True
+        self._net = {}
+        self._devices = DeviceCollection()
+        self._writer_close = None
 
     def __enter__(self):
         """Provides entry point for context manager."""
@@ -61,7 +58,7 @@ class EcoNET:
 """
 
     async def _callback(
-        self, callback: Callable[EcoMAX, EcoNET], interval: int
+        self, callback: Callable[DeviceCollection, EcoNET], interval: int
     ) -> None:
         """Calls provided callback method with specified interval.
 
@@ -71,7 +68,7 @@ class EcoNET:
         interval -- update interval in seconds
         """
         while True:
-            await callback(ecomax=self.ecomax, econet=self)
+            await callback(self._devices, econet=self)
             await asyncio.sleep(interval)
 
     async def _process(self, frame: Frame, writer: FrameWriter) -> None:
@@ -82,34 +79,35 @@ class EcoNET:
         writer -- instance of writer
         """
 
-        if frame is None:
-            return
+        if frame is None or not self._devices.has(frame.sender):
+            return None
 
+        device = self._devices.get(frame.sender)
         if frame.is_type(requests.ProgramVersion):
             writer.queue(frame.response())
 
         elif frame.is_type(responses.UID):
-            self.ecomax.uid = frame.data["UID"]
-            self.ecomax.product = frame.data["reg_name"]
+            device.uid = frame.data["UID"]
+            device.product = frame.data["reg_name"]
 
         elif frame.is_type(responses.Password):
-            self.ecomax.password = frame.data
+            device.password = frame.data
 
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
-            self.ecomax.set_data(frame.data)
+            device.set_data(frame.data)
 
         elif frame.is_type(responses.Parameters):
-            self.ecomax.set_parameters(frame.data)
+            device.set_parameters(frame.data)
 
         elif frame.is_type(responses.DataStructure):
-            self.ecomax.struct = frame.data
+            device.struct = frame.data
 
         elif frame.is_type(requests.CheckDevice):
             if writer.queue_is_empty():
                 # Respond to check device frame only if queue is empty.
                 writer.queue(frame.response(data=self._net))
 
-        writer.collect(self.ecomax.changes)
+        writer.collect(device.changes)
 
     async def _read(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handles connection reads."""
@@ -129,7 +127,9 @@ class EcoNET:
             except FrameTypeError:
                 pass
 
-    async def task(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
+    async def task(
+        self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
+    ) -> None:
         """Establishes connection and continuously reads new frames.
 
         Keyword arguments:
@@ -147,7 +147,9 @@ class EcoNET:
         self._writer_close = writer.close  # Avoid stream garbage collection message.
         await self._read(reader, writer)
 
-    def run(self, callback: Callable[EcoMAX, EcoNET], interval: int = 1) -> None:
+    def run(
+        self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
+    ) -> None:
         """Run connection in the event loop.
 
         Keyword arguments:
@@ -165,7 +167,7 @@ class EcoNET:
     def set_eth(
         self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
     ) -> None:
-        """Sets eth parameters to pass to ecoMax device.
+        """Sets eth parameters to pass to devices.
         Used for informational purpoises only.
 
         Keyword arguments:
@@ -189,8 +191,8 @@ class EcoNET:
         gateway: str = DEFAULT_IP,
         quality: int = 100,
     ) -> None:
-        """Sets wlan parameters to pass to ecoMAX device.
-        Used for informational purpoises only.
+        """Sets wlan parameters to pass to devices.
+        Used for informational purposes only.
 
         Keyword arguments:
         ssid -- SSID string

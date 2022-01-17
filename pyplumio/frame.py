@@ -19,13 +19,6 @@ class Frame:
     frames.
     """
 
-    type_: int = None
-    sender: int = None
-    recipient: int = None
-    sender_type: int = ECONET_TYPE
-    econet_version: int = ECONET_VERSION
-    _data = None
-
     def __init__(
         self,
         type_: int = None,
