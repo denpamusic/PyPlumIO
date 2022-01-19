@@ -6,15 +6,24 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+import logging
 import os
 import sys
 
-from .constants import DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
+from .constants import (
+    DEFAULT_IP,
+    DEFAULT_NETMASK,
+    READER_TIMEOUT,
+    RECONNECT_TIMEOUT,
+    WLAN_ENCRYPTION,
+)
 from .devices import DeviceCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
 from .stream import FrameReader, FrameWriter
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class EcoNET:
@@ -117,15 +126,36 @@ class EcoNET:
                 break
 
             try:
-                frame = await reader.read()
+                frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
                 asyncio.create_task(self._process(frame, writer))
                 await writer.process_queue()
+            except asyncio.TimeoutError:
+                _LOGGER.error(
+                    "Connection lost. Will try to reconnect in background after %i seconds.",
+                    RECONNECT_TIMEOUT,
+                )
+                await writer.close()
+                reader, writer = await self.reconnect()
+                continue
             except ChecksumError:
-                pass
+                _LOGGER.warning("Incorrect frame checksum.")
             except LengthError:
-                pass
+                _LOGGER.warning("Incorrect frame length.")
             except FrameTypeError:
-                pass
+                _LOGGER.info("Unknown frame type %s.", hex(frame.type_))
+
+    async def reconnect(self) -> (FrameReader, FrameWriter):
+        """Initializes reconnect after RECONNECT_TIMEOUT seconds."""
+        await asyncio.sleep(RECONNECT_TIMEOUT)
+        return await self.connect()
+
+    async def connect(self) -> (FrameReader, FrameWriter):
+        """Initializes connection and returns frame reader and writer."""
+        reader, writer = await asyncio.open_connection(
+            host=self.host, port=self.port, **self.kwargs
+        )
+        self.closed = False
+        return [FrameReader(reader), FrameWriter(writer)]
 
     async def task(
         self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
@@ -136,15 +166,9 @@ class EcoNET:
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        reader, writer = await asyncio.open_connection(
-            host=self.host, port=self.port, **self.kwargs
-        )
-
-        self.closed = False
-        reader, writer = [FrameReader(reader), FrameWriter(writer)]
+        reader, writer = await self.connect()
         writer.queue(requests.Password())
         asyncio.create_task(self._callback(callback, interval))
-        self._writer_close = writer.close  # Avoid stream garbage collection message.
         await self._read(reader, writer)
 
     def run(
