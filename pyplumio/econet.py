@@ -48,6 +48,7 @@ class EcoNET:
         self.closed = True
         self._net = {}
         self._devices = DeviceCollection()
+        self._callback_task = None
         self._writer_close = None
 
     def __enter__(self):
@@ -168,7 +169,7 @@ class EcoNET:
         """
         reader, writer = await self.connect()
         writer.queue(requests.Password())
-        asyncio.create_task(self._callback(callback, interval))
+        self._callback_task = asyncio.create_task(self._callback(callback, interval))
         await self._read(reader, writer)
 
     def run(
@@ -242,3 +243,5 @@ class EcoNET:
     def close(self) -> None:
         """Closes opened connection."""
         self.closed = True
+        if self._callback_task is not None:
+            self._callback_task.cancel()
