@@ -39,7 +39,7 @@ class EcoNET:
             create_connection method
         """
         self.kwargs = kwargs
-        self.closed = True
+        self.closing = False
         self._net = {}
         self._devices = DeviceCollection()
         self._callback_task = None
@@ -107,22 +107,22 @@ class EcoNET:
     async def _read(self, reader: FrameReader) -> None:
         """Handles connection reads."""
         while True:
-            if self.closed:
+            if self.closing:
                 await self.writer.close()
+                self.writer = None
+                self.closing = False
                 break
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
                 asyncio.create_task(self._process(frame, self.writer))
                 await self.writer.process_queue()
-            except asyncio.TimeoutError:
+            except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
                 _LOGGER.error(
-                    "Connection to device failed. Will retry in %i seconds.",
+                    "Connection to device failed, retrying in %i seconds...",
                     RECONNECT_TIMEOUT,
                 )
-                await self.writer.close()
                 reader, self.writer = await self.reconnect()
-                continue
             except ChecksumError:
                 _LOGGER.warning("Incorrect frame checksum.")
             except LengthError:
@@ -132,6 +132,9 @@ class EcoNET:
 
     async def reconnect(self) -> (FrameReader, FrameWriter):
         """Initializes reconnect after RECONNECT_TIMEOUT seconds."""
+        if self.writer is not None:
+            await self.writer.close()
+
         await asyncio.sleep(RECONNECT_TIMEOUT)
         return await self.connect()
 
@@ -215,13 +218,14 @@ class EcoNET:
 
     def connected(self) -> bool:
         """Returns connection state."""
-        return not self.closed
+        return self.writer is not None
 
     def close(self) -> None:
         """Closes opened connection."""
-        self.closed = True
-        if self._callback_task is not None:
-            self._callback_task.cancel()
+        if not self.closing:
+            self.closing = True
+            if self._callback_task is not None:
+                self._callback_task.cancel()
 
     async def connect(self) -> (FrameReader, FrameWriter):
         """Initializes connection and returns frame reader and writer."""
@@ -251,7 +255,6 @@ class TcpConnection(EcoNET):
         reader, writer = await asyncio.open_connection(
             host=self.host, port=self.port, **self.kwargs
         )
-        self.closed = False
         return [FrameReader(reader), FrameWriter(writer)]
 
 
@@ -283,5 +286,4 @@ class SerialConnection(EcoNET):
             stopbits=serial_asyncio.serial.STOPBITS_ONE,
             **self.kwargs,
         )
-        self.closed = False
         return [FrameReader(reader), FrameWriter(writer)]
