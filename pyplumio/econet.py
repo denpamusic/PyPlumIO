@@ -52,15 +52,6 @@ class EcoNET:
     def __exit__(self, exc_type, exc_value, traceback):
         """Provides exit point for context manager."""
 
-    def __repr__(self):
-        """Creates string respresentation of class."""
-        return f"""{self.__class__.__name__}(
-    host = {self.host},
-    port = {self.port},
-    kwargs = {self.kwargs}
-)
-"""
-
     async def _callback(
         self, callback: Callable[DeviceCollection, EcoNET], interval: int
     ) -> None:
@@ -246,6 +237,15 @@ class TCPConnection(EcoNET):
         self.host = host
         self.port = port
 
+    def __repr__(self):
+        """Creates string respresentation of class."""
+        return f"""{self.__class__.__name__}(
+    host = {self.host},
+    port = {self.port},
+    kwargs = {self.kwargs}
+)
+"""
+
     async def connect(self) -> (FrameReader, FrameWriter):
         """Initializes connection and returns frame reader and writer."""
         reader, writer = await asyncio.open_connection(
@@ -263,6 +263,15 @@ class SerialConnection(EcoNET):
         super().__init__(**kwargs)
         self.device = device
         self.baudrate = baudrate
+
+    def __repr__(self):
+        """Creates string respresentation of class."""
+        return f"""{self.__class__.__name__}(
+    device = {self.device},
+    baudrate = {self.baudrate},
+    kwargs = {self.kwargs}
+)
+"""
 
     async def connect(self) -> (FrameReader, FrameWriter):
         """Initializes connection and returns frame reader and writer."""
