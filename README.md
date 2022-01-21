@@ -13,12 +13,14 @@ Currently it supports reading and writing parameters of ecoMAX automatic pellet 
 
 Devices can be connected directly via RS485 to USB converter or through network by using serial port server (for example [Elfin EW11](https://aliexpress.ru/item/4001104348624.html))
 
-## Usage
-You can find examples for each supported connection type below.
+This project is considered to be in __Pre-Alpha__ state and there __will be__ breaking changes down the road and a lot of bugs, please use with care.
 
+## Usage
 To interact with devices, you must pass async callback to `EcoNET.run(callback: Callable, interval: int)` method. Callback will receive `pyplumio.DeviceCollection` instance `devices` that will contain all found supported devices and `pyplumio.EcoNET` class instance `econet` that represents current connection.
 
-Second optional parameter for `EcoNET.run(callback: Callable, interval: int)` method - `interval` defines how often your callback will be called in seconds. If unspecified, your callback will be called every second.
+Second optional parameter for `EcoNET.run(callback: Callable, interval: int)` method - `interval` defines how often the callback will be called in seconds. If unspecified, callback will be called every second.
+
+You can find examples for each supported connection type below.
 
 ### TCP
 ```python
