@@ -3,10 +3,10 @@ from pyplumio.econet import SerialConnection, TcpConnection
 
 
 def test_econet_tcp_connection():
-    econet = econet_tcp_connection("localhost", 8899)
+    econet = econet_tcp_connection(host="localhost", port=8899)
     assert isinstance(econet, TcpConnection)
 
 
 def test_econet_serial_connection():
-    econet = econet_serial_connection("/dev/ttyUSB0")
+    econet = econet_serial_connection(device="/dev/ttyUSB0")
     assert isinstance(econet, SerialConnection)
