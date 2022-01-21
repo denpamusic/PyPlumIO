@@ -10,5 +10,7 @@ def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
     """
     string_length = message[offset]
     offset += 1
+    string = message[offset : offset + string_length + 1].decode()
+    offset += string_length + 1
 
-    return message[offset : offset + string_length + 1].decode()
+    return string, offset
