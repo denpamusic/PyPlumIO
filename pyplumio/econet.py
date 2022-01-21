@@ -43,7 +43,7 @@ class EcoNET:
         self._net = {}
         self._devices = DeviceCollection()
         self._callback_task = None
-        self._writer_close = None
+        self.writer = None
 
     def __enter__(self):
         """Provides entry point for context manager."""
@@ -104,24 +104,24 @@ class EcoNET:
 
         writer.collect(device.changes)
 
-    async def _read(self, reader: FrameReader, writer: FrameWriter) -> None:
+    async def _read(self, reader: FrameReader) -> None:
         """Handles connection reads."""
         while True:
             if self.closed:
-                await writer.close()
+                await self.writer.close()
                 break
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
-                asyncio.create_task(self._process(frame, writer))
-                await writer.process_queue()
+                asyncio.create_task(self._process(frame, self.writer))
+                await self.writer.process_queue()
             except asyncio.TimeoutError:
                 _LOGGER.error(
-                    "Connection lost. Will try to reconnect in background after %i seconds.",
+                    "Connection to device failed. Will retry in %i seconds.",
                     RECONNECT_TIMEOUT,
                 )
-                await writer.close()
-                reader, writer = await self.reconnect()
+                await self.writer.close()
+                reader, self.writer = await self.reconnect()
                 continue
             except ChecksumError:
                 _LOGGER.warning("Incorrect frame checksum.")
@@ -144,10 +144,10 @@ class EcoNET:
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        reader, writer = await self.connect()
-        writer.queue(requests.Password())
+        reader, self.writer = await self.connect()
+        self.writer.queue(requests.Password())
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
-        await self._read(reader, writer)
+        await self._read(reader)
 
     def run(
         self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
@@ -228,7 +228,7 @@ class EcoNET:
         raise NotImplementedError()
 
 
-class TCPConnection(EcoNET):
+class TcpConnection(EcoNET):
     """Represents ecoNET TCP connection through."""
 
     def __init__(self, host: str, port: int, **kwargs):
