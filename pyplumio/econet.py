@@ -115,8 +115,6 @@ class EcoNET:
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
-                asyncio.create_task(self._process(frame, self.writer))
-                await self.writer.process_queue()
             except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
                 _LOGGER.error(
                     "Connection to device failed, retrying in %i seconds...",
@@ -129,6 +127,9 @@ class EcoNET:
                 _LOGGER.warning("Incorrect frame length.")
             except FrameTypeError:
                 _LOGGER.info("Unknown frame type %s.", hex(frame.type_))
+            else:
+                asyncio.create_task(self._process(frame, self.writer))
+                await self.writer.process_queue()
 
     async def reconnect(self) -> (FrameReader, FrameWriter):
         """Initializes reconnect after RECONNECT_TIMEOUT seconds."""
