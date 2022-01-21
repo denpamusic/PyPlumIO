@@ -18,6 +18,9 @@ setuptools.setup(
     project_urls={
         "Bug Tracker": "https://github.com/denpamusic/PyPlumIO/issues",
     },
+    install_requires=[
+        "pyserial-asyncio",
+    ],
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: Developers",

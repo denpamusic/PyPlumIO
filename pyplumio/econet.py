@@ -10,6 +10,8 @@ import logging
 import os
 import sys
 
+import serial_asyncio
+
 from .constants import (
     DEFAULT_IP,
     DEFAULT_NETMASK,
@@ -27,23 +29,15 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EcoNET:
-    """Allows to interact with ecoNET connection, handles sending and
-    receiving frames and calling async callback.
-    """
+    """Base ecoNET connection class."""
 
-    def __init__(self, host: str, port: int, **kwargs):
+    def __init__(self, **kwargs):
         """Creates EcoNET connection instance.
 
         Keyword arguments:
-        host -- hostname or ip of rs485 to tcp bridge,
-            connected to ecoMAX controller
-        port -- port of rs485 to tcp bridge,
-            connected to ecoMAX controller
         **kwargs -- keyword arguments directly passed to asyncio's
             create_connection method
         """
-        self.host = host
-        self.port = port
         self.kwargs = kwargs
         self.closed = True
         self._net = {}
@@ -150,14 +144,6 @@ class EcoNET:
         await asyncio.sleep(RECONNECT_TIMEOUT)
         return await self.connect()
 
-    async def connect(self) -> (FrameReader, FrameWriter):
-        """Initializes connection and returns frame reader and writer."""
-        reader, writer = await asyncio.open_connection(
-            host=self.host, port=self.port, **self.kwargs
-        )
-        self.closed = False
-        return [FrameReader(reader), FrameWriter(writer)]
-
     async def task(
         self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
     ) -> None:
@@ -245,3 +231,48 @@ class EcoNET:
         self.closed = True
         if self._callback_task is not None:
             self._callback_task.cancel()
+
+    async def connect(self) -> (FrameReader, FrameWriter):
+        """Initializes connection and returns frame reader and writer."""
+        raise NotImplementedError()
+
+
+class TCPConnection(EcoNET):
+    """Represents ecoNET TCP connection through."""
+
+    def __init__(self, host: str, port: int, **kwargs):
+        """Creates EcoNET TCP connection instance."""
+        super().__init__(**kwargs)
+        self.host = host
+        self.port = port
+
+    async def connect(self) -> (FrameReader, FrameWriter):
+        """Initializes connection and returns frame reader and writer."""
+        reader, writer = await asyncio.open_connection(
+            host=self.host, port=self.port, **self.kwargs
+        )
+        self.closed = False
+        return [FrameReader(reader), FrameWriter(writer)]
+
+
+class SerialConnection(EcoNET):
+    """Represents ecoNET serial connection."""
+
+    def __init__(self, device: str, baudrate: int = 115200, **kwargs):
+        """Creates EcoNET serial connection instance."""
+        super().__init__(**kwargs)
+        self.device = device
+        self.baudrate = baudrate
+
+    async def connect(self) -> (FrameReader, FrameWriter):
+        """Initializes connection and returns frame reader and writer."""
+        reader, writer = await serial_asyncio.open_serial_connection(
+            url=self.device,
+            baudrate=self.baudrate,
+            bytesize=serial_asyncio.serial.EIGHTBITS,
+            parity=serial_asyncio.serial.PARITY_NONE,
+            stopbits=serial_asyncio.serial.STOPBITS_ONE,
+            **self.kwargs,
+        )
+        self.closed = False
+        return [FrameReader(reader), FrameWriter(writer)]
