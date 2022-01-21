@@ -133,7 +133,7 @@ class EcoNET:
 
     async def reconnect(self) -> (FrameReader, FrameWriter):
         """Initializes reconnect after RECONNECT_TIMEOUT seconds."""
-        if self.writer is not None:
+        if self.connected():
             await self.writer.close()
 
         await asyncio.sleep(RECONNECT_TIMEOUT)
