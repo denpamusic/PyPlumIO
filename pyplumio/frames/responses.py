@@ -225,7 +225,7 @@ class UID(Response):
         offset += 2
         self._data["reg_img"] = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        self._data["reg_name"] = var_string.from_bytes(message, offset)
+        self._data["reg_name"], offset = var_string.from_bytes(message, offset)
 
 
 class Password(Response):
