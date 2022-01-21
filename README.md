@@ -6,8 +6,9 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/9f275fbc50fe9082a909/maintainability)](https://codeclimate.com/github/denpamusic/PyPlumIO/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/9f275fbc50fe9082a909/test_coverage)](https://codeclimate.com/github/denpamusic/PyPlumIO/test_coverage)
 
+## TCP
 ```python
-from pyplumio import econet_connection
+from pyplumio import econet_tcp_connection
 
 
 async def main(devices, econet):
@@ -15,6 +16,20 @@ async def main(devices, econet):
         print(devices.ecomax)
 
 
-with econet_connection("ecomax.home", 8899) as c:
+with econet_tcp_connection(host="localhost", port=8899) as c:
+    c.run(main)
+```
+
+## Serial
+```python
+from pyplumio import econet_serial_connection
+
+
+async def main(devices, econet):
+    if devices.has("ecomax") and devices.ecomax.has_data():
+        print(devices.ecomax)
+
+
+with econet_serial_connection(device="/dev/ttyUSB0", baudrate=115200) as c:
     c.run(main)
 ```
