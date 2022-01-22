@@ -7,74 +7,78 @@ from pyplumio.constants import (
     ECONET_VERSION,
     HEADER_SIZE,
 )
-from pyplumio.frame import Frame
-from pyplumio.frames.requests import ProgramVersion
+from pyplumio.frame import Request, Response
+from pyplumio.frames import requests, responses
 
 
 @pytest.fixture
-def frame():
-    return Frame(type_=ProgramVersion.type_)
+def request_():
+    return Request(type_=requests.ProgramVersion.type_)
 
 
-def test_passing_frame_type(frame):
-    assert frame.type_ == ProgramVersion.type_
+@pytest.fixture
+def response():
+    return Response(type_=responses.ProgramVersion.type_)
 
 
-def test_base_class_with_default_params(frame):
-    assert frame.recipient == BROADCAST_ADDRESS
-    assert frame.message == b""
-    assert frame.sender == ECONET_ADDRESS
-    assert frame.sender_type == ECONET_TYPE
-    assert frame.econet_version == ECONET_VERSION
+@pytest.fixture
+def frames(request_, response):
+    return [request_, response]
+
+
+@pytest.fixture
+def types():
+    return [requests.ProgramVersion.type_, responses.ProgramVersion.type_]
+
+
+def test_passing_frame_type(frames, types):
+    for index, frame in enumerate(frames):
+        assert frame.type_ == types[index]
+
+
+def test_default_params(frames):
+    for frame in frames:
+        assert frame.recipient == BROADCAST_ADDRESS
+        assert frame.message == b""
+        assert frame.sender == ECONET_ADDRESS
+        assert frame.sender_type == ECONET_TYPE
+        assert frame.econet_version == ECONET_VERSION
+
+
+def test_frame_length_without_data(frames):
+    for frame in frames:
+        assert frame.length == HEADER_SIZE + 3
+        assert len(frame) == HEADER_SIZE + 3
+
+
+def test_get_header(frames):
+    for frame in frames:
+        assert frame.header == b"\x68\x0a\x00\x00\x56\x30\x05"
 
 
 def test_base_class_with_message():
-    frame = Frame(type_=ProgramVersion.type_, message=b"\xB0\x0B")
+    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
     assert frame.message == b"\xB0\x0B"
 
 
-def test_frame_length_without_data(frame):
-    assert frame.length == HEADER_SIZE + 3
-    assert len(frame) == HEADER_SIZE + 3
-
-
-def test_get_header(frame):
-    assert frame.header == b"\x68\x0a\x00\x00\x56\x30\x05"
-
-
 def test_to_bytes():
-    frame = Frame(type_=ProgramVersion.type_, message=b"\xB0\x0B")
+    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
     assert frame.to_bytes() == b"\x68\x0C\x00\x00\x56\x30\x05\x40\xB0\x0B\xFC\x16"
 
 
 def test_to_hex():
-    frame = Frame(type_=ProgramVersion.type_, message=b"\xB0\x0B")
+    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
     hex = ["68", "0C", "00", "00", "56", "30", "05", "40", "B0", "0B", "FC", "16"]
     assert frame.to_hex() == hex
 
 
 def test_frame_type_check():
-    frame = ProgramVersion(recipient=BROADCAST_ADDRESS)
-    assert frame.is_type(ProgramVersion)
+    frame = responses.ProgramVersion(recipient=BROADCAST_ADDRESS)
+    assert frame.is_type(responses.ProgramVersion)
 
 
-def test_base_class_raises_not_implemented_on_data(frame):
-    with pytest.raises(NotImplementedError):
-        frame.data()
-
-
-def test_base_class_raises_not_implemented_on_parse(frame):
-    with pytest.raises(NotImplementedError):
-        frame.parse_message(b"\x00")
-
-
-def test_base_class_raises_not_implemented_on_create(frame):
-    with pytest.raises(NotImplementedError):
-        frame.create_message()
-
-
-def test_base_class_repr(frame):
-    repr_ = """Frame(
+def test_request_repr(request_):
+    repr_ = """Request(
     type = 64,
     recipient = 0,
     message = bytearray(b''),
@@ -84,4 +88,18 @@ def test_base_class_repr(frame):
     data = None
 )
 """.strip()
-    assert repr(frame) == repr_
+    assert repr(request_) == repr_
+
+
+def test_response_repr(response):
+    repr_ = """Response(
+    type = 192,
+    recipient = 0,
+    message = bytearray(b''),
+    sender = 86,
+    sender_type = 48,
+    econet_version = 5,
+    data = None
+)
+""".strip()
+    assert repr(response) == repr_

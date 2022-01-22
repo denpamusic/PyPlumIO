@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from . import util
 from .constants import (
     BROADCAST_ADDRESS,
@@ -14,7 +16,7 @@ from .constants import (
 )
 
 
-class Frame:
+class Frame(ABC):
     """Used as base class for creating and parsing request and response
     frames.
     """
@@ -143,19 +145,19 @@ class Frame:
         """Converts frame to list of hex bytes."""
         return util.to_hex(self.to_bytes())
 
+    @abstractmethod
     def create_message(self) -> bytearray:
         """Creates bytearray message from
         provided data.
         """
-        raise NotImplementedError()
 
+    @abstractmethod
     def parse_message(self, message: bytearray) -> None:
         """Parses data from the frame message.
 
         Keyword arguments:
         message - bytearray message to parse
         """
-        raise NotImplementedError()
 
 
 class Request(Frame):
@@ -167,6 +169,32 @@ class Request(Frame):
         """
         return None
 
+    def create_message(self) -> bytearray:
+        """Creates bytearray message from
+        provided data.
+        """
+        return bytearray()
+
+    def parse_message(self, message: bytearray) -> None:
+        """Parses data from the frame message.
+
+        Keyword arguments:
+        message - bytearray message to parse
+        """
+
 
 class Response(Frame):
     """Base class for all response frames."""
+
+    def create_message(self) -> bytearray:
+        """Creates bytearray message from
+        provided data.
+        """
+        return bytearray()
+
+    def parse_message(self, message: bytearray) -> None:
+        """Parses data from the frame message.
+
+        Keyword arguments:
+        message - bytearray message to parse
+        """

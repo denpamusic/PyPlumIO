@@ -4,6 +4,7 @@ connection.
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Callable
 import logging
@@ -28,7 +29,7 @@ from .stream import FrameReader, FrameWriter
 _LOGGER = logging.getLogger(__name__)
 
 
-class EcoNET:
+class EcoNET(ABC):
     """Base ecoNET connection class."""
 
     def __init__(self, **kwargs):
@@ -228,9 +229,9 @@ class EcoNET:
             if self._callback_task is not None:
                 self._callback_task.cancel()
 
+    @abstractmethod
     async def connect(self) -> (FrameReader, FrameWriter):
         """Initializes connection and returns frame reader and writer."""
-        raise NotImplementedError()
 
 
 class TcpConnection(EcoNET):
