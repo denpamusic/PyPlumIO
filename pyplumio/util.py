@@ -117,8 +117,9 @@ def uid_stamp(message: str) -> str:
         for _ in range(8):
             if crc_ & 1:
                 crc_ = (crc_ >> 1) ^ 0xA001
-            else:
-                crc_ = crc_ >> 1
+                continue
+
+            crc_ = crc_ >> 1
 
     return chr(crc_ % 256) + chr((crc_ // 256) % 256)
 

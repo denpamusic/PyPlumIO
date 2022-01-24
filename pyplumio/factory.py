@@ -34,13 +34,9 @@ class FrameFactory:
         types and handlers.
         """
         if not self._types:
-            ignores = ["Request"]
             for module in [requests, responses]:
                 for _, obj in inspect.getmembers(module, inspect.isclass):
-                    if (
-                        obj.__module__ == module.__name__
-                        and obj.__name__ not in ignores
-                    ):
+                    if obj.__module__ == module.__name__:
                         # Object is within the module and not ignored.
                         self._types[obj.type_] = obj
 

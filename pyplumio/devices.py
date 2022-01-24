@@ -171,15 +171,13 @@ UID:            {self.uid}
 Password:       {self.password}
 """
 
-        if self.has_data():
-            output += "\nCurrent data:\n"
-            for k, v in self._data.items():
-                output += f" -- {k}: {v}\n"
+        output += "\nCurrent data:\n"
+        for k, v in self._data.items():
+            output += f" -- {k}: {v}\n"
 
-        if self.has_parameters():
-            output += "\nEditable parameters:\n"
-            for _, parameter in self._parameters.items():
-                output += f" -- {parameter}\n"
+        output += "\nEditable parameters:\n"
+        for _, parameter in self._parameters.items():
+            output += f" -- {parameter}\n"
 
         return output.lstrip()
 
