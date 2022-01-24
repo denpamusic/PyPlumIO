@@ -14,17 +14,15 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict,
     if data is None:
         data = {}
 
-    first = message[1]
-    offset = 3
+    first_parameter = message[1]
     parameters_number = message[2]
+    offset = 3
     if parameters_number > 0:
-        for parameter in range(first, parameters_number + first):
-            if parameter < len(EDITABLE_PARAMS):
-                parameter_name = EDITABLE_PARAMS[parameter]
-                parameter = util.unpack_parameter(message, offset)
-                if parameter is not None:
-                    data[parameter_name] = parameter
+        for index in range(first_parameter, parameters_number + first_parameter):
+            parameter = util.unpack_parameter(message, offset)
+            if parameter is not None:
+                data[EDITABLE_PARAMS[index]] = parameter
 
-                offset += 3
+            offset += 3
 
     return data, offset
