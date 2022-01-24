@@ -14,7 +14,6 @@ from pyplumio.constants import (
     DATA_TRANSMISSION,
     DEFAULT_IP,
     DEFAULT_NETMASK,
-    EDITABLE_PARAMS,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
@@ -23,10 +22,12 @@ from pyplumio.structures import (
     alarms,
     frame_versions,
     lambda_,
+    mixer_parameter,
     mixers,
     modules,
     output_flags,
     outputs,
+    regulator_parameter,
     statuses,
     temperatures,
     thermostats,
@@ -301,42 +302,21 @@ class Parameters(Response):
         Keywords arguments:
         message -- message to parse
         """
-        first = message[1]
-        offset = 3
-        parameters_number = message[2]
-        self._data = {}
-        if parameters_number > 0:
-            for parameter in range(first, parameters_number + first):
-                if parameter < len(EDITABLE_PARAMS):
-                    parameter_name = EDITABLE_PARAMS[parameter]
-                    parameter_size = 1
-                    value = util.unpack_ushort(
-                        message[offset : offset + parameter_size]
-                    )
-                    min_ = util.unpack_ushort(
-                        message[offset + parameter_size : offset + 2 * parameter_size]
-                    )
-                    max_ = util.unpack_ushort(
-                        message[
-                            offset + 2 * parameter_size : offset + 3 * parameter_size
-                        ]
-                    )
-                    if util.check_parameter(
-                        message[offset : offset + parameter_size * 3]
-                    ):
-                        self._data[parameter_name] = {
-                            "value": value,
-                            "min": min_,
-                            "max": max_,
-                        }
-
-                    offset += parameter_size * 3
+        self._data, _ = regulator_parameter.from_bytes(message)
 
 
 class MixerParameters(Response):
     """Contains current mixers parameters."""
 
     type_: int = 0xB2
+
+    def parse_message(self, message: bytearray) -> None:
+        """Parses Parameters message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
+        self._data, _ = mixer_parameter.from_bytes(message)
 
 
 class DataStructure(Response):

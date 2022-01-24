@@ -6,6 +6,7 @@ from .constants import (
     DATA_FRAMES,
     DATA_MODE,
     EDITABLE_PARAMS,
+    MIXER_PARAMS,
     MODES,
     MODULE_PANEL,
 )
@@ -102,13 +103,8 @@ class Device:
     def set_parameters(self, parameters: dict) -> None:
         """Sets device settings received in parameters frame."""
         for name, parameter in parameters.items():
-            if name in EDITABLE_PARAMS:
-                self._parameters[name] = Parameter(
-                    name=name,
-                    value=parameter["value"],
-                    min_=parameter["min"],
-                    max_=parameter["max"],
-                )
+            if name in EDITABLE_PARAMS or name in MIXER_PARAMS:
+                self._parameters[name] = Parameter(name, *parameter)
 
         self._parameters["BOILER_CONTROL"] = Parameter(
             name="BOILER_CONTROL", value=int(self.is_on), min_=0, max_=1
@@ -252,7 +248,7 @@ class DeviceCollection:
 class Parameter:
     """Device parameter representation."""
 
-    def __init__(self, name: str, value, min_: int, max_: int):
+    def __init__(self, name: str, value: int, min_: int, max_: int):
         """Creates parameter."""
         self.name = name
         self.value = int(value)

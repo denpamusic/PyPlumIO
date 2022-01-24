@@ -49,13 +49,7 @@ _test_data = {
     "LIGHTER": True,
 }
 
-_test_parameters = {
-    "AUTO_SUMMER": {
-        "value": 1,
-        "min": 0,
-        "max": 1,
-    }
-}
+_test_parameters = {"AUTO_SUMMER": [1, 0, 1]}
 
 
 @pytest.fixture

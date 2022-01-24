@@ -92,7 +92,7 @@ class EcoNET(ABC):
         elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
             device.set_data(frame.data)
 
-        elif frame.is_type(responses.Parameters):
+        elif frame.is_type(responses.Parameters, responses.MixerParameters):
             device.set_parameters(frame.data)
 
         elif frame.is_type(responses.DataStructure):

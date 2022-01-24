@@ -32,9 +32,27 @@ def unpack_ushort(data: bytearray) -> int:
     """Unpacks unsigned short number from bytes.
 
     Keyword arguments:
-    data - bytes to unpack number from
+    data -- bytes to unpack number from
     """
     return int.from_bytes(data, byteorder="little", signed=False)
+
+
+def unpack_parameter(data: bytearray, offset: int, size: int = 1) -> (int, int, int):
+    """Unpacks parameter.
+
+    Keyword arguments:
+    data -- bytes to unpack number from
+    offset -- data offset
+    size -- parameter size in bytes
+    """
+
+    value = unpack_ushort(data[offset : offset + size])
+    min_ = unpack_ushort(data[offset + size : offset + 2 * size])
+    max_ = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
+    if check_parameter(data[offset : offset + size * 3]):
+        return value, min_, max_
+
+    return None
 
 
 def ip_to_bytes(address: str) -> bytearray:

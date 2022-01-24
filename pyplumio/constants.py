@@ -310,7 +310,7 @@ EDITABLE_PARAMS: list = (
     "BOILER_CONTROL",
 )
 
-MIXERS_PARAMS: list = (
+MIXER_PARAMS: list = (
     "MIX_SET_TEMP",
     "MIN_MIX_SET_TEMP",
     "MAX_MIX_SET_TEMP",
