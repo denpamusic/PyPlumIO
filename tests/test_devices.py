@@ -146,7 +146,8 @@ def test_parameter__repr__(parameter: Parameter):
     name = AUTO_SUMMER,
     value = 1,
     min_ = 0,
-    max_ = 1
+    max_ = 1,
+    extra = None
 )""".strip()
 
     assert repr(parameter) == output

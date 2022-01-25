@@ -348,6 +348,12 @@ class SetParameter(Response):
     type_: int = 0xB3
 
 
+class SetMixerParameter(Response):
+    """Sets mixer parameter."""
+
+    type_: int = 0xB4
+
+
 class BoilerControl(Response):
     """Contains boiler control response."""
 

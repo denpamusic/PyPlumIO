@@ -14,13 +14,14 @@ import sys
 import serial_asyncio
 
 from .constants import (
+    DATA_MIXERS,
     DEFAULT_IP,
     DEFAULT_NETMASK,
     READER_TIMEOUT,
     RECONNECT_TIMEOUT,
     WLAN_ENCRYPTION,
 )
-from .devices import DeviceCollection
+from .devices import DevicesCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
@@ -42,7 +43,7 @@ class EcoNET(ABC):
         self.kwargs = kwargs
         self.closing = False
         self._net = {}
-        self._devices = DeviceCollection()
+        self._devices = DevicesCollection()
         self._callback_task = None
         self.writer = None
 
@@ -54,7 +55,7 @@ class EcoNET(ABC):
         """Provides exit point for context manager."""
 
     async def _callback(
-        self, callback: Callable[DeviceCollection, EcoNET], interval: int
+        self, callback: Callable[DevicesCollection, EcoNET], interval: int
     ) -> None:
         """Calls provided callback method with specified interval.
 
@@ -89,11 +90,16 @@ class EcoNET(ABC):
         elif frame.is_type(responses.Password):
             device.password = frame.data
 
-        elif frame.is_type(responses.RegData) or frame.is_type(responses.CurrentData):
+        elif frame.is_type(responses.RegData, responses.CurrentData):
             device.set_data(frame.data)
+            if DATA_MIXERS in frame.data:
+                device.mixers.set_data(frame.data[DATA_MIXERS])
 
-        elif frame.is_type(responses.Parameters, responses.MixerParameters):
+        elif frame.is_type(responses.Parameters):
             device.set_parameters(frame.data)
+
+        elif frame.is_type(responses.MixerParameters):
+            device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
         elif frame.is_type(responses.DataStructure):
             device.struct = frame.data
@@ -141,7 +147,7 @@ class EcoNET(ABC):
         return await self.connect()
 
     async def task(
-        self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
+        self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
     ) -> None:
         """Establishes connection and continuously reads new frames.
 
@@ -155,7 +161,7 @@ class EcoNET(ABC):
         await self._read(reader)
 
     def run(
-        self, callback: Callable[DeviceCollection, EcoNET], interval: int = 1
+        self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
     ) -> None:
         """Run connection in the event loop.
 

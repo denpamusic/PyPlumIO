@@ -151,6 +151,6 @@ def make_list(data: dict, include_keys: bool = True):
 
     output = ""
     for k, v in data.items():
-        output += f" -- {k}: {v}\n" if include_keys else f" -- {v}\n"
+        output += f"- {k}: {v}\n" if include_keys else f"- {v}\n"
 
     return output.rstrip()

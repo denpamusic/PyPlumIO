@@ -7,23 +7,13 @@ import inspect
 from .exceptions import FrameTypeError
 from .frame import Frame
 from .frames import requests, responses
+from .helpers.singleton import Singleton
 
 
-class FrameFactory:
+class FrameFactory(Singleton):
     """Used to create frame objects based on frame class."""
 
     _types: dict = {}
-
-    def __new__(cls: str) -> FrameFactory:
-        """Implements singleton pattern.
-
-        Keyword arguments:
-        cls - current class name
-        """
-        if not hasattr(cls, "instance"):
-            cls.instance = super(FrameFactory, cls).__new__(cls)
-
-        return cls.instance
 
     def __init__(self) -> None:
         """Calls method to make type list."""

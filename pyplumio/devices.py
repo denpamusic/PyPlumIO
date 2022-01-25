@@ -1,115 +1,74 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
-from . import util
 from .constants import (
     CURRENT_DATA,
     DATA_FRAMES,
     DATA_MODE,
     EDITABLE_PARAMS,
-    MIXER_PARAMS,
     MODES,
     MODULE_PANEL,
 )
-from .frame import Request
-from .frames.requests import BoilerControl, SetParameter
+from .helpers.base_device import BaseDevice
+from .helpers.parameter import Parameter
+from .mixers import MixersCollection
 from .storage import FrameBucket
 
 ECOMAX_ADDRESS: int = 0x45
 ECOSTER_ADDRESS: int = 0x51
 
 
-class Device:
+class Device(BaseDevice):
     """A device representation.
 
     Passed to the user-defined callback method.
     """
 
     def __init__(self, data: dict = None, parameters: dict = None):
-        """Creates device.
+        """Creates device instance.
 
         Keyword arguments:
         data -- device data
         parameters -- editable parameters
         """
-
-        self.__dict__["_data"] = {}
-        self.__dict__["_parameters"] = {}
-
-        if data is not None:
-            self.set_data(data)
-
-        if parameters is not None:
-            self.set_parameters(parameters)
-
+        super().__init__(data, parameters)
         self.product = None
         self.uid = None
         self.password = None
         self.struct = []
         self.bucket = FrameBucket()
+        self.mixers = MixersCollection()
         self._queue = []
         self._is_on = False
 
-    def __getattr__(self, name: str) -> None:
-        """Gets current data item as class attribute.
-
-        Keyword arguments:
-        name -- name of property to get
-        """
-        key = name.upper()
-        if key in self._data:
-            return self._data[key]
-
-        if key in self._parameters:
-            return self._parameters[key]
-
-        return None
-
-    def __setattr__(self, name: str, value) -> None:
-        """Sets class attribute or device parameter.
-
-        Keyword arguments:
-        name -- attribute name
-        value -- attribute value
-        """
-        key = name.upper()
-        if key in self._data:
-            raise AttributeError()
-
-        if key in self._parameters:
-            self._parameters[key].set(value)
-            self._queue.append(self._parameters[key].request)
-        else:
-            self.__dict__[name] = value
-
-    def has_data(self) -> bool:
-        """Checks if device instance has any data."""
-        return bool(self._data)
-
     def set_data(self, data: dict) -> None:
-        """Sets device data received in CurrentData frame.
+        """Sets device data.
 
         Keyword arguments:
-        data - data parsed from CurrentData response frame
+        data -- device immutable attributes
         """
         self.bucket.fill(data[DATA_FRAMES])
         for name, value in data.items():
             if name in CURRENT_DATA:
                 self._data[name] = value
 
-    def has_parameters(self) -> bool:
-        """Check if device instance has parameters."""
-        return bool(self._parameters)
-
     def set_parameters(self, parameters: dict) -> None:
-        """Sets device settings received in parameters frame."""
+        """Sets device parameters.
+
+        Keyword arguments:
+        parameters -- device changeable parameters
+        """
         for name, parameter in parameters.items():
-            if name in EDITABLE_PARAMS or name in MIXER_PARAMS:
+            if name in EDITABLE_PARAMS:
                 self._parameters[name] = Parameter(name, *parameter)
 
         self._parameters["BOILER_CONTROL"] = Parameter(
             name="BOILER_CONTROL", value=int(self.is_on), min_=0, max_=1
         )
+
+    def has_mixers(self) -> bool:
+        """Check if device instance has mixers."""
+        return bool(self.mixers.mixers)
 
     @property
     def software(self) -> str:
@@ -140,27 +99,11 @@ class Device:
         return "Unknown"
 
     @property
-    def queue(self) -> list[Request]:
-        """Clears and returns changed parameters queue."""
-        queue = self._queue
-        self._queue = []
-        return queue
-
-    @property
-    def data(self) -> dict:
-        """Returns device data."""
-        return self._data
-
-    @property
-    def parameters(self) -> dict:
-        """Returns device parameters."""
-        return self._parameters
-
-    @property
     def changes(self) -> list[Parameter]:
         """Returns changed device parameters."""
         changes = self.queue
         changes.extend(self.bucket.queue)
+        changes.extend(self.mixers.queue)
         return changes
 
     def __str__(self) -> str:
@@ -171,11 +114,10 @@ Software Ver.:  {self.software}
 UID:            {self.uid}
 Password:       {self.password}
 
-Current data:
-{util.make_list(self._data)}
+{super().__str__()}
 
-Editable parameters:
-{util.make_list(self._parameters, include_keys = False)}
+Mixers:
+{self.mixers}
 """.strip()
 
 
@@ -191,7 +133,7 @@ class EcoSTER(Device):
     address = ECOSTER_ADDRESS
 
 
-class DeviceCollection:
+class DevicesCollection:
     """Collection of ecoNET devices."""
 
     def __init__(self):
@@ -212,6 +154,10 @@ class DeviceCollection:
             return self._instances[self._names[name]]
 
         return None
+
+    def __len__(self) -> int:
+        """Returns number of devices in collection."""
+        return len(self._instances)
 
     def has(self, needle) -> bool:
         """Checks if collection has device for specified address.
@@ -238,92 +184,3 @@ class DeviceCollection:
             self._names[cls.__name__.lower()] = address
 
         return self._instances[address]
-
-
-class Parameter:
-    """Device parameter representation."""
-
-    def __init__(self, name: str, value: int, min_: int, max_: int):
-        """Creates parameter."""
-        self.name = name
-        self.value = int(value)
-        self.min_ = min_
-        self.max_ = max_
-
-    def set(self, value) -> None:
-        """Sets parameter value.
-
-        Keyword arguments:
-        value -- new value to set parameter to
-        """
-        if self.value != value and self.min_ <= value <= self.max_:
-            self.value = value
-
-    @property
-    def request(self) -> Request:
-        """Returns request to change parameter."""
-        if self.name == "BOILER_CONTROL":
-            return BoilerControl(data=self.__dict__)
-
-        return SetParameter(data=self.__dict__)
-
-    def __repr__(self) -> str:
-        """Returns serializable string representation."""
-        return f"""Parameter(
-    name = {self.name},
-    value = {self.value},
-    min_ = {self.min_},
-    max_ = {self.max_}
-)""".strip()
-
-    def __str__(self) -> str:
-        """Returns string representation."""
-        return f"{self.name}: {self.value} (range {self.min_} - {self.max_})"
-
-    def __int__(self) -> int:
-        """Returns integer representation of parameter value.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return int(self.value)
-
-    def __eq__(self, other) -> int:
-        """Compares if parameter value is equal to other.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return self.value == other
-
-    def __ge__(self, other) -> int:
-        """Compares if parameter value is greater or equal to other.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return self.value >= other
-
-    def __gt__(self, other) -> int:
-        """Compares if parameter value is greater than other.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return self.value > other
-
-    def __le__(self, other) -> int:
-        """Compares if parameter value is less or equal to other.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return self.value <= other
-
-    def __lt__(self, other) -> int:
-        """Compares if parameter value is less that other.
-
-        Keyword arguments:
-        other -- other value to compare to
-        """
-        return self.value < other

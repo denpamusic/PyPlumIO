@@ -1,6 +1,6 @@
 """Contains request frame classes."""
 
-from pyplumio.constants import EDITABLE_PARAMS
+from pyplumio.constants import EDITABLE_PARAMS, MIXER_PARAMS
 from pyplumio.frame import Request
 
 from . import responses
@@ -91,6 +91,26 @@ class SetParameter(Request):
         value = self._data["value"]
         if name in EDITABLE_PARAMS:
             message.append(EDITABLE_PARAMS.index(name))
+            message.append(value)
+
+        return message
+
+
+class SetMixerParameter(Request):
+    """Sets mixer parameter."""
+
+    type_: int = 0x34
+
+    def create_message(self) -> bytearray:
+        """Creates SetParameter message."""
+
+        message = bytearray()
+        name = self._data["name"]
+        value = self._data["value"]
+        index = self._data["extra"]
+        if name in MIXER_PARAMS:
+            message.append(index)
+            message.append(MIXER_PARAMS.index(name))
             message.append(value)
 
         return message

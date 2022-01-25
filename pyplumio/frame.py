@@ -61,7 +61,7 @@ class Frame(ABC):
             self.message = message
 
     def __repr__(self) -> str:
-        """Creates string respresentation of class."""
+        """Returns serializable string representation of the class."""
         return f"""{self.__class__.__name__}(
     type = {self.type_},
     recipient = {self.recipient},
