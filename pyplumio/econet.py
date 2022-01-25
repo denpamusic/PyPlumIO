@@ -98,12 +98,12 @@ class EcoNET(ABC):
         elif frame.is_type(responses.DataStructure):
             device.struct = frame.data
 
-        elif frame.is_type(requests.CheckDevice):
-            if writer.queue_is_empty():
-                # Respond to check device frame only if queue is empty.
-                writer.queue(frame.response(data=self._net))
-
         writer.collect(device.changes)
+        if writer.queue_is_empty():
+            # If queue is empty, send device available frame.
+            writer.queue(
+                responses.DeviceAvailable(recipient=frame.sender, data=self._net)
+            )
 
     async def _read(self, reader: FrameReader) -> None:
         """Handles connection reads."""
