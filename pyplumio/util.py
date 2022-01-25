@@ -139,3 +139,18 @@ def uid_5bits_to_char(number: int) -> str:
     char = chr(ord("A") + number - 10)
 
     return "Z" if char == "O" else char
+
+
+def make_list(data: dict, include_keys: bool = True):
+    """Converts dictionary to string.
+
+    Keyword arguments:
+    data -- dictionary to convert to string
+    include_keys -- determines if keys should be included
+    """
+
+    output = ""
+    for k, v in data.items():
+        output += f" -- {k}: {v}\n" if include_keys else f" -- {v}\n"
+
+    return output.rstrip()

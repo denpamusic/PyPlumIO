@@ -1,6 +1,7 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
+from . import util
 from .constants import (
     CURRENT_DATA,
     DATA_FRAMES,
@@ -139,19 +140,19 @@ class Device:
         return "Unknown"
 
     @property
-    def queue(self):
+    def queue(self) -> list[Request]:
         """Clears and returns changed parameters queue."""
         queue = self._queue
         self._queue = []
         return queue
 
     @property
-    def data(self):
+    def data(self) -> dict:
         """Returns device data."""
         return self._data
 
     @property
-    def parameters(self):
+    def parameters(self) -> dict:
         """Returns device parameters."""
         return self._parameters
 
@@ -164,22 +165,18 @@ class Device:
 
     def __str__(self) -> str:
         """Converts device instance to a string."""
-        output = f"""
+        return f"""
 Product:        {self.product}
 Software Ver.:  {self.software}
 UID:            {self.uid}
 Password:       {self.password}
-"""
 
-        output += "\nCurrent data:\n"
-        for k, v in self._data.items():
-            output += f" -- {k}: {v}\n"
+Current data:
+{util.make_list(self._data)}
 
-        output += "\nEditable parameters:\n"
-        for _, parameter in self._parameters.items():
-            output += f" -- {parameter}\n"
-
-        return output.lstrip()
+Editable parameters:
+{util.make_list(self._parameters, include_keys = False)}
+""".strip()
 
 
 class EcoMAX(Device):
