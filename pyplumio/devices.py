@@ -19,10 +19,7 @@ ECOSTER_ADDRESS: int = 0x51
 
 
 class Device(BaseDevice):
-    """A device representation.
-
-    Passed to the user-defined callback method.
-    """
+    """Device representation."""
 
     def __init__(self, data: dict = None, parameters: dict = None):
         """Creates device instance.
@@ -38,7 +35,6 @@ class Device(BaseDevice):
         self.struct = []
         self.bucket = FrameBucket()
         self.mixers = MixersCollection()
-        self._queue = []
         self._is_on = False
 
     def set_data(self, data: dict) -> None:
@@ -71,20 +67,20 @@ class Device(BaseDevice):
         return bool(self.mixers.mixers)
 
     @property
-    def software(self) -> str:
+    def software(self) -> str | None:
         """Returns software version."""
-        try:
+        if MODULE_PANEL in self._data:
             return self._data[MODULE_PANEL]
-        except KeyError:
-            return None
+
+        return None
 
     @property
     def is_on(self) -> bool:
         """Returns current state."""
-        try:
+        if DATA_MODE in self._data:
             return bool(self._data[DATA_MODE] != 0)
-        except KeyError:
-            return False
+
+        return False
 
     @property
     def mode(self) -> str:

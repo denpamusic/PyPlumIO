@@ -13,24 +13,9 @@ from .helpers.singleton import Singleton
 class FrameFactory(Singleton):
     """Used to create frame objects based on frame class."""
 
-    _types: dict = {}
-
     def __init__(self) -> None:
         """Calls method to make type list."""
-        self.types()
-
-    def types(self) -> dict:
-        """Constructs and return a list of available frame
-        types and handlers.
-        """
-        if not self._types:
-            for module in [requests, responses]:
-                for _, obj in inspect.getmembers(module, inspect.isclass):
-                    if obj.__module__ == module.__name__:
-                        # Object is within the module and not ignored.
-                        self._types[obj.type_] = obj
-
-        return self._types
+        self._types = {}
 
     def get_frame(self, type_: int, **kwargs) -> Frame:
         """Gets frame by frame type.
@@ -39,7 +24,21 @@ class FrameFactory(Singleton):
         type -- integer, repsenting frame type
         kwargs -- keywords arguments to pass to the frame class
         """
-        if type_ in self._types:
-            return self._types[type_](**kwargs)
+        if type_ in self.types:
+            return self.types[type_](**kwargs)
 
         raise FrameTypeError()
+
+    @property
+    def types(self) -> dict:
+        """Constructs and return a list of available frame
+        types and handlers.
+        """
+        if not self._types:
+            for module in [requests, responses]:
+                for _, obj in inspect.getmembers(module, inspect.isclass):
+                    if obj.__module__ == module.__name__:
+                        # Object is within the module.
+                        self._types[obj.type_] = obj
+
+        return self._types
