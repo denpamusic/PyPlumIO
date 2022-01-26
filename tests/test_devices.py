@@ -12,7 +12,7 @@ from pyplumio.constants import (
     DATA_POWER,
     MODULE_PANEL,
 )
-from pyplumio.devices import EcoMAX, Parameter
+from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
 from pyplumio.frames import requests
 
 _test_data = {
@@ -65,8 +65,10 @@ def ecomax_with_data(ecomax) -> EcoMAX:
 
 
 @pytest.fixture
-def parameter() -> Parameter:
-    return Parameter(name="AUTO_SUMMER", value=1, min_=0, max_=1)
+def devices() -> DevicesCollection:
+    devices = DevicesCollection()
+    devices.get(ECOMAX_ADDRESS)
+    return devices
 
 
 def test_has_no_data(ecomax: EcoMAX):
@@ -88,6 +90,17 @@ def test_set_data(ecomax_with_data: EcoMAX):
 
 def test_get_attr_from_data(ecomax_with_data: EcoMAX):
     assert ecomax_with_data.mode == "Heating"
+
+
+def test_has_mixers(ecomax):
+    assert not ecomax.has_mixers()
+
+
+def test_get_mode(ecomax: EcoMAX):
+    data = _test_data
+    data[DATA_MODE] = 69
+    ecomax.set_data(data)
+    assert ecomax.mode == "Unknown"
 
 
 def test_get_parameters(ecomax_with_data: EcoMAX):
@@ -116,6 +129,22 @@ def test_changed_parameters(ecomax_with_data: EcoMAX):
     )
 
 
+def test_software(ecomax_with_data: EcoMAX):
+    assert ecomax_with_data.software == "1.1.15"
+
+
+def test_software_unknown(ecomax: EcoMAX):
+    assert ecomax.software is None
+
+
+def test_is_on(ecomax_with_data: EcoMAX):
+    assert ecomax_with_data.is_on
+
+
+def test_is_on_unknown(ecomax: EcoMAX):
+    assert not ecomax.is_on
+
+
 def test_has_parameters(ecomax_with_data: EcoMAX):
     assert ecomax_with_data.has_parameters()
 
@@ -124,34 +153,36 @@ def test_to_str(ecomax_with_data: EcoMAX):
     assert "Software Ver.:  1.1.15" in str(ecomax_with_data)
 
 
-def test_parameter_set(parameter: Parameter):
-    parameter.set(0)
-    assert parameter == 0
+def test_get_attr_from_collection(devices: DevicesCollection):
+    assert isinstance(devices.ecomax, EcoMAX)
 
 
-def test_parameter_set_out_of_range(parameter: Parameter):
-    parameter.set(39)
-    assert parameter == 1
+def test_get_unknown_attr_from_collection(devices: DevicesCollection):
+    assert devices.nonexistent is None
 
 
-def test_parameter_compare(parameter: Parameter):
-    assert parameter == 1
-    assert parameter < 2
-    assert parameter > 0
-    assert 0 <= parameter <= 1
+def test_collection_length(devices: DevicesCollection):
+    assert len(devices) == 1
 
 
-def test_parameter__repr__(parameter: Parameter):
-    output = """Parameter(
-    name = AUTO_SUMMER,
-    value = 1,
-    min_ = 0,
-    max_ = 1,
-    extra = None
-)""".strip()
-
-    assert repr(parameter) == output
+def test_collection_has_device(devices: DevicesCollection):
+    assert devices.has(ECOMAX_ADDRESS)
+    assert devices.has("ecomax")
 
 
-def test_parameter__str__(parameter: Parameter):
-    assert str(parameter) == "AUTO_SUMMER: 1 (range 0 - 1)"
+def test_collection_has_no_device(devices: DevicesCollection):
+    assert not devices.has(0x0)
+    assert not devices.has("nonexistent")
+
+
+def test_get_device_from_collection(devices: DevicesCollection):
+    assert isinstance(devices.get(ECOMAX_ADDRESS), EcoMAX)
+
+
+def test_init_device_from_collection():
+    devices = DevicesCollection()
+    assert isinstance(devices.get(ECOMAX_ADDRESS), EcoMAX)
+
+
+def test_init_unknown_device_from_collection(devices: DevicesCollection):
+    assert devices.get(0x0) is None

@@ -173,7 +173,7 @@ class DevicesCollection:
             try:
                 index = self._addresses.index(address)
                 cls = self._classes[index]
-            except KeyError:
+            except ValueError:
                 return None
 
             self._instances[address] = cls()
