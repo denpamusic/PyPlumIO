@@ -36,7 +36,7 @@ class BaseDevice(ABC):
         Keyword arguments:
         name -- name of property to get
         """
-        key = name.upper()
+        key = name.lower()
         if key in self._data:
             return self._data[key]
 
@@ -52,7 +52,7 @@ class BaseDevice(ABC):
         name -- attribute name
         value -- attribute value
         """
-        key = name.upper()
+        key = name.lower()
         if key in self._data:
             raise AttributeError()
 
@@ -79,14 +79,6 @@ Data:
 Parameters:
 {util.make_list(self._parameters, include_keys = False)}
 """.strip()
-
-    def has_parameters(self) -> bool:
-        """Check if device instance has parameters."""
-        return bool(self._parameters)
-
-    def has_data(self) -> bool:
-        """Checks if device instance has any data."""
-        return bool(self._data)
 
     @property
     def queue(self) -> list[Request]:

@@ -58,8 +58,8 @@ class Device(BaseDevice):
             if name in EDITABLE_PARAMS:
                 self._parameters[name] = Parameter(name, *parameter)
 
-        self._parameters["BOILER_CONTROL"] = Parameter(
-            name="BOILER_CONTROL", value=int(self.is_on), min_=0, max_=1
+        self._parameters["boiler_control"] = Parameter(
+            name="boiler_control", value=int(self.is_on), min_=0, max_=1
         )
 
     def has_mixers(self) -> bool:

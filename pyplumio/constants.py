@@ -32,12 +32,12 @@ WLAN_ENCRYPTION = (
 DEFAULT_IP = "0.0.0.0"
 DEFAULT_NETMASK = "255.255.255.0"
 
-MODULE_PANEL: str = "MODULE_PANEL"
-MODULE_A: str = "MODULE_A"
-MODULE_B: str = "MODULE_B"
-MODULE_C: str = "MODULE_C"
-MODULE_LAMBDA: str = "MODULE_LAMBDA"
-MODULE_ECOSTER: str = "MODULE_ECOSTER"
+MODULE_PANEL: str = "module_panel"
+MODULE_A: str = "module_a"
+MODULE_B: str = "module_b"
+MODULE_C: str = "module_c"
+MODULE_LAMBDA: str = "module_lambda"
+MODULE_ECOSTER: str = "module_ecoster"
 MODULES: list = (
     MODULE_PANEL,
     MODULE_A,
@@ -57,79 +57,79 @@ MODES: list = (
     "Standby",
 )
 
-MIXER_TEMP: str = "TEMP"
-MIXER_TARGET: str = "TARGET"
-MIXER_PUMP: str = "PUMP"
+MIXER_TEMP: str = "temp"
+MIXER_TARGET: str = "target"
+MIXER_PUMP: str = "pump"
 
-ECOSTER_CONTACTS: str = "CONTACTS"
-ECOSTER_SCHEDULE: str = "SCHEDULE"
-ECOSTER_MODE: str = "MODE"
-ECOSTER_TEMP: str = "TEMP"
-ECOSTER_TARGET: str = "TARGET"
+ECOSTER_CONTACTS: str = "contacts"
+ECOSTER_SCHEDULE: str = "schedule"
+ECOSTER_MODE: str = "mode"
+ECOSTER_TEMP: str = "temp"
+ECOSTER_TARGET: str = "target"
 
-DATA_ALARMS: str = "ALARMS"
-DATA_CO_STATUS: str = "CO_STATUS"
-DATA_CO_TARGET: str = "CO_TARGET"
-DATA_CWU_STATUS: str = "CWU_STATUS"
-DATA_CWU_TARGET: str = "CWU_TARGET"
-DATA_FAN_POWER: str = "FAN_POWER"
-DATA_FRAMES: str = "FRAMES"
-DATA_FUEL_CONSUMPTION: str = "FUEL_CONSUMPTION"
-DATA_FUEL_LEVEL: str = "FUEL_LEVEL"
-DATA_LAMBDA_LEVEL: str = "LAMBDA_LEVEL"
-DATA_LAMBDA_STATUS: str = "LAMBDA_STATUS"
-DATA_LAMBDA_TARGET: str = "LAMBDA_TARGET"
-DATA_MIXERS: str = "MIXERS"
-DATA_MODE: str = "MODE"
-DATA_POWER: str = "POWER"
-DATA_LOAD: str = "LOAD"
-DATA_THERMOSTAT: str = "THERMOSTAT"
-DATA_THERMOSTATS: str = "THERMOSTATS"
-DATA_TRANSMISSION: str = "TRANSMISSION"
+DATA_ALARMS: str = "alarms"
+DATA_CO_STATUS: str = "co_status"
+DATA_CO_TARGET: str = "co_target"
+DATA_CWU_STATUS: str = "cwu_status"
+DATA_CWU_TARGET: str = "cwu_target"
+DATA_FAN_POWER: str = "fan_power"
+DATA_FRAMES: str = "frames"
+DATA_FUEL_CONSUMPTION: str = "fuel_consumption"
+DATA_FUEL_LEVEL: str = "fuel_level"
+DATA_LAMBDA_LEVEL: str = "lambda_level"
+DATA_LAMBDA_STATUS: str = "lambda_status"
+DATA_LAMBDA_TARGET: str = "lambda_target"
+DATA_MIXERS: str = "mixers"
+DATA_MODE: str = "mode"
+DATA_POWER: str = "power"
+DATA_LOAD: str = "load"
+DATA_THERMOSTAT: str = "thermostat"
+DATA_THERMOSTATS: str = "thermostats"
+DATA_TRANSMISSION: str = "transmission"
 
 TEMPERATURES: list = (
-    "CO_TEMP",
-    "FEEDER_TEMP",
-    "CWU_TEMP",
-    "OUTSIDE_TEMP",
-    "BACK_TEMP",
-    "EXHAUST_TEMP",
-    "OPTICAL_TEMP",
-    "UPPER_BUFFER_TEMP",
-    "LOWER_BUFFER_TEMP",
-    "UPPER_SOLAR_TEMP",
-    "LOWER_SOLAR_TEMP",
-    "FIREPLACE_TEMP",
-    "TOTAL_GAIN",
-    "HYDRAULIC_COUPLER_TEMP",
-    "EXCHANGER_TEMP",
-    "AIR_IN_TEMP",
-    "AIR_OUT_TEMP",
+    "co_temp",
+    "feeder_temp",
+    "cwu_temp",
+    "outside_temp",
+    "back_temp",
+    "exhaust_temp",
+    "optical_temp",
+    "upper_buffer_temp",
+    "lower_buffer_temp",
+    "upper_solar_temp",
+    "lower_solar_temp",
+    "fireplace_temp",
+    "total_gain",
+    "hydraulic_coupler_temp",
+    "exchanger_temp",
+    "air_in_temp",
+    "air_out_temp",
 )
 
 OUTPUTS: list = (
-    "FAN",
-    "FEEDER",
-    "CO_PUMP",
-    "CWU_PUMP",
-    "CICULATION_PUMP",
-    "LIGHTER",
-    "ALARM",
-    "OUTER_BOILER",
-    "FAN2_EXHAUST",
-    "FEEDER2",
-    "OUTER_FEEDER",
-    "SOLAR_PUMP",
-    "FIREPLACE_PUMP",
-    "GCZ_CONTACT",
-    "BLOW_FAN1",
-    "BLOW_FAN2",
+    "fan",
+    "feeder",
+    "co_pump",
+    "cwu_pump",
+    "ciculation_pump",
+    "lighter",
+    "alarm",
+    "outer_boiler",
+    "fan2_exhaust",
+    "feeder2",
+    "outer_feeder",
+    "solar_pump",
+    "fireplace_pump",
+    "gcz_contact",
+    "blow_fan1",
+    "blow_fan2",
 )
 
-DATA_CO_PUMP_FLAG: str = "CO_PUMP_FLAG"
-DATA_CWU_PUMP_FLAG: str = "CWU_PUMP_FLAG"
-DATA_CIRCULATION_PUMP_FLAG: str = "CIRCULATION_PUMP_FLAG"
-DATA_SOLAR_PUMP_FLAG: str = "SOLAR_PUMP_FLAG"
+DATA_CO_PUMP_FLAG: str = "co_pump_flag"
+DATA_CWU_PUMP_FLAG: str = "cwu_pump_flag"
+DATA_CIRCULATION_PUMP_FLAG: str = "circulation_pump_flag"
+DATA_SOLAR_PUMP_FLAG: str = "solar_pump_flag"
 FLAGS: list = (
     DATA_CO_PUMP_FLAG,
     DATA_CWU_PUMP_FLAG,
@@ -138,10 +138,10 @@ FLAGS: list = (
 )
 
 STATUSES: list = (
-    "CO_TARGET",
-    "CO_STATUS",
-    "CWU_TARGET",
-    "CWU_STATUS",
+    "co_target",
+    "co_status",
+    "cwu_target",
+    "cwu_status",
 )
 
 CURRENT_DATA: list = [
@@ -167,161 +167,161 @@ CURRENT_DATA.extend(STATUSES)
 CURRENT_DATA.extend(MODULES)
 
 EDITABLE_PARAMS: list = (
-    "AIRFLOW_POWER_100",
-    "AIRFLOW_POWER_50",
-    "AIRFLOW_POWER_30",
-    "POWER_100",
-    "POWER_50",
-    "POWER_30",
-    "MAX_FAN_BOILER_POWER",
-    "MIN_FAN_BOILER_POWER",
-    "FUEL_FEEDING_TIME_100",
-    "FUEL_FEEDING_TIME_50",
-    "FUEL_FEEDING_TIME_30",
-    "FUEL_FEEDING_BREAK_100",
-    "FUEL_FEEDING_BREAK_50",
-    "FUEL_FEEDING_BREAK_30",
-    "CYCLE_TIME",
-    "H2_HYSTERESIS",
-    "H1_HYSTERESIS",
-    "BOILER_HYSTERESIS",
-    "CONTROL_MODE",
-    "MIN_FL_POWER",
-    "MAX_FL_POWER",
-    "MIN_BOILER_POWER",
-    "MAX_BOILER_POWER",
-    "MIN_FAN_POWER",
-    "MAX_FAN_POWER",
-    "T_REDUCTION_AIRFLOW",
-    "FAN_POWER_GAIN",
-    "FUEL_FLOW_CORRECTION_FL",
-    "FUEL_FLOW_CORRECTION",
-    "AIRFLOW_CORRECTION_100",
-    "FEEDER_CORRECTION_100",
-    "AIRFLOW_CORRECTION_50",
-    "FEEDER_CORRECTION_50",
-    "AIRFLOW_CORRECTION_30",
-    "FEEDER_CORRECTION_30",
-    "AIRFLOW_POWER_GRATE",
-    "HIST_BOILER_GRATE",
-    "SUPERVISION_WORK_AIRFLOW",
-    "SUPERVISION_WORK_AIRFLOW_BRAKE",
-    "CO_TEMP_GRATE",
-    "DET_TIME_FUEL_GRATE",
-    "AIRFLOW_POWER_KINDLE",
-    "SMALL_AIRFLOW_POWER_KINDLE",
-    "AIRFLOW_KINDLE_DELAY",
-    "SCAVENGE_KINDLE",
-    "FEEDER_KINDLE",
-    "FEEDER_KINDLE_WEIGHT",
-    "KINDLE_TIME",
-    "WARMING_UP_TIME",
-    "FUMES_TEMP_KINDLE_FINISH",
-    "FINISH_KINDLE_THRESHOLD",
-    "FUMES_DELTA_KINDLE",
-    "DELTA_T_KINDLE",
-    "MIN_KINDLE_POWER_TIME",
-    "SCAVENGE_AFTER_KINDLE",
-    "AIRFLOW_POWER_AFTER_KINDLE",
-    "SUPERVISION_TIME",
-    "FEED_TIME_SUPERVISION",
-    "FEED_TIME_SUPERVISION_WEIGHT",
-    "FEED_SUPERVISION_BREAK",
-    "SUPERVISION_CYCLE_DURATION",
-    "AIRFLOW_POWER_SUPERVISION",
-    "FAN_SUPERVISON_BREAK",
-    "FAN_WORK_SUPERVISION",
-    "INCREASE_FAN_SUPPORT_MODE",
-    "MAX_EXTINGUISH_TIME",
-    "MIN_EXTINGUISH_TIME",
-    "EXTINGUISH_TIME",
-    "AIRFLOW_POWER_EXTINGUISH",
-    "AIRFLOW_WORK_EXTINGUISH",
-    "AIRFLOW_BRAKE_EXTINGUISH",
-    "SCAVENGE_START_EXTINGUISH",
-    "SCAVENGE_STOP_EXTINGUISH",
-    "CLEAN_BEGIN_TIME",
-    "EXTINGUISH_CLEAN_TIME",
-    "AIRFLOW_POWER_CLEAN",
-    "WARMING_UP_BRAKE_TIME",
-    "WARMING_UP_CYCLE_TIME",
-    "REMIND_TIME",
-    "LAMBDA_WORK",
-    "LAMBDA_CORRECTION_RANGE",
-    "OXYGEN_100",
-    "OXYGEN_50",
-    "OXYGEN_30",
-    "OXYGEN_CORRECTION_FL",
-    "FUEL_KG_H",
-    "FEEDER_CALIBRATION",
-    "FUEL_FACTOR",
-    "CALORIFIC_KWH_KG",
-    "FUEL_DETECTION_TIME",
-    "FUMES_TEMP_FUEL_DETECTION",
-    "SCHEDULE_FEEDER_2",
-    "FEED2_H1",
-    "FEED2_H2",
-    "FEED2_H3",
-    "FEED2_H4",
-    "FEED2_WORK",
-    "FEED2_BREAK",
-    "CO_TEMP_SET",
-    "MIN_SET_CO_TEMP",
-    "MAX_SET_CO_TEMP",
-    "SWITCH_CO_TEMP",
-    "PAUSE_CO_CWU",
-    "PAUSE_TERM",
-    "WORK_TERM",
-    "INCREASE_TEMP_CO",
-    "PROGRAM_CONTROL_CO",
-    "CO_HEAT_CURVE",
-    "PARALLEL_CO_HEAT_CURVE",
-    "WEATHER_FACTOR",
-    "TERM_BOILER_OPERATION",
-    "TERM_BOILER_MODE",
-    "DECREASE_SET_CO_TERM",
-    "TERM_PUMP_OFF",
-    "AL_BOILER_TEMP",
-    "MAX_FEED_TEMP",
-    "EXTERN_BOILER_TEMP",
-    "ALARM_NOTIF",
-    "PUMP_HYSTERESIS",
-    "CWU_SET_TEMP",
-    "MIN_CWU_SET_TEMP",
-    "MAX_CWU_SET_TEMP",
-    "CWU_WORK_MODE",
-    "CWU_HYSTERESIS",
-    "CWU_DISINFECTION",
-    "AUTO_SUMMER",
-    "SUMMER_TEMP_ON",
-    "SUMMER_TEMP_OFF",
-    "CWU_FEEDING_EXTENSION",
-    "CIRCULATION_CONTROL",
-    "CIRCULATION_PAUSE_TIME",
-    "CIRCULATION_WORK_TIME",
-    "CIRCULATION_START_TEMP",
-    "BUFFER_CONTROL",
-    "BUFFER_MAX_TEMP",
-    "MIN_BUFFER_TEMP",
-    "BUFFER_HISTERESIS",
-    "BUFFER_LOAD_START",
-    "BUFFER_LOAD_STOP",
-    "BOILER_CONTROL",
+    "airflow_power_100",
+    "airflow_power_50",
+    "airflow_power_30",
+    "power_100",
+    "power_50",
+    "power_30",
+    "max_fan_boiler_power",
+    "min_fan_boiler_power",
+    "fuel_feeding_time_100",
+    "fuel_feeding_time_50",
+    "fuel_feeding_time_30",
+    "fuel_feeding_break_100",
+    "fuel_feeding_break_50",
+    "fuel_feeding_break_30",
+    "cycle_time",
+    "h2_hysteresis",
+    "h1_hysteresis",
+    "boiler_hysteresis",
+    "control_mode",
+    "min_fl_power",
+    "max_fl_power",
+    "min_boiler_power",
+    "max_boiler_power",
+    "min_fan_power",
+    "max_fan_power",
+    "t_reduction_airflow",
+    "fan_power_gain",
+    "fuel_flow_correction_fl",
+    "fuel_flow_correction",
+    "airflow_correction_100",
+    "feeder_correction_100",
+    "airflow_correction_50",
+    "feeder_correction_50",
+    "airflow_correction_30",
+    "feeder_correction_30",
+    "airflow_power_grate",
+    "hist_boiler_grate",
+    "supervision_work_airflow",
+    "supervision_work_airflow_brake",
+    "co_temp_grate",
+    "det_time_fuel_grate",
+    "airflow_power_kindle",
+    "small_airflow_power_kindle",
+    "airflow_kindle_delay",
+    "scavenge_kindle",
+    "feeder_kindle",
+    "feeder_kindle_weight",
+    "kindle_time",
+    "warming_up_time",
+    "fumes_temp_kindle_finish",
+    "finish_kindle_threshold",
+    "fumes_delta_kindle",
+    "delta_t_kindle",
+    "min_kindle_power_time",
+    "scavenge_after_kindle",
+    "airflow_power_after_kindle",
+    "supervision_time",
+    "feed_time_supervision",
+    "feed_time_supervision_weight",
+    "feed_supervision_break",
+    "supervision_cycle_duration",
+    "airflow_power_supervision",
+    "fan_supervison_break",
+    "fan_work_supervision",
+    "increase_fan_support_mode",
+    "max_extinguish_time",
+    "min_extinguish_time",
+    "extinguish_time",
+    "airflow_power_extinguish",
+    "airflow_work_extinguish",
+    "airflow_brake_extinguish",
+    "scavenge_start_extinguish",
+    "scavenge_stop_extinguish",
+    "clean_begin_time",
+    "extinguish_clean_time",
+    "airflow_power_clean",
+    "warming_up_brake_time",
+    "warming_up_cycle_time",
+    "remind_time",
+    "lambda_work",
+    "lambda_correction_range",
+    "oxygen_100",
+    "oxygen_50",
+    "oxygen_30",
+    "oxygen_correction_fl",
+    "fuel_kg_h",
+    "feeder_calibration",
+    "fuel_factor",
+    "calorific_kwh_kg",
+    "fuel_detection_time",
+    "fumes_temp_fuel_detection",
+    "schedule_feeder_2",
+    "feed2_h1",
+    "feed2_h2",
+    "feed2_h3",
+    "feed2_h4",
+    "feed2_work",
+    "feed2_break",
+    "co_set_temp",
+    "min_co_set_temp",
+    "max_co_set_temp",
+    "switch_co_temp",
+    "pause_co_cwu",
+    "pause_term",
+    "work_term",
+    "increase_temp_co",
+    "program_control_co",
+    "co_heat_curve",
+    "parallel_co_heat_curve",
+    "weather_factor",
+    "term_boiler_operation",
+    "term_boiler_mode",
+    "decrease_set_co_term",
+    "term_pump_off",
+    "al_boiler_temp",
+    "max_feed_temp",
+    "extern_boiler_temp",
+    "alarm_notif",
+    "pump_hysteresis",
+    "cwu_set_temp",
+    "min_cwu_set_temp",
+    "max_cwu_set_temp",
+    "cwu_work_mode",
+    "cwu_hysteresis",
+    "cwu_disinfection",
+    "auto_summer",
+    "summer_temp_on",
+    "summer_temp_off",
+    "cwu_feeding_extension",
+    "circulation_control",
+    "circulation_pause_time",
+    "circulation_work_time",
+    "circulation_start_temp",
+    "buffer_control",
+    "buffer_max_temp",
+    "min_buffer_temp",
+    "buffer_histeresis",
+    "buffer_load_start",
+    "buffer_load_stop",
+    "boiler_control",
 )
 
 MIXER_PARAMS: list = (
-    "MIX_SET_TEMP",
-    "MIN_MIX_SET_TEMP",
-    "MAX_MIX_SET_TEMP",
-    "LOW_MIX_SET_TEMP",
-    "CTRL_WEATHER_MIX",
-    "MIX_HEAT_CURVE",
-    "PARALLEL_OFFSET_HEAT_CURV",
-    "WEATHER_TEMP_FACTOR",
-    "MIX_OPERATION",
-    "MIX_INSENSITIVITY",
-    "MIX_THERM_OPERATION",
-    "MIX_THERM_MODE",
-    "MIX_OFF_THERM_PUMP",
-    "MIX_SUMMER_WORK",
+    "mix_set_temp",
+    "min_mix_set_temp",
+    "max_mix_set_temp",
+    "low_mix_set_temp",
+    "ctrl_weather_mix",
+    "mix_heat_curve",
+    "parallel_offset_heat_curv",
+    "weather_temp_factor",
+    "mix_operation",
+    "mix_insensitivity",
+    "mix_therm_operation",
+    "mix_therm_mode",
+    "mix_off_therm_pump",
+    "mix_summer_work",
 )
