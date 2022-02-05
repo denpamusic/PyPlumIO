@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from pyplumio import util
+from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frame import Request
 
 from .parameter import Parameter
@@ -56,11 +57,15 @@ class BaseDevice(ABC):
         if key in self._data:
             raise AttributeError()
 
-        if key in self._parameters:
+        if key not in self.editable_parameters:
+            self.__dict__[name] = value
+
+        elif key in self._parameters:
             self._parameters[key].set(value)
             self._queue.append(self._parameters[key].request)
+
         else:
-            self.__dict__[name] = value
+            raise UninitializedParameterError()
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
@@ -112,3 +117,8 @@ Parameters:
         Keyword arguments:
         parameters -- device changeable parameters
         """
+
+    @property
+    @abstractmethod
+    def editable_parameters(self) -> list:
+        """Returns list of editable parameters."""

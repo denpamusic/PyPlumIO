@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from .constants import (
-    CURRENT_DATA,
     DATA_FRAMES,
     DATA_MODE,
-    EDITABLE_PARAMS,
+    DEVICE_DATA,
+    DEVICE_PARAMS,
     MODES,
     MODULE_PANEL,
 )
@@ -45,7 +45,7 @@ class Device(BaseDevice):
         """
         self.bucket.fill(data[DATA_FRAMES])
         for name, value in data.items():
-            if name in CURRENT_DATA:
+            if name in DEVICE_DATA:
                 self._data[name] = value
 
     def set_parameters(self, parameters: dict) -> None:
@@ -55,7 +55,7 @@ class Device(BaseDevice):
         parameters -- device changeable parameters
         """
         for name, parameter in parameters.items():
-            if name in EDITABLE_PARAMS:
+            if name in DEVICE_PARAMS:
                 self._parameters[name] = Parameter(name, *parameter)
 
         self._parameters["boiler_control"] = Parameter(
@@ -101,6 +101,11 @@ class Device(BaseDevice):
         changes.extend(self.bucket.queue)
         changes.extend(self.mixers.queue)
         return changes
+
+    @property
+    def editable_parameters(self) -> list:
+        """Returns list of editable parameters."""
+        return DEVICE_PARAMS
 
     def __str__(self) -> str:
         """Converts device instance to a string."""

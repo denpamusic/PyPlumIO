@@ -1,7 +1,7 @@
 """Contains classes for mixer support."""
 from __future__ import annotations
 
-from .constants import MIXER_PARAMS, MIXER_PUMP, MIXER_TARGET, MIXER_TEMP
+from .constants import MIXER_DATA, MIXER_PARAMS
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 
@@ -26,7 +26,7 @@ class Mixer(BaseDevice):
         data -- mixer immutable attributes
         """
         for name, value in data.items():
-            if name in (MIXER_TEMP, MIXER_TARGET, MIXER_PUMP):
+            if name in MIXER_DATA:
                 self._data[name] = value
 
     def set_parameters(self, parameters: dict) -> None:
@@ -38,6 +38,11 @@ class Mixer(BaseDevice):
         for name, parameter in parameters.items():
             if name in MIXER_PARAMS:
                 self._parameters[name] = Parameter(name, *parameter, self._index)
+
+    @property
+    def editable_parameters(self) -> list:
+        """Returns list of editable parameters."""
+        return MIXER_PARAMS
 
 
 class MixersCollection:

@@ -60,6 +60,11 @@ MODES: list = (
 MIXER_TEMP: str = "temp"
 MIXER_TARGET: str = "target"
 MIXER_PUMP: str = "pump"
+MIXER_DATA: list = (
+    MIXER_TEMP,
+    MIXER_TARGET,
+    MIXER_PUMP,
+)
 
 ECOSTER_CONTACTS: str = "contacts"
 ECOSTER_SCHEDULE: str = "schedule"
@@ -144,7 +149,7 @@ STATUSES: list = (
     "cwu_status",
 )
 
-CURRENT_DATA: list = [
+DEVICE_DATA: list = [
     DATA_ALARMS,
     DATA_FAN_POWER,
     DATA_FRAMES,
@@ -160,13 +165,13 @@ CURRENT_DATA: list = [
     DATA_THERMOSTATS,
     DATA_TRANSMISSION,
 ]
-CURRENT_DATA.extend(TEMPERATURES)
-CURRENT_DATA.extend(OUTPUTS)
-CURRENT_DATA.extend(FLAGS)
-CURRENT_DATA.extend(STATUSES)
-CURRENT_DATA.extend(MODULES)
+DEVICE_DATA.extend(TEMPERATURES)
+DEVICE_DATA.extend(OUTPUTS)
+DEVICE_DATA.extend(FLAGS)
+DEVICE_DATA.extend(STATUSES)
+DEVICE_DATA.extend(MODULES)
 
-EDITABLE_PARAMS: list = (
+DEVICE_PARAMS: list = (
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",

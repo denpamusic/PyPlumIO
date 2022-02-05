@@ -11,3 +11,7 @@ class LengthError(Exception):
 
 class FrameTypeError(Exception):
     """Raised on unknown frame type."""
+
+
+class UninitializedParameterError(Exception):
+    """Raised on uninitialized device parameter."""

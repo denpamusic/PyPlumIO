@@ -1,7 +1,7 @@
 """Contains regulator parameter structure parser."""
 
 from pyplumio import util
-from pyplumio.constants import EDITABLE_PARAMS
+from pyplumio.constants import DEVICE_PARAMS
 
 
 def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
@@ -23,7 +23,7 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict,
     for index in range(first_parameter, parameters_number + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
-            data[EDITABLE_PARAMS[index]] = parameter
+            data[DEVICE_PARAMS[index]] = parameter
 
         offset += 3
 

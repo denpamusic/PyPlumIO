@@ -1,6 +1,6 @@
 """Contains request frame classes."""
 
-from pyplumio.constants import EDITABLE_PARAMS, MIXER_PARAMS
+from pyplumio.constants import DEVICE_PARAMS, MIXER_PARAMS
 from pyplumio.frame import Request
 
 from . import responses
@@ -89,8 +89,8 @@ class SetParameter(Request):
         message = bytearray()
         name = self._data["name"]
         value = self._data["value"]
-        if name in EDITABLE_PARAMS:
-            message.append(EDITABLE_PARAMS.index(name))
+        if name in DEVICE_PARAMS:
+            message.append(DEVICE_PARAMS.index(name))
             message.append(value)
 
         return message
