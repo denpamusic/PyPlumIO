@@ -47,7 +47,7 @@ with econet_serial_connection(device="/dev/ttyUSB0", baudrate=115200) as c:
 ```
 
 ### Working with data
-Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['CO_TEMP']`, `devices.ecomax.parameters['CO_TEMP_SET']` or as shortcut `devices.ecomax.co_temp`, `devices.ecomax.co_temp_set`.
+Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['HEATING_TEMP']`, `devices.ecomax.parameters['HEATING_SET_TEMP']` or as shortcut `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`.
 
 Each regulator supports different data attributes and parameters. You can check what your regulator supports by calling `print()` on regulator instance.
 ```python
@@ -58,29 +58,29 @@ async def my_callback(devices, econet):
 
 ### Reading
 Interaction with device is mainly done through device class instances inside your callback.
-For example you can read current feedwater temperature by reading `co_temp` attribute.
+For example you can read current feedwater temperature by reading `heating_temp` attribute.
 
 This example, once passed to `EcoNET.run(callback: Callable, interval: int)` as demonstrated above, will print current feedwater temperature every second.
 ```python
 async def my_callback(devices, econet):
     if devices.ecomax:
-        print(devices.ecomax.co_temp)  # 61.923828125
+        print(devices.ecomax.heating_temp)  # 61.923828125
 ```
 
 ### Writing
 You can easily set regulator parameter by changing respective class attribute. Example below will set target temperature to 65 degrees celsius and close connection.
 ```python
 async def my_callback(devices, econet):
-    if devices.ecomax and devices.ecomax.co_set_temp is not None:
-    	devices.ecomax.co_set_temp = 65  # This will set target temperature to 65 degreess celsius.
+    if devices.ecomax and devices.ecomax.heating_set_temp is not None:
+    	devices.ecomax.heating_set_temp = 65  # This will set target temperature to 65 degrees Celsius.
         econet.close()
 ```
-Please note that each parameter has range of acceptable values that you must check and honour by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_` and `max_` attributes.
+Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_` and `max_` attributes.
 ```python
 async def my_callback(devices, econet):
-    if devices.ecomax and devices.ecomax.co_set_temp is not None:
-    	print(devices.ecomax.co_set_temp.min_)  # Prints minimum allowed target temperature.
-        print(devices.ecomax.co_set_temp.max_)  # Prints maximum allowed target temperature.
+    if devices.ecomax and devices.ecomax.heating_set_temp is not None:
+    	print(devices.ecomax.heating_set_temp.min_)  # Prints minimum allowed target temperature.
+        print(devices.ecomax.heating_set_temp.max_)  # Prints maximum allowed target temperature.
 ```
 
 ### Setting network and wifi information
