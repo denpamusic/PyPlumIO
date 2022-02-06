@@ -1,15 +1,15 @@
 import pytest
 
 from pyplumio.constants import (
-    DATA_CO_TARGET,
-    DATA_CWU_TARGET,
     DATA_FAN_POWER,
     DATA_FRAMES,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
+    DATA_HEATING_TARGET,
     DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
+    DATA_WATER_HEATER_TARGET,
     MODULE_PANEL,
 )
 from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
@@ -31,25 +31,25 @@ _test_data = {
     DATA_MODE: 3,
     DATA_POWER: 16,
     DATA_LOAD: 30,
-    DATA_CO_TARGET: 60,
-    DATA_CWU_TARGET: 51,
+    DATA_HEATING_TARGET: 60,
+    DATA_WATER_HEATER_TARGET: 51,
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
     MODULE_PANEL: "1.1.15",
-    "co_temp": 60,
+    "heating_temp": 60,
     "exhaust_temp": 60,
     "outside_temp": 30,
-    "cwu_temp": 40,
+    "water_heater_temp": 40,
     "feeder_temp": 51,
-    "co_pump": True,
+    "heating_pump": True,
     "fan": True,
-    "cwu_pump": True,
+    "water_heater_pump": True,
     "feeder": True,
     "lighter": True,
 }
 
-_test_parameters = {"auto_summer": [1, 0, 1]}
+_test_parameters = {"summer_mode": [1, 0, 1]}
 
 
 @pytest.fixture
@@ -92,28 +92,28 @@ def test_get_mode(ecomax: EcoMAX):
 
 
 def test_get_parameters(ecomax_with_data: EcoMAX):
-    assert ecomax_with_data.parameters["auto_summer"] == 1
+    assert ecomax_with_data.parameters["summer_mode"] == 1
 
 
 def test_get_attr_from_parameters(ecomax_with_data: EcoMAX):
-    assert ecomax_with_data.auto_summer == 1
+    assert ecomax_with_data.summer_mode == 1
 
 
 def test_set_attr_from_parameters(ecomax_with_data: EcoMAX):
-    ecomax_with_data.auto_summer = 0
-    assert ecomax_with_data.auto_summer == 0
+    ecomax_with_data.summer_mode = 0
+    assert ecomax_with_data.summer_mode == 0
 
 
 def test_set_attr_from_parameters_out_of_range(ecomax_with_data: EcoMAX):
-    ecomax_with_data.auto_summer = 39
-    assert ecomax_with_data.auto_summer == 1
+    ecomax_with_data.summer_mode = 39
+    assert ecomax_with_data.summer_mode == 1
 
 
 def test_changed_parameters(ecomax_with_data: EcoMAX):
-    ecomax_with_data.auto_summer = 0
+    ecomax_with_data.summer_mode = 0
     assert (
         ecomax_with_data.changes[0].message
-        == requests.SetParameter(data={"name": "auto_summer", "value": 0}).message
+        == requests.SetParameter(data={"name": "summer_mode", "value": 0}).message
     )
 
 

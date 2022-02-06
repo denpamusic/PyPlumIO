@@ -1,27 +1,29 @@
 """Contains constants."""
 
-FRAME_START: int = 0x68
-FRAME_END: int = 0x16
-HEADER_SIZE: int = 7
-BROADCAST_ADDRESS: int = 0x00
-ECONET_ADDRESS: int = 0x56
-ECONET_TYPE: int = 0x30
-ECONET_VERSION: int = 0x05
+from typing import Final
 
-READER_BUFFER_SIZE: int = 1000
-READER_TIMEOUT: int = 5
-RECONNECT_TIMEOUT: int = 30
+FRAME_START: Final = 0x68
+FRAME_END: Final = 0x16
+HEADER_SIZE: Final = 7
+BROADCAST_ADDRESS: Final = 0x00
+ECONET_ADDRESS: Final = 0x56
+ECONET_TYPE: Final = 0x30
+ECONET_VERSION: Final = 0x05
 
-UID_BASE: int = 32
-UID_BASE_BITS: int = 5
-UID_CHAR_BITS: int = 8
+READER_BUFFER_SIZE: Final = 1000
+READER_TIMEOUT: Final = 5
+RECONNECT_TIMEOUT: Final = 30
 
-WLAN_ENCRYPTION_UNKNOWN = 0
-WLAN_ENCRYPTION_NONE = 1
-WLAN_ENCRYPTION_WEP = 2
-WLAN_ENCRYPTION_WPA = 3
-WLAN_ENCRYPTION_WPA2 = 4
-WLAN_ENCRYPTION = (
+UID_BASE: Final = 32
+UID_BASE_BITS: Final = 5
+UID_CHAR_BITS: Final = 8
+
+WLAN_ENCRYPTION_UNKNOWN: Final = 0
+WLAN_ENCRYPTION_NONE: Final = 1
+WLAN_ENCRYPTION_WEP: Final = 2
+WLAN_ENCRYPTION_WPA: Final = 3
+WLAN_ENCRYPTION_WPA2: Final = 4
+WLAN_ENCRYPTION: Final = (
     WLAN_ENCRYPTION_UNKNOWN,
     WLAN_ENCRYPTION_NONE,
     WLAN_ENCRYPTION_WEP,
@@ -29,16 +31,16 @@ WLAN_ENCRYPTION = (
     WLAN_ENCRYPTION_WPA2,
 )
 
-DEFAULT_IP = "0.0.0.0"
-DEFAULT_NETMASK = "255.255.255.0"
+DEFAULT_IP: Final = "0.0.0.0"
+DEFAULT_NETMASK: Final = "255.255.255.0"
 
-MODULE_PANEL: str = "module_panel"
-MODULE_A: str = "module_a"
-MODULE_B: str = "module_b"
-MODULE_C: str = "module_c"
-MODULE_LAMBDA: str = "module_lambda"
-MODULE_ECOSTER: str = "module_ecoster"
-MODULES: list = (
+MODULE_PANEL: Final = "module_panel"
+MODULE_A: Final = "module_a"
+MODULE_B: Final = "module_b"
+MODULE_C: Final = "module_c"
+MODULE_LAMBDA: Final = "module_lambda"
+MODULE_ECOSTER: Final = "module_ecoster"
+MODULES: Final = (
     MODULE_PANEL,
     MODULE_A,
     MODULE_B,
@@ -47,7 +49,7 @@ MODULES: list = (
     MODULE_ECOSTER,
 )
 
-MODES: list = (
+MODES: Final = (
     "Off",
     "Starting",
     "Kindling",
@@ -57,45 +59,41 @@ MODES: list = (
     "Standby",
 )
 
-MIXER_TEMP: str = "temp"
-MIXER_TARGET: str = "target"
-MIXER_PUMP: str = "pump"
-MIXER_DATA: list = (
+MIXER_TEMP: Final = "temp"
+MIXER_TARGET: Final = "target"
+MIXER_PUMP: Final = "pump"
+MIXER_DATA: Final = (
     MIXER_TEMP,
     MIXER_TARGET,
     MIXER_PUMP,
 )
 
-ECOSTER_CONTACTS: str = "contacts"
-ECOSTER_SCHEDULE: str = "schedule"
-ECOSTER_MODE: str = "mode"
-ECOSTER_TEMP: str = "temp"
-ECOSTER_TARGET: str = "target"
+ECOSTER_CONTACTS: Final = "contacts"
+ECOSTER_SCHEDULE: Final = "schedule"
+ECOSTER_MODE: Final = "mode"
+ECOSTER_TEMP: Final = "temp"
+ECOSTER_TARGET: Final = "target"
 
-DATA_ALARMS: str = "alarms"
-DATA_CO_STATUS: str = "co_status"
-DATA_CO_TARGET: str = "co_target"
-DATA_CWU_STATUS: str = "cwu_status"
-DATA_CWU_TARGET: str = "cwu_target"
-DATA_FAN_POWER: str = "fan_power"
-DATA_FRAMES: str = "frames"
-DATA_FUEL_CONSUMPTION: str = "fuel_consumption"
-DATA_FUEL_LEVEL: str = "fuel_level"
-DATA_LAMBDA_LEVEL: str = "lambda_level"
-DATA_LAMBDA_STATUS: str = "lambda_status"
-DATA_LAMBDA_TARGET: str = "lambda_target"
-DATA_MIXERS: str = "mixers"
-DATA_MODE: str = "mode"
-DATA_POWER: str = "power"
-DATA_LOAD: str = "load"
-DATA_THERMOSTAT: str = "thermostat"
-DATA_THERMOSTATS: str = "thermostats"
-DATA_TRANSMISSION: str = "transmission"
+DATA_ALARMS: Final = "alarms"
+DATA_FAN_POWER: Final = "fan_power"
+DATA_FRAMES: Final = "frames"
+DATA_FUEL_CONSUMPTION: Final = "fuel_consumption"
+DATA_FUEL_LEVEL: Final = "fuel_level"
+DATA_LAMBDA_LEVEL: Final = "lambda_level"
+DATA_LAMBDA_STATUS: Final = "lambda_status"
+DATA_LAMBDA_TARGET: Final = "lambda_target"
+DATA_MIXERS: Final = "mixers"
+DATA_MODE: Final = "mode"
+DATA_POWER: Final = "power"
+DATA_LOAD: Final = "load"
+DATA_THERMOSTAT: Final = "thermostat"
+DATA_THERMOSTATS: Final = "thermostats"
+DATA_TRANSMISSION: Final = "transmission"
 
-TEMPERATURES: list = (
-    "co_temp",
+TEMPERATURES: Final = (
+    "heating_temp",
     "feeder_temp",
-    "cwu_temp",
+    "water_heater_temp",
     "outside_temp",
     "back_temp",
     "exhaust_temp",
@@ -112,11 +110,11 @@ TEMPERATURES: list = (
     "air_out_temp",
 )
 
-OUTPUTS: list = (
+OUTPUTS: Final = (
     "fan",
     "feeder",
-    "co_pump",
-    "cwu_pump",
+    "heating_pump",
+    "water_heater_pump",
     "ciculation_pump",
     "lighter",
     "alarm",
@@ -131,22 +129,26 @@ OUTPUTS: list = (
     "blow_fan2",
 )
 
-DATA_CO_PUMP_FLAG: str = "co_pump_flag"
-DATA_CWU_PUMP_FLAG: str = "cwu_pump_flag"
-DATA_CIRCULATION_PUMP_FLAG: str = "circulation_pump_flag"
-DATA_SOLAR_PUMP_FLAG: str = "solar_pump_flag"
-FLAGS: list = (
-    DATA_CO_PUMP_FLAG,
-    DATA_CWU_PUMP_FLAG,
+DATA_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
+DATA_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
+DATA_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
+DATA_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
+FLAGS: Final = (
+    DATA_HEATING_PUMP_FLAG,
+    DATA_WATER_HEATER_PUMP_FLAG,
     DATA_CIRCULATION_PUMP_FLAG,
     DATA_SOLAR_PUMP_FLAG,
 )
 
-STATUSES: list = (
-    "co_target",
-    "co_status",
-    "cwu_target",
-    "cwu_status",
+DATA_HEATING_TARGET: Final = "heating_target"
+DATA_HEATING_STATUS: Final = "heating_status"
+DATA_WATER_HEATER_TARGET: Final = "water_heater_target"
+DATA_WATER_HEATER_STATUS: Final = "water_heater_status"
+STATUSES: Final = (
+    DATA_HEATING_TARGET,
+    DATA_HEATING_STATUS,
+    DATA_WATER_HEATER_TARGET,
+    DATA_WATER_HEATER_STATUS,
 )
 
 DEVICE_DATA: list = [
@@ -171,7 +173,7 @@ DEVICE_DATA.extend(FLAGS)
 DEVICE_DATA.extend(STATUSES)
 DEVICE_DATA.extend(MODULES)
 
-DEVICE_PARAMS: list = (
+DEVICE_PARAMS: Final = (
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -191,15 +193,15 @@ DEVICE_PARAMS: list = (
     "h1_hysteresis",
     "boiler_hysteresis",
     "control_mode",
-    "min_fl_power",
-    "max_fl_power",
+    "min_fuzzylogic_power",
+    "max_fuzzylogic_power",
     "min_boiler_power",
     "max_boiler_power",
     "min_fan_power",
     "max_fan_power",
     "t_reduction_airflow",
     "fan_power_gain",
-    "fuel_flow_correction_fl",
+    "fuel_flow_correction_fuzzylogic",
     "fuel_flow_correction",
     "airflow_correction_100",
     "feeder_correction_100",
@@ -208,11 +210,11 @@ DEVICE_PARAMS: list = (
     "airflow_correction_30",
     "feeder_correction_30",
     "airflow_power_grate",
-    "hist_boiler_grate",
+    "boiler_hysteresis_grate",
     "supervision_work_airflow",
     "supervision_work_airflow_brake",
-    "co_temp_grate",
-    "det_time_fuel_grate",
+    "heating_temp_grate",
+    "fuel_detection_time_grate",
     "airflow_power_kindle",
     "small_airflow_power_kindle",
     "airflow_kindle_delay",
@@ -221,10 +223,10 @@ DEVICE_PARAMS: list = (
     "feeder_kindle_weight",
     "kindle_time",
     "warming_up_time",
-    "fumes_temp_kindle_finish",
-    "finish_kindle_threshold",
-    "fumes_delta_kindle",
-    "delta_t_kindle",
+    "kindle_finish_fumes_temp",
+    "kindle_finish_threshold",
+    "kindle_fumes_delta_temp",
+    "kindle_delta_t",
     "min_kindle_power_time",
     "scavenge_after_kindle",
     "airflow_power_after_kindle",
@@ -257,12 +259,12 @@ DEVICE_PARAMS: list = (
     "oxygen_50",
     "oxygen_30",
     "oxygen_correction_fl",
-    "fuel_kg_h",
+    "fuel_flow_kg_h",
     "feeder_calibration",
     "fuel_factor",
-    "calorific_kwh_kg",
+    "fuel_energy_kwh_kg",
     "fuel_detection_time",
-    "fumes_temp_fuel_detection",
+    "fuel_detection_fumes_temp",
     "schedule_feeder_2",
     "feed2_h1",
     "feed2_h2",
@@ -270,43 +272,43 @@ DEVICE_PARAMS: list = (
     "feed2_h4",
     "feed2_work",
     "feed2_break",
-    "co_set_temp",
-    "min_co_set_temp",
-    "max_co_set_temp",
-    "switch_co_temp",
-    "pause_co_cwu",
+    "heating_set_temp",
+    "min_heating_set_temp",
+    "max_heating_set_temp",
+    "heating_pump_on_temp",
+    "pause_heating_for_water_heater",
     "pause_term",
     "work_term",
-    "increase_temp_co",
-    "program_control_co",
-    "co_heat_curve",
-    "parallel_co_heat_curve",
+    "heating_increase_temp",
+    "heating_weather_control",
+    "heating_heat_curve",
+    "heating_heat_curve_shift",
     "weather_factor",
     "term_boiler_operation",
     "term_boiler_mode",
-    "decrease_set_co_term",
+    "decrease_set_heating_term",
     "term_pump_off",
     "al_boiler_temp",
-    "max_feed_temp",
-    "extern_boiler_temp",
-    "alarm_notif",
+    "max_feeder_temp",
+    "external_boiler_temp",
+    "alarm_notify",
     "pump_hysteresis",
-    "cwu_set_temp",
-    "min_cwu_set_temp",
-    "max_cwu_set_temp",
-    "cwu_work_mode",
-    "cwu_hysteresis",
-    "cwu_disinfection",
-    "auto_summer",
-    "summer_temp_on",
-    "summer_temp_off",
-    "cwu_feeding_extension",
+    "water_heater_set_temp",
+    "min_water_heater_set_temp",
+    "max_water_heater_set_temp",
+    "water_heater_work_mode",
+    "water_heater_hysteresis",
+    "water_heater_disinfection",
+    "summer_mode",
+    "summer_mode_on_temp",
+    "summer_mode_off_temp",
+    "water_heater_feeding_extension",
     "circulation_control",
     "circulation_pause_time",
     "circulation_work_time",
     "circulation_start_temp",
     "buffer_control",
-    "buffer_max_temp",
+    "max_buffer_temp",
     "min_buffer_temp",
     "buffer_histeresis",
     "buffer_load_start",
@@ -314,14 +316,14 @@ DEVICE_PARAMS: list = (
     "boiler_control",
 )
 
-MIXER_PARAMS: list = (
+MIXER_PARAMS: Final = (
     "mix_set_temp",
     "min_mix_set_temp",
     "max_mix_set_temp",
     "low_mix_set_temp",
     "ctrl_weather_mix",
     "mix_heat_curve",
-    "parallel_offset_heat_curv",
+    "parallel_offset_heat_curve",
     "weather_temp_factor",
     "mix_operation",
     "mix_insensitivity",
