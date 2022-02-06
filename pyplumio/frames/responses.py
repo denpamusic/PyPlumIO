@@ -20,6 +20,7 @@ from pyplumio.constants import (
 from pyplumio.frame import Response
 from pyplumio.structures import (
     alarms,
+    device_parameters,
     frame_versions,
     lambda_,
     mixer_parameter,
@@ -27,7 +28,6 @@ from pyplumio.structures import (
     modules,
     output_flags,
     outputs,
-    regulator_parameter,
     statuses,
     temperatures,
     thermostats,
@@ -302,7 +302,7 @@ class Parameters(Response):
         Keywords arguments:
         message -- message to parse
         """
-        self._data, _ = regulator_parameter.from_bytes(message)
+        self._data, _ = device_parameters.from_bytes(message)
 
 
 class MixerParameters(Response):

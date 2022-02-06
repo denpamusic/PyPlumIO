@@ -46,13 +46,14 @@ def unpack_parameter(data: bytearray, offset: int, size: int = 1) -> (int, int, 
     size -- parameter size in bytes
     """
 
+    if not check_parameter(data[offset : offset + size * 3]):
+        return None
+
     value = unpack_ushort(data[offset : offset + size])
     min_ = unpack_ushort(data[offset + size : offset + 2 * size])
     max_ = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
-    if check_parameter(data[offset : offset + size * 3]):
-        return value, min_, max_
 
-    return None
+    return value, min_, max_
 
 
 def ip_to_bytes(address: str) -> bytearray:
