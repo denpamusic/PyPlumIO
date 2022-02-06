@@ -28,7 +28,7 @@ class Parameter:
     @property
     def request(self) -> Request:
         """Returns request to change parameter."""
-        if self.name == "BOILER_CONTROL":
+        if self.name == "boiler_control":
             return BoilerControl(data=self.__dict__)
 
         if self.name in MIXER_PARAMS:
