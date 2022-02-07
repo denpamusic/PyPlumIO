@@ -347,7 +347,7 @@ DATA_TYPES: Final = (
     data_types.Undefined8,
     data_types.Double,
     data_types.Boolean,
-    data_types.VarLen,
+    data_types.String,
     data_types.String,
     data_types.Int64,
     data_types.UInt64,

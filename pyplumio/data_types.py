@@ -280,7 +280,7 @@ class IPv6(Type):
         return 16
 
 
-class VarLen(Type):
+class String(Type):
     """Variable length bytes representation."""
 
     def __init__(self, data=None, size: int = None):
@@ -302,17 +302,3 @@ class VarLen(Type):
     def size(self) -> int:
         """Returns data size in bytes."""
         return len(self.value) + 1
-
-
-class String(VarLen):
-    """Variable length UTF-8 string representation."""
-
-    @property
-    def value(self) -> str:
-        """Returns data value."""
-        value = super().value
-        try:
-            value.decode("utf-8")
-            return value
-        except UnicodeError:
-            return None

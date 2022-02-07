@@ -13,6 +13,13 @@ def test_type_repr():
     )
 
 
+def test_type_unpack():
+    type = data_types.SignedChar()
+    type.unpack(bytearray([0x16]))
+    assert type.value == 22
+    assert type.size == 1
+
+
 def test_undefined0():
     type = data_types.Undefined0(bytearray([0x0]))
     assert type.value is None
@@ -88,6 +95,13 @@ def test_boolean():
             assert type.size == 1
 
 
+def test_boolean_unpack():
+    type = data_types.Boolean()
+    type.unpack(bytearray([0x55]))
+    assert type.value
+    assert type.size == 0
+
+
 def test_int64():
     type = data_types.Int64(bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xF8, 0xA4, 0x32, 0xEB]))
     assert type.value == -1498954336607141889
@@ -133,3 +147,9 @@ def test_ipv6():
     )
     assert type.value == "feed:dead:beef::1"
     assert type.size == 16
+
+
+def test_string():
+    type = data_types.String("test\x00")
+    assert type.value == "test"
+    assert type.size == 5
