@@ -2,6 +2,8 @@
 
 from typing import Final
 
+from . import data_types
+
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
 HEADER_SIZE: Final = 7
@@ -332,3 +334,36 @@ MIXER_PARAMS: Final = (
     "mix_off_therm_pump",
     "mix_summer_work",
 )
+
+DATA_TYPES: Final = (
+    data_types.Undefined0,
+    data_types.SignedChar,
+    data_types.Short,
+    data_types.Int,
+    data_types.Byte,
+    data_types.UnsignedShort,
+    data_types.UnsignedInt,
+    data_types.Float,
+    data_types.Undefined8,
+    data_types.Double,
+    data_types.Boolean,
+    data_types.VarLen,
+    data_types.String,
+    data_types.Int64,
+    data_types.UInt64,
+    data_types.IPv4,
+    data_types.IPv6,
+)
+
+REGDATA_ELEMENTS = {
+    1792: DATA_MODE,
+    1024: TEMPERATURES[0],
+    1026: TEMPERATURES[1],
+    1025: TEMPERATURES[2],
+    1027: TEMPERATURES[3],
+    1030: TEMPERATURES[5],
+    1280: DATA_HEATING_TARGET,
+    1281: DATA_WATER_HEATER_TARGET,
+    1541: OUTPUTS[2],
+    1542: OUTPUTS[3],
+}

@@ -13,12 +13,28 @@ def test_unpack_ushort():
     assert util.unpack_ushort(b"\x0a\x00") == 10
 
 
-def test_ip_to_bytes():
-    assert util.ip_to_bytes("127.0.0.1") == b"\x7f\x00\x00\x01"
+def test_ip4_to_bytes():
+    assert util.ip4_to_bytes("127.0.0.1") == b"\x7f\x00\x00\x01"
 
 
-def test_ip_from_bytes():
-    assert util.ip_from_bytes(b"\x7f\x00\x00\x01") == "127.0.0.1"
+def test_ip4_from_bytes():
+    assert util.ip4_from_bytes(b"\x7f\x00\x00\x01") == "127.0.0.1"
+
+
+def test_ip6_from_bytes():
+    assert (
+        util.ip6_from_bytes(
+            b"\xfe\xed\xde\xad\xbe\xef\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
+        )
+        == "feed:dead:beef::1"
+    )
+
+
+def test_ip6_to_bytes():
+    assert (
+        util.ip6_to_bytes("feed:dead:beef::1")
+        == b"\xfe\xed\xde\xad\xbe\xef\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01"
+    )
 
 
 def test_merge_without_override():

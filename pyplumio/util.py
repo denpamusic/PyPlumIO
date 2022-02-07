@@ -6,6 +6,13 @@ import struct
 
 DEGREE_SIGN = "\N{DEGREE SIGN}"
 unpack_float = struct.Struct("<f").unpack
+unpack_char = struct.Struct("<b").unpack
+unpack_short = struct.Struct("<h").unpack
+unpack_int = struct.Struct("<i").unpack
+unpack_uint = struct.Struct("<I").unpack
+unpack_double = struct.Struct("<d").unpack
+unpack_int64 = struct.Struct("<q").unpack
+unpack_uint64 = struct.Struct("<Q").unpack
 pack_header = struct.Struct("<BH4B").pack_into
 unpack_header = struct.Struct("<BH4B").unpack_from
 
@@ -56,8 +63,8 @@ def unpack_parameter(data: bytearray, offset: int, size: int = 1) -> (int, int, 
     return value, min_, max_
 
 
-def ip_to_bytes(address: str) -> bytearray:
-    """Converts ip address to bytes.
+def ip4_to_bytes(address: str) -> bytearray:
+    """Converts ip4 address to bytes.
 
     Keyword arguments:
     address -- ip address as string
@@ -65,13 +72,31 @@ def ip_to_bytes(address: str) -> bytearray:
     return socket.inet_aton(address)
 
 
-def ip_from_bytes(data: bytearray) -> str:
-    """Converts ip address from bytes to string representation.
+def ip4_from_bytes(data: bytearray) -> str:
+    """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
     data -- 4 bytes to convert
     """
     return socket.inet_ntoa(data)
+
+
+def ip6_to_bytes(address: str) -> bytearray:
+    """Converts ip6 address to bytes.
+
+    Keyword arguments:
+    address -- ip address as string
+    """
+    return socket.inet_pton(socket.AF_INET6, address)
+
+
+def ip6_from_bytes(data: bytearray) -> str:
+    """Converts ip4 address from bytes to string representation.
+
+    Keyword arguments:
+    data -- 4 bytes to convert
+    """
+    return socket.inet_ntop(socket.AF_INET6, data)
 
 
 def merge(defaults: dict, options: dict) -> dict:

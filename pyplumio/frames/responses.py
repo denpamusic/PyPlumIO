@@ -4,6 +4,7 @@ import struct
 
 from pyplumio import util
 from pyplumio.constants import (
+    BROADCAST_ADDRESS,
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
@@ -12,11 +13,17 @@ from pyplumio.constants import (
     DATA_POWER,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
+    DATA_TYPES,
     DEFAULT_IP,
     DEFAULT_NETMASK,
+    ECONET_ADDRESS,
+    ECONET_TYPE,
+    ECONET_VERSION,
+    REGDATA_ELEMENTS,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
+from pyplumio.data_types import Boolean
 from pyplumio.frame import Response
 from pyplumio.structures import (
     alarms,
@@ -122,11 +129,11 @@ class DeviceAvailable(Response):
         wlan = data["wlan"]
         server = data["server"]
         for address in ("ip", "netmask", "gateway"):
-            message += util.ip_to_bytes(eth[address])
+            message += util.ip4_to_bytes(eth[address])
 
         message.append(eth["status"])
         for address in ("ip", "netmask", "gateway"):
-            message += util.ip_to_bytes(wlan[address])
+            message += util.ip4_to_bytes(wlan[address])
 
         message.append(server["status"])
         message.append(wlan["encryption"])
@@ -148,13 +155,13 @@ class DeviceAvailable(Response):
         self._data = {"eth": {}, "wlan": {}, "server": {}}
         offset = 1
         for part in ("ip", "netmask", "gateway"):
-            self._data["eth"][part] = util.ip_from_bytes(message[offset : offset + 4])
+            self._data["eth"][part] = util.ip4_from_bytes(message[offset : offset + 4])
             offset += 4
 
         self._data["eth"]["status"] = bool(message[offset])
         offset += 1
         for part in ("ip", "netmask", "gateway"):
-            self._data["wlan"][part] = util.ip_from_bytes(message[offset : offset + 4])
+            self._data["wlan"][part] = util.ip4_from_bytes(message[offset : offset + 4])
             offset += 4
 
         self._data["server"]["status"] = bool(message[offset])
@@ -249,27 +256,34 @@ class RegData(Response):
     """Contains current regulator data."""
 
     type_: int = 0x08
-    struct: list = []
 
     VERSION: str = "1.0"
-    DATA_TYPES_LEN: list = [0, 1, 2, 4, 1, 2, 4, 4, 0, 8, 1, -1, -1, 8, 8, 4, 16]
-    DATATYPE_UNDEFINED0: int = 0
-    DATATYPE_SHORT_INT: int = 1
-    DATATYPE_INT: int = 2
-    DATATYPE_LONG_INT: int = 3
-    DATATYPE_BYTE: int = 4
-    DATATYPE_WORD: int = 5
-    DATATYPE_DWORD: int = 6
-    DATATYPE_SHORT_REAL: int = 7
-    DATATYPE_UNDEVINED8: int = 8
-    DATATYPE_LONG_REAL: int = 9
-    DATATYPE_BOOLEAN: int = 10
-    DATATYPE_BCD: int = 11
-    DATATYPE_STRING: int = 12
-    DATATYPE_INT_64: int = 13
-    DATATYPE_UINT_64: int = 14
-    DATATYPE_IPv4: int = 15
-    DATATYPE_IPv6: int = 16
+
+    def __init__(
+        self,
+        type_: int = None,
+        recipient: int = BROADCAST_ADDRESS,
+        message: bytearray = bytearray(),
+        sender: int = ECONET_ADDRESS,
+        sender_type: int = ECONET_TYPE,
+        econet_version: int = ECONET_VERSION,
+        data=None,
+    ):
+        """Creates new Frame object.
+
+        Keyword arguments:
+            type_ -- integer repsentation of frame type
+            recipient -- integer repsentation of recipient address
+            message -- frame body as bytearray
+            sender -- integer respresentation of sender address
+            sender_type -- sender type
+            econet_version -- version of econet protocol
+            data -- frame data, that is used to construct frame message
+        """
+        super().__init__(
+            type_, recipient, message, sender, sender_type, econet_version, data
+        )
+        self.struct = []
 
     def parse_message(self, message: bytearray) -> None:
         """Parses RegData message into usable data.
@@ -282,7 +296,16 @@ class RegData(Response):
         offset += 2
         self._data = {}
         if frame_version == self.VERSION:
-            frame_versions.from_bytes(message, offset, self._data)
+            _, offset = frame_versions.from_bytes(message, offset, self._data)
+            boolean_index = 0
+            for param in self.struct:
+                param_id, param_type = param
+                param_type.unpack(message[offset:])
+                if isinstance(param_type, Boolean):
+                    boolean_index = param_type.index(boolean_index)
+
+                self._data[param_id] = param_type.value
+                offset += param_type.size
 
 
 class Timezones(Response):
@@ -331,14 +354,15 @@ class DataStructure(Response):
         message -- message to parse
         """
         offset = 0
-        integrity_blocks_number = util.unpack_ushort(message[offset : offset + 2])
+        blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
         self._data = []
-        if integrity_blocks_number > 0:
-            for _ in range(integrity_blocks_number):
+        if blocks_number > 0:
+            for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                self._data.append({"id": param_id, "type": param_type})
+                param_name = REGDATA_ELEMENTS.get(param_id, param_id)
+                self._data.append([param_name, DATA_TYPES[param_type]()])
                 offset += 3
 
 

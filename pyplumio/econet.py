@@ -91,6 +91,7 @@ class EcoNET(ABC):
             device.password = frame.data
 
         elif frame.is_type(responses.RegData, responses.CurrentData):
+            frame.struct = device.struct
             device.set_data(frame.data)
             if DATA_MIXERS in frame.data:
                 device.mixers.set_data(frame.data[DATA_MIXERS])
@@ -104,12 +105,10 @@ class EcoNET(ABC):
         elif frame.is_type(responses.DataStructure):
             device.struct = frame.data
 
+        elif frame.is_type(requests.CheckDevice):
+            writer.queue(frame.response(data=self._net))
+
         writer.collect(device.changes)
-        if writer.queue_is_empty():
-            # If queue is empty, send device available frame.
-            writer.queue(
-                responses.DeviceAvailable(recipient=frame.sender, data=self._net)
-            )
 
     async def _read(self, reader: FrameReader) -> None:
         """Handles connection reads."""
