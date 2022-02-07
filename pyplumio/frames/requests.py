@@ -128,3 +128,15 @@ class BoilerControl(Request):
         message.append(self._data["value"])
 
         return message
+
+
+class StartMaster(Request):
+    """Designates RS485 device as master."""
+
+    type_: int = 0x19
+
+
+class StopMaster(Request):
+    """Revokes RS485 device master status."""
+
+    type_: int = 0x18

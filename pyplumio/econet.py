@@ -21,7 +21,7 @@ from .constants import (
     RECONNECT_TIMEOUT,
     WLAN_ENCRYPTION,
 )
-from .devices import DevicesCollection
+from .devices import ECOMAX_ADDRESS, DevicesCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
 from .frames import requests, responses
@@ -86,6 +86,7 @@ class EcoNET(ABC):
         elif frame.is_type(responses.UID):
             device.uid = frame.data["UID"]
             device.product = frame.data["reg_name"]
+            self.writer.queue(requests.Password(recipient=frame.sender))
 
         elif frame.is_type(responses.Password):
             device.password = frame.data
@@ -127,6 +128,7 @@ class EcoNET(ABC):
                     RECONNECT_TIMEOUT,
                 )
                 reader, self.writer = await self.reconnect()
+                await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
             except ChecksumError:
                 _LOGGER.warning("Incorrect frame checksum.")
             except LengthError:
@@ -155,7 +157,6 @@ class EcoNET(ABC):
         interval -- user-defined update interval in seconds
         """
         reader, self.writer = await self.connect()
-        self.writer.queue(requests.Password())
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
         await self._read(reader)
 
@@ -180,7 +181,7 @@ class EcoNET(ABC):
         self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
     ) -> None:
         """Sets eth parameters to pass to devices.
-        Used for informational purpoises only.
+        Used for informational purposes only.
 
         Keyword arguments:
         ip -- ip address of eth device

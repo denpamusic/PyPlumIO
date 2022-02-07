@@ -355,7 +355,7 @@ DATA_TYPES: Final = (
     data_types.IPv6,
 )
 
-REGDATA_ELEMENTS = {
+REGDATA_ELEMENTS: Final = {
     1792: DATA_MODE,
     1024: TEMPERATURES[0],
     1026: TEMPERATURES[1],
