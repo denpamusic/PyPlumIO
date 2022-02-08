@@ -1,4 +1,4 @@
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.frame import BROADCAST_ADDRESS, ECONET_ADDRESS
 import pyplumio.frames.responses as responses
 
 

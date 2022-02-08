@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
+from typing import Final
 
 from . import util
-from .constants import (
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
-    HEADER_SIZE,
-    READER_BUFFER_SIZE,
-)
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
-from .frame import Frame, Request
+from .frame import BROADCAST_ADDRESS, ECONET_ADDRESS, HEADER_SIZE, Frame, Request
+
+READER_BUFFER_SIZE: Final = 1000
 
 
 class FrameWriter:

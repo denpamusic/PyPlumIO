@@ -10,7 +10,7 @@ from pyplumio.constants import (
     DATA_MODE,
     DATA_POWER,
     DATA_WATER_HEATER_TARGET,
-    MODULE_PANEL,
+    MODULE_A,
 )
 from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
 from pyplumio.frames import requests
@@ -36,7 +36,7 @@ _test_data = {
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
-    MODULE_PANEL: "1.1.15",
+    MODULE_A: "1.1.15",
     "heating_temp": 60,
     "exhaust_temp": 60,
     "outside_temp": 30,

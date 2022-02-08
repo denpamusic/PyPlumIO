@@ -2,7 +2,7 @@
 
 import struct
 
-from pyplumio.constants import MODULE_PANEL, MODULES
+from pyplumio.constants import MODULE_A, MODULES
 
 
 def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
@@ -16,7 +16,7 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict,
         data = {}
 
     for module in MODULES:
-        if module == MODULE_PANEL:
+        if module == MODULE_A:
             version_data = struct.unpack("<BBBBB", message[offset : offset + 5])
             version1 = ".".join(map(str, version_data[:3]))
             version2 = "." + chr(version_data[3])

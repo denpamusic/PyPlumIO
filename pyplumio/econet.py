@@ -10,17 +10,11 @@ from collections.abc import Callable
 import logging
 import os
 import sys
+from typing import Final
 
 import serial_asyncio
 
-from .constants import (
-    DATA_MIXERS,
-    DEFAULT_IP,
-    DEFAULT_NETMASK,
-    READER_TIMEOUT,
-    RECONNECT_TIMEOUT,
-    WLAN_ENCRYPTION,
-)
+from .constants import DATA_MIXERS, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import ECOMAX_ADDRESS, DevicesCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
@@ -28,6 +22,9 @@ from .frames import requests, responses
 from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
+
+READER_TIMEOUT: Final = 5
+RECONNECT_TIMEOUT: Final = 30
 
 
 class EcoNET(ABC):
@@ -86,7 +83,7 @@ class EcoNET(ABC):
         elif frame.is_type(responses.UID):
             device.uid = frame.data["UID"]
             device.product = frame.data["reg_name"]
-            self.writer.queue(requests.Password(recipient=frame.sender))
+            writer.queue(requests.Password(recipient=frame.sender))
 
         elif frame.is_type(responses.Password):
             device.password = frame.data
@@ -128,7 +125,6 @@ class EcoNET(ABC):
                     RECONNECT_TIMEOUT,
                 )
                 reader, self.writer = await self.reconnect()
-                await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
             except ChecksumError:
                 _LOGGER.warning("Incorrect frame checksum.")
             except LengthError:
@@ -145,7 +141,9 @@ class EcoNET(ABC):
             await self.writer.close()
 
         await asyncio.sleep(RECONNECT_TIMEOUT)
-        return await self.connect()
+        reader, writer = await self.connect()
+        await writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
+        return reader, writer
 
     async def task(
         self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1

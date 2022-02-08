@@ -1,13 +1,14 @@
 import pytest
 
-from pyplumio.constants import (
+from pyplumio.frame import (
     BROADCAST_ADDRESS,
     ECONET_ADDRESS,
     ECONET_TYPE,
     ECONET_VERSION,
     HEADER_SIZE,
+    Request,
+    Response,
 )
-from pyplumio.frame import Request, Response
 from pyplumio.frames import requests, responses
 
 

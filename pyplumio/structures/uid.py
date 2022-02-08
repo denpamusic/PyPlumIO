@@ -1,7 +1,12 @@
 """Contains UID structure parser."""
 
+from typing import Final
+
 from pyplumio import util
-from pyplumio.constants import UID_BASE, UID_BASE_BITS, UID_CHAR_BITS
+
+UID_BASE: Final = 32
+UID_BASE_BITS: Final = 5
+UID_CHAR_BITS: Final = 8
 
 
 def from_bytes(message: bytearray, offset: int = 0) -> (str, int):

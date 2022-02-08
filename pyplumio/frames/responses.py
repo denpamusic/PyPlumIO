@@ -4,7 +4,6 @@ import struct
 
 from pyplumio import util
 from pyplumio.constants import (
-    BROADCAST_ADDRESS,
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
@@ -16,9 +15,6 @@ from pyplumio.constants import (
     DATA_TYPES,
     DEFAULT_IP,
     DEFAULT_NETMASK,
-    ECONET_ADDRESS,
-    ECONET_TYPE,
-    ECONET_VERSION,
     REGDATA_ELEMENTS,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
@@ -121,7 +117,7 @@ class DeviceAvailable(Response):
     }
 
     def create_message(self) -> bytearray:
-        """Creates CheckDevice message."""
+        """Creates DeviceAvailable message."""
         message = bytearray()
         message += b"\x01"
         data = util.merge(self._defaults, self._data)
@@ -147,7 +143,7 @@ class DeviceAvailable(Response):
         return message
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses CheckDevice message into usable data.
+        """Parses DeviceAvailable message into usable data.
 
         Keywords arguments:
         message -- message to parse
@@ -242,7 +238,7 @@ class Password(Response):
     type_: int = 0xBA
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses ProgramVersion message into usable data.
+        """Parses Password message into usable data.
 
         Keywords arguments:
         message -- message to parse
@@ -259,30 +255,14 @@ class RegData(Response):
 
     VERSION: str = "1.0"
 
-    def __init__(
-        self,
-        type_: int = None,
-        recipient: int = BROADCAST_ADDRESS,
-        message: bytearray = bytearray(),
-        sender: int = ECONET_ADDRESS,
-        sender_type: int = ECONET_TYPE,
-        econet_version: int = ECONET_VERSION,
-        data=None,
-    ):
+    def __init__(self, *args, **kwargs):
         """Creates new Frame object.
 
         Keyword arguments:
-            type_ -- integer repsentation of frame type
-            recipient -- integer repsentation of recipient address
-            message -- frame body as bytearray
-            sender -- integer respresentation of sender address
-            sender_type -- sender type
-            econet_version -- version of econet protocol
-            data -- frame data, that is used to construct frame message
+        args -- arguments for parent class init
+        kwargs -- keyword arguments for parent class init
         """
-        super().__init__(
-            type_, recipient, message, sender, sender_type, econet_version, data
-        )
+        super().__init__(*args, **kwargs)
         self.struct = []
 
     def parse_message(self, message: bytearray) -> None:

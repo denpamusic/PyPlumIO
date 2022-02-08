@@ -1,21 +1,23 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
+from typing import Final
+
 from .constants import (
     DATA_FRAMES,
     DATA_MODE,
     DEVICE_DATA,
     DEVICE_PARAMS,
     MODES,
-    MODULE_PANEL,
+    MODULE_A,
 )
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .mixers import MixersCollection
 from .storage import FrameBucket
 
-ECOMAX_ADDRESS: int = 0x45
-ECOSTER_ADDRESS: int = 0x51
+ECOMAX_ADDRESS: Final = 0x45
+ECOSTER_ADDRESS: Final = 0x51
 
 
 class Device(BaseDevice):
@@ -69,8 +71,8 @@ class Device(BaseDevice):
     @property
     def software(self) -> str | None:
         """Returns software version."""
-        if MODULE_PANEL in self._data:
-            return self._data[MODULE_PANEL]
+        if MODULE_A in self._data:
+            return self._data[MODULE_A]
 
         return None
 

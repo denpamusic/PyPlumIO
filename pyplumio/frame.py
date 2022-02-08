@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Final
 
 from . import util
-from .constants import (
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
-    ECONET_TYPE,
-    ECONET_VERSION,
-    FRAME_END,
-    FRAME_START,
-    HEADER_SIZE,
-)
+
+FRAME_START: Final = 0x68
+FRAME_END: Final = 0x16
+HEADER_SIZE: Final = 7
+BROADCAST_ADDRESS: Final = 0x00
+ECONET_ADDRESS: Final = 0x56
+ECONET_TYPE: Final = 0x30
+ECONET_VERSION: Final = 0x05
 
 
 class Frame(ABC):
@@ -34,13 +34,13 @@ class Frame(ABC):
         """Creates new Frame object.
 
         Keyword arguments:
-            type_ -- integer repsentation of frame type
-            recipient -- integer repsentation of recipient address
-            message -- frame body as bytearray
-            sender -- integer respresentation of sender address
-            sender_type -- sender type
-            econet_version -- version of econet protocol
-            data -- frame data, that is used to construct frame message
+        type_ -- integer repsentation of frame type
+        recipient -- integer repsentation of recipient address
+        message -- frame body as bytearray
+        sender -- integer respresentation of sender address
+        sender_type -- sender type
+        econet_version -- version of econet protocol
+        data -- frame data, that is used to construct frame message
         """
         self._data = data
         self.recipient = recipient

@@ -4,22 +4,6 @@ from typing import Final
 
 from . import data_types
 
-FRAME_START: Final = 0x68
-FRAME_END: Final = 0x16
-HEADER_SIZE: Final = 7
-BROADCAST_ADDRESS: Final = 0x00
-ECONET_ADDRESS: Final = 0x56
-ECONET_TYPE: Final = 0x30
-ECONET_VERSION: Final = 0x05
-
-READER_BUFFER_SIZE: Final = 1000
-READER_TIMEOUT: Final = 5
-RECONNECT_TIMEOUT: Final = 30
-
-UID_BASE: Final = 32
-UID_BASE_BITS: Final = 5
-UID_CHAR_BITS: Final = 8
-
 WLAN_ENCRYPTION_UNKNOWN: Final = 0
 WLAN_ENCRYPTION_NONE: Final = 1
 WLAN_ENCRYPTION_WEP: Final = 2
@@ -43,12 +27,12 @@ MODULE_C: Final = "module_c"
 MODULE_LAMBDA: Final = "module_lambda"
 MODULE_ECOSTER: Final = "module_ecoster"
 MODULES: Final = (
-    MODULE_PANEL,
     MODULE_A,
     MODULE_B,
     MODULE_C,
     MODULE_LAMBDA,
     MODULE_ECOSTER,
+    MODULE_PANEL,
 )
 
 MODES: Final = (
@@ -193,7 +177,7 @@ DEVICE_PARAMS: Final = (
     "cycle_time",
     "h2_hysteresis",
     "h1_hysteresis",
-    "boiler_hysteresis",
+    "heating_hysteresis",
     "fuzzy_logic",
     "min_fuzzy_logic_power",
     "max_fuzzy_logic_power",
@@ -281,7 +265,7 @@ DEVICE_PARAMS: Final = (
     "pause_heating_for_water_heater",
     "pause_term",
     "work_term",
-    "heating_increase_temp",
+    "increase_heating_temp_for_water_heater",
     "heating_weather_control",
     "heating_heat_curve",
     "heating_heat_curve_shift",

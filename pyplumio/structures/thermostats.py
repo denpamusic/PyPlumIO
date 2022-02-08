@@ -33,7 +33,7 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (list,
     if therm_number > 0:
         contact_mask = 1
         schedule_mask = 1 << 3
-        for therm in range(1, therm_number + 1):
+        for _ in range(1, therm_number + 1):
             therm = {}
             therm[ECOSTER_CONTACTS] = bool(therm_contacts & contact_mask)
             therm[ECOSTER_SCHEDULE] = bool(therm_contacts & schedule_mask)
