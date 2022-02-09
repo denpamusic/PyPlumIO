@@ -22,14 +22,13 @@ class BaseDevice(ABC):
         """
         self.__dict__["_data"] = {}
         self.__dict__["_parameters"] = {}
+        self.__dict__["_queue"] = []
 
         if data is not None:
             self.set_data(data)
 
         if parameters is not None:
             self.set_parameters(parameters)
-
-        self._queue = []
 
     def __getattr__(self, name: str):
         """Gets data or parameter as class attribute.

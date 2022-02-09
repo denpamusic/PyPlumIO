@@ -30,14 +30,14 @@ class Device(BaseDevice):
         data -- device data
         parameters -- editable parameters
         """
+        self.__dict__["bucket"] = FrameBucket()
+        self.__dict__["mixers"] = MixersCollection()
+        self.__dict__["product"] = None
+        self.__dict__["uid"] = None
+        self.__dict__["password"] = None
+        self.__dict__["struct"] = []
+        self.__dict__["_is_on"] = False
         super().__init__(data, parameters)
-        self.product = None
-        self.uid = None
-        self.password = None
-        self.struct = []
-        self.bucket = FrameBucket()
-        self.mixers = MixersCollection()
-        self._is_on = False
 
     def set_data(self, data: dict) -> None:
         """Sets device data.

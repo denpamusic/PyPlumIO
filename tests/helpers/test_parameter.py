@@ -1,11 +1,12 @@
 import pytest
 
+from pyplumio.frames.requests import BoilerControl, SetMixerParameter, SetParameter
 from pyplumio.helpers.parameter import Parameter
 
 
 @pytest.fixture
 def parameter() -> Parameter:
-    return Parameter(name="AUTO_SUMMER", value=1, min_=0, max_=1)
+    return Parameter(name="auto_summer", value=1, min_=0, max_=1)
 
 
 def test_parameter_set(parameter: Parameter):
@@ -27,7 +28,7 @@ def test_parameter_compare(parameter: Parameter):
 
 def test_parameter__repr__(parameter: Parameter):
     output = """Parameter(
-    name = AUTO_SUMMER,
+    name = auto_summer,
     value = 1,
     min_ = 0,
     max_ = 1,
@@ -38,4 +39,18 @@ def test_parameter__repr__(parameter: Parameter):
 
 
 def test_parameter__str__(parameter: Parameter):
-    assert str(parameter) == "AUTO_SUMMER: 1 (range 0 - 1)"
+    assert str(parameter) == "auto_summer: 1 (range 0 - 1)"
+
+
+def test_parameter_request(parameter: Parameter):
+    assert isinstance(parameter.request, SetParameter)
+
+
+def test_parameter_request_mixer():
+    parameter = Parameter(name="mix_set_temp", value=50, min_=50, max_=80, extra=0)
+    assert isinstance(parameter.request, SetMixerParameter)
+
+
+def test_parameter_request_control():
+    parameter = Parameter(name="boiler_control", value=1, min_=0, max_=1)
+    assert isinstance(parameter.request, BoilerControl)

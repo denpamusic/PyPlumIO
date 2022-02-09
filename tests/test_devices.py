@@ -13,6 +13,7 @@ from pyplumio.constants import (
     MODULE_A,
 )
 from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
+from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frames import requests
 
 _test_data = {
@@ -58,10 +59,8 @@ def ecomax() -> EcoMAX:
 
 
 @pytest.fixture
-def ecomax_with_data(ecomax) -> EcoMAX:
-    ecomax.set_data(_test_data)
-    ecomax.set_parameters(_test_parameters)
-    return ecomax
+def ecomax_with_data() -> EcoMAX:
+    return EcoMAX(data=_test_data, parameters=_test_parameters)
 
 
 @pytest.fixture
@@ -99,6 +98,10 @@ def test_get_attr_from_parameters(ecomax_with_data: EcoMAX):
     assert ecomax_with_data.summer_mode == 1
 
 
+def test_get_attr_from_nonexistent(ecomax_with_data: EcoMAX):
+    assert ecomax_with_data.nonexistent is None
+
+
 def test_set_attr_from_parameters(ecomax_with_data: EcoMAX):
     ecomax_with_data.summer_mode = 0
     assert ecomax_with_data.summer_mode == 0
@@ -107,6 +110,16 @@ def test_set_attr_from_parameters(ecomax_with_data: EcoMAX):
 def test_set_attr_from_parameters_out_of_range(ecomax_with_data: EcoMAX):
     ecomax_with_data.summer_mode = 39
     assert ecomax_with_data.summer_mode == 1
+
+
+def test_set_attr_from_data(ecomax_with_data: EcoMAX):
+    with pytest.raises(AttributeError):
+        ecomax_with_data.heating_temp = 0
+
+
+def test_set_attr_from_parameters_uninitialized(ecomax_with_data: EcoMAX):
+    with pytest.raises(UninitializedParameterError):
+        ecomax_with_data.circulation_control = True
 
 
 def test_changed_parameters(ecomax_with_data: EcoMAX):
@@ -135,6 +148,16 @@ def test_is_on_unknown(ecomax: EcoMAX):
 
 def test_to_str(ecomax_with_data: EcoMAX):
     assert "Software Ver.:  1.1.15" in str(ecomax_with_data)
+
+
+def test_repr(ecomax: EcoMAX):
+    assert """EcoMAX(
+    data = {},
+    parameters = {}
+)
+""".strip() == repr(
+        ecomax
+    )
 
 
 def test_get_attr_from_collection(devices: DevicesCollection):
