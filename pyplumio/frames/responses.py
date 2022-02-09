@@ -168,10 +168,60 @@ class DeviceAvailable(Response):
         self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)
 
 
+class RegData(Response):
+    """Contains current regulator data."""
+
+    type_: int = 0x08
+
+    VERSION: str = "1.0"
+
+    def __init__(self, *args, **kwargs):
+        """Creates new RegData frame object.
+
+        Keyword arguments:
+        args -- arguments for parent class init
+        kwargs -- keyword arguments for parent class init
+        """
+        super().__init__(*args, **kwargs)
+        self.struct = []
+
+    def parse_message(self, message: bytearray) -> None:
+        """Parses RegData message into usable data.
+
+        Keywords arguments:
+        message -- message to parse
+        """
+        offset = 2
+        frame_version = f"{message[offset+1]}.{message[offset]}"
+        offset += 2
+        self._data = {}
+        if frame_version == self.VERSION:
+            _, offset = frame_versions.from_bytes(message, offset, self._data)
+            boolean_index = 0
+            for param in self.struct:
+                param_id, param_type = param
+                param_type.unpack(message[offset:])
+                if isinstance(param_type, Boolean):
+                    boolean_index = param_type.index(boolean_index)
+
+                self._data[param_id] = param_type.value
+                offset += param_type.size
+
+
 class CurrentData(Response):
     """Contains current device state data."""
 
     type_: int = 0x35
+
+    def __init__(self, *args, **kwargs):
+        """Creates new CurrentData frame object.
+
+        Keyword arguments:
+        args -- arguments for parent class init
+        kwargs -- keyword arguments for parent class init
+        """
+        super().__init__(*args, **kwargs)
+        self.struct = []
 
     def parse_message(self, message: bytearray) -> None:
         """Parses CurrentData message into usable data.
@@ -246,52 +296,6 @@ class Password(Response):
         password = message[1:]
         if password:
             self._data = password.decode()
-
-
-class RegData(Response):
-    """Contains current regulator data."""
-
-    type_: int = 0x08
-
-    VERSION: str = "1.0"
-
-    def __init__(self, *args, **kwargs):
-        """Creates new Frame object.
-
-        Keyword arguments:
-        args -- arguments for parent class init
-        kwargs -- keyword arguments for parent class init
-        """
-        super().__init__(*args, **kwargs)
-        self.struct = []
-
-    def parse_message(self, message: bytearray) -> None:
-        """Parses RegData message into usable data.
-
-        Keywords arguments:
-        message -- message to parse
-        """
-        offset = 2
-        frame_version = f"{message[offset+1]}.{message[offset]}"
-        offset += 2
-        self._data = {}
-        if frame_version == self.VERSION:
-            _, offset = frame_versions.from_bytes(message, offset, self._data)
-            boolean_index = 0
-            for param in self.struct:
-                param_id, param_type = param
-                param_type.unpack(message[offset:])
-                if isinstance(param_type, Boolean):
-                    boolean_index = param_type.index(boolean_index)
-
-                self._data[param_id] = param_type.value
-                offset += param_type.size
-
-
-class Timezones(Response):
-    """Contains device timezone info."""
-
-    type_: int = 0xB6
 
 
 class Parameters(Response):

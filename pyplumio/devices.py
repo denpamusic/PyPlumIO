@@ -43,7 +43,7 @@ class Device(BaseDevice):
         """Sets device data.
 
         Keyword arguments:
-        data -- device immutable attributes
+        data -- immutable device attributes
         """
         self.bucket.fill(data[DATA_FRAMES])
         for name, value in data.items():
@@ -174,7 +174,7 @@ class DevicesCollection:
         """Gets device by address.
 
         Keyword arguments:
-        address -- int address of device
+        address -- address of device
         """
         if address not in self._instances:
             try:

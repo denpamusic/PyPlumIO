@@ -22,7 +22,7 @@ class FrameWriter:
         """Creates instance of FrameWriter.
 
         Keyword arguments:
-        writer -- instance of asyncio.StreamWriter
+        writer -- instance of stream writer
         """
         self.writer = writer
         self._queue = []
@@ -41,7 +41,7 @@ class FrameWriter:
             if isinstance(frame, Frame):
                 self._queue.append(frame)
 
-    def queue_is_empty(self) -> bool:
+    def is_empty(self) -> bool:
         """Checks if write queue is empty."""
         return len(self._queue) == 0
 
@@ -70,7 +70,7 @@ class FrameWriter:
         await self.writer.drain()
 
     async def close(self) -> None:
-        """Closes StreamWriter."""
+        """Closes stream writer."""
         self.writer.close()
         await self.writer.wait_closed()
 
@@ -84,7 +84,7 @@ class FrameReader:
         """Creates FrameReader instance.
 
         Keyword arguments:
-        reader -- instance of asyncio.StreamReader
+        reader -- instance of stream reader
         """
         self.reader = reader
 

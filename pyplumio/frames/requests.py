@@ -46,12 +46,6 @@ class Password(Request):
     type_: int = 0x3A
 
 
-class Timezones(Request):
-    """Requests timezones."""
-
-    type_: int = 0x36
-
-
 class Parameters(Request):
     """Requests current editable parameters."""
 
@@ -102,7 +96,7 @@ class SetMixerParameter(Request):
     type_: int = 0x34
 
     def create_message(self) -> bytearray:
-        """Creates SetParameter message."""
+        """Creates SetMixerParameter message."""
 
         message = bytearray()
         name = self._data["name"]

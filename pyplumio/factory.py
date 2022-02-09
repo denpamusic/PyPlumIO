@@ -21,7 +21,7 @@ class FrameFactory(Singleton):
         """Gets frame by frame type.
 
         Keyword arguments:
-        type -- integer, repsenting frame type
+        type -- integer that represents frame type
         kwargs -- keywords arguments to pass to the frame class
         """
         if type_ in self.types:

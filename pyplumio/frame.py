@@ -134,9 +134,7 @@ class Frame(ABC):
         """Converts frame to bytes respresentation."""
         data = self.header
         data.append(self.type_)
-        for byte in self.message:
-            data.append(byte)
-
+        data += self.message
         data.append(util.crc(data))
         data.append(FRAME_END)
         return bytes(data)
@@ -166,6 +164,9 @@ class Request(Frame):
     def response(self, **args) -> Frame:  # pylint: disable=no-self-use
         """Returns instance of Frame
         for response to request, if needed.
+
+        Keyword arguments:
+        args -- arguments to pass to response frame constructor
         """
         return None
 

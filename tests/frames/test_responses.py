@@ -6,10 +6,10 @@ def test_responses_type():
     for response in [
         responses.ProgramVersion,
         responses.DeviceAvailable,
+        responses.RegData,
         responses.CurrentData,
         responses.UID,
         responses.Password,
-        responses.Timezones,
         responses.Parameters,
         responses.MixerParameters,
         responses.DataStructure,

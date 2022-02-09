@@ -13,10 +13,11 @@ def test_request_type():
         requests.CheckDevice,
         requests.UID,
         requests.Password,
-        requests.Timezones,
         requests.Parameters,
         requests.MixerParameters,
         requests.DataStructure,
+        requests.StartMaster,
+        requests.StopMaster,
     ]:
         frame = request(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert frame.is_type(request)
