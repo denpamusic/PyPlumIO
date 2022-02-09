@@ -66,7 +66,7 @@ class FrameWriter:
         Keyword arguments:
         frame -- Frame instance to add
         """
-        self.writer.write(frame.to_bytes())
+        self.writer.write(frame.bytes)
         await self.writer.drain()
 
     async def close(self) -> None:

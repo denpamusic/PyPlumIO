@@ -130,7 +130,8 @@ class Frame(ABC):
 
         return False
 
-    def to_bytes(self) -> bytes:
+    @property
+    def bytes(self) -> bytes:
         """Converts frame to bytes respresentation."""
         data = self.header
         data.append(self.type_)
@@ -139,9 +140,10 @@ class Frame(ABC):
         data.append(FRAME_END)
         return bytes(data)
 
-    def to_hex(self) -> str:
+    @property
+    def hex(self) -> str:
         """Converts frame to list of hex bytes."""
-        return util.to_hex(self.to_bytes())
+        return util.to_hex(self.bytes)
 
     @abstractmethod
     def create_message(self) -> bytearray:

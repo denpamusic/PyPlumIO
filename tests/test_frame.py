@@ -62,15 +62,15 @@ def test_base_class_with_message():
     assert frame.message == b"\xB0\x0B"
 
 
-def test_to_bytes():
+def test_bytes():
     frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
-    assert frame.to_bytes() == b"\x68\x0C\x00\x00\x56\x30\x05\x40\xB0\x0B\xFC\x16"
+    assert frame.bytes == b"\x68\x0C\x00\x00\x56\x30\x05\x40\xB0\x0B\xFC\x16"
 
 
-def test_to_hex():
+def test_hex():
     frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
     hex = ["68", "0C", "00", "00", "56", "30", "05", "40", "B0", "0B", "FC", "16"]
-    assert frame.to_hex() == hex
+    assert frame.hex == hex
 
 
 def test_frame_type_check():
