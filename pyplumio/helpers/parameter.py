@@ -2,7 +2,7 @@
 
 from pyplumio.constants import MIXER_PARAMS
 from pyplumio.frame import Request
-from pyplumio.frames.requests import BoilerControl, SetMixerParameter, SetParameter
+from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
 
 
 class Parameter:

@@ -1,7 +1,7 @@
 import pytest
 
-from pyplumio.frames.requests import BoilerControl, SetMixerParameter, SetParameter
 from pyplumio.helpers.parameter import Parameter
+from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
 
 
 @pytest.fixture

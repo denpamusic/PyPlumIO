@@ -1,5 +1,6 @@
 import pytest
 
+from pyplumio import requests
 from pyplumio.constants import (
     DATA_FAN_POWER,
     DATA_FRAMES,
@@ -14,7 +15,6 @@ from pyplumio.constants import (
 )
 from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
 from pyplumio.exceptions import UninitializedParameterError
-from pyplumio.frames import requests
 
 _test_data = {
     DATA_FRAMES: {

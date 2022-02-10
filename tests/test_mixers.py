@@ -2,8 +2,8 @@ import pytest
 
 from pyplumio.constants import MIXER_PARAMS
 from pyplumio.frame import BROADCAST_ADDRESS
-from pyplumio.frames.requests import SetMixerParameter
 from pyplumio.mixers import Mixer, MixersCollection
+from pyplumio.requests import SetMixerParameter
 
 _test_data = {
     "temp": 40,

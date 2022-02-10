@@ -1,6 +1,6 @@
 import pytest
 
-from pyplumio.frames import requests, responses
+from pyplumio import requests, responses
 from pyplumio.storage import FrameBucket
 
 

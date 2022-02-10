@@ -1,5 +1,6 @@
 import pytest
 
+from pyplumio import requests, responses
 from pyplumio.frame import (
     BROADCAST_ADDRESS,
     ECONET_ADDRESS,
@@ -9,7 +10,6 @@ from pyplumio.frame import (
     Request,
     Response,
 )
-from pyplumio.frames import requests, responses
 
 
 @pytest.fixture

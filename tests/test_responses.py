@@ -1,5 +1,5 @@
+from pyplumio import responses
 from pyplumio.frame import BROADCAST_ADDRESS, ECONET_ADDRESS
-import pyplumio.frames.responses as responses
 
 
 def test_responses_type():

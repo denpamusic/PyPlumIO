@@ -1,6 +1,5 @@
+from pyplumio import requests, responses
 from pyplumio.frame import BROADCAST_ADDRESS, ECONET_ADDRESS
-import pyplumio.frames.requests as requests
-import pyplumio.frames.responses as responses
 
 
 def test_base_class_response():

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import inspect
 
+from . import requests, responses
 from .exceptions import FrameTypeError
 from .frame import Frame
-from .frames import requests, responses
 from .helpers.singleton import Singleton
 
 

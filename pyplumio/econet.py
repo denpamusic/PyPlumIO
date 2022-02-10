@@ -14,11 +14,11 @@ from typing import Final
 
 import serial_asyncio
 
+from . import requests, responses
 from .constants import DATA_MIXERS, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import ECOMAX_ADDRESS, DevicesCollection
 from .exceptions import ChecksumError, FrameTypeError, LengthError
 from .frame import Frame
-from .frames import requests, responses
 from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
