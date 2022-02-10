@@ -21,7 +21,7 @@ def crc(data: bytearray) -> int:
     """Calculates frame checksum.
 
     Keyword arguments:
-    data - data to calculate checksum for
+    data -- data to calculate checksum for
     """
     return functools.reduce(lambda x, y: x ^ y, data)
 
@@ -30,7 +30,7 @@ def to_hex(data: bytearray) -> str:
     """Converts bytearray to list of hex strings.
 
     Keyword arguments:
-    data - data for conversion
+    data -- data for conversion
     """
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 
@@ -76,7 +76,7 @@ def ip4_from_bytes(data: bytearray) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
-    data -- 4 bytes to convert
+    data -- address bytes to convert
     """
     return socket.inet_ntoa(data)
 
@@ -94,7 +94,7 @@ def ip6_from_bytes(data: bytearray) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
-    data -- 4 bytes to convert
+    data -- address bytes to convert
     """
     return socket.inet_ntop(socket.AF_INET6, data)
 
@@ -141,11 +141,7 @@ def uid_stamp(message: str) -> str:
         int_ = ord(byte)
         crc_ = crc_ ^ int_
         for _ in range(8):
-            if crc_ & 1:
-                crc_ = (crc_ >> 1) ^ 0xA001
-                continue
-
-            crc_ = crc_ >> 1
+            crc_ = (crc_ >> 1) ^ 0xA001 if crc_ & 1 else crc_ >> 1
 
     return chr(crc_ % 256) + chr((crc_ // 256) % 256)
 

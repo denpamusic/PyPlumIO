@@ -1,6 +1,7 @@
 """Contains classes for mixer support."""
 from __future__ import annotations
 
+from . import util
 from .constants import MIXER_DATA, MIXER_PARAMS
 from .frame import BROADCAST_ADDRESS
 from .helpers.base_device import BaseDevice
@@ -17,9 +18,29 @@ class Mixer(BaseDevice):
         data -- device data
         parameters -- editable parameters
         """
+        self.__dict__["_index"] = index
         self.__dict__["address"] = BROADCAST_ADDRESS
         super().__init__(data, parameters)
-        self._index = index
+
+    def __repr__(self) -> str:
+        """Returns serializable string representation of the class."""
+        return f"""{self.__class__.__name__}(
+    data = {self._data},
+    parameters = {self._parameters}
+    index  = {self._index}
+)
+""".strip()
+
+    def __str__(self) -> str:
+        """Returns string representation of the class."""
+        return f"""
+{self._index}:
+Data:
+{util.make_list(self._data)}
+
+Parameters:
+{util.make_list(self._parameters, include_keys = False)}
+""".strip()
 
     def set_data(self, data: dict) -> None:
         """Sets mixer data.
@@ -76,11 +97,12 @@ class MixersCollection:
     def __str__(self) -> str:
         """Returns string representation of the class."""
         output = ""
-        for index, mixer in enumerate(self._mixers):
+        for mixer in self._mixers:
             mixer_string = mixer.__str__().replace("\n", "\n    ")
-            output += f"- {index}:\n    {mixer_string}\n\n"
+            mixer_string = mixer_string.replace("\n    \n", "\n\n")
+            output += f"- {mixer_string}\n\n"
 
-        return output
+        return output.strip()
 
     def __len__(self) -> int:
         """Returns number of mixers in collection."""
