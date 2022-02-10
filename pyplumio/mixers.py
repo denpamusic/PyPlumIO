@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from .constants import MIXER_DATA, MIXER_PARAMS
+from .frame import BROADCAST_ADDRESS
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 
@@ -16,6 +17,7 @@ class Mixer(BaseDevice):
         data -- device data
         parameters -- editable parameters
         """
+        self.__dict__["address"] = BROADCAST_ADDRESS
         super().__init__(data, parameters)
         self._index = index
 
@@ -48,13 +50,16 @@ class Mixer(BaseDevice):
 class MixersCollection:
     """Collection of mixer devices."""
 
-    def __init__(self, mixers: list = None):
+    def __init__(self, address: int = BROADCAST_ADDRESS, mixers: list = None):
         """Creates mixer collection instance.
 
         Keyword arguments:
+        address -- address of device containing mixers
         data -- device data
         parameters -- editable parameters
         """
+        self._address = address
+
         if mixers is None:
             self._mixers = []
         else:
@@ -63,9 +68,10 @@ class MixersCollection:
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
         return f"""MixersCollection(
+    address = {self._address},
     mixers = {self._mixers}
 )
-"""
+""".strip()
 
     def __str__(self) -> str:
         """Returns string representation of the class."""
@@ -128,6 +134,7 @@ class MixersCollection:
         """
         queue = []
         for mixer in self._mixers:
+            mixer.address = self._address
             queue.extend(mixer.queue)
 
         return queue

@@ -5,13 +5,15 @@ from abc import ABC, abstractmethod
 
 from pyplumio import util
 from pyplumio.exceptions import UninitializedParameterError
-from pyplumio.frame import Request
+from pyplumio.frame import BROADCAST_ADDRESS, Request
 
 from .parameter import Parameter
 
 
 class BaseDevice(ABC):
     """Base device class."""
+
+    address: int = BROADCAST_ADDRESS
 
     def __init__(self, data: dict = None, parameters: dict = None):
         """Creates device instance.
@@ -62,7 +64,9 @@ class BaseDevice(ABC):
 
         elif key in self._parameters:
             self._parameters[key].set(value)
-            self._queue.append(self._parameters[key].request)
+            request = self._parameters[key].request
+            request.recipient = self.address
+            self._queue.append(request)
 
         else:
             raise UninitializedParameterError()

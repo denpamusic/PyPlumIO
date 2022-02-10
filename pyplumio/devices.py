@@ -31,7 +31,7 @@ class Device(BaseDevice):
         parameters -- editable parameters
         """
         self.__dict__["bucket"] = FrameBucket()
-        self.__dict__["mixers"] = MixersCollection()
+        self.__dict__["mixers"] = MixersCollection(address=self.address)
         self.__dict__["product"] = None
         self.__dict__["uid"] = None
         self.__dict__["password"] = None
