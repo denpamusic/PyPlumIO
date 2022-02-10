@@ -70,9 +70,9 @@ def devices() -> DevicesCollection:
     return devices
 
 
-def test_set_data(ecomax_with_data: EcoMAX):
-    ecomax_with_data.set_data(_test_data)
-    assert ecomax_with_data.data["mode"] == 3
+def test_set_data(ecomax: EcoMAX):
+    ecomax.set_data(_test_data)
+    assert ecomax.data["mode"] == 3
 
 
 def test_get_attr_from_data(ecomax_with_data: EcoMAX):

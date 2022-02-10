@@ -26,6 +26,10 @@ def test_parameter_compare(parameter: Parameter):
     assert 0 <= parameter <= 1
 
 
+def test_parameter_int(parameter: Parameter):
+    assert int(parameter) == 1
+
+
 def test_parameter__repr__(parameter: Parameter):
     output = """Parameter(
     name = auto_summer,
