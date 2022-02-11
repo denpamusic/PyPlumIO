@@ -12,6 +12,7 @@ import os
 import sys
 from typing import Final
 
+from serial import SerialException
 import serial_asyncio
 
 from . import requests, responses
@@ -154,6 +155,7 @@ class EcoNET(ABC):
                 ConnectionRefusedError,
                 ConnectionResetError,
                 OSError,
+                SerialException,
             ):
                 _LOGGER.error(
                     "Connection to device failed, retrying in %i seconds...",
@@ -230,7 +232,6 @@ class EcoNET(ABC):
         """Closes opened connection."""
         if not self.closing:
             self.closing = True
-
             if self._callback_task is not None:
                 self._callback_task.cancel()
 
