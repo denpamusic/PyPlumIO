@@ -91,11 +91,14 @@ async def my_callback(devices, econet):
 ```
 
 ### Writing
-You can easily set regulator parameter by changing respective class attribute. Example below will set target temperature to 65 degrees celsius and close connection.
+You can easily set regulator parameter by changing respective class attribute. Example below will set target temperature to 65 degrees Celsius and close the connection.
 ```python
 async def my_callback(devices, econet):
     if devices.ecomax and devices.ecomax.heating_set_temp is not None:
-    	devices.ecomax.heating_set_temp = 65  # This will set target temperature to 65 degrees Celsius.
+        """This will set target heating temperature to 65 degrees Celsius.
+        and close the connection.
+        """
+    	devices.ecomax.heating_set_temp = 65
         econet.close()
 ```
 Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_` and `max_` attributes.
