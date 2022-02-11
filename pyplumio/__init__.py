@@ -15,7 +15,7 @@ def tcp(
     port: int,
     interval: int = 1,
     **kwargs,
-):
+) -> None:
     """Shortcut for TCP connection.
 
     Keyword arguments:
@@ -34,7 +34,7 @@ def serial(
     baudrate: int = 115200,
     interval: int = 1,
     **kwargs,
-):
+) -> None:
     """Shortcut for serial connection.
 
     Keyword arguments:
