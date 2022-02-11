@@ -24,7 +24,7 @@ This project is considered to be in __Pre-Alpha__ state and there __will be__ br
   - [Reading](#reading)
   - [Writing](#writing)
   - [Network and WIFI](#network-and-wifi)
-- [Home Assistant Inegration](#home-assistant-integration)
+- [Home Assistant Integration](#home-assistant-integration)
 - [Attribution](#attribution)
 - [License](#license)
 
