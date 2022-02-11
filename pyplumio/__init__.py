@@ -1,27 +1,45 @@
-"""Contains econet connection shortcut."""
+"""Contains connection shortcuts and version information."""
 
-from .econet import SerialConnection, TcpConnection
+from collections.abc import Callable
+
+from .devices import DevicesCollection
+from .econet import EcoNET, SerialConnection, TcpConnection
 from .version import __version__  # noqa
 
 
-def econet_tcp_connection(host: str, port: int, **kwargs):
-    """Creates TCP connection instance.
+def tcp(
+    callback: Callable[[DevicesCollection, EcoNET], None],
+    host: str,
+    port: int,
+    interval: int = 1,
+    **kwargs,
+):
+    """Shortcut for TCP connection.
 
     Keyword arguments:
-    host -- serial device ip/hostname
-    port -- serial device port
-    **kwargs -- keyword arguments directly passed to asyncio's
-        create_connection method
+    callback -- callback method
+    host -- device host
+    port -- device port
+    interval -- callback update interval in seconds
+    **kwargs -- keyword arguments for connection driver
     """
-    return TcpConnection(host, port, **kwargs)
+    TcpConnection(host, port, **kwargs).run(callback, interval)
 
 
-def econet_serial_connection(device: str, baudrate: int = 115200, **kwargs):
-    """Creates serial connection instance.
+def serial(
+    callback: Callable[[DevicesCollection, EcoNET], None],
+    device: str,
+    baudrate: int = 115200,
+    interval: int = 1,
+    **kwargs,
+):
+    """Shortcut for serial connection.
 
     Keyword arguments:
+    callback -- callback method
     device -- serial device url, e. g. /dev/ttyUSB0
-    **kwargs -- keyword arguments directly passed to asyncio's
-        create_connection method
+    baudrate -- serial port baudrate
+    interval -- callback update interval in seconds
+    **kwargs -- keyword arguments for connection driver
     """
-    return SerialConnection(device=device, baudrate=baudrate, **kwargs)
+    SerialConnection(device, baudrate, **kwargs).run(callback, interval)

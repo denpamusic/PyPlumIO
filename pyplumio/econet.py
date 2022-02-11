@@ -35,8 +35,7 @@ class EcoNET(ABC):
         """Creates EcoNET connection instance.
 
         Keyword arguments:
-        **kwargs -- keyword arguments directly passed to asyncio's
-            create_connection method
+        **kwargs -- keyword arguments for connection driver
         """
         self.kwargs = kwargs
         self.closing = False
@@ -53,7 +52,7 @@ class EcoNET(ABC):
         """Provides exit point for context manager."""
 
     async def _callback(
-        self, callback: Callable[DevicesCollection, EcoNET], interval: int
+        self, callback: Callable[[DevicesCollection, EcoNET], None], interval: int
     ) -> None:
         """Calls provided callback method with specified interval.
 
@@ -112,7 +111,11 @@ class EcoNET(ABC):
         writer.collect(device.changes)
 
     async def _read(self, reader: FrameReader) -> bool:
-        """Handles connection reads."""
+        """Handles connection reads.
+
+        Keyword arguments:
+        reader -- instance of frame reader
+        """
         while True:
             if self.closing:
                 await self.writer.close()
@@ -165,7 +168,7 @@ class EcoNET(ABC):
                 await asyncio.sleep(RECONNECT_TIMEOUT)
 
     def run(
-        self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
+        self, callback: Callable[[DevicesCollection, EcoNET], None], interval: int = 1
     ) -> None:
         """Run connection in the event loop.
 
