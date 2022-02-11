@@ -15,6 +15,19 @@ Devices can be connected directly via RS485 to USB converter or through network 
 
 This project is considered to be in __Pre-Alpha__ state and there __will be__ breaking changes down the road and a lot of bugs, please use with care.
 
+## Table of contents
+- [Usage](#usage)
+  - [TCP](#tcp)
+  - [Serial](#serial)
+  - [Shortcuts](#serial)
+  - [Data and Parameters](#data-and-parameters)
+  - [Reading](#reading)
+  - [Writing](#writing)
+  - [Network and WIFI](#network-and-wifi)
+- [Home Assistant Inegration](#home-assistant-integration)
+- [Attribution](#attribution)
+- [License](#license)
+
 ## Usage
 To interact with devices, you must pass async callback to `EcoNET.run(callback: Callable, interval: int)` method. Callback will receive `pyplumio.DeviceCollection` instance `devices` that will contain all found supported devices and `pyplumio.EcoNET` class instance `econet` that represents current connection.
 
@@ -24,29 +37,39 @@ You can find examples for each supported connection type below.
 
 ### TCP
 ```python
-from pyplumio import econet_tcp_connection
+import pyplumio
 
 async def my_callback(devices, econet):
 	# do something
 	...
 
-with econet_tcp_connection(host="localhost", port=8899) as c:
-    c.run(my_callback, interval=1)
+connection = pyplumio.TcpConnection(host="localhost", port=8899)
+connection.run(my_callback, interval=1)
 ```
 
 ### Serial
 ```python
-from pyplumio import econet_serial_connection
+import pyplumio
 
 async def my_callback(devices, econet):
 	# do something
 	...
 
-with econet_serial_connection(device="/dev/ttyUSB0", baudrate=115200) as c:
-    c.run(my_callback, interval=1)
+connection = pyplumio.SerialConnection(device="/dev/ttyUSB0", baudrate=115200)
+connection.run(my_callback, interval=1)
 ```
 
-### Working with data
+### Shortcuts
+It's also possible to use following shortcuts to create connection instance and instantly run it.
+```python
+import pyplumio
+
+pyplumio.tcp(my_callback, host="localhost", port=8899, interval=1)
+# or
+pyplumio.serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
+```
+
+### Data and Parameters
 Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['HEATING_TEMP']`, `devices.ecomax.parameters['HEATING_SET_TEMP']` or as shortcut `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`.
 
 Each regulator supports different data attributes and parameters. You can check what your regulator supports by calling `print()` on regulator instance.
@@ -83,19 +106,19 @@ async def my_callback(devices, econet):
         print(devices.ecomax.heating_set_temp.max_)  # Prints maximum allowed target temperature.
 ```
 
-### Setting network and wifi information
+### Network and WIFI
 You can send network information to the regulator to be displayed on regulator's LCD as illustrated below.
 
 Currently it's used for informational purposes only and can be skipped altogether.
 ```python
-from pyplumio import econet_tcp_connection
+import pyplumio
 from pyplumio.constants import WLAN_ENCRYPTION_WPA2
 
 async def my_callback(devices, econet):
 	# do something
 	...
 
-with econet_tcp_connection(host="localhost", port=8899) as c:
+with pyplumio.TcpConnection(host="localhost", port=8899) as c:
     c.set_eth(ip="10.10.1.100", netmask="255.255.255.0", gateway="10.10.1.1")
     c.set_wifi(
     	ip="10.10.2.100",
