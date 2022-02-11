@@ -24,7 +24,7 @@ from .stream import FrameReader, FrameWriter
 _LOGGER = logging.getLogger(__name__)
 
 READER_TIMEOUT: Final = 5
-RECONNECT_TIMEOUT: Final = 30
+RECONNECT_TIMEOUT: Final = 20
 
 
 class EcoNET(ABC):
@@ -62,7 +62,9 @@ class EcoNET(ABC):
         interval -- update interval in seconds
         """
         while True:
-            await callback(self._devices, econet=self)
+            if not self.closed:
+                await callback(self._devices, econet=self)
+
             await asyncio.sleep(interval)
 
     async def _process(self, frame: Frame, writer: FrameWriter) -> None:
@@ -108,23 +110,17 @@ class EcoNET(ABC):
 
         writer.collect(device.changes)
 
-    async def _read(self, reader: FrameReader) -> None:
+    async def _read(self, reader: FrameReader) -> bool:
         """Handles connection reads."""
         while True:
             if self.closing:
                 await self.writer.close()
                 self.writer = None
                 self.closing = False
-                break
+                return False
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
-            except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
-                _LOGGER.error(
-                    "Connection to device failed, retrying in %i seconds...",
-                    RECONNECT_TIMEOUT,
-                )
-                reader, self.writer = await self.reconnect()
             except ChecksumError:
                 _LOGGER.warning("Incorrect frame checksum.")
             except LengthError:
@@ -135,15 +131,7 @@ class EcoNET(ABC):
                 asyncio.create_task(self._process(frame, self.writer))
                 await self.writer.process_queue()
 
-    async def reconnect(self) -> (FrameReader, FrameWriter):
-        """Initializes reconnect after RECONNECT_TIMEOUT seconds."""
-        if self.connected():
-            await self.writer.close()
-
-        await asyncio.sleep(RECONNECT_TIMEOUT)
-        reader, writer = await self.connect()
-        await writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
-        return reader, writer
+        return True
 
     async def task(
         self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
@@ -154,9 +142,25 @@ class EcoNET(ABC):
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        reader, self.writer = await self.connect()
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
-        await self._read(reader)
+        while True:
+            try:
+                reader, self.writer = await self.connect()
+                await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
+                if not await self._read(reader):
+                    break
+            except (
+                asyncio.TimeoutError,
+                ConnectionRefusedError,
+                ConnectionResetError,
+                OSError,
+            ):
+                _LOGGER.error(
+                    "Connection to device failed, retrying in %i seconds...",
+                    RECONNECT_TIMEOUT,
+                )
+                self.writer = None
+                await asyncio.sleep(RECONNECT_TIMEOUT)
 
     def run(
         self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
@@ -222,16 +226,18 @@ class EcoNET(ABC):
         wlan["status"] = True
         self._net["wlan"] = wlan
 
-    def connected(self) -> bool:
-        """Returns connection state."""
-        return self.writer is not None
-
     def close(self) -> None:
         """Closes opened connection."""
         if not self.closing:
             self.closing = True
+
             if self._callback_task is not None:
                 self._callback_task.cancel()
+
+    @property
+    def closed(self) -> bool:
+        """Returns connection state."""
+        return self.writer is None
 
     @abstractmethod
     async def connect(self) -> (FrameReader, FrameWriter):
@@ -248,7 +254,7 @@ class TcpConnection(EcoNET):
         self.port = port
 
     def __repr__(self):
-        """Creates string respresentation of class."""
+        """Creates string representation of class."""
         return f"""{self.__class__.__name__}(
     host = {self.host},
     port = {self.port},
@@ -274,7 +280,7 @@ class SerialConnection(EcoNET):
         self.baudrate = baudrate
 
     def __repr__(self):
-        """Creates string respresentation of class."""
+        """Creates string representation of class."""
         return f"""{self.__class__.__name__}(
     device = {self.device},
     baudrate = {self.baudrate},
