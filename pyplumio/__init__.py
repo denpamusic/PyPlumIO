@@ -1,5 +1,7 @@
 """Contains connection shortcuts and version information."""
 
+from __future__ import annotations
+
 from collections.abc import Callable
 
 from .devices import DevicesCollection
