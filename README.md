@@ -24,12 +24,12 @@ This project is considered to be in __Pre-Alpha__ state and there __will be__ br
   - [Reading](#reading)
   - [Writing](#writing)
   - [Network and WIFI](#network-and-wifi)
+- [Home Assistant Integration](#home-assistant-integration)
 - [Protocol](#protocol)
   - [Frame Structure](#frame-structure)
   - [Requests and Responses](#requests-and-responses)
   - [Communication](#communication)
   - [Versioning](#versioning)
-- [Home Assistant Integration](#home-assistant-integration)
 - [Attribution](#attribution)
 - [License](#license)
 
@@ -41,6 +41,8 @@ Second optional parameter for `EcoNET.run(callback: Callable, interval: int)` me
 You can find examples for each supported connection type below.
 
 ### TCP
+This is intended to be used with serial to network converters like ser2net server or dedicated devices such as Elfin EW11 mentioned in the [Overview](#overview).
+
 ```python
 import pyplumio
 
@@ -53,6 +55,8 @@ connection.run(my_callback, interval=1)
 ```
 
 ### Serial
+This is intended to be used with RS485 to USB adapters, that are connected directly to the device running PyPlumIO.
+
 ```python
 import pyplumio
 
@@ -69,13 +73,17 @@ It's also possible to use following shortcuts to create connection instance and 
 ```python
 import pyplumio
 
+async def my_callback(devices, econet):
+	# do something
+	...
+
 pyplumio.tcp(my_callback, host="localhost", port=8899, interval=1)
 # or
 pyplumio.serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
 ```
 
 ### Data and Parameters
-Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['HEATING_TEMP']`, `devices.ecomax.parameters['HEATING_SET_TEMP']` or as shortcut `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`.
+Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['heating_temp']`, `devices.ecomax.parameters['heating_set_temp']` or as shortcut `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`.
 
 Each regulator supports different data attributes and parameters. You can check what your regulator supports by calling `print()` on regulator instance.
 ```python
@@ -88,7 +96,7 @@ async def my_callback(devices, econet):
 Interaction with device is mainly done through device class instances inside your callback.
 For example you can read current feedwater temperature by reading `heating_temp` attribute.
 
-This example, once passed to `EcoNET.run(callback: Callable, interval: int)` as demonstrated above, will print current feedwater temperature every second.
+Passing my_callback to `EcoNET.run(callback: Callable, interval: int)` as demonstrated above, will print current feedwater temperature every second.
 ```python
 async def my_callback(devices, econet):
     if devices.ecomax:
@@ -115,9 +123,9 @@ async def my_callback(devices, econet):
 ```
 
 ### Network and WIFI
-You can send network information to the regulator to be displayed on regulator's LCD as illustrated below.
+You can send network information to the regulator to be displayed on ecoMAX'es LCD.
 
-Currently it's used for informational purposes only and can be skipped altogether.
+Currently it's used for informational purposes only and can be safely ignored.
 ```python
 import pyplumio
 from pyplumio.constants import WLAN_ENCRYPTION_WPA2
@@ -138,6 +146,10 @@ with pyplumio.TcpConnection(host="localhost", port=8899) as c:
     )
     c.run(my_callback)
 ```
+
+## Home Assistant Integration
+There is companion Home Assistant integration that is being co-developed with this package and depends on it.
+You can find it [here](https://github.com/denpamusic/hassio-plum-ecomax).
 
 ## Protocol
 ecoNET communication is based on RS485 standard. Each frame consists of header, message type, message data (optional), CRC and end delimiter.
@@ -161,22 +173,22 @@ Protocol supports unicast and broadcast frames. Broadcast frames always have rec
 ### Requests and Responses
 Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/requests.py) and [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/responses.py) for a list of supported frames.
 
-For example we can request list of editable parameters from ecoMAX controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
+For example we can request list of editable parameters from ecoMAX by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
 
 ### Communication
-ecoMAX controller constantly sends following requests `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` to each known device addresses and broadcasts `RegData[type=0x08]` message, that contains basic regulator data.
+ecoMAX constantly sends `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` requests to every known device addresses and broadcasts `RegData[type=0x08]` message, that contains basic regulator data.
 
-Initial exchange between ecoMAX controller and PyPlumIO can be illustrated with following diagram:
+Initial exchange between ecoMAX and PyPlumIO can be illustrated with following diagram:
 
 ```
 NOTE: device address is listed in square brackets.
 
-ecoMAX[0x45] -> Broadcast[0x00]: RegData[type=0x08] Contains basic regulator data.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDevice[type=0x30] Check device request.
-ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailable[type=0xB0] Contains network information.
+ecoMAX[0x45] -> Broadcast[0x00]: RegData[type=0x08] Contains basic ecoMAX data.
 ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersion[type=0x40] Program version request.
 ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersion[type=0xC0] Contains program version.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  CurrentData[type=0x35] Contains current regulator data.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDevice[type=0x30] Check device request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailable[type=0xB0] Contains network information.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CurrentData[type=0x35] Contains current ecoMAX data.
 ```
 
 PyPlumIO will then request all frames listed in frame version information from `RegData` and `CurrentData` responses. This includes at least `UID[type=0x39]`, `Parameters[type=0x31]` and `MixerParameters[type=0x32]` requests.
@@ -188,37 +200,34 @@ Both broadcast `RegData[type=0x08]` and unicast `CurrentData[type=0x35]` frames 
 This information can be represented with following dictionary:
 ```python
 {
-	0x31: 37,
-    0x32: 37,
-    0x36: 1,
-    0x38: 5,
-    0x39: 1,
-    0x3D: 40767,
-    0x50: 1,
-    0x51: 1,
-    0x52: 1,
-    0x53: 1,
+  0x31: 37,
+  0x32: 37,
+  0x36: 1,
+  0x38: 5,
+  0x39: 1,
+  0x3D: 40767,
+  0x50: 1,
+  0x51: 1,
+  0x52: 1,
+  0x53: 1,
 }
 ```
-In this dictionary keys are frame types and values are version numbers. In example above, frame `Parameters[type=0x31]` has version `37`, if we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
+In this dictionary keys are frame types and values are version numbers. In example above, frame `Parameters[type=0x31]` has version 37.
+If we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
 ```python
 {
-	0x31: 38,
-    0x32: 37,
-    0x36: 1,
-    0x38: 5,
-    0x39: 1,
-    0x3D: 40767,
-    0x50: 1,
-    0x51: 1,
-    0x52: 1,
-    0x53: 1,
+  0x31: 38,  # note version number change
+  0x32: 37,
+  0x36: 1,
+  0x38: 5,
+  0x39: 1,
+  0x3D: 40767,
+  0x50: 1,
+  0x51: 1,
+  0x52: 1,
+  0x53: 1,
 }
 ```
-
-## Home Assistant Integration
-There is companion Home Assistant integration that is being co-developed with this package and depends on it.
-You can find it [here](https://github.com/denpamusic/hassio-plum-ecomax).
 
 ## Attribution
 Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
