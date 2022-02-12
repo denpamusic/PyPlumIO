@@ -8,7 +8,6 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Callable
 import logging
-import os
 import sys
 from typing import Any, Awaitable, Dict, Final, Optional, Tuple
 
@@ -183,7 +182,9 @@ class EcoNET(ABC):
         callback -- user-defined callback method
         interval -- user-defined update interval in seconds
         """
-        if os.name == "nt":
+        if sys.platform == "win32" and hasattr(
+            asyncio, "WindowsSelectorEventLoopPolicy"
+        ):
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
         try:
