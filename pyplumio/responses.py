@@ -15,7 +15,7 @@ from pyplumio.constants import (
     DATA_TYPES,
     DEFAULT_IP,
     DEFAULT_NETMASK,
-    REGDATA_ELEMENTS,
+    REGDATA_SCHEMA,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
@@ -345,7 +345,7 @@ class DataStructure(Response):
             for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                param_name = REGDATA_ELEMENTS.get(param_id, param_id)
+                param_name = REGDATA_SCHEMA.get(param_id, param_id)
                 self._data.append([param_name, DATA_TYPES[param_type]()])
                 offset += 3
 
