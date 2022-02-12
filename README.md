@@ -144,7 +144,7 @@ ecoNET communication is based on RS485 standard. Each frame consists of header, 
 
 Protocol supports unicast and broadcast frames. Broadcast frames always have recipient address set to `0x00`, unicast messages have specific device address. ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
 
-### Frame Structrure
+### Frame Structure
 - Header (header size - 7 bytes):
   - [Byte] Frame start mark `0x68`.
   - [Unsigned Short] Byte size of the frame including CRC and frame end mark.
