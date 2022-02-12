@@ -24,6 +24,11 @@ This project is considered to be in __Pre-Alpha__ state and there __will be__ br
   - [Reading](#reading)
   - [Writing](#writing)
   - [Network and WIFI](#network-and-wifi)
+- [Protocol](#protocol)
+  - [Frame Structure](#frame-structure)
+  - [Requests and Responses](#requests-and-responses)
+  - [Communication](#communication)
+  - [Versioning](#versioning)
 - [Home Assistant Integration](#home-assistant-integration)
 - [Attribution](#attribution)
 - [License](#license)
@@ -132,6 +137,83 @@ with pyplumio.TcpConnection(host="localhost", port=8899) as c:
         quality=100
     )
     c.run(my_callback)
+```
+
+## Protocol
+ecoNET communication is based on RS485 standard. Each frame consists of header, message type, message data (optional), CRC and end delimiter.
+
+Protocol supports unicast and broadcast frames. Broadcast frames always have recipient address set to `0x00`, unicast messages have specific device address. ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
+
+### Frame Structrure
+- Header (header size - 7 bytes):
+  - [Byte] Frame start mark `0x68`.
+  - [Unsigned Short] Byte size of the frame including CRC and frame end mark.
+  - [Byte] Recipient address.
+  - [Byte] Sender address.
+  - [Byte] Sender type. PyPlumIO uses EcoNET type `0x30`.
+  - [Byte] ecoNET version. PyPlumIO uses version `0x05`.
+- Body:
+  - [Byte] Message type.
+  - [Byte*] Message data (optional).
+  - [Byte] Frame CRC.
+  - [Byte] Frame end mark `0x16`.
+
+### Requests and Responses
+Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/requests.py) and [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/responses.py) for a list of supported frames.
+
+For example we can request list of editable parameters from ecoMAX controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
+
+### Communication
+ecoMAX controller constantly sends following requests `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` to each known device addresses and broadcasts `RegData[type=0x08]` message, that contains basic regulator data.
+
+Initial exchange between ecoMAX controller and PyPlumIO can be illustrated with following diagram:
+
+```
+NOTE: device address is listed in square brackets.
+
+ecoMAX[0x45] -> Broadcast[0x00]: RegData[type=0x08] Contains basic regulator data.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDevice[type=0x30] Check device request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailable[type=0xB0] Contains network information.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersion[type=0x40] Program version request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersion[type=0xC0] Contains program version.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CurrentData[type=0x35] Contains current regulator data.
+```
+
+PyPlumIO will then request all frames listed in frame version information from `RegData` and `CurrentData` responses. This includes at least `UID[type=0x39]`, `Parameters[type=0x31]` and `MixerParameters[type=0x32]` requests.
+
+### Versioning
+Protocol has built-in way to track frame versions. This is used to synchronize changes between devices.
+Both broadcast `RegData[type=0x08]` and unicast `CurrentData[type=0x35]` frames send by ecoMAX controller contain versioning information.
+
+This information can be represented with following dictionary:
+```python
+{
+	0x31: 37,
+    0x32: 37,
+    0x36: 1,
+    0x38: 5,
+    0x39: 1,
+    0x3D: 40767,
+    0x50: 1,
+    0x51: 1,
+    0x52: 1,
+    0x53: 1,
+}
+```
+In this dictionary keys are frame types and values are version numbers. In example above, frame `Parameters[type=0x31]` has version `37`, if we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
+```python
+{
+	0x31: 38,
+    0x32: 37,
+    0x36: 1,
+    0x38: 5,
+    0x39: 1,
+    0x3D: 40767,
+    0x50: 1,
+    0x51: 1,
+    0x52: 1,
+    0x53: 1,
+}
 ```
 
 ## Home Assistant Integration
