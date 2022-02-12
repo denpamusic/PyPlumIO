@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Tuple
 
 from pyplumio import util
 from pyplumio.exceptions import UninitializedParameterError
@@ -15,7 +16,9 @@ class BaseDevice(ABC):
 
     address: int = BROADCAST_ADDRESS
 
-    def __init__(self, data: dict = None, parameters: dict = None):
+    def __init__(
+        self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
+    ):
         """Creates device instance.
 
         Keyword arguments:
@@ -31,7 +34,7 @@ class BaseDevice(ABC):
         if parameters is not None:
             self.set_parameters(parameters)
 
-        self._queue = []
+        self._queue: List[Request] = []
 
     def __getattr__(self, name: str):
         """Gets data or parameter as class attribute.
@@ -90,24 +93,24 @@ Parameters:
 """.strip()
 
     @property
-    def queue(self) -> list[Request]:
+    def queue(self) -> List[Request]:
         """Clears and returns changed parameters queue."""
         queue = self._queue
         self._queue = []
         return queue
 
     @property
-    def data(self) -> dict:
+    def data(self) -> Dict[str, Any]:
         """Returns device data."""
         return self._data
 
     @property
-    def parameters(self) -> dict[Parameter]:
+    def parameters(self) -> Dict[str, Parameter]:
         """Returns device parameters."""
         return self._parameters
 
     @abstractmethod
-    def set_data(self, data: dict) -> None:
+    def set_data(self, data: Dict[str, Any]) -> None:
         """Sets device data.
 
         Keyword arguments:
@@ -115,7 +118,7 @@ Parameters:
         """
 
     @abstractmethod
-    def set_parameters(self, parameters: dict) -> None:
+    def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
 
         Keyword arguments:
@@ -124,5 +127,5 @@ Parameters:
 
     @property
     @abstractmethod
-    def editable_parameters(self) -> list:
-        """Returns list of editable parameters."""
+    def editable_parameters(self) -> Tuple[str, ...]:
+        """Returns tuple of editable parameters."""

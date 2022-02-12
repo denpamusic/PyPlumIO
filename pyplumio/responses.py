@@ -1,6 +1,7 @@
 """Contains response frame classes."""
 
 import struct
+from typing import Any, Dict
 
 from pyplumio import util
 from pyplumio.constants import (
@@ -45,7 +46,7 @@ class ProgramVersion(Response):
 
     type_: int = 0xC0
 
-    _defaults: dict = {
+    _defaults: Dict[str, Any] = {
         "version": __version__,
         "struct_tag": b"\xFF\xFF",
         "struct_version": 5,
@@ -97,7 +98,7 @@ class DeviceAvailable(Response):
 
     type_: int = 0xB0
 
-    _defaults: dict = {
+    _defaults: Dict[str, Dict[str, Any]] = {
         "eth": {
             "ip": DEFAULT_IP,
             "netmask": DEFAULT_NETMASK,

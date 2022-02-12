@@ -1,6 +1,6 @@
 """Contains UID structure parser."""
 
-from typing import Final
+from typing import Final, List, Tuple
 
 from pyplumio import util
 
@@ -9,7 +9,7 @@ UID_BASE_BITS: Final = 5
 UID_CHAR_BITS: Final = 8
 
 
-def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
+def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
     """Parses frame message into usable data.
 
     Keyword arguments:
@@ -22,7 +22,7 @@ def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
     offset += uid_length
     input_ = uid + util.uid_stamp(uid)
     input_length = len(input_) * UID_CHAR_BITS
-    output = []
+    output: List[str] = []
     output_length = input_length // UID_BASE_BITS
     if input_length % UID_BASE_BITS:
         output_length += 1

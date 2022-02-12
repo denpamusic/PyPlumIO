@@ -1,9 +1,13 @@
 """Contains alarms structure parser."""
 
+from typing import Any, Dict, Tuple
+
 from pyplumio.constants import DATA_ALARMS
 
 
-def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
+def from_bytes(
+    message: bytearray, offset: int = 0, data: Dict[str, Any] = None
+) -> Tuple[Dict, int]:
     """Parses frame message into usable data.
 
     Keyword arguments:

@@ -15,7 +15,7 @@ def test_responses_type():
         responses.DataStructure,
     ]:
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-        assert frame.is_type(response)
+        assert isinstance(frame, response)
 
 
 def test_program_version_create_message():

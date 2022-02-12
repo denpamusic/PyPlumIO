@@ -1,7 +1,7 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from .constants import (
     DATA_FRAMES,
@@ -11,6 +11,7 @@ from .constants import (
     MODES,
     MODULE_A,
 )
+from .frame import Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .mixers import MixersCollection
@@ -23,7 +24,9 @@ ECOSTER_ADDRESS: Final = 0x51
 class Device(BaseDevice):
     """Device representation."""
 
-    def __init__(self, data: dict = None, parameters: dict = None):
+    def __init__(
+        self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
+    ):
         """Creates device instance.
 
         Keyword arguments:
@@ -39,7 +42,7 @@ class Device(BaseDevice):
         self.__dict__["_is_on"] = False
         super().__init__(data, parameters)
 
-    def set_data(self, data: dict) -> None:
+    def set_data(self, data: Dict[str, Any]) -> None:
         """Sets device data.
 
         Keyword arguments:
@@ -50,7 +53,7 @@ class Device(BaseDevice):
             if name in DEVICE_DATA:
                 self._data[name] = value
 
-    def set_parameters(self, parameters: dict) -> None:
+    def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
 
         Keyword arguments:
@@ -69,7 +72,7 @@ class Device(BaseDevice):
         return bool(self.mixers.mixers)
 
     @property
-    def software(self) -> str | None:
+    def software(self) -> Optional[str]:
         """Returns software version."""
         if MODULE_A in self._data:
             return self._data[MODULE_A]
@@ -97,7 +100,7 @@ class Device(BaseDevice):
         return "Unknown"
 
     @property
-    def changes(self) -> list[Parameter]:
+    def changes(self) -> List[Request]:
         """Returns changed device parameters."""
         changes = self.queue
         changes.extend(self.bucket.queue)
@@ -105,7 +108,7 @@ class Device(BaseDevice):
         return changes
 
     @property
-    def editable_parameters(self) -> list:
+    def editable_parameters(self) -> Tuple[str, ...]:
         """Returns list of editable parameters."""
         return DEVICE_PARAMS
 
@@ -146,7 +149,7 @@ class DevicesCollection:
         self._instances = {}
         self._names = {}
 
-    def __getattr__(self, name: str) -> Device | None:
+    def __getattr__(self, name: str) -> Optional[Device]:
         """Gets device by name.""
 
         Keyword arguments:
@@ -170,7 +173,7 @@ class DevicesCollection:
         """
         return (needle in self._addresses) or (needle in self._names)
 
-    def get(self, address: int) -> Device | None:
+    def get(self, address: int) -> Optional[Device]:
         """Gets device by address.
 
         Keyword arguments:

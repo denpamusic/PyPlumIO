@@ -10,7 +10,7 @@ from collections.abc import Callable
 import logging
 import os
 import sys
-from typing import Final
+from typing import Any, Awaitable, Dict, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
@@ -52,7 +52,9 @@ class EcoNET(ABC):
         """Provides exit point for context manager."""
 
     async def _callback(
-        self, callback: Callable[[DevicesCollection, EcoNET], None], interval: int
+        self,
+        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        interval: int,
     ) -> None:
         """Calls provided callback method with specified interval.
 
@@ -63,11 +65,11 @@ class EcoNET(ABC):
         """
         while True:
             if not self.closed:
-                await callback(self._devices, econet=self)
+                await callback(self._devices, self)
 
             await asyncio.sleep(interval)
 
-    async def _process(self, frame: Frame, writer: FrameWriter) -> None:
+    async def _process(self, frame: Optional[Frame], writer: FrameWriter) -> None:
         """Processes received frame.
 
         Keyword arguments:
@@ -79,33 +81,33 @@ class EcoNET(ABC):
             return None
 
         device = self._devices.get(frame.sender)
-        if frame.is_type(requests.ProgramVersion):
+        if isinstance(frame, requests.ProgramVersion):
             writer.queue(frame.response())
 
-        elif frame.is_type(responses.UID):
+        elif isinstance(frame, responses.UID):
             device.uid = frame.data["UID"]
             device.product = frame.data["reg_name"]
             writer.queue(requests.Password(recipient=frame.sender))
 
-        elif frame.is_type(responses.Password):
+        elif isinstance(frame, responses.Password):
             device.password = frame.data
 
-        elif frame.is_type(responses.RegData, responses.CurrentData):
+        elif isinstance(frame, (responses.RegData, responses.CurrentData)):
             frame.struct = device.struct
             device.set_data(frame.data)
             if DATA_MIXERS in frame.data:
                 device.mixers.set_data(frame.data[DATA_MIXERS])
 
-        elif frame.is_type(responses.Parameters):
+        elif isinstance(frame, responses.Parameters):
             device.set_parameters(frame.data)
 
-        elif frame.is_type(responses.MixerParameters):
+        elif isinstance(frame, responses.MixerParameters):
             device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
-        elif frame.is_type(responses.DataStructure):
+        elif isinstance(frame, responses.DataStructure):
             device.struct = frame.data
 
-        elif frame.is_type(requests.CheckDevice):
+        elif isinstance(frame, requests.CheckDevice):
             writer.queue(frame.response(data=self._net))
 
         writer.collect(device.changes)
@@ -130,7 +132,8 @@ class EcoNET(ABC):
             except LengthError:
                 _LOGGER.warning("Incorrect frame length.")
             except FrameTypeError:
-                _LOGGER.info("Unknown frame type %s.", hex(frame.type_))
+                type_ = "[Unknown]" if frame is None else hex(frame.type_)
+                _LOGGER.info("Unknown frame type %s.", type_)
             else:
                 asyncio.create_task(self._process(frame, self.writer))
                 await self.writer.process_queue()
@@ -138,7 +141,9 @@ class EcoNET(ABC):
         return True
 
     async def task(
-        self, callback: Callable[DevicesCollection, EcoNET], interval: int = 1
+        self,
+        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        interval: int = 1,
     ) -> None:
         """Establishes connection and continuously reads new frames.
 
@@ -168,7 +173,9 @@ class EcoNET(ABC):
                 await asyncio.sleep(RECONNECT_TIMEOUT)
 
     def run(
-        self, callback: Callable[[DevicesCollection, EcoNET], None], interval: int = 1
+        self,
+        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        interval: int = 1,
     ) -> None:
         """Run connection in the event loop.
 
@@ -195,7 +202,7 @@ class EcoNET(ABC):
         netmask -- netmask of eth device
         gateway -- gateway address of eth device
         """
-        eth = {}
+        eth: Dict[str, Any] = {}
         eth["ip"] = ip
         eth["netmask"] = netmask
         eth["gateway"] = gateway
@@ -221,7 +228,7 @@ class EcoNET(ABC):
         netmask -- netmask of wlan device
         gateway -- gateway address of wlan device
         """
-        wlan = {}
+        wlan: Dict[str, Any] = {}
         wlan["ssid"] = ssid
         wlan["encryption"] = encryption
         wlan["quality"] = quality
@@ -244,7 +251,7 @@ class EcoNET(ABC):
         return self.writer is None
 
     @abstractmethod
-    async def connect(self) -> (FrameReader, FrameWriter):
+    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
         """Initializes connection and returns frame reader and writer."""
 
 
@@ -266,12 +273,12 @@ class TcpConnection(EcoNET):
 )
 """
 
-    async def connect(self) -> (FrameReader, FrameWriter):
+    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
         """Initializes connection and returns frame reader and writer."""
         reader, writer = await asyncio.open_connection(
             host=self.host, port=self.port, **self.kwargs
         )
-        return [FrameReader(reader), FrameWriter(writer)]
+        return FrameReader(reader), FrameWriter(writer)
 
 
 class SerialConnection(EcoNET):
@@ -292,7 +299,7 @@ class SerialConnection(EcoNET):
 )
 """
 
-    async def connect(self) -> (FrameReader, FrameWriter):
+    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
         """Initializes connection and returns frame reader and writer."""
         reader, writer = await serial_asyncio.open_serial_connection(
             url=self.device,
@@ -302,4 +309,4 @@ class SerialConnection(EcoNET):
             stopbits=serial_asyncio.serial.STOPBITS_ONE,
             **self.kwargs,
         )
-        return [FrameReader(reader), FrameWriter(writer)]
+        return FrameReader(reader), FrameWriter(writer)

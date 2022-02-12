@@ -1,9 +1,11 @@
 """Contains classes for mixer support."""
 from __future__ import annotations
 
+from typing import Any, Dict, List, Optional, Tuple
+
 from . import util
 from .constants import MIXER_DATA, MIXER_PARAMS
-from .frame import BROADCAST_ADDRESS
+from .frame import BROADCAST_ADDRESS, Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 
@@ -11,7 +13,12 @@ from .helpers.parameter import Parameter
 class Mixer(BaseDevice):
     """Mixer device representation."""
 
-    def __init__(self, data: dict = None, parameters: dict = None, index: int = 0):
+    def __init__(
+        self,
+        data: Dict[str, Any] = None,
+        parameters: Dict[str, List[int]] = None,
+        index: int = 0,
+    ):
         """Creates device instance.
 
         Keyword arguments:
@@ -42,7 +49,7 @@ Parameters:
 {util.make_list(self._parameters, include_keys = False)}
 """.strip()
 
-    def set_data(self, data: dict) -> None:
+    def set_data(self, data: Dict[str, Any]) -> None:
         """Sets mixer data.
 
         Keyword arguments:
@@ -52,7 +59,7 @@ Parameters:
             if name in MIXER_DATA:
                 self._data[name] = value
 
-    def set_parameters(self, parameters: dict) -> None:
+    def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets mixer parameters.
 
         Keyword arguments:
@@ -60,10 +67,11 @@ Parameters:
         """
         for name, parameter in parameters.items():
             if name in MIXER_PARAMS:
-                self._parameters[name] = Parameter(name, *parameter, self._index)
+                value, min_, max_ = parameter
+                self._parameters[name] = Parameter(name, value, min_, max_, self._index)
 
     @property
-    def editable_parameters(self) -> list:
+    def editable_parameters(self) -> Tuple[str, ...]:
         """Returns list of editable parameters."""
         return MIXER_PARAMS
 
@@ -71,7 +79,7 @@ Parameters:
 class MixersCollection:
     """Collection of mixer devices."""
 
-    def __init__(self, address: int = BROADCAST_ADDRESS, mixers: list = None):
+    def __init__(self, address: int = BROADCAST_ADDRESS, mixers: List[Mixer] = None):
         """Creates mixer collection instance.
 
         Keyword arguments:
@@ -80,11 +88,7 @@ class MixersCollection:
         parameters -- editable parameters
         """
         self._address = address
-
-        if mixers is None:
-            self._mixers = []
-        else:
-            self._mixers = mixers
+        self._mixers = mixers if mixers is not None else []
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
@@ -108,7 +112,7 @@ class MixersCollection:
         """Returns number of mixers in collection."""
         return len(self._mixers)
 
-    def __call__(self, index: int) -> Mixer | None:
+    def __call__(self, index: int) -> Optional[Mixer]:
         """Returns mixer instance by index.
 
         Keyword arguments:
@@ -131,7 +135,7 @@ class MixersCollection:
             except IndexError:
                 self._mixers.append(Mixer(data=data, index=index))
 
-    def set_parameters(self, mixers: list):
+    def set_parameters(self, mixers: List[Dict[str, List[int]]]):
         """Creates mixer instance if not exists and
         sets mixers parameters.
 
@@ -145,12 +149,12 @@ class MixersCollection:
                 self._mixers.append(Mixer(parameters=parameters, index=index))
 
     @property
-    def mixers(self):
+    def mixers(self) -> List[Mixer]:
         """Returns list of mixers."""
         return self._mixers
 
     @property
-    def queue(self):
+    def queue(self) -> List[Request]:
         """Clears and returns changed parameters queue
         for every mixer.
         """

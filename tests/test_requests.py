@@ -19,18 +19,18 @@ def test_request_type():
         requests.StopMaster,
     ]:
         frame = request(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-        assert frame.is_type(request)
+        assert isinstance(frame, request)
 
 
 def test_program_version_response_recipient_and_type():
     frame = requests.ProgramVersion(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    assert frame.response().is_type(responses.ProgramVersion)
+    assert isinstance(frame.response(), responses.ProgramVersion)
     assert frame.response().recipient == ECONET_ADDRESS
 
 
 def test_check_device_response_recipient_and_type():
     frame = requests.CheckDevice(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    assert frame.response().is_type(responses.DeviceAvailable)
+    assert isinstance(frame.response(), responses.DeviceAvailable)
     assert frame.response().recipient == ECONET_ADDRESS
 
 

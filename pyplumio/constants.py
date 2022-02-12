@@ -1,6 +1,6 @@
 """Contains constants."""
 
-from typing import Final
+from typing import Final, List
 
 from . import data_types
 
@@ -137,7 +137,7 @@ STATUSES: Final = (
     DATA_WATER_HEATER_STATUS,
 )
 
-DEVICE_DATA: list = [
+DEVICE_DATA: List[str] = [
     DATA_ALARMS,
     DATA_FAN_POWER,
     DATA_FRAMES,

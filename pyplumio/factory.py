@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from typing import Dict, Type
 
 from . import requests, responses
 from .exceptions import FrameTypeError
@@ -15,7 +16,7 @@ class FrameFactory(Singleton):
 
     def __init__(self) -> None:
         """Calls method to make type list."""
-        self._types = {}
+        self._types: Dict[int, Type[Frame]] = {}
 
     def get_frame(self, type_: int, **kwargs) -> Frame:
         """Gets frame by frame type.
@@ -30,7 +31,7 @@ class FrameFactory(Singleton):
         raise FrameTypeError()
 
     @property
-    def types(self) -> dict:
+    def types(self) -> Dict[int, Type[Frame]]:
         """Constructs and return a list of available frame
         types and handlers.
         """

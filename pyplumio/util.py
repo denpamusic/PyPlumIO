@@ -3,6 +3,7 @@
 import functools
 import socket
 import struct
+from typing import Any, Dict, List, Optional, Tuple
 
 DEGREE_SIGN = "\N{DEGREE SIGN}"
 unpack_float = struct.Struct("<f").unpack
@@ -17,7 +18,7 @@ pack_header = struct.Struct("<BH4B").pack_into
 unpack_header = struct.Struct("<BH4B").unpack_from
 
 
-def crc(data: bytearray) -> int:
+def crc(data: bytes) -> int:
     """Calculates frame checksum.
 
     Keyword arguments:
@@ -26,8 +27,8 @@ def crc(data: bytearray) -> int:
     return functools.reduce(lambda x, y: x ^ y, data)
 
 
-def to_hex(data: bytearray) -> str:
-    """Converts bytearray to list of hex strings.
+def to_hex(data: bytes) -> List[str]:
+    """Converts bytes to list of hex strings.
 
     Keyword arguments:
     data -- data for conversion
@@ -35,7 +36,7 @@ def to_hex(data: bytearray) -> str:
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 
 
-def unpack_ushort(data: bytearray) -> int:
+def unpack_ushort(data: bytes) -> int:
     """Unpacks unsigned short number from bytes.
 
     Keyword arguments:
@@ -44,7 +45,9 @@ def unpack_ushort(data: bytearray) -> int:
     return int.from_bytes(data, byteorder="little", signed=False)
 
 
-def unpack_parameter(data: bytearray, offset: int, size: int = 1) -> (int, int, int):
+def unpack_parameter(
+    data: bytearray, offset: int, size: int = 1
+) -> Optional[Tuple[int, int, int]]:
     """Unpacks parameter.
 
     Keyword arguments:
@@ -63,7 +66,7 @@ def unpack_parameter(data: bytearray, offset: int, size: int = 1) -> (int, int, 
     return value, min_, max_
 
 
-def ip4_to_bytes(address: str) -> bytearray:
+def ip4_to_bytes(address: str) -> bytes:
     """Converts ip4 address to bytes.
 
     Keyword arguments:
@@ -72,7 +75,7 @@ def ip4_to_bytes(address: str) -> bytearray:
     return socket.inet_aton(address)
 
 
-def ip4_from_bytes(data: bytearray) -> str:
+def ip4_from_bytes(data: bytes) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
@@ -81,7 +84,7 @@ def ip4_from_bytes(data: bytearray) -> str:
     return socket.inet_ntoa(data)
 
 
-def ip6_to_bytes(address: str) -> bytearray:
+def ip6_to_bytes(address: str) -> bytes:
     """Converts ip6 address to bytes.
 
     Keyword arguments:
@@ -90,7 +93,7 @@ def ip6_to_bytes(address: str) -> bytearray:
     return socket.inet_pton(socket.AF_INET6, address)
 
 
-def ip6_from_bytes(data: bytearray) -> str:
+def ip6_from_bytes(data: bytes) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
@@ -99,7 +102,7 @@ def ip6_from_bytes(data: bytearray) -> str:
     return socket.inet_ntop(socket.AF_INET6, data)
 
 
-def merge(defaults: dict, options: dict) -> dict:
+def merge(defaults: Dict[str, Any], options: Dict[str, Any]) -> Dict[str, Any]:
     """Merges two dictionary with options overriding defaults.
 
     Keyword arguments:
@@ -163,7 +166,7 @@ def uid_5bits_to_char(number: int) -> str:
     return "Z" if char == "O" else char
 
 
-def make_list(data: dict, include_keys: bool = True):
+def make_list(data: Dict[Any, Any], include_keys: bool = True) -> str:
     """Converts dictionary to string.
 
     Keyword arguments:

@@ -58,7 +58,7 @@ class Parameter:
         """
         return int(self.value)
 
-    def __eq__(self, other) -> int:
+    def __eq__(self, other) -> bool:
         """Compares if parameter value is equal to other.
 
         Keyword arguments:

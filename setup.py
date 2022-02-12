@@ -1,9 +1,11 @@
+from typing import Dict
+
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-pkg_vars = {}
+pkg_vars: Dict[str, str] = {}
 exec(open("pyplumio/version.py").read(), pkg_vars)
 
 setuptools.setup(

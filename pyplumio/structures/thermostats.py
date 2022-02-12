@@ -1,5 +1,7 @@
 """Contains thermostats structure parser."""
 
+from typing import Any, Dict, Tuple
+
 from pyplumio import util
 from pyplumio.constants import (
     DATA_THERMOSTATS,
@@ -11,7 +13,9 @@ from pyplumio.constants import (
 )
 
 
-def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (list, int):
+def from_bytes(
+    message: bytearray, offset: int = 0, data: Dict[str, Any] = None
+) -> Tuple[Dict[str, Any], int]:
     """Parses frame message into usable data.
 
     Keyword arguments:

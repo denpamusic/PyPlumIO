@@ -1,7 +1,9 @@
 """Contains variable string structure parser."""
 
+from typing import Tuple
 
-def from_bytes(message: bytearray, offset: int = 0) -> (str, int):
+
+def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
     """Parses frame message into usable data.
 
     Keyword arguments:

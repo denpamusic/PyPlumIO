@@ -205,7 +205,7 @@ class Boolean(Type):
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
-    def unpack(self, data) -> Type:
+    def unpack(self, data) -> None:
         """Unpacks data to with given type.
 
         Keyword arguments:

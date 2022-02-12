@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Dict, List
+
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
 from .frame import Request
@@ -10,14 +12,14 @@ from .frame import Request
 class FrameBucket:
     """Keeps track of frame versions and stores versioning data."""
 
-    def __init__(self, versions: dict = None):
+    def __init__(self, versions: Dict[int, int] = None):
         """Created FrameBucket instance.
 
         Keyword arguments:
         versions -- dictionary containing frame versions
         """
         self.versions = {}
-        self._queue = []
+        self._queue: List[Request] = []
 
         if versions is not None:
             self.versions = versions
@@ -33,7 +35,7 @@ class FrameBucket:
 )
 """
 
-    def fill(self, frames: dict) -> None:
+    def fill(self, frames: Dict[int, int]) -> None:
         """Fills storage with frame versions.
 
         Keyword arguments:

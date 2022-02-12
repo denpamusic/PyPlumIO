@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from typing import Any, Awaitable
 
 from .devices import DevicesCollection
 from .econet import EcoNET, SerialConnection, TcpConnection
@@ -10,7 +11,7 @@ from .version import __version__  # noqa
 
 
 def tcp(
-    callback: Callable[[DevicesCollection, EcoNET], None],
+    callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
     host: str,
     port: int,
     interval: int = 1,
@@ -29,7 +30,7 @@ def tcp(
 
 
 def serial(
-    callback: Callable[[DevicesCollection, EcoNET], None],
+    callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
     device: str,
     baudrate: int = 115200,
     interval: int = 1,

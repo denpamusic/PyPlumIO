@@ -73,11 +73,6 @@ def test_hex():
     assert frame.hex == hex
 
 
-def test_frame_type_check():
-    frame = responses.ProgramVersion(recipient=BROADCAST_ADDRESS)
-    assert frame.is_type(responses.ProgramVersion)
-
-
 def test_request_repr(request_):
     repr_ = """Request(
     type = 64,

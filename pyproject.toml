@@ -30,7 +30,16 @@ disable = [
     "too-many-arguments",
     "too-few-public-methods",
     "too-many-instance-attributes",
-    "duplicate-code"
+    "duplicate-code",
+]
+
+[tool.mypy]
+ignore_missing_imports = true
+no_strict_optional = true
+exclude = [
+    "build",
+    ".tox",
+    ".git",
 ]
 
 [build-system]

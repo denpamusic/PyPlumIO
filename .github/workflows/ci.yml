@@ -24,7 +24,13 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install tox tox-gh-actions coverage
 
-    - name: Test with tox
+    - name: Lint
+      run: tox -e lint
+
+    - name: Check typing
+      run: tox -e typing
+
+    - name: Run tests
       run: tox
 
     - uses: paambaati/codeclimate-action@v3.0.0

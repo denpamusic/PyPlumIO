@@ -1,11 +1,13 @@
 """Contains singleton pattern implementation."""
 from __future__ import annotations
 
+from typing import Type
+
 
 class Singleton:
     """Singleton pattern implementation."""
 
-    def __new__(cls: str) -> Singleton:
+    def __new__(cls: Type[Singleton]) -> Singleton:
         """Gets singleton instance.
 
         Keyword arguments:

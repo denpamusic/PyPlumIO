@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
-from typing import Final
+from typing import Final, List, Optional
 
 from . import util
 from .exceptions import ChecksumError, LengthError
@@ -25,27 +25,27 @@ class FrameWriter:
         writer -- instance of stream writer
         """
         self.writer = writer
-        self._queue = []
+        self._queue: List[Request] = []
 
     def __len__(self) -> int:
         """Gets write queue length."""
         return len(self._queue)
 
-    def queue(self, *frames: list[Frame]) -> None:
+    def queue(self, *frames: Request) -> None:
         """Adds frame to write queue.
 
         Keyword arguments:
         frame -- Frame instance to add
         """
         for frame in frames:
-            if isinstance(frame, Frame):
+            if isinstance(frame, Request):
                 self._queue.append(frame)
 
     def is_empty(self) -> bool:
         """Checks if write queue is empty."""
         return len(self._queue) == 0
 
-    def collect(self, requests: dict[Request]) -> None:
+    def collect(self, requests: List[Request]) -> None:
         """Collects changed parameters and adds them to write queue.
 
         Keyword arguments:
@@ -88,7 +88,7 @@ class FrameReader:
         """
         self.reader = reader
 
-    async def read(self) -> Frame:
+    async def read(self) -> Optional[Frame]:
         """Attempts to read READER_BUFFER_SIZE bytes, find
         valid frame in it and return corresponding Frame instance.
         """
@@ -123,3 +123,5 @@ class FrameReader:
                     sender_type=sender_type,
                     econet_version=econet_version,
                 )
+
+        return None

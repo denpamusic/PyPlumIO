@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Final
+from typing import Final, List, Optional
 
 from . import util
 
@@ -118,18 +118,6 @@ class Frame(ABC):
 
         return buffer
 
-    def is_type(self, *types: [Frame]) -> bool:
-        """Checks if frame belongs to one of specified types.
-
-        Keyword arguments:
-        types -- a list of Frame classes to check against
-        """
-        for type_ in types:
-            if isinstance(self, type_):
-                return True
-
-        return False
-
     @property
     def bytes(self) -> bytes:
         """Converts frame to bytes respresentation."""
@@ -141,7 +129,7 @@ class Frame(ABC):
         return bytes(data)
 
     @property
-    def hex(self) -> str:
+    def hex(self) -> List[str]:
         """Converts frame to list of hex bytes."""
         return util.to_hex(self.bytes)
 
@@ -163,7 +151,7 @@ class Frame(ABC):
 class Request(Frame):
     """Base class for all requests frames."""
 
-    def response(self, **args) -> Frame:  # pylint: disable=no-self-use
+    def response(self, **args) -> Optional[Frame]:  # pylint: disable=no-self-use
         """Returns instance of Frame
         for response to request, if needed.
 

@@ -1,12 +1,15 @@
 """Contains lambda structure parser."""
 
 import math
+from typing import Any, Dict, Tuple
 
 from pyplumio import util
 from pyplumio.constants import DATA_LAMBDA_LEVEL, DATA_LAMBDA_STATUS, DATA_LAMBDA_TARGET
 
 
-def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict, int):
+def from_bytes(
+    message: bytearray, offset: int = 0, data: Dict[str, Any] = None
+) -> Tuple[Dict[str, Any], int]:
     """Parses frame message into usable data.
 
     Keyword arguments:
@@ -23,10 +26,7 @@ def from_bytes(message: bytearray, offset: int = 0, data: dict = None) -> (dict,
     data[DATA_LAMBDA_STATUS] = message[offset]
     data[DATA_LAMBDA_TARGET] = message[offset + 1]
     lambda_level = util.unpack_ushort(message[offset + 2 : offset + 4])
-    if math.isnan(lambda_level):
-        lambda_level = None
-
-    data[DATA_LAMBDA_LEVEL] = lambda_level
+    data[DATA_LAMBDA_LEVEL] = None if math.isnan(lambda_level) else lambda_level
     offset += 4
 
     return data, offset
