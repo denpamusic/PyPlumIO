@@ -149,6 +149,7 @@ class EcoNET(ABC):
         self,
         callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
         interval: int = 1,
+        reconnect: bool = True,
     ) -> None:
         """Establishes connection and continuously reads new frames.
 
@@ -169,7 +170,10 @@ class EcoNET(ABC):
                 ConnectionResetError,
                 OSError,
                 SerialException,
-            ):
+            ) as e:
+                if not reconnect:
+                    raise e
+
                 _LOGGER.error(
                     "Connection to device failed, retrying in %i seconds...",
                     RECONNECT_TIMEOUT,
@@ -181,6 +185,7 @@ class EcoNET(ABC):
         self,
         callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
         interval: int = 1,
+        reconnect: bool = True,
     ) -> None:
         """Run connection in the event loop.
 
@@ -194,7 +199,7 @@ class EcoNET(ABC):
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
         try:
-            sys.exit(asyncio.run(self.task(callback, interval)))
+            sys.exit(asyncio.run(self.task(callback, interval, reconnect)))
         except KeyboardInterrupt:
             pass
 
