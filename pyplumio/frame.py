@@ -19,6 +19,15 @@ ECONET_VERSION: Final = 0x05
 class Frame(ABC):
     """Used as base class for creating and parsing request and response
     frames.
+
+    Attributes:
+        type_ -- frame type
+        recipient -- recipient address
+        sender -- sender address
+        sender_type -- sender type
+        econet_version -- econet version
+        message -- frame body
+        _data -- unpacked frame data
     """
 
     def __init__(
@@ -34,13 +43,13 @@ class Frame(ABC):
         """Creates new Frame object.
 
         Keyword arguments:
-        type_ -- integer repsentation of frame type
-        recipient -- integer repsentation of recipient address
-        message -- frame body as bytearray
-        sender -- integer respresentation of sender address
-        sender_type -- sender type
-        econet_version -- version of econet protocol
-        data -- frame data, that is used to construct frame message
+            type_ -- integer repsentation of frame type
+            recipient -- integer repsentation of recipient address
+            message -- frame body as bytearray
+            sender -- integer respresentation of sender address
+            sender_type -- sender type
+            econet_version -- version of econet protocol
+            data -- frame data, that is used to construct frame message
         """
         self._data = data
         self.recipient = recipient
@@ -78,11 +87,11 @@ class Frame(ABC):
         """Returns frame length.
 
         Structure:
-        HEADER_SIZE bytes
-        + 1 bytes frame type
-        + length of message
-        + 1 byte crc
-        + 1 byte end delimiter
+            HEADER_SIZE bytes
+            + 1 bytes frame type
+            + length of message
+            + 1 byte crc
+            + 1 byte end delimiter
         """
         return HEADER_SIZE + 1 + len(self.message) + 1 + 1
 
@@ -135,16 +144,14 @@ class Frame(ABC):
 
     @abstractmethod
     def create_message(self) -> bytearray:
-        """Creates bytearray message from
-        provided data.
-        """
+        """Creates message from the provided data."""
 
     @abstractmethod
     def parse_message(self, message: bytearray) -> None:
         """Parses data from the frame message.
 
         Keyword arguments:
-        message - bytearray message to parse
+            message - bytearray message to parse
         """
 
 
@@ -156,21 +163,19 @@ class Request(Frame):
         for response to request, if needed.
 
         Keyword arguments:
-        args -- arguments to pass to response frame constructor
+            args -- arguments to pass to response frame constructor
         """
         return None
 
     def create_message(self) -> bytearray:
-        """Creates bytearray message from
-        provided data.
-        """
+        """Creates message from the provided data."""
         return bytearray()
 
     def parse_message(self, message: bytearray) -> None:
         """Parses data from the frame message.
 
         Keyword arguments:
-        message - bytearray message to parse
+            message - bytearray message to parse
         """
 
 
@@ -178,9 +183,7 @@ class Response(Frame):
     """Base class for all response frames."""
 
     def create_message(self) -> bytearray:
-        """Creates bytearray message from
-        provided data.
-        """
+        """Creates  message from the provided data."""
         return bytearray()
 
     def parse_message(self, message: bytearray) -> None:

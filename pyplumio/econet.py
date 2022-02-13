@@ -28,20 +28,29 @@ RECONNECT_TIMEOUT: Final = 20
 
 
 class EcoNET(ABC):
-    """Base ecoNET connection class."""
+    """Base ecoNET connection class.
+
+    Attributes:
+        kwargs -- keyword arguments for connection driver
+        closing -- is connection closing
+        writer -- instance of frame writer
+        _net -- network information for device available message
+        _devices -- collection of all available devices
+        _callback_task -- callback task reference
+    """
 
     def __init__(self, **kwargs):
         """Creates EcoNET connection instance.
 
         Keyword arguments:
-        **kwargs -- keyword arguments for connection driver
+            **kwargs -- keyword arguments for connection driver
         """
         self.kwargs = kwargs
         self.closing = False
+        self.writer = None
         self._net = {}
         self._devices = DevicesCollection()
         self._callback_task = None
-        self.writer = None
 
     def __enter__(self):
         """Provides entry point for context manager."""
@@ -58,9 +67,9 @@ class EcoNET(ABC):
         """Calls provided callback method with specified interval.
 
         Keyword arguments:
-        callback -- callback method
-        ecomax -- ecoMAX device instance
-        interval -- update interval in seconds
+            callback -- callback method
+            ecomax -- ecoMAX device instance
+            interval -- update interval in seconds
         """
         while True:
             if not self.closed:
@@ -72,8 +81,8 @@ class EcoNET(ABC):
         """Processes received frame.
 
         Keyword arguments:
-        frame -- instance of received frame
-        writer -- instance of writer
+            frame -- instance of received frame
+            writer -- instance of writer
         """
 
         if frame is None or not self._devices.has(frame.sender):
@@ -115,7 +124,7 @@ class EcoNET(ABC):
         """Handles connection reads.
 
         Keyword arguments:
-        reader -- instance of frame reader
+            reader -- instance of frame reader
         """
         while True:
             if self.closing:
@@ -144,8 +153,8 @@ class EcoNET(ABC):
         """Establishes connection and continuously reads new frames.
 
         Keyword arguments:
-        callback -- user-defined callback method
-        interval -- user-defined update interval in seconds
+            callback -- user-defined callback method
+            interval -- user-defined update interval in seconds
         """
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
         while True:
@@ -176,8 +185,8 @@ class EcoNET(ABC):
         """Run connection in the event loop.
 
         Keyword arguments:
-        callback -- user-defined callback method
-        interval -- user-defined update interval in seconds
+            callback -- user-defined callback method
+            interval -- user-defined update interval in seconds
         """
         if sys.platform == "win32" and hasattr(
             asyncio, "WindowsSelectorEventLoopPolicy"
@@ -196,9 +205,9 @@ class EcoNET(ABC):
         Used for informational purposes only.
 
         Keyword arguments:
-        ip -- ip address of eth device
-        netmask -- netmask of eth device
-        gateway -- gateway address of eth device
+            ip -- ip address of eth device
+            netmask -- netmask of eth device
+            gateway -- gateway address of eth device
         """
         eth: Dict[str, Any] = {}
         eth["ip"] = ip
@@ -220,11 +229,11 @@ class EcoNET(ABC):
         Used for informational purposes only.
 
         Keyword arguments:
-        ssid -- SSID string
-        encryption -- wlan encryption, must be passed with constant
-        ip -- ip address of wlan device
-        netmask -- netmask of wlan device
-        gateway -- gateway address of wlan device
+            ssid -- SSID string
+            encryption -- wlan encryption, must be passed with constant
+            ip -- ip address of wlan device
+            netmask -- netmask of wlan device
+            gateway -- gateway address of wlan device
         """
         wlan: Dict[str, Any] = {}
         wlan["ssid"] = ssid
@@ -254,7 +263,12 @@ class EcoNET(ABC):
 
 
 class TcpConnection(EcoNET):
-    """Represents ecoNET TCP connection through."""
+    """Represents ecoNET TCP connection through.
+
+    Attributes:
+        host -- server ip or hostname
+        port -- server port
+    """
 
     def __init__(self, host: str, port: int, **kwargs):
         """Creates EcoNET TCP connection instance."""
@@ -280,7 +294,12 @@ class TcpConnection(EcoNET):
 
 
 class SerialConnection(EcoNET):
-    """Represents ecoNET serial connection."""
+    """Represents ecoNET serial connection.
+
+    Attributes:
+        device -- serial port interface path
+        baudrate -- serial port baudrate
+    """
 
     def __init__(self, device: str, baudrate: int = 115200, **kwargs):
         """Creates EcoNET serial connection instance."""

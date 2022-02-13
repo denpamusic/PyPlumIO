@@ -22,7 +22,17 @@ ECOSTER_ADDRESS: Final = 0x51
 
 
 class Device(BaseDevice):
-    """Device representation."""
+    """Device representation.
+
+    Attributes:
+        bucket -- frame version info storage
+        mixers -- collection of device mixers
+        product -- device product type
+        uid -- device uid string
+        password -- device service password
+        struct -- device regdata schema
+        _is_on -- is device currently turned on
+    """
 
     def __init__(
         self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
@@ -30,8 +40,8 @@ class Device(BaseDevice):
         """Creates device instance.
 
         Keyword arguments:
-        data -- device data
-        parameters -- editable parameters
+            data -- device data
+            parameters -- editable parameters
         """
         self.__dict__["bucket"] = FrameBucket()
         self.__dict__["mixers"] = MixersCollection(address=self.address)
@@ -46,7 +56,7 @@ class Device(BaseDevice):
         """Sets device data.
 
         Keyword arguments:
-        data -- immutable device attributes
+            data -- immutable device attributes
         """
         self.bucket.fill(data[DATA_FRAMES])
         for name, value in data.items():
@@ -57,7 +67,7 @@ class Device(BaseDevice):
         """Sets device parameters.
 
         Keyword arguments:
-        parameters -- device changeable parameters
+            parameters -- device changeable parameters
         """
         for name, parameter in parameters.items():
             if name in DEVICE_PARAMS:
@@ -128,19 +138,34 @@ Mixers:
 
 
 class EcoMAX(Device):
-    """ecoMAX device representation."""
+    """ecoMAX device representation.
+
+    Attributes:
+        address -- device address
+    """
 
     address = ECOMAX_ADDRESS
 
 
 class EcoSTER(Device):
-    """ecoSTER device representation."""
+    """ecoSTER device representation.
+
+    Attributes:
+        address -- device address
+    """
 
     address = ECOSTER_ADDRESS
 
 
 class DevicesCollection:
-    """Collection of ecoNET devices."""
+    """Collection of ecoNET devices.
+
+    Attributes:
+        _classes -- device handler class names
+        _addresses -- device classes mapped with device addresses
+        _instances -- device handler instances
+        _name -- device instances mapped with lowecased class names
+    """
 
     def __init__(self):
         """Creates device collection."""
@@ -153,7 +178,7 @@ class DevicesCollection:
         """Gets device by name.""
 
         Keyword arguments:
-        name -- name of device to get
+            name -- name of device to get
         """
         name = name.lower()
         if name in self._names:
@@ -169,7 +194,7 @@ class DevicesCollection:
         """Checks if collection has device for specified address.
 
         Keyword arguments:
-        needle -- address or name of device
+            needle -- address or name of device
         """
         return (needle in self._addresses) or (needle in self._names)
 
@@ -177,7 +202,7 @@ class DevicesCollection:
         """Gets device by address.
 
         Keyword arguments:
-        address -- address of device
+            address -- address of device
         """
         if address not in self._instances:
             try:

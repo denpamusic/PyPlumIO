@@ -11,7 +11,12 @@ from .helpers.parameter import Parameter
 
 
 class Mixer(BaseDevice):
-    """Mixer device representation."""
+    """Mixer device representation.
+
+    Attributes:
+        _index -- mixer index
+        address -- address of device that contains mixer
+    """
 
     def __init__(
         self,
@@ -22,8 +27,8 @@ class Mixer(BaseDevice):
         """Creates device instance.
 
         Keyword arguments:
-        data -- device data
-        parameters -- editable parameters
+            data -- device data
+            parameters -- editable parameters
         """
         self.__dict__["_index"] = index
         self.__dict__["address"] = BROADCAST_ADDRESS
@@ -53,7 +58,7 @@ Parameters:
         """Sets mixer data.
 
         Keyword arguments:
-        data -- mixer immutable attributes
+            data -- mixer immutable attributes
         """
         for name, value in data.items():
             if name in MIXER_DATA:
@@ -63,7 +68,7 @@ Parameters:
         """Sets mixer parameters.
 
         Keyword arguments:
-        parameters -- mixer changeable parameters
+            parameters -- mixer changeable parameters
         """
         for name, parameter in parameters.items():
             if name in MIXER_PARAMS:
@@ -77,15 +82,20 @@ Parameters:
 
 
 class MixersCollection:
-    """Collection of mixer devices."""
+    """Collection of mixer devices.
+
+    Attributes:
+        _address -- address of device that contains mixers from collection
+        _mixers -- collection of mixers
+    """
 
     def __init__(self, address: int = BROADCAST_ADDRESS, mixers: List[Mixer] = None):
         """Creates mixer collection instance.
 
         Keyword arguments:
-        address -- address of device containing mixers
-        data -- device data
-        parameters -- editable parameters
+            address -- address of device that contains mixers from collection
+            data -- device data
+            parameters -- editable parameters
         """
         self._address = address
         self._mixers = mixers if mixers is not None else []
@@ -116,7 +126,7 @@ class MixersCollection:
         """Returns mixer instance by index.
 
         Keyword arguments:
-        index -- mixer index
+            index -- mixer index
         """
         try:
             return self._mixers[index]
@@ -127,7 +137,7 @@ class MixersCollection:
         """Creates mixer instance if not exists and sets mixers data.
 
         Keyword arguments:
-        mixers -- list of mixer data
+            mixers -- list of mixer data
         """
         for index, data in enumerate(mixers):
             try:
@@ -140,7 +150,7 @@ class MixersCollection:
         sets mixers parameters.
 
         Keyword arguments:
-        mixers -- list of mixer parameters
+            mixers -- list of mixer parameters
         """
         for index, parameters in enumerate(mixers):
             try:

@@ -13,8 +13,8 @@ def from_bytes(
     """Parses frame message into usable data.
 
     Keyword arguments:
-    message -- ecoNET message
-    offset -- current data offset
+        message -- message bytes
+        offset -- current data offset
     """
     if data is None:
         data = {}

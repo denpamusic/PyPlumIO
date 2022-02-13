@@ -10,13 +10,17 @@ from .frame import Request
 
 
 class FrameBucket:
-    """Keeps track of frame versions and stores versioning data."""
+    """Keeps track of frame versions and stores versioning data.
+
+    Attributes:
+        versions -- dictionary containing frame versions
+    """
 
     def __init__(self, versions: Dict[int, int] = None):
         """Created FrameBucket instance.
 
         Keyword arguments:
-        versions -- dictionary containing frame versions
+            versions -- dictionary containing frame versions
         """
         self.versions = {}
         self._queue: List[Request] = []
@@ -25,7 +29,7 @@ class FrameBucket:
             self.versions = versions
 
     def __len__(self) -> int:
-        """Gets number of versioned frames."""
+        """Gets number of stored frame versions."""
         return len(self.versions)
 
     def __repr__(self) -> str:
@@ -39,7 +43,7 @@ class FrameBucket:
         """Fills storage with frame versions.
 
         Keyword arguments:
-        frames -- dictionary of frames keyed by frame versions
+            frames -- dictionary of frames keyed by frame versions
         """
         for type_, version in frames.items():
             if type_ not in self.versions or self.versions[type_] != version:
@@ -50,8 +54,8 @@ class FrameBucket:
         """Schedules frame update.
 
         Keyword arguments:
-        type_ -- type of frame
-        version -- new frame version to update to
+            type_ -- type of frame
+            version -- new frame version to update to
         """
         try:
             frame = FrameFactory().get_frame(type_=type_)

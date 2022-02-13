@@ -46,7 +46,7 @@ This is intended to be used with serial to network converters like ser2net serve
 ```python
 import pyplumio
 
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
 	# do something
 	...
 
@@ -60,7 +60,7 @@ This is intended to be used with RS485 to USB adapters, that are connected direc
 ```python
 import pyplumio
 
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
 	# do something
 	...
 
@@ -73,7 +73,7 @@ It's also possible to use following shortcuts to create connection instance and 
 ```python
 import pyplumio
 
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
 	# do something
 	...
 
@@ -87,7 +87,7 @@ Data is separated into immutable `data` that you can't change and `parameters` t
 
 Each regulator supports different data attributes and parameters. You can check what your regulator supports by calling `print()` on regulator instance.
 ```python
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
     if devices.ecomax:
         print(devices.ecomax)
 ```
@@ -98,7 +98,7 @@ For example you can read current feedwater temperature by reading `heating_temp`
 
 Passing my_callback to `EcoNET.run(callback: Callable, interval: int)` as demonstrated above, will print current feedwater temperature every second.
 ```python
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
     if devices.ecomax:
         print(devices.ecomax.heating_temp)  # 61.923828125
 ```
@@ -106,17 +106,17 @@ async def my_callback(devices, econet):
 ### Writing
 You can easily set regulator parameter by changing respective class attribute. Example below will set target temperature to 65 degrees Celsius and close the connection.
 ```python
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
     if devices.ecomax and devices.ecomax.heating_set_temp is not None:
         """This will set target heating temperature to 65 degrees Celsius.
         and close the connection.
         """
     	devices.ecomax.heating_set_temp = 65
-        econet.close()
+        connection.close()
 ```
 Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_` and `max_` attributes.
 ```python
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
     if devices.ecomax and devices.ecomax.heating_set_temp is not None:
     	print(devices.ecomax.heating_set_temp.min_)  # Prints minimum allowed target temperature.
         print(devices.ecomax.heating_set_temp.max_)  # Prints maximum allowed target temperature.
@@ -130,7 +130,7 @@ Currently it's used for informational purposes only and can be safely ignored.
 import pyplumio
 from pyplumio.constants import WLAN_ENCRYPTION_WPA2
 
-async def my_callback(devices, econet):
+async def my_callback(devices, connection):
 	# do something
 	...
 

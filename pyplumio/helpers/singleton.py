@@ -5,13 +5,17 @@ from typing import Type
 
 
 class Singleton:
-    """Singleton pattern implementation."""
+    """Singleton pattern implementation.
+
+    Attributes:
+        instance -- singleton class instance
+    """
 
     def __new__(cls: Type[Singleton]) -> Singleton:
         """Gets singleton instance.
 
         Keyword arguments:
-        cls - current class name
+            cls -- current class
         """
         if not hasattr(cls, "instance"):
             cls.instance = super(Singleton, cls).__new__(cls)

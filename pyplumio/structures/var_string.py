@@ -7,8 +7,8 @@ def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
     """Parses frame message into usable data.
 
     Keyword arguments:
-    message -- ecoNET message
-    offset -- current data offset
+        message -- message bytes
+        offset -- current data offset
     """
     string_length = message[offset]
     offset += 1

@@ -7,47 +7,67 @@ from . import responses
 
 
 class ProgramVersion(Request):
-    """ProgramVersion requests version info from ecoMAX device."""
+    """ProgramVersion requests version info from ecoMAX device.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x40
 
-    def response(self, **args):
+    def response(self, **kwargs):
         """Returns corresponding response frame instance.
 
         Keyword arguments:
-        args -- arguments to pass to response frame constructor
+            **kwargs -- arguments to pass to response frame constructor
         """
-        return responses.ProgramVersion(recipient=self.sender, **args)
+        return responses.ProgramVersion(recipient=self.sender, **kwargs)
 
 
 class CheckDevice(Request):
-    """CheckDevice requests if device is available."""
+    """CheckDevice requests if device is available.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x30
 
-    def response(self, **args):
+    def response(self, **kwargs):
         """Returns corresponding response frame instance.
 
         Keyword arguments:
-        args -- arguments to pass to response frame constructor
+            args -- arguments to pass to response frame constructor
         """
-        return responses.DeviceAvailable(recipient=self.sender, **args)
+        return responses.DeviceAvailable(recipient=self.sender, **kwargs)
 
 
 class UID(Request):
-    """Requests device UID."""
+    """Requests device UID.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x39
 
 
 class Password(Request):
-    """Requests service password."""
+    """Requests service password.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x3A
 
 
 class Parameters(Request):
-    """Requests current editable parameters."""
+    """Requests current editable parameters.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x31
 
@@ -61,19 +81,31 @@ class Parameters(Request):
 
 
 class MixerParameters(Request):
-    """Requests current mixer parameters."""
+    """Requests current mixer parameters.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x32
 
 
 class DataStructure(Request):
-    """Requests current regulator data structure."""
+    """Requests current regulator data structure.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x55
 
 
 class SetParameter(Request):
-    """Changes current regulator parameter."""
+    """Changes current regulator parameter.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x33
 
@@ -91,7 +123,11 @@ class SetParameter(Request):
 
 
 class SetMixerParameter(Request):
-    """Sets mixer parameter."""
+    """Sets mixer parameter.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x34
 
@@ -111,7 +147,11 @@ class SetMixerParameter(Request):
 
 
 class BoilerControl(Request):
-    """Changes regulator state (on/off)."""
+    """Changes regulator state (on/off).
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x3B
 
@@ -125,12 +165,20 @@ class BoilerControl(Request):
 
 
 class StartMaster(Request):
-    """Designates RS485 device as master."""
+    """Designates RS485 device as master.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x19
 
 
 class StopMaster(Request):
-    """Revokes RS485 device master status."""
+    """Revokes RS485 device master status.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x18

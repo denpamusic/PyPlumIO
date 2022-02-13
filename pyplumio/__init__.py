@@ -20,11 +20,11 @@ def tcp(
     """Shortcut for TCP connection.
 
     Keyword arguments:
-    callback -- callback method
-    host -- device host
-    port -- device port
-    interval -- callback update interval in seconds
-    **kwargs -- keyword arguments for connection driver
+        callback -- callback method
+        host -- device host
+        port -- device port
+        interval -- callback update interval in seconds
+        **kwargs -- keyword arguments for connection driver
     """
     TcpConnection(host, port, **kwargs).run(callback, interval)
 
@@ -39,10 +39,10 @@ def serial(
     """Shortcut for serial connection.
 
     Keyword arguments:
-    callback -- callback method
-    device -- serial device url, e. g. /dev/ttyUSB0
-    baudrate -- serial port baudrate
-    interval -- callback update interval in seconds
-    **kwargs -- keyword arguments for connection driver
+        callback -- callback method
+        device -- serial device url, e. g. /dev/ttyUSB0
+        baudrate -- serial port baudrate
+        interval -- callback update interval in seconds
+        **kwargs -- keyword arguments for connection driver
     """
     SerialConnection(device, baudrate, **kwargs).run(callback, interval)

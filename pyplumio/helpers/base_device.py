@@ -12,7 +12,12 @@ from .parameter import Parameter
 
 
 class BaseDevice(ABC):
-    """Base device class."""
+    """Base device class.
+
+    Attributes:
+        _data -- contains immutable device data
+        _parameters --  contains editable parameters
+    """
 
     address: int = BROADCAST_ADDRESS
 
@@ -22,8 +27,8 @@ class BaseDevice(ABC):
         """Creates device instance.
 
         Keyword arguments:
-        data -- device data
-        parameters -- editable parameters
+            data -- device data
+            parameters -- editable parameters
         """
         self.__dict__["_data"] = {}
         self.__dict__["_parameters"] = {}
@@ -40,7 +45,7 @@ class BaseDevice(ABC):
         """Gets data or parameter as class attribute.
 
         Keyword arguments:
-        name -- name of property to get
+            name -- name of property to get
         """
         key = name.lower()
         if key in self._data:
@@ -55,8 +60,8 @@ class BaseDevice(ABC):
         """Sets class attribute or device parameter.
 
         Keyword arguments:
-        name -- attribute name
-        value -- attribute value
+            name -- attribute name
+            value -- attribute value
         """
         key = name.lower()
         if key in self._data:
@@ -114,7 +119,7 @@ Parameters:
         """Sets device data.
 
         Keyword arguments:
-        data -- device immutable attributes
+            data -- device immutable attributes
         """
 
     @abstractmethod
@@ -122,7 +127,7 @@ Parameters:
         """Sets device parameters.
 
         Keyword arguments:
-        parameters -- device changeable parameters
+            parameters -- device changeable parameters
         """
 
     @property

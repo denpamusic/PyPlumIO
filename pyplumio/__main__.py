@@ -5,12 +5,12 @@ from pyplumio.devices import DevicesCollection
 from pyplumio.econet import EcoNET
 
 
-async def main(devices: DevicesCollection, econet: EcoNET) -> None:
+async def main(devices: DevicesCollection, connection: EcoNET) -> None:
     """This callback will be called every second.
 
     Keyword arguments:
-    devices -- contains all devices found on rs485 network
-    econet -- instance of econet connection
+        devices -- collection of all available devices
+        connection -- instance of current connection
     """
     if devices.ecomax:
         print(devices.ecomax)

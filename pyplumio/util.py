@@ -22,7 +22,7 @@ def crc(data: bytes) -> int:
     """Calculates frame checksum.
 
     Keyword arguments:
-    data -- data to calculate checksum for
+        data -- data to calculate checksum for
     """
     return functools.reduce(lambda x, y: x ^ y, data)
 
@@ -31,7 +31,7 @@ def to_hex(data: bytes) -> List[str]:
     """Converts bytes to list of hex strings.
 
     Keyword arguments:
-    data -- data for conversion
+        data -- data for conversion
     """
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 
@@ -40,7 +40,7 @@ def unpack_ushort(data: bytes) -> int:
     """Unpacks unsigned short number from bytes.
 
     Keyword arguments:
-    data -- bytes to unpack number from
+        data -- bytes to unpack number from
     """
     return int.from_bytes(data, byteorder="little", signed=False)
 
@@ -51,9 +51,9 @@ def unpack_parameter(
     """Unpacks parameter.
 
     Keyword arguments:
-    data -- bytes to unpack number from
-    offset -- data offset
-    size -- parameter size in bytes
+        data -- bytes to unpack number from
+        offset -- data offset
+        size -- parameter size in bytes
     """
 
     if not check_parameter(data[offset : offset + size * 3]):
@@ -70,7 +70,7 @@ def ip4_to_bytes(address: str) -> bytes:
     """Converts ip4 address to bytes.
 
     Keyword arguments:
-    address -- ip address as string
+        address -- ip address as string
     """
     return socket.inet_aton(address)
 
@@ -79,7 +79,7 @@ def ip4_from_bytes(data: bytes) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
-    data -- address bytes to convert
+        data -- address bytes to convert
     """
     return socket.inet_ntoa(data)
 
@@ -88,7 +88,7 @@ def ip6_to_bytes(address: str) -> bytes:
     """Converts ip6 address to bytes.
 
     Keyword arguments:
-    address -- ip address as string
+        address -- ip address as string
     """
     return socket.inet_pton(socket.AF_INET6, address)
 
@@ -97,7 +97,7 @@ def ip6_from_bytes(data: bytes) -> str:
     """Converts ip4 address from bytes to string representation.
 
     Keyword arguments:
-    data -- address bytes to convert
+        data -- address bytes to convert
     """
     return socket.inet_ntop(socket.AF_INET6, data)
 
@@ -106,8 +106,8 @@ def merge(defaults: Dict[str, Any], options: Dict[str, Any]) -> Dict[str, Any]:
     """Merges two dictionary with options overriding defaults.
 
     Keyword arguments:
-    defaults -- dictionary of defaults
-    options -- dictionary containing options for overriding defaults
+        defaults -- dictionary of defaults
+        options -- dictionary containing options for overriding defaults
     """
     if not options:
         # Options is empty.
@@ -124,7 +124,7 @@ def check_parameter(data: bytearray) -> bool:
     """Checks if parameter contains any bytes besides 0xFF.
 
     Keyword arguments:
-    data -- parameter bytes
+        data -- parameter bytes
     """
     for byte in data:
         if byte != 0xFF:
@@ -137,7 +137,7 @@ def uid_stamp(message: str) -> str:
     """Calculates UID stamp.
 
     Keyword arguments:
-    message -- uid message
+        message -- uid message
     """
     crc_ = 0xA3A3
     for byte in message:
@@ -153,7 +153,7 @@ def uid_5bits_to_char(number: int) -> str:
     """Converts 5 bits from UID to ASCII character.
 
     Keyword arguments:
-    number -- byte for conversion
+        number -- byte for conversion
     """
     if number < 0 or number >= 32:
         return "#"
@@ -170,8 +170,8 @@ def make_list(data: Dict[Any, Any], include_keys: bool = True) -> str:
     """Converts dictionary to string.
 
     Keyword arguments:
-    data -- dictionary to convert to string
-    include_keys -- determines if keys should be included
+        data -- dictionary to convert to string
+        include_keys -- determines if keys should be included
     """
 
     output = ""

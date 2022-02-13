@@ -42,7 +42,11 @@ from pyplumio.version import __version__
 
 
 class ProgramVersion(Response):
-    """Contains information about device software and hardware version."""
+    """Contains information about device software and hardware version.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xC0
 
@@ -77,7 +81,7 @@ class ProgramVersion(Response):
         """Parses ProgramVersion message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         self._data = {}
         [
@@ -94,7 +98,11 @@ class ProgramVersion(Response):
 
 
 class DeviceAvailable(Response):
-    """Contains ecoNET device information."""
+    """Contains ecoNET device information.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB0
 
@@ -147,7 +155,7 @@ class DeviceAvailable(Response):
         """Parses DeviceAvailable message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         self._data = {"eth": {}, "wlan": {}, "server": {}}
         offset = 1
@@ -170,7 +178,11 @@ class DeviceAvailable(Response):
 
 
 class RegData(Response):
-    """Contains current regulator data."""
+    """Contains current regulator data.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x08
 
@@ -180,8 +192,8 @@ class RegData(Response):
         """Creates new RegData frame object.
 
         Keyword arguments:
-        args -- arguments for parent class init
-        kwargs -- keyword arguments for parent class init
+            *args -- arguments for parent class init
+            **kwargs -- keyword arguments for parent class init
         """
         super().__init__(*args, **kwargs)
         self.struct = []
@@ -190,7 +202,7 @@ class RegData(Response):
         """Parses RegData message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
@@ -210,7 +222,11 @@ class RegData(Response):
 
 
 class CurrentData(Response):
-    """Contains current device state data."""
+    """Contains current device state data.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0x35
 
@@ -218,8 +234,8 @@ class CurrentData(Response):
         """Creates new CurrentData frame object.
 
         Keyword arguments:
-        args -- arguments for parent class init
-        kwargs -- keyword arguments for parent class init
+            *args -- arguments for parent class init
+            **kwargs -- keyword arguments for parent class init
         """
         super().__init__(*args, **kwargs)
         self.struct = []
@@ -228,7 +244,7 @@ class CurrentData(Response):
         """Parses CurrentData message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         self._data = {}
         offset = 0
@@ -259,7 +275,11 @@ class CurrentData(Response):
 
 
 class UID(Response):
-    """Contains device UID."""
+    """Contains device UID.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB9
 
@@ -284,7 +304,11 @@ class UID(Response):
 
 
 class Password(Response):
-    """Contains device service password."""
+    """Contains device service password.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xBA
 
@@ -292,7 +316,7 @@ class Password(Response):
         """Parses Password message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         password = message[1:]
         if password:
@@ -300,7 +324,11 @@ class Password(Response):
 
 
 class Parameters(Response):
-    """Contains editable parameters."""
+    """Contains editable parameters.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB1
 
@@ -308,13 +336,17 @@ class Parameters(Response):
         """Parses Parameters message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         self._data, _ = device_parameters.from_bytes(message)
 
 
 class MixerParameters(Response):
-    """Contains current mixers parameters."""
+    """Contains current mixers parameters.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB2
 
@@ -328,7 +360,11 @@ class MixerParameters(Response):
 
 
 class DataStructure(Response):
-    """Contains device data structure."""
+    """Contains device data structure.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xD5
 
@@ -352,18 +388,30 @@ class DataStructure(Response):
 
 
 class SetParameter(Response):
-    """Contains set parameter response."""
+    """Contains set parameter response.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB3
 
 
 class SetMixerParameter(Response):
-    """Sets mixer parameter."""
+    """Sets mixer parameter.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xB4
 
 
 class BoilerControl(Response):
-    """Contains boiler control response."""
+    """Contains boiler control response.
+
+    Attributes:
+        type_ -- frame type
+    """
 
     type_: int = 0xBB

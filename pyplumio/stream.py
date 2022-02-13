@@ -16,13 +16,17 @@ READER_BUFFER_SIZE: Final = 1000
 class FrameWriter:
     """Used to asynchronously write frames to a connection using
     asyncio's StreamWriter and maintains write queue.
+
+    Attributes:
+        writer -- instance of asyncio.StreamWriter
+        _queue -- request queue
     """
 
     def __init__(self, writer: StreamWriter):
         """Creates instance of FrameWriter.
 
         Keyword arguments:
-        writer -- instance of stream writer
+            writer -- instance of asyncio.StreamWriter
         """
         self.writer = writer
         self._queue: List[Request] = []
@@ -35,7 +39,7 @@ class FrameWriter:
         """Adds frame to write queue.
 
         Keyword arguments:
-        frame -- Frame instance to add
+            frame -- Frame instance to add
         """
         for frame in frames:
             if isinstance(frame, Request):
@@ -49,7 +53,7 @@ class FrameWriter:
         """Collects changed parameters and adds them to write queue.
 
         Keyword arguments:
-        parameters -- list of device parameters
+            parameters -- list of device parameters
         """
         for request in requests:
             self.queue(request)
@@ -64,7 +68,7 @@ class FrameWriter:
         """Writes frame to connection and waits for buffer to drain.
 
         Keyword arguments:
-        frame -- Frame instance to add
+            frame -- Frame instance to add
         """
         self.writer.write(frame.bytes)
         await self.writer.drain()
@@ -78,13 +82,16 @@ class FrameWriter:
 class FrameReader:
     """Used to read and parse received frames
     using asyncio's StreamReader.
+
+    Attributes:
+        reader -- instance of asyncio.StreamReader
     """
 
     def __init__(self, reader: StreamReader):
         """Creates FrameReader instance.
 
         Keyword arguments:
-        reader -- instance of stream reader
+            reader -- instance of asyncio.StreamReader
         """
         self.reader = reader
 

@@ -6,10 +6,26 @@ from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
 
 
 class Parameter:
-    """Device parameter representation."""
+    """Device parameter representation.
+
+    Attributes:
+        name -- parameter name
+        value -- parameter value
+        min_ -- minimum acceptable value
+        max_ -- maximum acceptable value
+        extra -- extra information
+    """
 
     def __init__(self, name: str, value: int, min_: int, max_: int, extra=None):
-        """Creates parameter."""
+        """Creates parameter.
+
+        Keyword attributes:
+            name -- parameter name
+            value -- parameter value
+            min_ -- minimum acceptable value
+            max_ -- maximum acceptable value
+            extra -- extra information
+        """
         self.name = name
         self.value = int(value)
         self.min_ = min_
@@ -20,7 +36,7 @@ class Parameter:
         """Sets parameter value.
 
         Keyword arguments:
-        value -- new value to set parameter to
+            value -- new value to set parameter to
         """
         if self.value != value and self.min_ <= value <= self.max_:
             self.value = value
@@ -54,7 +70,7 @@ class Parameter:
         """Returns integer representation of parameter value.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return int(self.value)
 
@@ -62,7 +78,7 @@ class Parameter:
         """Compares if parameter value is equal to other.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return self.value == other
 
@@ -70,7 +86,7 @@ class Parameter:
         """Compares if parameter value is greater or equal to other.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return self.value >= other
 
@@ -78,7 +94,7 @@ class Parameter:
         """Compares if parameter value is greater than other.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return self.value > other
 
@@ -86,7 +102,7 @@ class Parameter:
         """Compares if parameter value is less or equal to other.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return self.value <= other
 
@@ -94,6 +110,6 @@ class Parameter:
         """Compares if parameter value is less that other.
 
         Keyword arguments:
-        other -- other value to compare to
+            other -- other value to compare to
         """
         return self.value < other

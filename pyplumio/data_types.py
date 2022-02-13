@@ -7,10 +7,20 @@ from . import util
 
 
 class Type(ABC):
-    """Base representation of data type."""
+    """Base representation of data type.
+
+    Attributes:
+        size -- type size
+        _data -- type bytes
+    """
 
     def __init__(self, data=None, size: int = None):
-        """Creates data type instance."""
+        """Creates data type instance.
+
+        Keyword arguments:
+            data -- data bytes
+            size -- size of data type
+        """
         if size is None:
             size = self.size
 
@@ -29,7 +39,7 @@ class Type(ABC):
         """Unpacks data to a given type.
 
         Keyword arguments:
-        data -- data to unpack
+            data -- data to unpack
         """
         self._data = data[0 : self.size]
 
@@ -185,13 +195,19 @@ class Double(Type):
 
 
 class Boolean(Type):
-    """Boolean representation."""
+    """Boolean representation.
+
+    Attributes:
+        size -- type size
+        _data -- type bytes
+        _index -- bit array index
+    """
 
     def __init__(self, data=None, size: int = None):
         """Creates boolean instance.
 
         Keyword arguments:
-        data -- raw data
+            data -- raw data
         """
         self._index = 0
         super().__init__(data, size=1)
@@ -200,7 +216,7 @@ class Boolean(Type):
         """Returns next bit index in the bit array.
 
         Keyword arguments:
-        index -- current bit array index
+            index -- current bit array index
         """
         self._index = index
         return 0 if self._index == 7 else self._index + 1
@@ -209,7 +225,7 @@ class Boolean(Type):
         """Unpacks data to with given type.
 
         Keyword arguments:
-        data -- data to unpack
+            data -- data to unpack
         """
         self._data = data[0:1]
 
