@@ -28,7 +28,7 @@ class FrameFactory(Singleton):
         if type_ in self.types:
             return self.types[type_](**kwargs)
 
-        raise FrameTypeError()
+        raise FrameTypeError(f"Unknown frame type: {type_}.")
 
     @property
     def types(self) -> Dict[int, Type[Frame]]:

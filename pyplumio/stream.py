@@ -110,10 +110,10 @@ class FrameReader:
                 payload = buffer[HEADER_SIZE:length]
 
                 if HEADER_SIZE + len(payload) != length:
-                    raise LengthError()
+                    raise LengthError("Incorrect frame length.")
 
                 if payload[-2] != util.crc(header + payload[:-2]):
-                    raise ChecksumError()
+                    raise ChecksumError("Incorrect frame checksum.")
 
                 return FrameFactory().get_frame(
                     type_=payload[0],

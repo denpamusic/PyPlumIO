@@ -126,13 +126,10 @@ class EcoNET(ABC):
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
-            except ChecksumError:
-                _LOGGER.warning("Incorrect frame checksum.")
-            except LengthError:
-                _LOGGER.warning("Incorrect frame length.")
-            except FrameTypeError:
-                type_ = "[Unknown]" if frame is None else hex(frame.type_)
-                _LOGGER.info("Unknown frame type %s.", type_)
+            except (ChecksumError, LengthError) as e:
+                _LOGGER.warning("Frame error: %s", e)
+            except FrameTypeError as e:
+                _LOGGER.info("Type error: %s", e)
             else:
                 asyncio.create_task(self._process(frame, self.writer))
                 await self.writer.process_queue()

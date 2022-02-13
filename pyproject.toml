@@ -17,6 +17,7 @@ jobs = 2
 good-names = [
     "_",
     "i",
+    "e",
     "j",
     "k",
     "v",
