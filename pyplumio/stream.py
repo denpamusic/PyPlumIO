@@ -42,7 +42,7 @@ class FrameWriter:
             frame -- Frame instance to add
         """
         for frame in frames:
-            if isinstance(frame, Request):
+            if isinstance(frame, Frame):
                 self._queue.append(frame)
 
     def is_empty(self) -> bool:
