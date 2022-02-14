@@ -13,7 +13,7 @@ Currently it supports reading and writing parameters of ecoMAX automatic pellet 
 
 Devices can be connected directly via RS485 to USB converter or through network by using serial port server (for example [Elfin EW11](https://aliexpress.ru/item/4001104348624.html))
 
-This project is considered to be in __Pre-Alpha__ state and there __will be__ breaking changes down the road and a lot of bugs, please use with care.
+This project is considered to be in __Alpha__ state and there __might be__ breaking changes down the road and a lot of bugs, please use with care.
 
 ## Table of contents
 - [Usage](#usage)
