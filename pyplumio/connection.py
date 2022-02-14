@@ -1,6 +1,4 @@
-"""Contains main ecoNET class, that is used to interact with ecoNET
-connection.
-"""
+"""Contains main connection class."""
 
 from __future__ import annotations
 
@@ -27,8 +25,8 @@ READER_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
 
 
-class EcoNET(ABC):
-    """Base ecoNET connection class.
+class Connection(ABC):
+    """Base connection class.
 
     Attributes:
         kwargs -- keyword arguments for connection driver
@@ -40,7 +38,7 @@ class EcoNET(ABC):
     """
 
     def __init__(self, **kwargs):
-        """Creates EcoNET connection instance.
+        """Creates connection instance.
 
         Keyword arguments:
             **kwargs -- keyword arguments for connection driver
@@ -61,7 +59,7 @@ class EcoNET(ABC):
 
     async def _callback(
         self,
-        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
         interval: int,
     ) -> None:
         """Calls provided callback method with specified interval.
@@ -147,7 +145,7 @@ class EcoNET(ABC):
 
     async def task(
         self,
-        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
         interval: int = 1,
         reconnect_on_failure: bool = True,
     ) -> None:
@@ -184,7 +182,7 @@ class EcoNET(ABC):
 
     def run(
         self,
-        callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
+        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
         interval: int = 1,
         reconnect_on_failure: bool = True,
     ) -> None:
@@ -269,8 +267,8 @@ class EcoNET(ABC):
         """Initializes connection and returns frame reader and writer."""
 
 
-class TcpConnection(EcoNET):
-    """Represents ecoNET TCP connection through.
+class TcpConnection(Connection):
+    """Represents TCP connection through.
 
     Attributes:
         host -- server ip or hostname
@@ -278,7 +276,7 @@ class TcpConnection(EcoNET):
     """
 
     def __init__(self, host: str, port: int, **kwargs):
-        """Creates EcoNET TCP connection instance."""
+        """Creates TCP connection instance."""
         super().__init__(**kwargs)
         self.host = host
         self.port = port
@@ -300,8 +298,8 @@ class TcpConnection(EcoNET):
         return FrameReader(reader), FrameWriter(writer)
 
 
-class SerialConnection(EcoNET):
-    """Represents ecoNET serial connection.
+class SerialConnection(Connection):
+    """Represents serial connection.
 
     Attributes:
         device -- serial port interface path
@@ -309,7 +307,7 @@ class SerialConnection(EcoNET):
     """
 
     def __init__(self, device: str, baudrate: int = 115200, **kwargs):
-        """Creates EcoNET serial connection instance."""
+        """Creates serial connection instance."""
         super().__init__(**kwargs)
         self.device = device
         self.baudrate = baudrate

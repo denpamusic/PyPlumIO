@@ -98,7 +98,7 @@ class ProgramVersion(Response):
 
 
 class DeviceAvailable(Response):
-    """Contains ecoNET device information.
+    """Contains device information.
 
     Attributes:
         type_ -- frame type

@@ -158,7 +158,7 @@ class EcoSTER(Device):
 
 
 class DevicesCollection:
-    """Collection of ecoNET devices.
+    """Collection of devices.
 
     Attributes:
         _classes -- device handler class names

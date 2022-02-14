@@ -1,11 +1,11 @@
 """Contains serial connection example."""
 
 import pyplumio
+from pyplumio.connection import Connection
 from pyplumio.devices import DevicesCollection
-from pyplumio.econet import EcoNET
 
 
-async def main(devices: DevicesCollection, connection: EcoNET) -> None:
+async def main(devices: DevicesCollection, connection: Connection) -> None:
     """This callback will be called every second.
 
     Keyword arguments:
