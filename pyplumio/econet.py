@@ -149,13 +149,14 @@ class EcoNET(ABC):
         self,
         callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
         interval: int = 1,
-        reconnect: bool = True,
+        reconnect_on_failure: bool = True,
     ) -> None:
         """Establishes connection and continuously reads new frames.
 
         Keyword arguments:
             callback -- user-defined callback method
             interval -- user-defined update interval in seconds
+            reconnect_on_failure -- should we try reconnecting on failure
         """
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
         while True:
@@ -171,7 +172,7 @@ class EcoNET(ABC):
                 OSError,
                 SerialException,
             ) as e:
-                if not reconnect:
+                if not reconnect_on_failure:
                     raise e
 
                 _LOGGER.error(
@@ -185,13 +186,14 @@ class EcoNET(ABC):
         self,
         callback: Callable[[DevicesCollection, EcoNET], Awaitable[Any]],
         interval: int = 1,
-        reconnect: bool = True,
+        reconnect_on_failure: bool = True,
     ) -> None:
         """Run connection in the event loop.
 
         Keyword arguments:
             callback -- user-defined callback method
             interval -- user-defined update interval in seconds
+            reconnect_on_failure -- should we try reconnecting on failure
         """
         if sys.platform == "win32" and hasattr(
             asyncio, "WindowsSelectorEventLoopPolicy"
@@ -199,7 +201,7 @@ class EcoNET(ABC):
             asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
         try:
-            sys.exit(asyncio.run(self.task(callback, interval, reconnect)))
+            sys.exit(asyncio.run(self.task(callback, interval, reconnect_on_failure)))
         except KeyboardInterrupt:
             pass
 
