@@ -99,7 +99,7 @@ def test_get_attr_from_parameters(ecomax_with_data: EcoMAX):
 
 
 def test_get_attr_from_nonexistent(ecomax_with_data: EcoMAX):
-    assert ecomax_with_data.nonexistent is None
+    assert not hasattr(ecomax_with_data, "nonexistent")
 
 
 def test_set_attr_from_parameters(ecomax_with_data: EcoMAX):
@@ -165,7 +165,7 @@ def test_get_attr_from_collection(devices: DevicesCollection):
 
 
 def test_get_unknown_attr_from_collection(devices: DevicesCollection):
-    assert devices.nonexistent is None
+    assert not hasattr(devices, "nonexistent")
 
 
 def test_collection_length(devices: DevicesCollection):

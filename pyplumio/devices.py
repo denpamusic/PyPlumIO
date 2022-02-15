@@ -184,7 +184,7 @@ class DevicesCollection:
         if name in self._names:
             return self._instances[self._names[name]]
 
-        return None
+        raise AttributeError
 
     def __len__(self) -> int:
         """Returns number of devices in collection."""
