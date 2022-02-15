@@ -97,6 +97,14 @@ Parameters:
 {util.make_list(self._parameters, include_keys = False)}
 """.strip()
 
+    def has(self, name: str) -> bool:
+        """Checks if class has property.
+
+        Keyword arguments:
+            name -- name of property
+        """
+        return hasattr(self, name)
+
     @property
     def queue(self) -> List[Request]:
         """Clears and returns changed parameters queue."""
