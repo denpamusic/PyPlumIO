@@ -58,7 +58,9 @@ class Device(BaseDevice):
         Keyword arguments:
             data -- immutable device attributes
         """
-        self.bucket.fill(data[DATA_FRAMES])
+        if DATA_FRAMES in data:
+            self.bucket.fill(data[DATA_FRAMES])
+
         for name, value in data.items():
             if name in DEVICE_DATA:
                 self._data[name] = value
