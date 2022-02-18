@@ -13,5 +13,9 @@ class FrameTypeError(Exception):
     """Raised on unknown frame type."""
 
 
+class VersionError(Exception):
+    """Raised on unknown frame version."""
+
+
 class UninitializedParameterError(Exception):
     """Raised on uninitialized device parameter."""

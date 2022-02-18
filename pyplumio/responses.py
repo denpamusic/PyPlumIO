@@ -21,6 +21,7 @@ from pyplumio.constants import (
     WLAN_ENCRYPTION_NONE,
 )
 from pyplumio.data_types import Boolean
+from pyplumio.exceptions import VersionError
 from pyplumio.frame import Response
 from pyplumio.structures import (
     alarms,
@@ -208,17 +209,19 @@ class RegData(Response):
         frame_version = f"{message[offset+1]}.{message[offset]}"
         offset += 2
         self._data = {}
-        if frame_version == self.VERSION:
-            _, offset = frame_versions.from_bytes(message, offset, self._data)
-            boolean_index = 0
-            for param in self.struct:
-                param_id, param_type = param
-                param_type.unpack(message[offset:])
-                if isinstance(param_type, Boolean):
-                    boolean_index = param_type.index(boolean_index)
+        if frame_version != self.VERSION:
+            raise VersionError(f"Unknown regdata version: {int(frame_version)}")
 
-                self._data[param_id] = param_type.value
-                offset += param_type.size
+        _, offset = frame_versions.from_bytes(message, offset, self._data)
+        boolean_index = 0
+        for param in self.struct:
+            param_id, param_type = param
+            param_type.unpack(message[offset:])
+            if isinstance(param_type, Boolean):
+                boolean_index = param_type.index(boolean_index)
+
+            self._data[param_id] = param_type.value
+            offset += param_type.size
 
 
 class CurrentData(Response):
