@@ -115,9 +115,12 @@ class FrameReader:
             if recipient in [ECONET_ADDRESS, BROADCAST_ADDRESS]:
                 # Destination address is econet or broadcast.
                 payload = buffer[HEADER_SIZE:length]
-
-                if HEADER_SIZE + len(payload) != length:
-                    raise LengthError("Incorrect frame length.")
+                frame_length = HEADER_SIZE + len(payload)
+                if frame_length != length:
+                    raise LengthError(
+                        "Incorrect frame length."
+                        + " Expected {length} bytes, got {frame_length} bytes"
+                    )
 
                 if payload[-2] != util.crc(header + payload[:-2]):
                     raise ChecksumError("Incorrect frame checksum.")
