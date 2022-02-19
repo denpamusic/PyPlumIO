@@ -19,6 +19,10 @@ def from_bytes(
         data = {}
 
     for module in MODULES:
+        if message[offset] == 0xFF:
+            offset += 1
+            continue
+
         if module == MODULE_A:
             version_data = struct.unpack("<BBBBB", message[offset : offset + 5])
             version1 = ".".join(map(str, version_data[:3]))
@@ -28,13 +32,9 @@ def from_bytes(
             offset += 5
             continue
 
-        if message[offset] == 0xFF:
-            data[module] = None
-            offset += 1
-        else:
-            data[module] = ".".join(
-                map(str, struct.unpack("<BBB", message[offset : offset + 3]))
-            )
-            offset += 3
+        data[module] = ".".join(
+            map(str, struct.unpack("<BBB", message[offset : offset + 3]))
+        )
+        offset += 3
 
     return data, offset
