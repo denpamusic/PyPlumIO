@@ -15,7 +15,7 @@ import serial_asyncio
 from . import requests, responses
 from .constants import DATA_MIXERS, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import ECOMAX_ADDRESS, DevicesCollection
-from .exceptions import ChecksumError, FrameTypeError, LengthError, VersionError
+from .exceptions import FrameError, FrameTypeError
 from .frame import Frame
 from .stream import FrameReader, FrameWriter
 
@@ -133,10 +133,10 @@ class Connection(ABC):
 
             try:
                 frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
-            except (ChecksumError, LengthError, VersionError) as e:
-                _LOGGER.warning("Frame error: %s", e)
             except FrameTypeError as e:
                 _LOGGER.info("Type error: %s", e)
+            except FrameError as e:
+                _LOGGER.warning("Frame error: %s", e)
             else:
                 asyncio.create_task(self._process(frame, self.writer))
                 await self.writer.process_queue()
