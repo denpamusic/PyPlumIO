@@ -20,12 +20,12 @@ WLAN_ENCRYPTION: Final = (
 DEFAULT_IP: Final = "0.0.0.0"
 DEFAULT_NETMASK: Final = "255.255.255.0"
 
-MODULE_PANEL: Final = "module_panel"
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
 MODULE_C: Final = "module_c"
 MODULE_LAMBDA: Final = "module_lambda"
 MODULE_ECOSTER: Final = "module_ecoster"
+MODULE_PANEL: Final = "module_panel"
 MODULES: Final = (
     MODULE_A,
     MODULE_B,
@@ -299,8 +299,9 @@ DEVICE_PARAMS: Final = (
     "buffer_histeresis",
     "buffer_load_start",
     "buffer_load_stop",
-    "boiler_control",
 )
+
+PARAM_BOILER_CONTROL: Final = "boiler_control"
 
 MIXER_PARAMS: Final = (
     "mix_set_temp",

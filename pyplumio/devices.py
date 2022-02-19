@@ -10,6 +10,7 @@ from .constants import (
     DEVICE_PARAMS,
     MODES,
     MODULE_A,
+    PARAM_BOILER_CONTROL,
 )
 from .frame import Request
 from .helpers.base_device import BaseDevice
@@ -31,7 +32,6 @@ class Device(BaseDevice):
         uid -- device uid string
         password -- device service password
         struct -- device regdata schema
-        _is_on -- is device currently turned on
     """
 
     def __init__(
@@ -49,8 +49,21 @@ class Device(BaseDevice):
         self.__dict__["uid"] = None
         self.__dict__["password"] = None
         self.__dict__["struct"] = []
-        self.__dict__["_is_on"] = False
         super().__init__(data, parameters)
+
+    def __str__(self) -> str:
+        """Converts device instance to a string."""
+        return f"""
+Product:        {self.product}
+Software Ver.:  {self.software}
+UID:            {self.uid}
+Password:       {self.password}
+
+{super().__str__()}
+
+Mixers:
+{self.mixers}
+""".strip()
 
     def set_data(self, data: Dict[str, Any]) -> None:
         """Sets device data.
@@ -58,12 +71,13 @@ class Device(BaseDevice):
         Keyword arguments:
             data -- immutable device attributes
         """
-        if DATA_FRAMES in data:
-            self.bucket.fill(data[DATA_FRAMES])
-
         for name, value in data.items():
             if name in DEVICE_DATA:
                 self._data[name] = value
+
+        self._set_boiler_control_parameter()
+        if DATA_FRAMES in data:
+            self.bucket.fill(data[DATA_FRAMES])
 
     def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
@@ -75,13 +89,14 @@ class Device(BaseDevice):
             if name in DEVICE_PARAMS:
                 self._parameters[name] = Parameter(name, *parameter)
 
-        self._parameters["boiler_control"] = Parameter(
-            name="boiler_control", value=int(self.is_on), min_=0, max_=1
-        )
-
-    def has_mixers(self) -> bool:
-        """Check if device instance has mixers."""
-        return bool(self.mixers.mixers)
+    def _set_boiler_control_parameter(self):
+        """Sets boiler control parameter from device data."""
+        if not isinstance(self._parameters, Parameter):
+            self._parameters[PARAM_BOILER_CONTROL] = Parameter(
+                name=PARAM_BOILER_CONTROL, value=int(self.is_on), min_=0, max_=1
+            )
+        else:
+            self._parameters[PARAM_BOILER_CONTROL].value = int(self.is_on)
 
     @property
     def software(self) -> Optional[str]:
@@ -95,14 +110,14 @@ class Device(BaseDevice):
     def is_on(self) -> bool:
         """Returns current state."""
         if DATA_MODE in self._data:
-            return bool(self._data[DATA_MODE] != 0)
+            return self._data[DATA_MODE] != 0
 
         return False
 
     @property
     def mode(self) -> str:
         """Returns current mode."""
-        if self._data:
+        if self._data and DATA_MODE in self._data:
             mode = self._data[DATA_MODE]
             try:
                 return MODES[mode]
@@ -123,20 +138,6 @@ class Device(BaseDevice):
     def editable_parameters(self) -> Tuple[str, ...]:
         """Returns list of editable parameters."""
         return DEVICE_PARAMS
-
-    def __str__(self) -> str:
-        """Converts device instance to a string."""
-        return f"""
-Product:        {self.product}
-Software Ver.:  {self.software}
-UID:            {self.uid}
-Password:       {self.password}
-
-{super().__str__()}
-
-Mixers:
-{self.mixers}
-""".strip()
 
 
 class EcoMAX(Device):

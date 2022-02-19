@@ -79,10 +79,6 @@ def test_get_attr_from_data(ecomax_with_data: EcoMAX):
     assert ecomax_with_data.mode == "Heating"
 
 
-def test_has_mixers(ecomax):
-    assert not ecomax.has_mixers()
-
-
 def test_get_mode(ecomax: EcoMAX):
     data = _test_data
     data[DATA_MODE] = 69
