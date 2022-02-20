@@ -20,7 +20,7 @@ _data = {"mixers": [{"min_mix_set_temp": (20, 30, 40), "mix_set_temp": (30, 40, 
 
 def test_from_bytes_with_zero_parameters():
     data, offset = mixer_parameter.from_bytes(_message_zero_parameters)
-    assert data == {}
+    assert data == {"mixers": []}
     assert offset == 4
 
 
