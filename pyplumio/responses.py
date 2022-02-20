@@ -196,7 +196,7 @@ class RegData(Response):
             **kwargs -- keyword arguments for parent class init
         """
         super().__init__(*args, **kwargs)
-        self.struct = []
+        self.schema = []
 
     def parse_message(self, message: bytearray) -> None:
         """Parses RegData message into usable data.
@@ -213,7 +213,7 @@ class RegData(Response):
 
         _, offset = frame_versions.from_bytes(message, offset, self._data)
         boolean_index = 0
-        for param in self.struct:
+        for param in self.schema:
             param_id, param_type = param
             param_type.unpack(message[offset:])
             if isinstance(param_type, Boolean):
@@ -240,7 +240,7 @@ class CurrentData(Response):
             **kwargs -- keyword arguments for parent class init
         """
         super().__init__(*args, **kwargs)
-        self.struct = []
+        self.schema = []
 
     def parse_message(self, message: bytearray) -> None:
         """Parses CurrentData message into usable data.

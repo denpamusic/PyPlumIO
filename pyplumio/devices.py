@@ -47,7 +47,7 @@ class Device(BaseDevice):
         product -- device product type
         uid -- device uid string
         password -- device service password
-        struct -- device regdata schema
+        schema -- device regdata schema
     """
 
     def __init__(
@@ -64,7 +64,7 @@ class Device(BaseDevice):
         self.__dict__["product"] = None
         self.__dict__["uid"] = None
         self.__dict__["password"] = None
-        self.__dict__["struct"] = []
+        self.__dict__["schema"] = []
         super().__init__(data, parameters)
 
     def __str__(self) -> str:

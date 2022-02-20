@@ -99,7 +99,7 @@ class Connection(ABC):
             device.password = frame.data
 
         elif isinstance(frame, (responses.RegData, responses.CurrentData)):
-            frame.struct = device.struct
+            frame.schema = device.schema
             device.set_data(frame.data)
             if DATA_MIXERS in frame.data:
                 device.mixers.set_data(frame.data[DATA_MIXERS])
@@ -111,7 +111,7 @@ class Connection(ABC):
             device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
         elif isinstance(frame, responses.DataStructure):
-            device.struct = frame.data
+            device.schema = frame.data
 
         elif isinstance(frame, requests.CheckDevice):
             writer.queue(frame.response(data=self._net))
