@@ -133,12 +133,8 @@ Mixers:
     @property
     def mode(self) -> str:
         """Returns current mode."""
-        if self._data and DATA_MODE in self._data:
-            mode = self._data[DATA_MODE]
-            try:
-                return MODES[mode]
-            except IndexError:
-                pass
+        if DATA_MODE in self._data and self._data[DATA_MODE] < len(MODES):
+            return MODES[self._data[DATA_MODE]]
 
         return "Unknown"
 
