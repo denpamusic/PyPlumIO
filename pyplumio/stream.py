@@ -118,8 +118,8 @@ class FrameReader:
                 frame_length = HEADER_SIZE + len(payload)
                 if frame_length != length:
                     raise LengthError(
-                        "Incorrect frame length."
-                        + " Expected {length} bytes, got {frame_length} bytes"
+                        "Incorrect frame length. "
+                        + f"Expected {length} bytes, got {frame_length} bytes"
                     )
 
                 if payload[-2] != util.crc(header + payload[:-2]):
