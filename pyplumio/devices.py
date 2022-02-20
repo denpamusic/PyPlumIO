@@ -8,7 +8,6 @@ from .constants import (
     DATA_MODE,
     DEVICE_DATA,
     DEVICE_PARAMS,
-    MODES,
     MODULE_A,
     PARAM_BOILER_CONTROL,
 )
@@ -20,6 +19,23 @@ from .storage import FrameBucket
 
 ECOMAX_ADDRESS: Final = 0x45
 ECOSTER_ADDRESS: Final = 0x51
+
+MODE_OFF: Final = 0
+MODE_STARTING: Final = 1
+MODE_KINDLING: Final = 2
+MODE_HEATING: Final = 3
+MODE_SUPERVISION: Final = 4
+MODE_COOLING: Final = 5
+MODE_STANDBY: Final = 6
+MODES: Final = (
+    "Off",
+    "Starting",
+    "Kindling",
+    "Heating",
+    "Supervision",
+    "Cooling",
+    "Standby",
+)
 
 
 class Device(BaseDevice):
@@ -110,7 +126,7 @@ Mixers:
     def is_on(self) -> bool:
         """Returns current state."""
         if DATA_MODE in self._data:
-            return self._data[DATA_MODE] != 0
+            return self._data[DATA_MODE] != MODE_OFF
 
         return False
 

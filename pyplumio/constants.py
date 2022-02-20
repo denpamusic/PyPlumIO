@@ -35,16 +35,6 @@ MODULES: Final = (
     MODULE_PANEL,
 )
 
-MODES: Final = (
-    "Off",
-    "Starting",
-    "Kindling",
-    "Heating",
-    "Supervision",
-    "Cooling",
-    "Standby",
-)
-
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET: Final = "target"
 MIXER_PUMP: Final = "pump"
