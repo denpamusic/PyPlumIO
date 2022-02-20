@@ -12,9 +12,17 @@ from pyplumio.constants import (
     DATA_POWER,
     DATA_WATER_HEATER_TARGET,
     MODULE_A,
+    PARAM_BOILER_CONTROL,
 )
-from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
+from pyplumio.devices import (
+    ECOMAX_ADDRESS,
+    MODE_HEATING,
+    MODES,
+    DevicesCollection,
+    EcoMAX,
+)
 from pyplumio.exceptions import UninitializedParameterError
+from pyplumio.helpers.parameter import Parameter
 
 _test_data = {
     DATA_FRAMES: {
@@ -29,7 +37,7 @@ _test_data = {
         82: 1,
         83: 1,
     },
-    DATA_MODE: 3,
+    DATA_MODE: MODE_HEATING,
     DATA_POWER: 16,
     DATA_LOAD: 30,
     DATA_HEATING_TARGET: 60,
@@ -72,11 +80,16 @@ def devices() -> DevicesCollection:
 
 def test_set_data(ecomax: EcoMAX):
     ecomax.set_data(_test_data)
-    assert ecomax.data["mode"] == 3
+    assert ecomax.data["mode"] == MODE_HEATING
 
 
 def test_get_attr_from_data(ecomax_with_data: EcoMAX):
-    assert ecomax_with_data.mode == "Heating"
+    assert ecomax_with_data.mode == MODES[MODE_HEATING]
+
+
+def test_get_boiler_control_param(ecomax_with_data: EcoMAX):
+    ecomax_with_data.set_data(_test_data)
+    assert isinstance(ecomax_with_data.parameters[PARAM_BOILER_CONTROL], Parameter)
 
 
 def test_get_mode(ecomax: EcoMAX):
@@ -142,7 +155,7 @@ def test_is_on_unknown(ecomax: EcoMAX):
     assert not ecomax.is_on
 
 
-def test_to_str(ecomax_with_data: EcoMAX):
+def test_str(ecomax_with_data: EcoMAX):
     assert "Software Ver.:  1.1.15" in str(ecomax_with_data)
 
 
@@ -154,6 +167,10 @@ def test_repr(ecomax: EcoMAX):
 """.strip() == repr(
         ecomax
     )
+
+
+def test_has(ecomax_with_data: EcoMAX):
+    assert ecomax_with_data.has("summer_mode")
 
 
 def test_get_attr_from_collection(devices: DevicesCollection):

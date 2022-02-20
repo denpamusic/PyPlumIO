@@ -125,6 +125,12 @@ def test_collection_set_parameters_fro_unknown_mixer(mixers: MixersCollection):
     assert mixers(1).mix_set_temp == 65
 
 
+def test_collection_get_mixers(mixers: MixersCollection):
+    mixers.set_parameters([_test_parameters, _test_parameters2])
+    assert mixers.mixers[0].mix_set_temp == 60
+    assert mixers.mixers[1].mix_set_temp == 65
+
+
 def test_collection_queue(mixers: MixersCollection):
     mixers(0).mix_set_temp = 65
     request = mixers.queue[0]

@@ -59,15 +59,7 @@ class Frame(ABC):
         if type_ is not None:
             self.type_ = type_
 
-        if not message:
-            # If frame message is not passed in constructor.
-            try:
-                self.message = self.create_message()
-            except NotImplementedError:
-                self.message = bytearray()
-
-        else:
-            self.message = message
+        self.message = message if message else self.create_message()
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""

@@ -23,17 +23,17 @@ def from_bytes(
     mixers_number = message[3]
     total_parameters = mixers_number * parameters_number
     offset = 4
-    data[DATA_MIXERS] = []
     if parameters_number == 0:
         return data, offset
 
+    data[DATA_MIXERS] = []
     mixer = {}
     for index in range(first_parameter, total_parameters + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
-            mixer[f"{MIXER_PARAMS[index%mixers_number]}"] = parameter
+            mixer[f"{MIXER_PARAMS[index%total_parameters]}"] = parameter
 
-        if index % parameters_number == 0:
+        if (index + 1) % total_parameters == 0:
             data[DATA_MIXERS].append(mixer)
             mixer = {}
 
