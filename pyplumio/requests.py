@@ -1,9 +1,8 @@
 """Contains request frame classes."""
 
-from pyplumio.constants import DEVICE_PARAMS, MIXER_PARAMS
-from pyplumio.frame import Request
-
 from . import responses
+from .constants import DEVICE_PARAMS, MIXER_PARAMS
+from .frame import Request
 
 
 class ProgramVersion(Request):

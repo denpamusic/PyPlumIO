@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Final
 
 from . import util
 
@@ -318,3 +319,24 @@ class String(Type):
     def size(self) -> int:
         """Returns data size in bytes."""
         return len(self.value) + 1
+
+
+DATA_TYPES: Final = (
+    Undefined0,
+    SignedChar,
+    Short,
+    Int,
+    Byte,
+    UnsignedShort,
+    UnsignedInt,
+    Float,
+    Undefined8,
+    Double,
+    Boolean,
+    String,
+    String,
+    Int64,
+    UInt64,
+    IPv4,
+    IPv6,
+)

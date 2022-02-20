@@ -2,8 +2,6 @@
 
 from typing import Final, List
 
-from . import data_types
-
 WLAN_ENCRYPTION_UNKNOWN: Final = 0
 WLAN_ENCRYPTION_NONE: Final = 1
 WLAN_ENCRYPTION_WEP: Final = 2
@@ -308,26 +306,6 @@ MIXER_PARAMS: Final = (
     "mix_therm_mode",
     "mix_off_therm_pump",
     "mix_summer_work",
-)
-
-DATA_TYPES: Final = (
-    data_types.Undefined0,
-    data_types.SignedChar,
-    data_types.Short,
-    data_types.Int,
-    data_types.Byte,
-    data_types.UnsignedShort,
-    data_types.UnsignedInt,
-    data_types.Float,
-    data_types.Undefined8,
-    data_types.Double,
-    data_types.Boolean,
-    data_types.String,
-    data_types.String,
-    data_types.Int64,
-    data_types.UInt64,
-    data_types.IPv4,
-    data_types.IPv6,
 )
 
 REGDATA_SCHEMA: Final = {

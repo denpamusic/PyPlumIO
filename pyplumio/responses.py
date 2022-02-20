@@ -3,8 +3,8 @@
 import struct
 from typing import Any, Dict
 
-from pyplumio import util
-from pyplumio.constants import (
+from . import util
+from .constants import (
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
@@ -13,17 +13,16 @@ from pyplumio.constants import (
     DATA_POWER,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
-    DATA_TYPES,
     DEFAULT_IP,
     DEFAULT_NETMASK,
     REGDATA_SCHEMA,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
-from pyplumio.data_types import Boolean
-from pyplumio.exceptions import VersionError
-from pyplumio.frame import Response
-from pyplumio.structures import (
+from .data_types import DATA_TYPES, Boolean
+from .exceptions import VersionError
+from .frame import Response
+from .structures import (
     alarms,
     device_parameters,
     frame_versions,
@@ -39,7 +38,7 @@ from pyplumio.structures import (
     uid,
     var_string,
 )
-from pyplumio.version import __version__
+from .version import __version__
 
 
 class ProgramVersion(Response):
