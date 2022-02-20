@@ -174,7 +174,7 @@ class DeviceAvailable(Response):
         self._data["wlan"]["quality"] = int(message[offset + 2])
         self._data["wlan"]["status"] = bool(message[offset + 3])
         offset += 8
-        self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)
+        self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)[0]
 
 
 class RegData(Response):
