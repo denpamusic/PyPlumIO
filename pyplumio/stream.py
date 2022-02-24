@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from asyncio import StreamReader, StreamWriter
 from typing import Final, List, Optional
 
@@ -11,6 +12,8 @@ from .factory import FrameFactory
 from .frame import BROADCAST_ADDRESS, ECONET_ADDRESS, HEADER_SIZE, Frame, Request
 
 READER_BUFFER_SIZE: Final = 1000
+READER_TIMEOUT: Final = 5
+WRITER_TIMEOUT: Final = 5
 
 
 class FrameWriter:
@@ -71,12 +74,12 @@ class FrameWriter:
             frame -- Frame instance to add
         """
         self.writer.write(frame.bytes)
-        await self.writer.drain()
+        await asyncio.wait_for(self.writer.drain(), timeout=WRITER_TIMEOUT)
 
     async def close(self) -> None:
         """Closes stream writer."""
         self.writer.close()
-        await self.writer.wait_closed()
+        await asyncio.wait_for(self.writer.wait_closed(), timeout=WRITER_TIMEOUT)
 
 
 class FrameReader:
@@ -99,7 +102,9 @@ class FrameReader:
         """Attempts to read READER_BUFFER_SIZE bytes, find
         valid frame in it and return corresponding Frame instance.
         """
-        buffer = await self.reader.read(READER_BUFFER_SIZE)
+        buffer = await asyncio.wait_for(
+            self.reader.read(READER_BUFFER_SIZE), timeout=READER_TIMEOUT
+        )
 
         if len(buffer) >= HEADER_SIZE:
             header = buffer[0:HEADER_SIZE]

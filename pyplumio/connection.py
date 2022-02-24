@@ -21,7 +21,6 @@ from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
 
-READER_TIMEOUT: Final = 5
 CONNECT_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
 
@@ -133,7 +132,7 @@ class Connection(ABC):
                 return False
 
             try:
-                frame = await asyncio.wait_for(reader.read(), timeout=READER_TIMEOUT)
+                frame = await reader.read()
             except FrameTypeError as e:
                 _LOGGER.info("Type error: %s", e)
             except FrameError as e:
