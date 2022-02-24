@@ -22,6 +22,7 @@ from .stream import FrameReader, FrameWriter
 _LOGGER = logging.getLogger(__name__)
 
 READER_TIMEOUT: Final = 5
+CONNECT_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
 
 
@@ -159,7 +160,9 @@ class Connection(ABC):
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
         while True:
             try:
-                reader, self.writer = await self.connect()
+                reader, self.writer = await asyncio.wait_for(
+                    self.connect(), timeout=CONNECT_TIMEOUT
+                )
                 await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
                 if not await self._read(reader):
                     break
