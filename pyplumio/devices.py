@@ -107,12 +107,14 @@ Mixers:
 
     def _set_boiler_control_parameter(self):
         """Sets boiler control parameter from device data."""
-        if not isinstance(self._parameters, Parameter):
+        if PARAM_BOILER_CONTROL in self._parameters and isinstance(
+            self._parameters[PARAM_BOILER_CONTROL], Parameter
+        ):
+            self._parameters[PARAM_BOILER_CONTROL].value = int(self.is_on)
+        else:
             self._parameters[PARAM_BOILER_CONTROL] = Parameter(
                 name=PARAM_BOILER_CONTROL, value=int(self.is_on), min_=0, max_=1
             )
-        else:
-            self._parameters[PARAM_BOILER_CONTROL].value = int(self.is_on)
 
     @property
     def software(self) -> Optional[str]:
