@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from pyplumio import util
 from pyplumio.exceptions import UninitializedParameterError
@@ -140,5 +140,5 @@ Parameters:
 
     @property
     @abstractmethod
-    def editable_parameters(self) -> Tuple[str, ...]:
-        """Returns tuple of editable parameters."""
+    def editable_parameters(self) -> List[str]:
+        """Returns list of editable parameters."""

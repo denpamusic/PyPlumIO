@@ -1,7 +1,7 @@
 """Contains classes for mixer support."""
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from . import util
 from .constants import MIXER_DATA, MIXER_PARAMS
@@ -76,7 +76,7 @@ Parameters:
                 self._parameters[name] = Parameter(name, value, min_, max_, self._index)
 
     @property
-    def editable_parameters(self) -> Tuple[str, ...]:
+    def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         return MIXER_PARAMS
 

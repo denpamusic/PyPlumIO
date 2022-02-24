@@ -147,7 +147,8 @@ DEVICE_DATA.extend(FLAGS)
 DEVICE_DATA.extend(STATUSES)
 DEVICE_DATA.extend(MODULES)
 
-DEVICE_PARAMS: Final = (
+PARAM_BOILER_CONTROL: Final = "boiler_control"
+DEVICE_PARAMS: Final = [
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -287,11 +288,9 @@ DEVICE_PARAMS: Final = (
     "buffer_histeresis",
     "buffer_load_start",
     "buffer_load_stop",
-)
+]
 
-PARAM_BOILER_CONTROL: Final = "boiler_control"
-
-MIXER_PARAMS: Final = (
+MIXER_PARAMS: Final = [
     "mix_set_temp",
     "min_mix_set_temp",
     "max_mix_set_temp",
@@ -306,7 +305,7 @@ MIXER_PARAMS: Final = (
     "mix_therm_mode",
     "mix_off_therm_pump",
     "mix_summer_work",
-)
+]
 
 REGDATA_SCHEMA: Final = {
     1792: DATA_MODE,

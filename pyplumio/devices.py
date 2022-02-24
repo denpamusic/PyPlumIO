@@ -1,7 +1,7 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
-from typing import Any, Dict, Final, List, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional
 
 from .constants import (
     DATA_FRAMES,
@@ -149,9 +149,12 @@ Mixers:
         return changes
 
     @property
-    def editable_parameters(self) -> Tuple[str, ...]:
+    def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
-        return DEVICE_PARAMS
+        parameters: List[str] = []
+        parameters.extend(DEVICE_PARAMS)
+        parameters.append(PARAM_BOILER_CONTROL)
+        return parameters
 
 
 class EcoMAX(Device):
