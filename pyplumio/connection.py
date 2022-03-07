@@ -159,9 +159,7 @@ class Connection(ABC):
         self._callback_task = asyncio.create_task(self._callback(callback, interval))
         while True:
             try:
-                reader, self.writer = await asyncio.wait_for(
-                    self.connect(), timeout=CONNECT_TIMEOUT
-                )
+                reader, self.writer = await self.connect()
                 await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
                 if not await self._read(reader):
                     break
@@ -294,8 +292,9 @@ class TcpConnection(Connection):
 
     async def connect(self) -> Tuple[FrameReader, FrameWriter]:
         """Initializes connection and returns frame reader and writer."""
-        reader, writer = await asyncio.open_connection(
-            host=self.host, port=self.port, **self.kwargs
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host=self.host, port=self.port, **self.kwargs),
+            timeout=CONNECT_TIMEOUT,
         )
         return FrameReader(reader), FrameWriter(writer)
 
@@ -325,12 +324,15 @@ class SerialConnection(Connection):
 
     async def connect(self) -> Tuple[FrameReader, FrameWriter]:
         """Initializes connection and returns frame reader and writer."""
-        reader, writer = await serial_asyncio.open_serial_connection(
-            url=self.device,
-            baudrate=self.baudrate,
-            bytesize=serial_asyncio.serial.EIGHTBITS,
-            parity=serial_asyncio.serial.PARITY_NONE,
-            stopbits=serial_asyncio.serial.STOPBITS_ONE,
-            **self.kwargs,
+        reader, writer = await asyncio.wait_for(
+            serial_asyncio.open_serial_connection(
+                url=self.device,
+                baudrate=self.baudrate,
+                bytesize=serial_asyncio.serial.EIGHTBITS,
+                parity=serial_asyncio.serial.PARITY_NONE,
+                stopbits=serial_asyncio.serial.STOPBITS_ONE,
+                **self.kwargs,
+            ),
+            timeout=CONNECT_TIMEOUT,
         )
         return FrameReader(reader), FrameWriter(writer)
