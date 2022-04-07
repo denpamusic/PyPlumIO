@@ -1,10 +1,12 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
+import time
 from typing import Any, Dict, Final, List, Optional
 
 from .constants import (
     DATA_FRAMES,
+    DATA_FUEL_CONSUMPTION,
     DATA_MODE,
     DEVICE_DATA,
     DEVICE_PARAMS,
@@ -66,6 +68,8 @@ class Device(BaseDevice):
         self.__dict__["password"] = None
         self.__dict__["schema"] = []
         super().__init__(data, parameters)
+        self._fuel_burned = 0.0
+        self._fuel_burned_timestamp = time.time()
 
     def __str__(self) -> str:
         """Converts device instance to a string."""
@@ -91,9 +95,13 @@ Mixers:
             if name in DEVICE_DATA:
                 self._data[name] = value
 
-        self._set_boiler_control_parameter()
+        if DATA_FUEL_CONSUMPTION in data:
+            self._set_fuel_burned(data[DATA_FUEL_CONSUMPTION])
+
         if DATA_FRAMES in data:
             self.bucket.fill(data[DATA_FRAMES])
+
+        self._set_boiler_control_parameter()
 
     def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
@@ -115,6 +123,24 @@ Mixers:
             self._parameters[PARAM_BOILER_CONTROL] = Parameter(
                 name=PARAM_BOILER_CONTROL, value=int(self.is_on), min_=0, max_=1
             )
+
+    def _set_fuel_burned(self, fuel_consumption: float) -> None:
+        """Sets amount of fuel burned since last message.
+
+        Keyword arguments:
+            fuel_consumption -- fuel flow in kg/h
+        """
+        current_timestamp = time.time()
+        seconds_passed = current_timestamp - self._fuel_burned_timestamp
+        self._fuel_burned += (fuel_consumption / 3600) * seconds_passed
+        self._fuel_burned_timestamp = current_timestamp
+
+    @property
+    def fuel_burned(self) -> float:
+        """Returns amount of fuel burned and resets counter."""
+        fuel_burned = self._fuel_burned
+        self._fuel_burned = 0
+        return fuel_burned
 
     @property
     def software(self) -> Optional[str]:
