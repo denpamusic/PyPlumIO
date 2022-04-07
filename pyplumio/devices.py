@@ -50,7 +50,12 @@ class Device(BaseDevice):
         uid -- device uid string
         password -- device service password
         schema -- device regdata schema
+        _fuel_burned -- amount of fuel burned in kilograms
+        _fuel_burned_timestamp -- timestamp of burned fuel value update
     """
+
+    _fuel_burned: float = 0.0
+    _fuel_burned_timestamp: float = 0.0
 
     def __init__(
         self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
@@ -67,9 +72,9 @@ class Device(BaseDevice):
         self.__dict__["uid"] = None
         self.__dict__["password"] = None
         self.__dict__["schema"] = []
+        self.__dict__["_fuel_burned"] = 0.0
+        self.__dict__["_fuel_burned_timestamp"] = time.time()
         super().__init__(data, parameters)
-        self._fuel_burned = 0.0
-        self._fuel_burned_timestamp = time.time()
 
     def __str__(self) -> str:
         """Converts device instance to a string."""
