@@ -5,6 +5,7 @@ repos:
     rev: 21.12b0
     hooks:
         - id: black
+          additional_dependencies: ['click==8.0.4']
   - repo: https://github.com/codespell-project/codespell
     rev: v2.0.0
     hooks:
