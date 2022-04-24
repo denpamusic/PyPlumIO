@@ -20,6 +20,7 @@ def from_bytes(
 
     for module in MODULES:
         if message[offset] == 0xFF:
+            data[module] = None
             offset += 1
             continue
 

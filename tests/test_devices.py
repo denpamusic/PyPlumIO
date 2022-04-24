@@ -12,6 +12,11 @@ from pyplumio.constants import (
     DATA_POWER,
     DATA_WATER_HEATER_TARGET,
     MODULE_A,
+    MODULE_B,
+    MODULE_C,
+    MODULE_ECOSTER,
+    MODULE_LAMBDA,
+    MODULE_PANEL,
     PARAM_BOILER_CONTROL,
 )
 from pyplumio.devices import (
@@ -45,7 +50,12 @@ _test_data = {
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
-    MODULE_A: "1.1.15",
+    MODULE_A: None,
+    MODULE_B: None,
+    MODULE_C: None,
+    MODULE_LAMBDA: None,
+    MODULE_ECOSTER: None,
+    MODULE_PANEL: None,
     "heating_temp": 60,
     "exhaust_temp": 60,
     "outside_temp": 30,
@@ -69,6 +79,13 @@ def ecomax() -> EcoMAX:
 @pytest.fixture
 def ecomax_with_data() -> EcoMAX:
     return EcoMAX(data=_test_data, parameters=_test_parameters)
+
+
+@pytest.fixture
+def ecomax_with_version() -> EcoMAX:
+    ecomax = EcoMAX(data=_test_data, parameters=_test_parameters)
+    ecomax.set_data({MODULE_A: "1.1.15"})
+    return ecomax
 
 
 @pytest.fixture
@@ -97,6 +114,10 @@ def test_get_mode(ecomax: EcoMAX):
     data[DATA_MODE] = 69
     ecomax.set_data(data)
     assert ecomax.mode == "Unknown"
+
+
+def test_get_mode_unavailable(ecomax: EcoMAX):
+    assert ecomax.mode is None
 
 
 def test_get_parameters(ecomax_with_data: EcoMAX):
@@ -139,12 +160,16 @@ def test_changed_parameters(ecomax_with_data: EcoMAX):
     )
 
 
-def test_software(ecomax_with_data: EcoMAX):
-    assert ecomax_with_data.software == "1.1.15"
+def test_software(ecomax_with_version: EcoMAX):
+    assert ecomax_with_version.software == "1.1.15"
 
 
-def test_software_unknown(ecomax: EcoMAX):
+def test_software_not_available(ecomax: EcoMAX):
     assert ecomax.software is None
+
+
+def test_software_is_unknown(ecomax_with_data: EcoMAX):
+    assert ecomax_with_data.software == "Unknown"
 
 
 def test_is_on(ecomax_with_data: EcoMAX):
@@ -155,8 +180,8 @@ def test_is_on_unknown(ecomax: EcoMAX):
     assert not ecomax.is_on
 
 
-def test_str(ecomax_with_data: EcoMAX):
-    assert "Software Ver.:  1.1.15" in str(ecomax_with_data)
+def test_str(ecomax_with_version: EcoMAX):
+    assert "Software Ver.:  1.1.15" in str(ecomax_with_version)
 
 
 def test_repr(ecomax: EcoMAX):

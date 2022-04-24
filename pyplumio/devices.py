@@ -107,14 +107,6 @@ Mixers:
                 self._parameters[name] = Parameter(name, *parameter)
 
     @property
-    def software(self) -> Optional[str]:
-        """Returns software version."""
-        if MODULE_A in self._data:
-            return self._data[MODULE_A]
-
-        return None
-
-    @property
     def is_on(self) -> bool:
         """Returns current state."""
         if DATA_MODE in self._data:
@@ -123,12 +115,26 @@ Mixers:
         return False
 
     @property
-    def mode(self) -> str:
-        """Returns current mode."""
-        if DATA_MODE in self._data and self._data[DATA_MODE] < len(MODES):
-            return MODES[self._data[DATA_MODE]]
+    def software(self) -> Optional[str]:
+        """Returns software version."""
+        if MODULE_A in self._data:
+            if self._data[MODULE_A] is not None:
+                return self._data[MODULE_A]
 
-        return "Unknown"
+            return "Unknown"
+
+        return None
+
+    @property
+    def mode(self) -> Optional[str]:
+        """Returns current mode."""
+        if DATA_MODE in self._data:
+            if self._data[DATA_MODE] < len(MODES):
+                return MODES[self._data[DATA_MODE]]
+
+            return "Unknown"
+
+        return None
 
     @property
     def changes(self) -> List[Request]:
