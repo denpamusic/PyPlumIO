@@ -263,7 +263,9 @@ class Connection(ABC):
         wlan["status"] = True
         self._net["wlan"] = wlan
 
-    def on_closed(self, callback: Callable[[Connection], Awaitable[Any]]):
+    def on_closed(
+        self, callback: Optional[Callable[[Connection], Awaitable[Any]]] = None
+    ) -> None:
         """Sets callback to be called when connection is closed."""
         self._callback_closed = callback
 
