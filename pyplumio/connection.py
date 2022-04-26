@@ -35,6 +35,7 @@ class Connection(ABC):
         _net -- network information for device available message
         _devices -- collection of all available devices
         _callback_task -- callback task reference
+        _callback_closed -- callback to call when connection is closed
     """
 
     def __init__(self, **kwargs):
@@ -49,6 +50,7 @@ class Connection(ABC):
         self._net = {}
         self._devices = DevicesCollection()
         self._callback_task = None
+        self._callback_closed = None
 
     def __enter__(self):
         """Provides entry point for context manager."""
@@ -129,8 +131,7 @@ class Connection(ABC):
         while True:
             if self.closing:
                 await self.writer.close()
-                self.writer = None
-                self.closing = False
+                await self._close()
                 return False
 
             try:
@@ -181,8 +182,16 @@ class Connection(ABC):
                     "Connection to device failed, retrying in %i seconds...",
                     RECONNECT_TIMEOUT,
                 )
-                self._force_close()
+                await self._close()
                 await asyncio.sleep(RECONNECT_TIMEOUT)
+
+    async def _close(self) -> None:
+        """Declares connection as closed."""
+        await self.async_close()
+        self.writer = None
+        self.closing = False
+        if self._callback_closed is not None:
+            await self._callback_closed(self)
 
     def run(
         self,
@@ -254,18 +263,21 @@ class Connection(ABC):
         wlan["status"] = True
         self._net["wlan"] = wlan
 
-    def _force_close(self) -> None:
-        """Declares connection as closed."""
-        self.close()
-        self.writer = None
-        self.closing = False
+    def on_closed(self, callback: Callable[[Connection], Awaitable[Any]]):
+        """Sets callback to be called when connection is closed."""
+        self._callback_closed = callback
 
     def close(self) -> None:
-        """Closes opened connection."""
+        """Closes connection."""
         if not self.closing:
             self.closing = True
             if self._callback_task is not None:
                 self._callback_task.cancel()
+
+    async def async_close(self) -> None:
+        """Closes connection asynchronously."""
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, self.close)
 
     @property
     def closed(self) -> bool:
