@@ -134,7 +134,7 @@ class Connection(ABC):
             try:
                 frame = await reader.read()
             except FrameTypeError as e:
-                _LOGGER.info("Type error: %s", e)
+                _LOGGER.debug("Type error: %s", e)
             except FrameError as e:
                 _LOGGER.warning("Frame error: %s", e)
             else:
