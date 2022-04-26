@@ -70,8 +70,10 @@ class Connection(ABC):
             interval -- update interval in seconds
         """
         while True:
-            if not self.closed:
+            try:
                 await callback(self._devices, self)
+            except Exception:  # pylint: disable=broad-except
+                pass
 
             await asyncio.sleep(interval)
 
@@ -156,11 +158,13 @@ class Connection(ABC):
             interval -- user-defined update interval in seconds
             reconnect_on_failure -- should we try reconnecting on failure
         """
-        self._callback_task = asyncio.create_task(self._callback(callback, interval))
         while True:
             try:
                 reader, self.writer = await self.connect()
                 await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
+                self._callback_task = asyncio.create_task(
+                    self._callback(callback, interval)
+                )
                 if not await self._read(reader):
                     break
             except (
@@ -177,7 +181,7 @@ class Connection(ABC):
                     "Connection to device failed, retrying in %i seconds...",
                     RECONNECT_TIMEOUT,
                 )
-                self.writer = None
+                self._force_close()
                 await asyncio.sleep(RECONNECT_TIMEOUT)
 
     def run(
@@ -249,6 +253,12 @@ class Connection(ABC):
         wlan["gateway"] = gateway
         wlan["status"] = True
         self._net["wlan"] = wlan
+
+    def _force_close(self) -> None:
+        """Declares connection as closed."""
+        self.close()
+        self.writer = None
+        self.closing = False
 
     def close(self) -> None:
         """Closes opened connection."""
