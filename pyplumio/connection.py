@@ -266,7 +266,11 @@ class Connection(ABC):
     def on_closed(
         self, callback: Optional[Callable[[Connection], Awaitable[Any]]] = None
     ) -> None:
-        """Sets callback to be called when connection is closed."""
+        """Sets callback to be called when connection is closed.
+
+        Keyword arguments:
+            callback -- user-defined callback method
+        """
         self._callback_closed = callback
 
     def close(self) -> None:
