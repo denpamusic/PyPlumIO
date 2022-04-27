@@ -15,7 +15,7 @@ import serial_asyncio
 from . import requests, responses
 from .constants import DATA_MIXERS, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
 from .devices import ECOMAX_ADDRESS, DevicesCollection
-from .exceptions import FrameError, FrameTypeError
+from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frame import Frame
 from .stream import FrameReader, FrameWriter
 
@@ -174,9 +174,9 @@ class Connection(ABC):
                 ConnectionResetError,
                 OSError,
                 SerialException,
-            ) as e:
+            ) as connection_failure:
                 if not reconnect_on_failure:
-                    raise e
+                    raise ConnectionFailedError from connection_failure
 
                 _LOGGER.error(
                     "Connection to device failed, retrying in %i seconds...",

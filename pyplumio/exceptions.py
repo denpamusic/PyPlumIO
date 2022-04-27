@@ -5,6 +5,10 @@ class PyPlumIOError(Exception):
     """Base PyPlumIO error class."""
 
 
+class ConnectionFailedError(PyPlumIOError):
+    """Raised on connection failure."""
+
+
 class UninitializedParameterError(PyPlumIOError):
     """Raised on uninitialized device parameter."""
 
