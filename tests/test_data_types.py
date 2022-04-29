@@ -150,13 +150,13 @@ def test_ipv6():
 
 
 def test_string():
-    type = data_types.String("test\x00")
+    type = data_types.String(b"test\x00")
     assert type.value == "test"
     assert type.size == 5
 
 
 def test_string_unpack():
     type = data_types.String()
-    type.unpack("test\x00")
+    type.unpack(b"test\x00")
     assert type.value == "test"
     assert type.size == 5
