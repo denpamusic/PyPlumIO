@@ -304,6 +304,15 @@ class String(Type):
         """Creates variable length type instance."""
         super().__init__(data, size=-1)
 
+    def unpack(self, data):
+        """Unpacks data to a given type.
+
+        Keyword arguments:
+            data -- data to unpack
+        """
+        self._data = data
+        super().unpack(self._data)
+
     @property
     def value(self) -> str:
         """Returns data value."""
