@@ -15,6 +15,8 @@ class Type(ABC):
         _data -- type bytes
     """
 
+    _data = bytearray()
+
     def __init__(self, data=None, size: int = None):
         """Creates data type instance.
 
@@ -318,9 +320,10 @@ class String(Type):
         """Returns data value."""
         value = ""
         offset = 0
-        while not self._data[offset] == "\x00":
-            value += self._data[offset]
-            offset += 1
+        if offset in self._data:
+            while not self._data[offset] == 0:
+                value += chr(self._data[offset])
+                offset += 1
 
         return value
 
