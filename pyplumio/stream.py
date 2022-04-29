@@ -56,10 +56,9 @@ class FrameWriter:
         """Collects changed parameters and adds them to write queue.
 
         Keyword arguments:
-            parameters -- list of device parameters
+            requests -- list of changed parameters
         """
-        for request in requests:
-            self.queue(request)
+        self.queue(*requests)
 
     async def process_queue(self) -> None:
         """Processes top-most write request from the stack."""
