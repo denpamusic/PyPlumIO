@@ -50,7 +50,7 @@ class FrameWriter:
 
     def is_empty(self) -> bool:
         """Checks if write queue is empty."""
-        return len(self._queue) == 0
+        return bool(self._queue)
 
     def collect(self, requests: List[Request]) -> None:
         """Collects changed parameters and adds them to write queue.
