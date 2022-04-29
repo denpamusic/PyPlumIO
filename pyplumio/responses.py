@@ -215,6 +215,10 @@ class RegData(Response):
         boolean_index = 0
         for param in self.schema:
             param_id, param_type = param
+            if not isinstance(param_type, Boolean) and boolean_index > 0:
+                offset += 1
+                boolean_index = 0
+
             param_type.unpack(message[offset:])
             if isinstance(param_type, Boolean):
                 boolean_index = param_type.index(boolean_index)
