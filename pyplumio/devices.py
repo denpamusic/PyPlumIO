@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 import time
-from typing import Any, Dict, Final, List, Optional, Type
+from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
 from . import requests
 from .constants import (
@@ -158,8 +158,8 @@ Mixers:
 
     @property
     @abstractmethod
-    def required_frames(self) -> List[Type[Request]]:
-        """Returns list of required frames."""
+    def required_frames(self) -> Tuple[Type[Request], ...]:
+        """Returns tuple of required frames."""
 
 
 class EcoMAX(Device):
@@ -230,14 +230,14 @@ class EcoMAX(Device):
         return fuel_burned
 
     @property
-    def required_frames(self) -> List[Type[Request]]:
-        """Returns list of required frames."""
-        return [
+    def required_frames(self) -> Tuple[Type[Request], ...]:
+        """Returns tuple of required frames."""
+        return (
             requests.UID,
             requests.Password,
             requests.Parameters,
             requests.MixerParameters,
-        ]
+        )
 
 
 class EcoSTER(Device):

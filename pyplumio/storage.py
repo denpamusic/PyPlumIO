@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Final, List, Type
+from typing import Dict, Final, List, Tuple, Type
 
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
@@ -23,7 +23,7 @@ class FrameBucket:
         self,
         address: int = BROADCAST_ADDRESS,
         versions: Dict[int, int] = None,
-        required: List[Type[Request]] = None,
+        required: Tuple[Type[Request], ...] = None,
     ):
         """Created FrameBucket instance.
 
