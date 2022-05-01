@@ -97,7 +97,6 @@ class Connection(ABC):
         elif isinstance(frame, responses.UID):
             device.uid = frame.data["UID"]
             device.product = frame.data["reg_name"]
-            writer.queue(requests.Password(recipient=frame.sender))
 
         elif isinstance(frame, responses.Password):
             device.password = frame.data

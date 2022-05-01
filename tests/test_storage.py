@@ -1,7 +1,7 @@
 import pytest
 
 from pyplumio import requests, responses
-from pyplumio.storage import FrameBucket
+from pyplumio.storage import DEFAULT_VERSION, FrameBucket
 
 
 @pytest.fixture()
@@ -24,8 +24,14 @@ def test_fill_bucket_in_init():
     assert frame_bucket.versions[requests.UID.type_] == 1
 
 
+def test_fill_bucket_required():
+    frame_bucket = FrameBucket(required=[requests.UID])
+    assert frame_bucket.versions[requests.UID.type_] == DEFAULT_VERSION
+
+
 def test_repr(frame_bucket: FrameBucket):
     assert """FrameBucket(
+    address: 0,
     versions: {}
 )
 """ == repr(

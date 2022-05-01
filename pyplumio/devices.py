@@ -1,9 +1,11 @@
 """Contains classes for supported devices."""
 from __future__ import annotations
 
+from abc import abstractmethod
 import time
-from typing import Any, Dict, Final, List, Optional
+from typing import Any, Dict, Final, List, Optional, Type
 
+from . import requests
 from .constants import (
     DATA_FRAMES,
     DATA_FUEL_CONSUMPTION,
@@ -61,7 +63,9 @@ class Device(BaseDevice):
             data -- device data
             parameters -- editable parameters
         """
-        self.__dict__["bucket"] = FrameBucket()
+        self.__dict__["bucket"] = FrameBucket(
+            address=self.address, required=self.required_frames
+        )
         self.__dict__["mixers"] = MixersCollection(address=self.address)
         self.__dict__["product"] = None
         self.__dict__["uid"] = None
@@ -152,6 +156,11 @@ Mixers:
         parameters.append(PARAM_BOILER_CONTROL)
         return parameters
 
+    @property
+    @abstractmethod
+    def required_frames(self) -> List[Type[Request]]:
+        """Returns list of required frames."""
+
 
 class EcoMAX(Device):
     """ecoMAX device representation.
@@ -219,6 +228,16 @@ class EcoMAX(Device):
         fuel_burned = self._fuel_burned
         self._fuel_burned = 0
         return fuel_burned
+
+    @property
+    def required_frames(self) -> List[Type[Request]]:
+        """Returns list of required frames."""
+        return [
+            requests.UID,
+            requests.Password,
+            requests.Parameters,
+            requests.MixerParameters,
+        ]
 
 
 class EcoSTER(Device):
