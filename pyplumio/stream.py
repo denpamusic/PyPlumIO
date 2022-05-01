@@ -45,12 +45,24 @@ class FrameWriter:
             frame -- Frame instance to add
         """
         for frame in frames:
-            if isinstance(frame, Frame):
+            if isinstance(frame, Frame) and not self.has(frame):
                 self._queue.append(frame)
 
     def is_empty(self) -> bool:
         """Checks if write queue is empty."""
         return bool(self._queue)
+
+    def has(self, request: Request) -> bool:
+        """Checks if write queue contains specific request.
+
+        Keyword arguments:
+            request - request to look for
+        """
+        for frame in self._queue:
+            if frame.type_ == request.type_:
+                return True
+
+        return False
 
     def collect(self, requests: List[Request]) -> None:
         """Collects changed parameters and adds them to write queue.
