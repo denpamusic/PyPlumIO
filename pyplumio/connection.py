@@ -113,7 +113,7 @@ class Connection(ABC):
         elif isinstance(frame, responses.MixerParameters):
             device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
-        elif isinstance(frame, responses.DataStructure):
+        elif isinstance(frame, responses.DataSchema):
             device.schema = frame.data
 
         elif isinstance(frame, requests.CheckDevice):

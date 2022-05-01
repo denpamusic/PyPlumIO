@@ -89,7 +89,7 @@ class MixerParameters(Request):
     type_: int = 0x32
 
 
-class DataStructure(Request):
+class DataSchema(Request):
     """Requests current regulator data structure.
 
     Attributes:

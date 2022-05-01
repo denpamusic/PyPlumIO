@@ -365,7 +365,7 @@ class MixerParameters(Response):
         self._data, _ = mixer_parameter.from_bytes(message)
 
 
-class DataStructure(Response):
+class DataSchema(Response):
     """Contains device data structure.
 
     Attributes:
@@ -375,7 +375,7 @@ class DataStructure(Response):
     type_: int = 0xD5
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses DataStructure message into usable data.
+        """Parses DataSchema message into usable data.
 
         Keywords arguments:
         message -- message to parse

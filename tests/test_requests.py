@@ -14,7 +14,7 @@ def test_request_type():
         requests.Password,
         requests.Parameters,
         requests.MixerParameters,
-        requests.DataStructure,
+        requests.DataSchema,
         requests.StartMaster,
         requests.StopMaster,
     ]:

@@ -13,7 +13,7 @@ def test_responses_type():
         responses.Password,
         responses.Parameters,
         responses.MixerParameters,
-        responses.DataStructure,
+        responses.DataSchema,
     ]:
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert isinstance(frame, response)
