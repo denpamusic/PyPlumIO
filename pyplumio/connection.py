@@ -74,8 +74,8 @@ class Connection(ABC):
         while True:
             try:
                 await callback(self._devices, self)
-            except Exception:  # pylint: disable=broad-except
-                pass
+            except Exception as e:  # pylint: disable=broad-except
+                _LOGGER.error("Callback error: %s", e)
 
             await asyncio.sleep(interval)
 
