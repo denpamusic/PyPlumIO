@@ -153,7 +153,6 @@ Mixers:
         """Returns list of editable parameters."""
         parameters: List[str] = []
         parameters.extend(DEVICE_PARAMS)
-        parameters.append(PARAM_BOILER_CONTROL)
         return parameters
 
     @property
@@ -238,6 +237,13 @@ class EcoMAX(Device):
             requests.Parameters,
             requests.MixerParameters,
         )
+
+    @property
+    def editable_parameters(self) -> List[str]:
+        """Returns list of editable parameters."""
+        parameters = super().editable_parameters
+        parameters.append(PARAM_BOILER_CONTROL)
+        return parameters
 
 
 class EcoSTER(Device):
