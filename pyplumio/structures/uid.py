@@ -2,8 +2,6 @@
 
 from typing import Final, List, Tuple
 
-from pyplumio import util
-
 UID_BASE: Final = 32
 UID_BASE_BITS: Final = 5
 UID_CHAR_BITS: Final = 8
@@ -20,7 +18,7 @@ def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
     offset += 1
     uid = message[offset : uid_length + offset].decode()
     offset += uid_length
-    input_ = uid + util.uid_stamp(uid)
+    input_ = uid + uid_stamp(uid)
     input_length = len(input_) * UID_CHAR_BITS
     output: List[str] = []
     output_length = input_length // UID_BASE_BITS
@@ -39,6 +37,39 @@ def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
         char_code = conv_int % UID_BASE
         conv_int //= UID_BASE
         conv_size -= UID_BASE_BITS
-        output.insert(0, util.uid_5bits_to_char(char_code))
+        output.insert(0, uid_5bits_to_char(char_code))
 
     return "".join(output), offset
+
+
+def uid_stamp(message: str) -> str:
+    """Calculates UID stamp.
+
+    Keyword arguments:
+        message -- uid message
+    """
+    crc_ = 0xA3A3
+    for byte in message:
+        int_ = ord(byte)
+        crc_ = crc_ ^ int_
+        for _ in range(8):
+            crc_ = (crc_ >> 1) ^ 0xA001 if crc_ & 1 else crc_ >> 1
+
+    return chr(crc_ % 256) + chr((crc_ // 256) % 256)
+
+
+def uid_5bits_to_char(number: int) -> str:
+    """Converts 5 bits from UID to ASCII character.
+
+    Keyword arguments:
+        number -- byte for conversion
+    """
+    if number < 0 or number >= 32:
+        return "#"
+
+    if number < 10:
+        return chr(ord("0") + number)
+
+    char = chr(ord("A") + number - 10)
+
+    return "Z" if char == "O" else char

@@ -133,39 +133,6 @@ def check_parameter(data: bytearray) -> bool:
     return False
 
 
-def uid_stamp(message: str) -> str:
-    """Calculates UID stamp.
-
-    Keyword arguments:
-        message -- uid message
-    """
-    crc_ = 0xA3A3
-    for byte in message:
-        int_ = ord(byte)
-        crc_ = crc_ ^ int_
-        for _ in range(8):
-            crc_ = (crc_ >> 1) ^ 0xA001 if crc_ & 1 else crc_ >> 1
-
-    return chr(crc_ % 256) + chr((crc_ // 256) % 256)
-
-
-def uid_5bits_to_char(number: int) -> str:
-    """Converts 5 bits from UID to ASCII character.
-
-    Keyword arguments:
-        number -- byte for conversion
-    """
-    if number < 0 or number >= 32:
-        return "#"
-
-    if number < 10:
-        return chr(ord("0") + number)
-
-    char = chr(ord("A") + number - 10)
-
-    return "Z" if char == "O" else char
-
-
 def make_list(data: Dict[Any, Any], include_keys: bool = True) -> str:
     """Converts dictionary to string.
 
