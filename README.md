@@ -5,6 +5,7 @@
 [![PyPlumIO CI](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml/badge.svg)](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/9f275fbc50fe9082a909/maintainability)](https://codeclimate.com/github/denpamusic/PyPlumIO/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/9f275fbc50fe9082a909/test_coverage)](https://codeclimate.com/github/denpamusic/PyPlumIO/test_coverage)
+[![stability-beta](https://img.shields.io/badge/stability-beta-33bbff.svg)](https://github.com/mkenney/software-guides/blob/master/STABILITY-BADGES.md#beta)
 
 ## Overview
 This package aims to provide complete and easy to use solution for communicating with climate devices by [Plum Sp. z o.o.](https://www.plum.pl/)
@@ -12,8 +13,6 @@ This package aims to provide complete and easy to use solution for communicating
 Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to display on regulator panel.
 
 Devices can be connected directly via RS485 to USB converter or through network by using serial port server (for example [Elfin EW11](https://aliexpress.ru/item/4001104348624.html))
-
-This project is considered to be in __Alpha__ state and there __might be__ breaking changes down the road and a lot of bugs, please use with care.
 
 ## Table of contents
 - [Usage](#usage)
