@@ -132,9 +132,9 @@ def test_connection_run(tcp_connection: TcpConnection) -> None:
     """Test connection run."""
     callback = AsyncMock()
 
-    with patch("pyplumio.connection.TcpConnection.task") as mock_task, patch(
-        "sys.platform", "win32"
-    ), patch("asyncio.WindowsSelectorEventLoopPolicy", return_value=1), patch(
+    with patch("sys.platform", "win32"), patch(
+        "asyncio.WindowsSelectorEventLoopPolicy", create=True, return_value=1
+    ), patch("pyplumio.connection.TcpConnection.task") as mock_task, patch(
         "asyncio.set_event_loop_policy",
     ) as mock_set_policy, patch(
         "sys.exit"
