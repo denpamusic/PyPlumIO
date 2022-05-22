@@ -91,6 +91,14 @@ class Frame(ABC):
         """Returns frame length when calling len() on class instance."""
         return self.length
 
+    def __eq__(self, other) -> bool:
+        """Checks if two frames are equal.
+
+        Keyword arguments:
+            other -- frame to compare to
+        """
+        return repr(self) == repr(other)
+
     @property
     def data(self):
         """Gets data parsed from frame."""
