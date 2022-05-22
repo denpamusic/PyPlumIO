@@ -1,3 +1,5 @@
+"""Test PyPlumIO device parameters structure."""
+
 from pyplumio.constants import DEVICE_PARAMS
 from pyplumio.structures import device_parameters
 
@@ -23,7 +25,9 @@ _message = bytearray(
         0xFA,
     ]
 )
+
 _message_empty = bytearray([0x0, 0x0, 0x0])
+
 _data = {
     DEVICE_PARAMS[0]: (80, 61, 100),
     DEVICE_PARAMS[1]: (60, 41, 76),
@@ -32,13 +36,15 @@ _data = {
 }
 
 
-def test_from_bytes():
+def test_from_bytes() -> None:
+    """Test conversion from bytes."""
     data, offset = device_parameters.from_bytes(_message)
     assert data == _data
     assert offset == 18
 
 
-def test_from_bytes_with_no_params():
+def test_from_bytes_with_no_params() -> None:
+    """Test conversion from bytes with no data."""
     data, offset = device_parameters.from_bytes(_message_empty)
     assert not data
     assert offset == 3

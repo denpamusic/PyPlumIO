@@ -1,3 +1,5 @@
+"""Test PyPlumIO temperatures structure."""
+
 from pyplumio.constants import TEMPERATURES
 from pyplumio.structures import temperatures
 
@@ -41,6 +43,7 @@ _message = bytearray(
         0xFF,
     ]
 )
+
 _data = {
     TEMPERATURES[0]: 62.08363342285156,
     TEMPERATURES[1]: 25.888458251953125,
@@ -50,7 +53,8 @@ _data = {
 }
 
 
-def test_from_bytes():
+def test_from_bytes() -> None:
+    """Test conversion from bytes."""
     data, offset = temperatures.from_bytes(_message)
     assert data == _data
     assert offset == 36

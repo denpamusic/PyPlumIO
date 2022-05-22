@@ -1,3 +1,5 @@
+"""Test PyPlumIO statuses structure."""
+
 from pyplumio.constants import (
     DATA_HEATING_STATUS,
     DATA_HEATING_TARGET,
@@ -7,6 +9,7 @@ from pyplumio.constants import (
 from pyplumio.structures import statuses
 
 _message = bytearray([0x32, 0x0, 0x33, 0x0])
+
 _data = {
     DATA_HEATING_TARGET: 50,
     DATA_HEATING_STATUS: 0,
@@ -15,7 +18,8 @@ _data = {
 }
 
 
-def test_from_bytes():
+def test_from_bytes() -> None:
+    """Test conversion from bytes."""
     data, offset = statuses.from_bytes(_message)
     assert data == _data
     assert offset == 4

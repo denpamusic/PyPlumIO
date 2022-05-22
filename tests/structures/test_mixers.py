@@ -1,3 +1,5 @@
+"""Test PyPlumIO mixers structure."""
+
 from pyplumio.constants import DATA_MIXERS, MIXER_PUMP, MIXER_TARGET, MIXER_TEMP
 from pyplumio.structures import mixers
 
@@ -30,7 +32,8 @@ _data = {
 }
 
 
-def test_from_bytes():
+def test_from_bytes() -> None:
+    """Test conversion from bytes."""
     data, offset = mixers.from_bytes(_message)
     assert data == _data
     assert offset == 17

@@ -1,3 +1,8 @@
+"""Test PyPlumIO base frame."""
+
+from typing import Tuple
+from unittest.mock import patch
+
 import pytest
 
 from pyplumio import requests, responses
@@ -12,32 +17,40 @@ from pyplumio.frame import (
 )
 
 
-@pytest.fixture
-def request_():
+@pytest.fixture(name="request_")
+def fixture_request_() -> Request:
+    """Return program version request."""
     return Request(type_=requests.ProgramVersion.type_)
 
 
-@pytest.fixture
-def response():
+@pytest.fixture(name="response")
+def fixture_response() -> Response:
+    """Return program version response."""
     return Response(type_=responses.ProgramVersion.type_)
 
 
-@pytest.fixture
-def frames(request_, response):
-    return [request_, response]
+@pytest.fixture(name="frames")
+def fixture_frames(request_: Request, response: Response) -> Tuple[Request, Response]:
+    """Return request and response frames as a tuple."""
+    return (request_, response)
 
 
-@pytest.fixture
-def types():
-    return [requests.ProgramVersion.type_, responses.ProgramVersion.type_]
+@pytest.fixture(name="types")
+def fixture_types() -> Tuple[int, int]:
+    """Return request and response types as a tuple."""
+    return (requests.ProgramVersion.type_, responses.ProgramVersion.type_)
 
 
-def test_passing_frame_type(frames, types):
+def test_passing_frame_type(
+    frames: Tuple[Request, Response], types: Tuple[int, int]
+) -> None:
+    """Test getting frame type."""
     for index, frame in enumerate(frames):
         assert frame.type_ == types[index]
 
 
-def test_default_params(frames):
+def test_default_params(frames: Tuple[Request, Response]) -> None:
+    """Test frame attributes."""
     for frame in frames:
         assert frame.recipient == BROADCAST_ADDRESS
         assert frame.message == b""
@@ -46,34 +59,51 @@ def test_default_params(frames):
         assert frame.econet_version == ECONET_VERSION
 
 
-def test_frame_length_without_data(frames):
+def test_frame_length_without_data(frames: Tuple[Request, Response]) -> None:
+    """Test frame length without any data."""
     for frame in frames:
         assert frame.length == HEADER_SIZE + 3
         assert len(frame) == HEADER_SIZE + 3
 
 
-def test_get_header(frames):
+def test_frame_get_data_without_data(frames: Tuple[Request, Response]) -> None:
+    """Test that parse_message called when frame data is not set."""
+    for frame in frames:
+        with patch(
+            "pyplumio.frame." + frame.__class__.__name__ + ".parse_message"
+        ) as mock_parse_message:
+            assert frame.data is None
+
+        mock_parse_message.assert_called_once()
+
+
+def test_get_header(frames: Tuple[Request, Response]) -> None:
+    """Test getting frame header as bytes."""
     for frame in frames:
         assert frame.header == b"\x68\x0a\x00\x00\x56\x30\x05"
 
 
-def test_base_class_with_message():
-    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
+def test_base_class_with_message() -> None:
+    """Test base request class with message."""
+    frame = Request(type_=requests.ProgramVersion.type_, message=bytearray(b"\xB0\x0B"))
     assert frame.message == b"\xB0\x0B"
 
 
-def test_bytes():
-    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
+def test_to_bytes() -> None:
+    """Test conversion to bytes."""
+    frame = Request(type_=requests.ProgramVersion.type_, message=bytearray(b"\xB0\x0B"))
     assert frame.bytes == b"\x68\x0C\x00\x00\x56\x30\x05\x40\xB0\x0B\xFC\x16"
 
 
-def test_hex():
-    frame = Request(type_=requests.ProgramVersion.type_, message=b"\xB0\x0B")
+def test_to_hex() -> None:
+    """Test conversion to hex."""
+    frame = Request(type_=requests.ProgramVersion.type_, message=bytearray(b"\xB0\x0B"))
     hex = ["68", "0C", "00", "00", "56", "30", "05", "40", "B0", "0B", "FC", "16"]
     assert frame.hex == hex
 
 
-def test_request_repr(request_):
+def test_request_repr(request_: Request) -> None:
+    """Test serialiazible request representation."""
     repr_ = """Request(
     type = 64,
     recipient = 0,
@@ -87,7 +117,8 @@ def test_request_repr(request_):
     assert repr(request_) == repr_
 
 
-def test_response_repr(response):
+def test_response_repr(response: Response) -> None:
+    """Test serialiazible response representation."""
     repr_ = """Response(
     type = 192,
     recipient = 0,
