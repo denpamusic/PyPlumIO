@@ -285,6 +285,11 @@ class Connection(ABC):
         await loop.run_in_executor(None, self.close)
 
     @property
+    def devices(self) -> DevicesCollection:
+        """Returns collection of devices."""
+        return self._devices
+
+    @property
     def closed(self) -> bool:
         """Returns connection state."""
         return self.writer is None
