@@ -186,9 +186,11 @@ class Connection(ABC):
 
     async def _close(self) -> None:
         """Declares connection as closed."""
-        await self.async_close()
         self.writer = None
         self.closing = False
+        if self._callback_task is not None:
+            self._callback_task.cancel()
+
         if self._callback_closed is not None:
             await self._callback_closed(self)
 
@@ -276,8 +278,6 @@ class Connection(ABC):
         """Closes connection."""
         if not self.closing:
             self.closing = True
-            if self._callback_task is not None:
-                self._callback_task.cancel()
 
     async def async_close(self) -> None:
         """Closes connection asynchronously."""
