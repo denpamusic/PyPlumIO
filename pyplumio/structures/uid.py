@@ -51,11 +51,21 @@ def uid_stamp(message: str) -> str:
     crc_ = 0xA3A3
     for byte in message:
         int_ = ord(byte)
-        crc_ = crc_ ^ int_
-        for _ in range(8):
-            crc_ = (crc_ >> 1) ^ 0xA001 if crc_ & 1 else crc_ >> 1
+        crc_ = uid_byte(crc_ ^ int_)
 
     return chr(crc_ % 256) + chr((crc_ // 256) % 256)
+
+
+def uid_byte(byte: int) -> int:
+    """Calculate CRC for single byte.
+
+    Keyword arguments:
+        byte - byte to calculate CRC
+    """
+    for _ in range(8):
+        byte = (byte >> 1) ^ 0xA001 if byte & 1 else byte >> 1
+
+    return byte
 
 
 def uid_5bits_to_char(number: int) -> str:
