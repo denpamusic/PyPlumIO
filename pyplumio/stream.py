@@ -91,7 +91,7 @@ class FrameWriter:
     @property
     def is_empty(self) -> bool:
         """Checks if write queue is empty."""
-        return False if self._queue else True
+        return not self._queue
 
 
 class FrameReader:
