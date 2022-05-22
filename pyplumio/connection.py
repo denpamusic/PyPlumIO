@@ -131,7 +131,7 @@ class Connection(ABC):
             if self.closing:
                 await self.writer.close()
                 await self._close()
-                return False
+                break
 
             try:
                 frame = await reader.read()
@@ -144,7 +144,7 @@ class Connection(ABC):
             finally:
                 await self.writer.process_queue()
 
-        return True
+        return False
 
     async def task(
         self,
