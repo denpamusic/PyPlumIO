@@ -141,6 +141,7 @@ class Connection(ABC):
                 _LOGGER.warning("Frame error: %s", e)
             else:
                 asyncio.create_task(self._process(frame, self.writer))
+            finally:
                 await self.writer.process_queue()
 
         return True
