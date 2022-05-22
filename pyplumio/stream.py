@@ -48,10 +48,6 @@ class FrameWriter:
             if isinstance(frame, Frame) and not self.has(frame):
                 self._queue.append(frame)
 
-    def is_empty(self) -> bool:
-        """Checks if write queue is empty."""
-        return bool(self._queue)
-
     def has(self, request: Request) -> bool:
         """Checks if write queue contains specific request.
 
@@ -91,6 +87,11 @@ class FrameWriter:
         """Closes stream writer."""
         self.writer.close()
         await asyncio.wait_for(self.writer.wait_closed(), timeout=WRITER_TIMEOUT)
+
+    @property
+    def is_empty(self) -> bool:
+        """Checks if write queue is empty."""
+        return False if self._queue else True
 
 
 class FrameReader:
