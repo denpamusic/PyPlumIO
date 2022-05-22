@@ -293,7 +293,7 @@ class UID(Response):
         """Parses UID message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         self._data = {}
         offset = 0
@@ -378,7 +378,7 @@ class DataSchema(Response):
         """Parses DataSchema message into usable data.
 
         Keywords arguments:
-        message -- message to parse
+            message -- message to parse
         """
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
