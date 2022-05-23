@@ -1,5 +1,7 @@
 """Fixtures for PyPlumIO test suite."""
 
+from asyncio import StreamReader, StreamWriter
+from typing import Generator
 from unittest.mock import patch
 
 import pytest
@@ -47,3 +49,38 @@ def fixture_bypass_asyncio_create_task():
     """Bypass asyncio create task."""
     with patch("asyncio.create_task"):
         yield
+
+
+@pytest.fixture(name="mock_stream_writer")
+def fixture_mock_stream_writer() -> Generator[StreamWriter, None, None]:
+    """Return mock of asyncio stream writer."""
+    with patch("asyncio.StreamWriter", autospec=True) as stream_writer:
+        yield stream_writer
+
+
+@pytest.fixture(name="mock_stream_reader")
+def fixture_mock_stream_reader() -> Generator[StreamReader, None, None]:
+    """Return mock of asyncio stream reader."""
+    with patch("asyncio.StreamReader", autospec=True) as stream_reader:
+        yield stream_reader
+
+
+@pytest.fixture(name="bypass_asyncio_connection")
+def fixture_bypass_asyncio_connection(
+    mock_stream_reader: StreamReader, mock_stream_writer: StreamWriter
+) -> Generator:
+    with patch(
+        "asyncio.open_connection", return_value=(mock_stream_reader, mock_stream_writer)
+    ) as connection:
+        yield connection
+
+
+@pytest.fixture(name="bypass_serial_asyncio_connection")
+def fixture_bypass_serial_asyncio_connection(
+    mock_stream_reader: StreamReader, mock_stream_writer: StreamWriter
+) -> Generator:
+    with patch(
+        "serial_asyncio.open_serial_connection",
+        return_value=(mock_stream_reader, mock_stream_writer),
+    ) as connection:
+        yield connection

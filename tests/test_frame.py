@@ -102,6 +102,11 @@ def test_to_hex() -> None:
     assert frame.hex == hex
 
 
+def test_equality() -> None:
+    """Test equality check."""
+    assert responses.ProgramVersion() == responses.ProgramVersion()
+
+
 def test_request_repr(request_: Request) -> None:
     """Test serialiazible request representation."""
     repr_ = """Request(
