@@ -31,8 +31,8 @@ class Mixer(BaseDevice):
             data -- device data
             parameters -- editable parameters
         """
-        self.__dict__["_index"] = index
-        self.__dict__["address"] = BROADCAST_ADDRESS
+        self._index = index
+        self.address = BROADCAST_ADDRESS
         super().__init__(data, parameters)
 
     def __repr__(self) -> str:

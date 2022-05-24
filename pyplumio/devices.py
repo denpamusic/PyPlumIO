@@ -95,14 +95,12 @@ class Device(BaseDevice):
             data -- device data
             parameters -- editable parameters
         """
-        self.__dict__["bucket"] = FrameBucket(
-            address=self.address, required=self.required_frames
-        )
-        self.__dict__["mixers"] = MixersCollection(address=self.address)
-        self.__dict__["product"] = None
-        self.__dict__["uid"] = None
-        self.__dict__["password"] = None
-        self.__dict__["schema"] = []
+        self.bucket = FrameBucket(address=self.address, required=self.required_frames)
+        self.mixers = MixersCollection(address=self.address)
+        self.product = None
+        self.uid = None
+        self.password = None
+        self.schema: List[Tuple[str, Any]] = []
         super().__init__(data, parameters)
 
     def __str__(self) -> str:
@@ -215,8 +213,8 @@ class EcoMAX(Device):
             data -- device data
             parameters -- editable parameters
         """
-        self.__dict__["_fuel_burned"] = 0.0
-        self.__dict__["_fuel_burned_timestamp"] = time.time()
+        self._fuel_burned = 0.0
+        self._fuel_burned_timestamp = time.time()
         super().__init__(data, parameters)
 
     def set_data(self, data: Dict[str, Any]) -> None:

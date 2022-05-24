@@ -20,6 +20,8 @@ class BaseDevice(ABC):
     """
 
     address: int = BROADCAST_ADDRESS
+    _data: Dict[str, Any] = {}
+    _parameters: Dict[str, Parameter] = {}
 
     def __init__(
         self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
@@ -30,8 +32,8 @@ class BaseDevice(ABC):
             data -- device data
             parameters -- editable parameters
         """
-        self.__dict__["_data"] = {}
-        self.__dict__["_parameters"] = {}
+        self._data = {}
+        self._parameters = {}
 
         if data is not None:
             self.set_data(data)
@@ -77,7 +79,7 @@ class BaseDevice(ABC):
             self._queue.append(request)
 
         else:
-            raise UninitializedParameterError()
+            raise UninitializedParameterError
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
