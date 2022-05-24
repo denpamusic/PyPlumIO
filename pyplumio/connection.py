@@ -13,8 +13,14 @@ from serial import SerialException
 import serial_asyncio
 
 from . import requests, responses
-from .constants import DATA_MIXERS, DEFAULT_IP, DEFAULT_NETMASK, WLAN_ENCRYPTION
-from .devices import ECOMAX_ADDRESS, DevicesCollection
+from .constants import (
+    DATA_MIXERS,
+    DEFAULT_IP,
+    DEFAULT_NETMASK,
+    ECOMAX_ADDRESS,
+    WLAN_ENCRYPTION,
+)
+from .devices import DevicesCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frame import Frame
 from .stream import FrameReader, FrameWriter

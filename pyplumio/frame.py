@@ -6,12 +6,11 @@ from abc import ABC, abstractmethod
 from typing import Final, List, Optional
 
 from . import util
+from .constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
 HEADER_SIZE: Final = 7
-BROADCAST_ADDRESS: Final = 0x00
-ECONET_ADDRESS: Final = 0x56
 ECONET_TYPE: Final = 0x30
 ECONET_VERSION: Final = 0x05
 

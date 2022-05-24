@@ -1,7 +1,7 @@
 """Test PyPlumIO request frames."""
 
 from pyplumio import requests, responses
-from pyplumio.frame import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 
 
 def test_base_class_response() -> None:

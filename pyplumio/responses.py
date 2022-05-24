@@ -1,7 +1,7 @@
 """Contains response frame classes."""
 
 import struct
-from typing import Any, Dict
+from typing import Any, Dict, Final
 
 from . import util
 from .constants import (
@@ -15,7 +15,6 @@ from .constants import (
     DATA_TRANSMISSION,
     DEFAULT_IP,
     DEFAULT_NETMASK,
-    REGDATA_SCHEMA,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
@@ -27,7 +26,7 @@ from .structures import (
     device_parameters,
     frame_versions,
     lambda_,
-    mixer_parameter,
+    mixer_parameters,
     mixers,
     modules,
     output_flags,
@@ -175,6 +174,23 @@ class DeviceAvailable(Response):
         self._data["wlan"]["status"] = bool(message[offset + 3])
         offset += 8
         self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)[0]
+
+
+REGDATA_SCHEMA: Final = {
+    1792: DATA_MODE,
+    1024: temperatures.TEMPERATURES[0],
+    1026: temperatures.TEMPERATURES[1],
+    1025: temperatures.TEMPERATURES[2],
+    1027: temperatures.TEMPERATURES[3],
+    1030: temperatures.TEMPERATURES[5],
+    1280: statuses.HEATING_TARGET,
+    1281: statuses.WATER_HEATER_TARGET,
+    1536: outputs.OUTPUTS[0],
+    1538: outputs.OUTPUTS[1],
+    1541: outputs.OUTPUTS[2],
+    1542: outputs.OUTPUTS[3],
+    3: outputs.OUTPUTS[5],
+}
 
 
 class RegData(Response):
@@ -362,7 +378,7 @@ class MixerParameters(Response):
         Keywords arguments:
         message -- message to parse
         """
-        self._data, _ = mixer_parameter.from_bytes(message)
+        self._data, _ = mixer_parameters.from_bytes(message)
 
 
 class DataSchema(Response):

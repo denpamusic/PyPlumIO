@@ -1,8 +1,8 @@
 """Contains device parameter representation."""
 
-from pyplumio.constants import MIXER_PARAMS
 from pyplumio.frame import Request
 from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
+from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 
 class Parameter:
@@ -47,7 +47,7 @@ class Parameter:
         if self.name == "boiler_control":
             return BoilerControl(data=self.__dict__)
 
-        if self.name in MIXER_PARAMS:
+        if self.name in MIXER_PARAMETERS:
             return SetMixerParameter(data=self.__dict__)
 
         return SetParameter(data=self.__dict__)

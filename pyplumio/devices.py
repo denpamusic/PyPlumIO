@@ -7,22 +7,34 @@ from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
 from . import requests
 from .constants import (
-    DATA_FRAMES,
+    DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
+    DATA_FUEL_LEVEL,
+    DATA_LOAD,
     DATA_MODE,
-    DEVICE_DATA,
-    DEVICE_PARAMS,
-    MODULE_A,
-    PARAM_BOILER_CONTROL,
+    DATA_POWER,
+    DATA_THERMOSTAT,
+    DATA_TRANSMISSION,
+    ECOMAX_ADDRESS,
+    ECOSTER_ADDRESS,
 )
 from .frame import Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .mixers import MixersCollection
 from .storage import FrameBucket
-
-ECOMAX_ADDRESS: Final = 0x45
-ECOSTER_ADDRESS: Final = 0x51
+from .structures import (
+    alarms,
+    device_parameters,
+    frame_versions,
+    lambda_,
+    modules,
+    output_flags,
+    outputs,
+    statuses,
+    temperatures,
+    thermostats,
+)
 
 MODE_OFF: Final = 0
 MODE_FANNING: Final = 1
@@ -40,6 +52,26 @@ MODES: Final = (
     "Idle",
     "Standby",
 )
+
+DEVICE_DATA: List[str] = [
+    DATA_FAN_POWER,
+    DATA_FUEL_CONSUMPTION,
+    DATA_FUEL_LEVEL,
+    DATA_LOAD,
+    DATA_MODE,
+    DATA_POWER,
+    DATA_THERMOSTAT,
+    DATA_TRANSMISSION,
+]
+DEVICE_DATA.extend(alarms.ALARMS)
+DEVICE_DATA.extend(frame_versions.FRAME_VERSIONS)
+DEVICE_DATA.extend(temperatures.TEMPERATURES)
+DEVICE_DATA.extend(outputs.OUTPUTS)
+DEVICE_DATA.extend(output_flags.OUTPUT_FLAGS)
+DEVICE_DATA.extend(statuses.STATUSES)
+DEVICE_DATA.extend(modules.MODULES)
+DEVICE_DATA.extend(lambda_.LAMBDA)
+DEVICE_DATA.extend(thermostats.THERMOSTATS)
 
 
 class Device(BaseDevice):
@@ -97,8 +129,8 @@ Mixers:
             if name in DEVICE_DATA:
                 self._data[name] = value
 
-        if DATA_FRAMES in data:
-            self.bucket.fill(data[DATA_FRAMES])
+        if frame_versions.FRAME_VERSIONS in data:
+            self.bucket.fill(data[frame_versions.FRAME_VERSIONS])
 
     def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
@@ -107,7 +139,7 @@ Mixers:
             parameters -- device changeable parameters
         """
         for name, parameter in parameters.items():
-            if name in DEVICE_PARAMS:
+            if name in device_parameters.DEVICE_PARAMETERS:
                 self._parameters[name] = Parameter(name, *parameter)
 
     @property
@@ -121,9 +153,9 @@ Mixers:
     @property
     def software(self) -> Optional[str]:
         """Returns software version."""
-        if MODULE_A in self._data:
-            if self._data[MODULE_A] is not None:
-                return self._data[MODULE_A]
+        if modules.MODULE_A in self._data:
+            if self._data[modules.MODULE_A] is not None:
+                return self._data[modules.MODULE_A]
 
             return "Unknown"
 
@@ -152,7 +184,7 @@ Mixers:
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         parameters: List[str] = []
-        parameters.extend(DEVICE_PARAMS)
+        parameters.extend(device_parameters.DEVICE_PARAMETERS)
         return parameters
 
     @property
@@ -201,13 +233,21 @@ class EcoMAX(Device):
 
     def _set_boiler_control_parameter(self):
         """Sets boiler control parameter from device data."""
-        if PARAM_BOILER_CONTROL in self._parameters and isinstance(
-            self._parameters[PARAM_BOILER_CONTROL], Parameter
+        if (
+            device_parameters.PARAMETER_BOILER_CONTROL in self._parameters
+            and isinstance(
+                self._parameters[device_parameters.PARAMETER_BOILER_CONTROL], Parameter
+            )
         ):
-            self._parameters[PARAM_BOILER_CONTROL].value = int(self.is_on)
+            self._parameters[device_parameters.PARAMETER_BOILER_CONTROL].value = int(
+                self.is_on
+            )
         else:
-            self._parameters[PARAM_BOILER_CONTROL] = Parameter(
-                name=PARAM_BOILER_CONTROL, value=int(self.is_on), min_=0, max_=1
+            self._parameters[device_parameters.PARAMETER_BOILER_CONTROL] = Parameter(
+                name=device_parameters.PARAMETER_BOILER_CONTROL,
+                value=int(self.is_on),
+                min_=0,
+                max_=1,
             )
 
     def _set_fuel_burned(self, fuel_consumption: float) -> None:
@@ -242,7 +282,7 @@ class EcoMAX(Device):
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         parameters = super().editable_parameters
-        parameters.append(PARAM_BOILER_CONTROL)
+        parameters.append(device_parameters.PARAMETER_BOILER_CONTROL)
         return parameters
 
 

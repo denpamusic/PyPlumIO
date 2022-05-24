@@ -6,15 +6,8 @@ from unittest.mock import patch
 import pytest
 
 from pyplumio import requests, responses
-from pyplumio.frame import (
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
-    ECONET_TYPE,
-    ECONET_VERSION,
-    HEADER_SIZE,
-    Request,
-    Response,
-)
+from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.frame import ECONET_TYPE, ECONET_VERSION, HEADER_SIZE, Request, Response
 
 
 @pytest.fixture(name="request_")

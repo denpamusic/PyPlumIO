@@ -1,7 +1,6 @@
 """Test PyPlumIO frame version structure."""
 
-from pyplumio.constants import DATA_FRAMES
-from pyplumio.structures import frame_versions
+from pyplumio.structures.frame_versions import FRAME_VERSIONS, from_bytes
 
 _message = bytearray(
     [
@@ -28,11 +27,11 @@ _message = bytearray(
         0x0,
     ]
 )
-_data = {DATA_FRAMES: {85: 0, 84: 0, 97: 8, 61: 62700, 54: 1, 100: 1, 64: 0}}
+_data = {FRAME_VERSIONS: {85: 0, 84: 0, 97: 8, 61: 62700, 54: 1, 100: 1, 64: 0}}
 
 
 def test_from_bytes():
     """Test conversion from bytes."""
-    data, offset = frame_versions.from_bytes(_message)
+    data, offset = from_bytes(_message)
     assert data == _data
     assert offset == 22

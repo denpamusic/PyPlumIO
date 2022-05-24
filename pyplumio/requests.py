@@ -1,8 +1,9 @@
 """Contains request frame classes."""
 
 from . import responses
-from .constants import DEVICE_PARAMS, MIXER_PARAMS
 from .frame import Request
+from .structures.device_parameters import DEVICE_PARAMETERS
+from .structures.mixer_parameters import MIXER_PARAMETERS
 
 
 class ProgramVersion(Request):
@@ -114,8 +115,8 @@ class SetParameter(Request):
         message = bytearray()
         name = self._data["name"]
         value = self._data["value"]
-        if name in DEVICE_PARAMS:
-            message.append(DEVICE_PARAMS.index(name))
+        if name in DEVICE_PARAMETERS:
+            message.append(DEVICE_PARAMETERS.index(name))
             message.append(value)
 
         return message
@@ -137,9 +138,9 @@ class SetMixerParameter(Request):
         name = self._data["name"]
         value = self._data["value"]
         index = self._data["extra"]
-        if name in MIXER_PARAMS:
+        if name in MIXER_PARAMETERS:
             message.append(index)
-            message.append(MIXER_PARAMS.index(name))
+            message.append(MIXER_PARAMETERS.index(name))
             message.append(value)
 
         return message

@@ -1,9 +1,22 @@
 """Contains versions structure parser."""
 
 import struct
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
-from pyplumio.constants import MODULE_A, MODULES
+MODULE_A: Final = "module_a"
+MODULE_B: Final = "module_b"
+MODULE_C: Final = "module_c"
+MODULE_LAMBDA: Final = "module_lambda"
+MODULE_ECOSTER: Final = "module_ecoster"
+MODULE_PANEL: Final = "module_panel"
+MODULES: Final = (
+    MODULE_A,
+    MODULE_B,
+    MODULE_C,
+    MODULE_LAMBDA,
+    MODULE_ECOSTER,
+    MODULE_PANEL,
+)
 
 
 def from_bytes(

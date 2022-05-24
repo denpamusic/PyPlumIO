@@ -1,10 +1,29 @@
 """Contains temperatures structure parser."""
 
 import math
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import TEMPERATURES
+
+TEMPERATURES: Final = (
+    "heating_temp",
+    "feeder_temp",
+    "water_heater_temp",
+    "outside_temp",
+    "back_temp",
+    "exhaust_temp",
+    "optical_temp",
+    "upper_buffer_temp",
+    "lower_buffer_temp",
+    "upper_solar_temp",
+    "lower_solar_temp",
+    "fireplace_temp",
+    "total_gain",
+    "hydraulic_coupler_temp",
+    "exchanger_temp",
+    "air_in_temp",
+    "air_out_temp",
+)
 
 
 def from_bytes(

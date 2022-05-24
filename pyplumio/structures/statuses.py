@@ -1,8 +1,17 @@
 """Contains outputs structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
-from pyplumio.constants import STATUSES
+HEATING_TARGET: Final = "heating_target"
+HEATING_STATUS: Final = "heating_status"
+WATER_HEATER_TARGET: Final = "water_heater_target"
+WATER_HEATER_STATUS: Final = "water_heater_status"
+STATUSES: Final = (
+    HEATING_TARGET,
+    HEATING_STATUS,
+    WATER_HEATER_TARGET,
+    WATER_HEATER_STATUS,
+)
 
 
 def from_bytes(

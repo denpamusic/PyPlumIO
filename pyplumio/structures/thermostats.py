@@ -1,16 +1,15 @@
 """Contains thermostats structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import (
-    DATA_THERMOSTATS,
-    ECOSTER_CONTACTS,
-    ECOSTER_MODE,
-    ECOSTER_SCHEDULE,
-    ECOSTER_TARGET,
-    ECOSTER_TEMP,
-)
+
+THERMOSTATS: Final = "thermostats"
+ECOSTER_CONTACTS: Final = "contacts"
+ECOSTER_SCHEDULE: Final = "schedule"
+ECOSTER_MODE: Final = "mode"
+ECOSTER_TEMP: Final = "temp"
+ECOSTER_TARGET: Final = "target"
 
 
 def from_bytes(
@@ -51,6 +50,6 @@ def from_bytes(
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1
 
-    data[DATA_THERMOSTATS] = thermostats
+    data[THERMOSTATS] = thermostats
 
     return data, offset

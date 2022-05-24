@@ -1,8 +1,12 @@
 """Test PyPlumIO response frames."""
 
 from pyplumio import responses
-from pyplumio.constants import WLAN_ENCRYPTION, WLAN_ENCRYPTION_NONE
-from pyplumio.frame import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.constants import (
+    BROADCAST_ADDRESS,
+    ECONET_ADDRESS,
+    WLAN_ENCRYPTION,
+    WLAN_ENCRYPTION_NONE,
+)
 
 _program_version_data = {
     "version": "1.0.0",

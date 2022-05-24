@@ -1,14 +1,14 @@
 """Test PyPlumIO modules structure."""
 
-from pyplumio.constants import (
+from pyplumio.structures.modules import (
     MODULE_A,
     MODULE_B,
     MODULE_C,
     MODULE_ECOSTER,
     MODULE_LAMBDA,
     MODULE_PANEL,
+    from_bytes,
 )
-from pyplumio.structures import modules
 
 _message = bytearray([0x1, 0xD, 0x5, 0x5A, 0x1, 0xFF, 0xFF, 0xFF, 0xFF, 0x2, 0x3, 0x2B])
 
@@ -24,6 +24,6 @@ _data = {
 
 def test_from_bytes() -> None:
     """Test conversion from bytes."""
-    data, offset = modules.from_bytes(_message)
+    data, offset = from_bytes(_message)
     assert data == _data
     assert offset == 12

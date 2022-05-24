@@ -1,9 +1,18 @@
 """Contains mixers structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_MIXERS, MIXER_PUMP, MIXER_TARGET, MIXER_TEMP
+from pyplumio.constants import DATA_MIXERS
+
+MIXER_TEMP: Final = "temp"
+MIXER_TARGET: Final = "target"
+MIXER_PUMP: Final = "pump"
+MIXER_DATA: Final = (
+    MIXER_TEMP,
+    MIXER_TARGET,
+    MIXER_PUMP,
+)
 
 
 def from_bytes(

@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.devices import ECOMAX_ADDRESS, DevicesCollection, EcoMAX
+from pyplumio.constants import ECOMAX_ADDRESS
+from pyplumio.devices import DevicesCollection, EcoMAX
 from pyplumio.mixers import Mixer
 from pyplumio.storage import FrameBucket
 

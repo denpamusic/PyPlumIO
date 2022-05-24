@@ -7,34 +7,30 @@ import pytest
 from pyplumio import requests
 from pyplumio.constants import (
     DATA_FAN_POWER,
-    DATA_FRAMES,
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
-    DATA_HEATING_TARGET,
     DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
-    DATA_WATER_HEATER_TARGET,
+    ECOMAX_ADDRESS,
+)
+from pyplumio.devices import MODE_HEATING, MODES, DevicesCollection, EcoMAX
+from pyplumio.exceptions import UninitializedParameterError
+from pyplumio.helpers.parameter import Parameter
+from pyplumio.structures.device_parameters import PARAMETER_BOILER_CONTROL
+from pyplumio.structures.frame_versions import FRAME_VERSIONS
+from pyplumio.structures.modules import (
     MODULE_A,
     MODULE_B,
     MODULE_C,
     MODULE_ECOSTER,
     MODULE_LAMBDA,
     MODULE_PANEL,
-    PARAM_BOILER_CONTROL,
 )
-from pyplumio.devices import (
-    ECOMAX_ADDRESS,
-    MODE_HEATING,
-    MODES,
-    DevicesCollection,
-    EcoMAX,
-)
-from pyplumio.exceptions import UninitializedParameterError
-from pyplumio.helpers.parameter import Parameter
+from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
 
 _test_data = {
-    DATA_FRAMES: {
+    FRAME_VERSIONS: {
         49: 364,
         50: 364,
         54: 1,
@@ -49,8 +45,8 @@ _test_data = {
     DATA_MODE: MODE_HEATING,
     DATA_POWER: 16,
     DATA_LOAD: 30,
-    DATA_HEATING_TARGET: 60,
-    DATA_WATER_HEATER_TARGET: 51,
+    HEATING_TARGET: 60,
+    WATER_HEATER_TARGET: 51,
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
@@ -104,7 +100,7 @@ def test_get_attr_from_data(ecomax_with_data: EcoMAX) -> None:
 def test_get_boiler_control_param(ecomax_with_data: EcoMAX) -> None:
     """Test getting boiler control parameter from the ecoMAX."""
     ecomax_with_data.set_data(_test_data)
-    assert isinstance(ecomax_with_data.parameters[PARAM_BOILER_CONTROL], Parameter)
+    assert isinstance(ecomax_with_data.parameters[PARAMETER_BOILER_CONTROL], Parameter)
 
 
 def test_get_mode(ecomax: EcoMAX) -> None:

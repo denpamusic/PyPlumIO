@@ -1,13 +1,18 @@
 """Contains output flags structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import (
-    DATA_CIRCULATION_PUMP_FLAG,
+
+DATA_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
+DATA_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
+DATA_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
+DATA_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
+OUTPUT_FLAGS: Final = (
     DATA_HEATING_PUMP_FLAG,
-    DATA_SOLAR_PUMP_FLAG,
     DATA_WATER_HEATER_PUMP_FLAG,
+    DATA_CIRCULATION_PUMP_FLAG,
+    DATA_SOLAR_PUMP_FLAG,
 )
 
 

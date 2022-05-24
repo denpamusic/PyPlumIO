@@ -4,10 +4,11 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from . import util
-from .constants import MIXER_DATA, MIXER_PARAMS
 from .frame import BROADCAST_ADDRESS, Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
+from .structures.mixer_parameters import MIXER_PARAMETERS
+from .structures.mixers import MIXER_DATA
 
 
 class Mixer(BaseDevice):
@@ -71,14 +72,14 @@ Parameters:
             parameters -- mixer changeable parameters
         """
         for name, parameter in parameters.items():
-            if name in MIXER_PARAMS:
+            if name in MIXER_PARAMETERS:
                 value, min_, max_ = parameter
                 self._parameters[name] = Parameter(name, value, min_, max_, self._index)
 
     @property
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
-        return MIXER_PARAMS
+        return MIXER_PARAMETERS
 
 
 class MixersCollection:

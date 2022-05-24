@@ -1,9 +1,10 @@
 """Contains frame versions structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_FRAMES
+
+FRAME_VERSIONS: Final = "frames"
 
 
 def from_bytes(
@@ -28,6 +29,6 @@ def from_bytes(
         versions[frame_type] = version
         offset += 3
 
-    data[DATA_FRAMES] = versions
+    data[FRAME_VERSIONS] = versions
 
     return data, offset

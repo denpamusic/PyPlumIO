@@ -1,8 +1,8 @@
 """Contains alarms structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
-from pyplumio.constants import DATA_ALARMS
+ALARMS: Final = "alarms"
 
 
 def from_bytes(
@@ -23,6 +23,6 @@ def from_bytes(
         alarms.append(message[offset + i])
 
     offset += alarms_number + 1
-    data[DATA_ALARMS] = alarms
+    data[ALARMS] = alarms
 
     return data, offset

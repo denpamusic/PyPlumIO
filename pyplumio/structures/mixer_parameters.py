@@ -1,9 +1,26 @@
 """Contains mixer parameter structure parser."""
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_MIXERS, MIXER_PARAMS
+from pyplumio.constants import DATA_MIXERS
+
+MIXER_PARAMETERS: List[str] = [
+    "mix_set_temp",
+    "min_mix_set_temp",
+    "max_mix_set_temp",
+    "low_mix_set_temp",
+    "ctrl_weather_mix",
+    "mix_heat_curve",
+    "parallel_offset_heat_curve",
+    "weather_temp_factor",
+    "mix_operation",
+    "mix_insensitivity",
+    "mix_therm_operation",
+    "mix_therm_mode",
+    "mix_off_therm_pump",
+    "mix_summer_work",
+]
 
 
 def from_bytes(
@@ -31,7 +48,7 @@ def from_bytes(
     for index in range(first_parameter, total_parameters + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
-            mixer[f"{MIXER_PARAMS[index%total_parameters]}"] = parameter
+            mixer[f"{MIXER_PARAMETERS[index%total_parameters]}"] = parameter
 
         if (index + 1) % total_parameters == 0:
             data[DATA_MIXERS].append(mixer)

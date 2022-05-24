@@ -7,9 +7,10 @@ from asyncio import StreamReader, StreamWriter
 from typing import Final, List, Optional
 
 from . import util
+from .constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
-from .frame import BROADCAST_ADDRESS, ECONET_ADDRESS, HEADER_SIZE, Frame, Request
+from .frame import HEADER_SIZE, Frame, Request
 
 READER_BUFFER_SIZE: Final = 1000
 READER_TIMEOUT: Final = 5

@@ -12,8 +12,7 @@ from serial_asyncio import serial
 
 from pyplumio import requests
 from pyplumio.connection import SerialConnection, TcpConnection
-from pyplumio.constants import WLAN_ENCRYPTION_WPA
-from pyplumio.devices import ECOMAX_ADDRESS
+from pyplumio.constants import ECOMAX_ADDRESS, WLAN_ENCRYPTION_WPA
 from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from pyplumio.requests import CheckDevice, ProgramVersion
 from pyplumio.responses import (
@@ -129,14 +128,16 @@ async def test_connection_task(
     """Test connection task."""
     # Setup mocks for stream reader and writer and callbacks.
     mock_callback = AsyncMock()
-    mock_callback.return_value = await tcp_connection.async_close()
     mock_callback.side_effect = Exception("test error")
     mock_closed_callback = AsyncMock()
 
     # Add callback to be called on connection close.
     tcp_connection.on_closed(mock_closed_callback)
 
-    await tcp_connection.task(mock_callback, interval=5)
+    with patch(
+        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+    ):
+        await tcp_connection.task(mock_callback, interval=5)
 
     # Check that start master command was written.
     mock_stream_writer.write.assert_called_once_with(
@@ -274,7 +275,7 @@ async def test_process_program_version_request(
 
     with patch(
         "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
-    ), patch("pyplumio.stream.FrameWriter.collect", return_value=True,), patch(
+    ), patch("pyplumio.stream.FrameWriter.collect", return_value=True), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=test_frame,
     ), patch(

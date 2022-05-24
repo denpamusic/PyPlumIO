@@ -4,8 +4,7 @@ from typing import Dict
 
 import pytest
 
-from pyplumio.constants import OUTPUTS
-from pyplumio.structures import outputs
+from pyplumio.structures.outputs import OUTPUTS, from_bytes
 
 _message = bytearray([0x4, 0x0, 0x0, 0x0])
 
@@ -20,6 +19,6 @@ def fixture_outputs_data() -> Dict[str, bool]:
 
 def test_from_bytes(outputs_data) -> None:
     """Test conversion from bytes."""
-    data, offset = outputs.from_bytes(_message)
+    data, offset = from_bytes(_message)
     assert data == outputs_data
     assert offset == 4

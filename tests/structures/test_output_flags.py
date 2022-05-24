@@ -1,12 +1,12 @@
 """Test PyPlumIO output flags structure."""
 
-from pyplumio.constants import (
+from pyplumio.structures.output_flags import (
     DATA_CIRCULATION_PUMP_FLAG,
     DATA_HEATING_PUMP_FLAG,
     DATA_SOLAR_PUMP_FLAG,
     DATA_WATER_HEATER_PUMP_FLAG,
+    from_bytes,
 )
-from pyplumio.structures import output_flags
 
 _message = bytearray([0xBF, 0x0, 0x0, 0x0])
 
@@ -20,6 +20,6 @@ _data = {
 
 def test_from_bytes() -> None:
     """Test conversion from bytes."""
-    data, offset = output_flags.from_bytes(_message)
+    data, offset = from_bytes(_message)
     assert data == _data
     assert offset == 4

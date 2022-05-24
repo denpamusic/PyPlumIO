@@ -2,10 +2,10 @@
 
 import pytest
 
-from pyplumio.constants import MIXER_PARAMS
-from pyplumio.frame import BROADCAST_ADDRESS
+from pyplumio.constants import BROADCAST_ADDRESS
 from pyplumio.mixers import Mixer, MixersCollection
 from pyplumio.requests import SetMixerParameter
+from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 _test_data = {
     "temp": 40,
@@ -54,7 +54,7 @@ def test_set_parameters(mixer: Mixer) -> None:
 
 def test_editable_parameters(mixer: Mixer) -> None:
     """Test getting editable parameters."""
-    assert mixer.editable_parameters == MIXER_PARAMS
+    assert mixer.editable_parameters == MIXER_PARAMETERS
 
 
 def test_collection_repr(mixers: MixersCollection) -> None:

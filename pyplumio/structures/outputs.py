@@ -1,10 +1,28 @@
 """Contains outputs structure parser."""
 
 import math
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Final, Tuple
 
 from pyplumio import util
-from pyplumio.constants import OUTPUTS
+
+OUTPUTS: Final = (
+    "fan",
+    "feeder",
+    "heating_pump",
+    "water_heater_pump",
+    "ciculation_pump",
+    "lighter",
+    "alarm",
+    "outer_boiler",
+    "fan2_exhaust",
+    "feeder2",
+    "outer_feeder",
+    "solar_pump",
+    "fireplace_pump",
+    "gcz_contact",
+    "blow_fan1",
+    "blow_fan2",
+)
 
 
 def from_bytes(
