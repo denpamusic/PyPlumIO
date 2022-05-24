@@ -7,7 +7,7 @@ from typing import Final
 from . import util
 
 
-class Type(ABC):
+class DataType(ABC):
     """Base representation of data type.
 
     Attributes:
@@ -57,7 +57,7 @@ class Type(ABC):
         """Returns data size in bytes."""
 
 
-class Undefined0(Type):
+class Undefined0(DataType):
     """Undefined zero-byte representation."""
 
     @property
@@ -71,7 +71,7 @@ class Undefined0(Type):
         return 0
 
 
-class SignedChar(Type):
+class SignedChar(DataType):
     """Char representation."""
 
     @property
@@ -85,7 +85,7 @@ class SignedChar(Type):
         return 1
 
 
-class Short(Type):
+class Short(DataType):
     """16 bit integer representation."""
 
     @property
@@ -99,7 +99,7 @@ class Short(Type):
         return 2
 
 
-class Int(Type):
+class Int(DataType):
     """32 bit integer representation."""
 
     @property
@@ -113,7 +113,7 @@ class Int(Type):
         return 4
 
 
-class Byte(Type):
+class Byte(DataType):
     """Byte representation."""
 
     @property
@@ -127,7 +127,7 @@ class Byte(Type):
         return 1
 
 
-class UnsignedShort(Type):
+class UnsignedShort(DataType):
     """Unsigned 16 bit integer representation."""
 
     @property
@@ -141,7 +141,7 @@ class UnsignedShort(Type):
         return 2
 
 
-class UnsignedInt(Type):
+class UnsignedInt(DataType):
     """Unsigned 32 bit integer representation."""
 
     @property
@@ -155,7 +155,7 @@ class UnsignedInt(Type):
         return 4
 
 
-class Float(Type):
+class Float(DataType):
     """Float representation."""
 
     @property
@@ -169,7 +169,7 @@ class Float(Type):
         return 4
 
 
-class Undefined8(Type):
+class Undefined8(DataType):
     """Undefined representation."""
 
     @property
@@ -183,7 +183,7 @@ class Undefined8(Type):
         return 0
 
 
-class Double(Type):
+class Double(DataType):
     """Double representation."""
 
     @property
@@ -197,7 +197,7 @@ class Double(Type):
         return 8
 
 
-class Boolean(Type):
+class Boolean(DataType):
     """Boolean representation.
 
     Attributes:
@@ -243,7 +243,7 @@ class Boolean(Type):
         return 1 if self._index == 7 else 0
 
 
-class Int64(Type):
+class Int64(DataType):
     """64 bit signed integer representation."""
 
     @property
@@ -257,7 +257,7 @@ class Int64(Type):
         return 8
 
 
-class UInt64(Type):
+class UInt64(DataType):
     """64 bit unsigned integer representation."""
 
     @property
@@ -271,7 +271,7 @@ class UInt64(Type):
         return 8
 
 
-class IPv4(Type):
+class IPv4(DataType):
     """IPv4 address representation."""
 
     @property
@@ -285,7 +285,7 @@ class IPv4(Type):
         return 4
 
 
-class IPv6(Type):
+class IPv6(DataType):
     """IPv6 address representation."""
 
     @property
@@ -299,7 +299,7 @@ class IPv6(Type):
         return 16
 
 
-class String(Type):
+class String(DataType):
     """Variable length bytes representation."""
 
     def __init__(self, data=None, size: int = None):

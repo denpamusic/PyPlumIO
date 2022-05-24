@@ -18,6 +18,7 @@ from .constants import (
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
 )
+from .data_types import DataType
 from .frame import Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
@@ -100,7 +101,7 @@ class Device(BaseDevice):
         self.product = None
         self.uid = None
         self.password = None
-        self.schema: List[Tuple[str, Any]] = []
+        self.schema: List[Tuple[str, DataType]] = []
         super().__init__(data, parameters)
 
     def __str__(self) -> str:

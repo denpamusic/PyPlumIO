@@ -405,7 +405,7 @@ class DataSchema(Response):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
                 param_name = REGDATA_SCHEMA.get(param_id, param_id)
-                self._data.append([param_name, DATA_TYPES[param_type]()])
+                self._data.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
 
