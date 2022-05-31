@@ -113,7 +113,7 @@ class Connection(ABC):
             if DATA_MIXERS in frame.data:
                 device.mixers.set_data(frame.data[DATA_MIXERS])
 
-        elif isinstance(frame, responses.Parameters):
+        elif isinstance(frame, responses.BoilerParameters):
             device.set_parameters(frame.data)
 
         elif isinstance(frame, responses.MixerParameters):

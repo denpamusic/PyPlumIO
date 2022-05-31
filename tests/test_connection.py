@@ -17,10 +17,10 @@ from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeErro
 from pyplumio.requests import CheckDevice, ProgramVersion
 from pyplumio.responses import (
     UID,
+    BoilerParameters,
     CurrentData,
     DataSchema,
     MixerParameters,
-    Parameters,
     Password,
 )
 from pyplumio.stream import FrameReader, FrameWriter
@@ -359,7 +359,9 @@ async def test_process_parameters_response(
         "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=Parameters(sender=ECOMAX_ADDRESS, data={"summer_mode": [1, 0, 1]}),
+        return_value=BoilerParameters(
+            sender=ECOMAX_ADDRESS, data={"summer_mode": [1, 0, 1]}
+        ),
     ):
         await tcp_connection.task(AsyncMock())
 

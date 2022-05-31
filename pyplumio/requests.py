@@ -62,7 +62,7 @@ class Password(Request):
     type_: int = 0x3A
 
 
-class Parameters(Request):
+class BoilerParameters(Request):
     """Requests current editable parameters.
 
     Attributes:

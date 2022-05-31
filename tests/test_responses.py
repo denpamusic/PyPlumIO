@@ -56,7 +56,7 @@ def test_responses_type() -> None:
         responses.CurrentData,
         responses.UID,
         responses.Password,
-        responses.Parameters,
+        responses.BoilerParameters,
         responses.MixerParameters,
         responses.DataSchema,
     ):

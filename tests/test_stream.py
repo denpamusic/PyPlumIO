@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from pyplumio.exceptions import ChecksumError, LengthError
-from pyplumio.requests import UID, CheckDevice, Parameters, ProgramVersion
+from pyplumio.requests import UID, BoilerParameters, CheckDevice, ProgramVersion
 from pyplumio.stream import (
     READER_BUFFER_SIZE,
     READER_TIMEOUT,
@@ -89,7 +89,7 @@ async def test_frame_reader(reader: FrameReader) -> None:
         return_value=b"\x68\x0c\x00\x00\x56\x30\x05\x31\xff\x00\xc9\x16",
     ) as mock_wait_for:
         frame = await reader.read()
-        assert isinstance(frame, Parameters)
+        assert isinstance(frame, BoilerParameters)
         assert frame.type_ == 0x31
         assert frame.sender == 0x56
         assert frame.sender_type == 0x30

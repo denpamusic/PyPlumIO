@@ -273,7 +273,7 @@ class EcoMAX(Device):
         return (
             requests.UID,
             requests.Password,
-            requests.Parameters,
+            requests.BoilerParameters,
             requests.MixerParameters,
         )
 

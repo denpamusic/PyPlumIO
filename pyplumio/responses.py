@@ -345,7 +345,7 @@ class Password(Response):
             self._data = password.decode()
 
 
-class Parameters(Response):
+class BoilerParameters(Response):
     """Contains editable parameters.
 
     Attributes:

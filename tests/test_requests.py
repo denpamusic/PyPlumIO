@@ -16,7 +16,7 @@ def test_request_type() -> None:
         requests.CheckDevice,
         requests.UID,
         requests.Password,
-        requests.Parameters,
+        requests.BoilerParameters,
         requests.MixerParameters,
         requests.DataSchema,
         requests.StartMaster,
@@ -42,7 +42,7 @@ def test_check_device_response_recipient_and_type() -> None:
 
 def test_parameters() -> None:
     """Test parameters request bytes."""
-    frame = requests.Parameters()
+    frame = requests.BoilerParameters()
     assert frame.bytes == b"\x68\x0c\x00\x00\x56\x30\x05\x31\xff\x00\xc9\x16"
 
 
