@@ -6,7 +6,7 @@ from typing import Dict, Final, List, Tuple, Type
 
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
-from .frame import BROADCAST_ADDRESS, Request
+from .frames import BROADCAST_ADDRESS, Request
 
 DEFAULT_VERSION: Final = 0
 

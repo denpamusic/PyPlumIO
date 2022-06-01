@@ -2,8 +2,12 @@
 
 import pytest
 
+from pyplumio.frames.requests import (
+    BoilerControl,
+    SetBoilerParameter,
+    SetMixerParameter,
+)
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
 
 
 @pytest.fixture(name="parameter")
@@ -57,7 +61,7 @@ def test_parameter__str__(parameter: Parameter) -> None:
 
 def test_parameter_request(parameter: Parameter) -> None:
     """Test parameter set request instance."""
-    assert isinstance(parameter.request, SetParameter)
+    assert isinstance(parameter.request, SetBoilerParameter)
 
 
 def test_parameter_request_mixer() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from . import util
-from .frame import BROADCAST_ADDRESS, Request
+from .frames import BROADCAST_ADDRESS, Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .structures.mixer_parameters import MIXER_PARAMETERS

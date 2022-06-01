@@ -4,7 +4,6 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio import requests
 from pyplumio.constants import (
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
@@ -16,6 +15,7 @@ from pyplumio.constants import (
 )
 from pyplumio.devices import MODE_HEATING, MODES, DevicesCollection, EcoMAX
 from pyplumio.exceptions import UninitializedParameterError
+from pyplumio.frames import requests
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.structures.device_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.structures.frame_versions import FRAME_VERSIONS
@@ -164,7 +164,7 @@ def test_changed_parameters(ecomax_with_data: EcoMAX) -> None:
     ecomax_with_data.summer_mode = 0
     assert (
         ecomax_with_data.changes[0].message
-        == requests.SetParameter(data={"name": "summer_mode", "value": 0}).message
+        == requests.SetBoilerParameter(data={"name": "summer_mode", "value": 0}).message
     )
 
 

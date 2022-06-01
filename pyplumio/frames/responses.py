@@ -3,41 +3,22 @@
 import struct
 from typing import Any, Dict, Final
 
-from . import util
-from .constants import (
-    DATA_FAN_POWER,
-    DATA_FUEL_CONSUMPTION,
-    DATA_FUEL_LEVEL,
-    DATA_LOAD,
+from pyplumio import util
+from pyplumio.constants import (
     DATA_MODE,
-    DATA_POWER,
-    DATA_THERMOSTAT,
-    DATA_TRANSMISSION,
     DEFAULT_IP,
     DEFAULT_NETMASK,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
-from .data_types import DATA_TYPES, Boolean
-from .exceptions import VersionError
-from .frame import Response
-from .structures import (
-    alarms,
-    device_parameters,
-    frame_versions,
-    lambda_,
-    mixer_parameters,
-    mixers,
-    modules,
-    output_flags,
-    outputs,
-    statuses,
-    temperatures,
-    thermostats,
-    uid,
-    var_string,
-)
-from .version import __version__
+from pyplumio.data_types import DATA_TYPES
+from pyplumio.structures import device_parameters, mixer_parameters, uid, var_string
+from pyplumio.structures.outputs import OUTPUTS
+from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
+from pyplumio.structures.temperatures import TEMPERATURES
+from pyplumio.version import __version__
+
+from . import Response
 
 
 class ProgramVersion(Response):
@@ -176,126 +157,6 @@ class DeviceAvailable(Response):
         self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)[0]
 
 
-REGDATA_SCHEMA: Final = {
-    1792: DATA_MODE,
-    1024: temperatures.TEMPERATURES[0],
-    1026: temperatures.TEMPERATURES[1],
-    1025: temperatures.TEMPERATURES[2],
-    1027: temperatures.TEMPERATURES[3],
-    1030: temperatures.TEMPERATURES[5],
-    1280: statuses.HEATING_TARGET,
-    1281: statuses.WATER_HEATER_TARGET,
-    1536: outputs.OUTPUTS[0],
-    1538: outputs.OUTPUTS[1],
-    1541: outputs.OUTPUTS[2],
-    1542: outputs.OUTPUTS[3],
-    3: outputs.OUTPUTS[5],
-}
-
-
-class RegData(Response):
-    """Contains current regulator data.
-
-    Attributes:
-        type_ -- frame type
-    """
-
-    type_: int = 0x08
-
-    VERSION: str = "1.0"
-
-    def __init__(self, *args, **kwargs):
-        """Creates new RegData frame object.
-
-        Keyword arguments:
-            *args -- arguments for parent class init
-            **kwargs -- keyword arguments for parent class init
-        """
-        super().__init__(*args, **kwargs)
-        self.schema = []
-
-    def parse_message(self, message: bytearray) -> None:
-        """Parses RegData message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
-        offset = 2
-        frame_version = f"{message[offset+1]}.{message[offset]}"
-        offset += 2
-        self._data = {}
-        if frame_version != self.VERSION:
-            raise VersionError(f"Unknown regdata version: {int(frame_version)}")
-
-        _, offset = frame_versions.from_bytes(message, offset, self._data)
-        boolean_index = 0
-        for param in self.schema:
-            param_id, param_type = param
-            if not isinstance(param_type, Boolean) and boolean_index > 0:
-                offset += 1
-                boolean_index = 0
-
-            param_type.unpack(message[offset:])
-            if isinstance(param_type, Boolean):
-                boolean_index = param_type.index(boolean_index)
-
-            self._data[param_id] = param_type.value
-            offset += param_type.size
-
-
-class CurrentData(Response):
-    """Contains current device state data.
-
-    Attributes:
-        type_ -- frame type
-    """
-
-    type_: int = 0x35
-
-    def __init__(self, *args, **kwargs):
-        """Creates new CurrentData frame object.
-
-        Keyword arguments:
-            *args -- arguments for parent class init
-            **kwargs -- keyword arguments for parent class init
-        """
-        super().__init__(*args, **kwargs)
-        self.schema = []
-
-    def parse_message(self, message: bytearray) -> None:
-        """Parses CurrentData message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
-        self._data = {}
-        offset = 0
-        _, offset = frame_versions.from_bytes(message, offset, self._data)
-        self._data[DATA_MODE] = message[offset]
-        offset += 1
-        _, offset = outputs.from_bytes(message, offset, self._data)
-        _, offset = output_flags.from_bytes(message, offset, self._data)
-        _, offset = temperatures.from_bytes(message, offset, self._data)
-        _, offset = statuses.from_bytes(message, offset, self._data)
-        _, offset = alarms.from_bytes(message, offset, self._data)
-        self._data[DATA_FUEL_LEVEL] = message[offset]
-        self._data[DATA_TRANSMISSION] = message[offset + 1]
-        self._data[DATA_FAN_POWER] = util.unpack_float(
-            message[offset + 2 : offset + 6]
-        )[0]
-        self._data[DATA_LOAD] = message[offset + 6]
-        self._data[DATA_POWER] = util.unpack_float(message[offset + 7 : offset + 11])[0]
-        self._data[DATA_FUEL_CONSUMPTION] = util.unpack_float(
-            message[offset + 11 : offset + 15]
-        )[0]
-        self._data[DATA_THERMOSTAT] = message[offset + 15]
-        offset += 16
-        _, offset = modules.from_bytes(message, offset, self._data)
-        _, offset = lambda_.from_bytes(message, offset, self._data)
-        _, offset = thermostats.from_bytes(message, offset, self._data)
-        _, offset = mixers.from_bytes(message, offset, self._data)
-
-
 class UID(Response):
     """Contains device UID.
 
@@ -381,6 +242,23 @@ class MixerParameters(Response):
         self._data, _ = mixer_parameters.from_bytes(message)
 
 
+REGDATA_SCHEMA: Final = {
+    1792: DATA_MODE,
+    1024: TEMPERATURES[0],
+    1026: TEMPERATURES[1],
+    1025: TEMPERATURES[2],
+    1027: TEMPERATURES[3],
+    1030: TEMPERATURES[5],
+    1280: HEATING_TARGET,
+    1281: WATER_HEATER_TARGET,
+    1536: OUTPUTS[0],
+    1538: OUTPUTS[1],
+    1541: OUTPUTS[2],
+    1542: OUTPUTS[3],
+    3: OUTPUTS[5],
+}
+
+
 class DataSchema(Response):
     """Contains device data structure.
 
@@ -409,7 +287,7 @@ class DataSchema(Response):
                 offset += 3
 
 
-class SetParameter(Response):
+class SetBoilerParameter(Response):
     """Contains set parameter response.
 
     Attributes:

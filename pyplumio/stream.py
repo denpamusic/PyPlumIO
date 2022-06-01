@@ -10,7 +10,7 @@ from . import util
 from .constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 from .exceptions import ChecksumError, LengthError
 from .factory import FrameFactory
-from .frame import HEADER_SIZE, Frame, Request
+from .frames import HEADER_SIZE, Frame, Request
 
 READER_BUFFER_SIZE: Final = 1000
 READER_TIMEOUT: Final = 5

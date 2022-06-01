@@ -3,8 +3,8 @@
 import pytest
 
 from pyplumio.constants import BROADCAST_ADDRESS
+from pyplumio.frames.requests import SetMixerParameter
 from pyplumio.mixers import Mixer, MixersCollection
-from pyplumio.requests import SetMixerParameter
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 _test_data = {

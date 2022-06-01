@@ -1,7 +1,11 @@
 """Contains device parameter representation."""
 
-from pyplumio.frame import Request
-from pyplumio.requests import BoilerControl, SetMixerParameter, SetParameter
+from pyplumio.frames import Request
+from pyplumio.frames.requests import (
+    BoilerControl,
+    SetBoilerParameter,
+    SetMixerParameter,
+)
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 
@@ -50,7 +54,7 @@ class Parameter:
         if self.name in MIXER_PARAMETERS:
             return SetMixerParameter(data=self.__dict__)
 
-        return SetParameter(data=self.__dict__)
+        return SetBoilerParameter(data=self.__dict__)
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""

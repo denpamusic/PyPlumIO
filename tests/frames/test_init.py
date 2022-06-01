@@ -5,9 +5,16 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio import requests, responses
 from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
-from pyplumio.frame import ECONET_TYPE, ECONET_VERSION, HEADER_SIZE, Request, Response
+from pyplumio.frames import (
+    ECONET_TYPE,
+    ECONET_VERSION,
+    HEADER_SIZE,
+    Request,
+    Response,
+    requests,
+    responses,
+)
 
 
 @pytest.fixture(name="request_")
@@ -63,7 +70,7 @@ def test_frame_get_data_without_data(frames: Tuple[Request, Response]) -> None:
     """Test that parse_message called when frame data is not set."""
     for frame in frames:
         with patch(
-            "pyplumio.frame." + frame.__class__.__name__ + ".parse_message"
+            "pyplumio.frames." + frame.__class__.__name__ + ".parse_message"
         ) as mock_parse_message:
             assert frame.data is None
 

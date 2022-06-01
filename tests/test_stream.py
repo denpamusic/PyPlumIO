@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from pyplumio.exceptions import ChecksumError, LengthError
-from pyplumio.requests import UID, BoilerParameters, CheckDevice, ProgramVersion
+from pyplumio.frames.requests import UID, BoilerParameters, CheckDevice, ProgramVersion
 from pyplumio.stream import (
     READER_BUFFER_SIZE,
     READER_TIMEOUT,

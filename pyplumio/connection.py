@@ -12,7 +12,6 @@ from typing import Any, Awaitable, Dict, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from . import requests, responses
 from .constants import (
     DATA_MIXERS,
     DEFAULT_IP,
@@ -22,7 +21,7 @@ from .constants import (
 )
 from .devices import DevicesCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
-from .frame import Frame
+from .frames import Frame, messages, requests, responses
 from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +106,7 @@ class Connection(ABC):
         elif isinstance(frame, responses.Password):
             device.password = frame.data
 
-        elif isinstance(frame, (responses.RegData, responses.CurrentData)):
+        elif isinstance(frame, (messages.RegData, messages.CurrentData)):
             frame.schema = device.schema
             device.set_data(frame.data)
             if DATA_MIXERS in frame.data:

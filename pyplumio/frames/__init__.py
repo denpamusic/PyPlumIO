@@ -5,8 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Final, List, Optional
 
-from . import util
-from .constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio import util
+from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -191,3 +191,7 @@ class Response(Frame):
         Keyword arguments:
         message - bytearray message to parse
         """
+
+
+class Message(Response):
+    """Base class for all message frames."""

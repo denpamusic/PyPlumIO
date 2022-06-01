@@ -6,9 +6,8 @@ import inspect
 from types import ModuleType
 from typing import Dict, Type
 
-from . import requests, responses
 from .exceptions import FrameTypeError
-from .frame import Frame
+from .frames import Frame, messages, requests, responses
 from .helpers.singleton import Singleton
 
 
@@ -52,7 +51,7 @@ class FrameFactory(Singleton):
         types and handlers.
         """
         if not self._types:
-            for module in (requests, responses):
+            for module in (requests, responses, messages):
                 self._load_types_from_module(module)
 
         return self._types

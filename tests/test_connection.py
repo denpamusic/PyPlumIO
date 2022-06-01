@@ -10,15 +10,15 @@ import pytest
 from serial import SerialException
 from serial_asyncio import serial
 
-from pyplumio import requests
 from pyplumio.connection import SerialConnection, TcpConnection
 from pyplumio.constants import ECOMAX_ADDRESS, WLAN_ENCRYPTION_WPA
 from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeError
-from pyplumio.requests import CheckDevice, ProgramVersion
-from pyplumio.responses import (
+from pyplumio.frames import requests
+from pyplumio.frames.messages import CurrentData
+from pyplumio.frames.requests import CheckDevice, ProgramVersion
+from pyplumio.frames.responses import (
     UID,
     BoilerParameters,
-    CurrentData,
     DataSchema,
     MixerParameters,
     Password,
@@ -135,7 +135,8 @@ async def test_connection_task(
     tcp_connection.on_closed(mock_closed_callback)
 
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ):
         await tcp_connection.task(mock_callback, interval=5)
 
@@ -162,7 +163,8 @@ async def test_read_frame_type_error(
     caplog.set_level(logging.DEBUG)
 
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch("pyplumio.stream.FrameReader.read", side_effect=FrameTypeError(1)):
         await tcp_connection.task(AsyncMock())
 
@@ -179,7 +181,8 @@ async def test_read_frame_error(
     caplog.set_level(logging.DEBUG)
 
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch("pyplumio.stream.FrameReader.read", side_effect=FrameError("test_error")):
         await tcp_connection.task(AsyncMock())
 
@@ -252,7 +255,8 @@ async def test_process_unknown_sender(
 ) -> None:
     """Test processing of the frame with unknown sender."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=CheckDevice(sender=0x0),
@@ -274,12 +278,13 @@ async def test_process_program_version_request(
     test_frame_response = test_frame.response()
 
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch("pyplumio.stream.FrameWriter.collect", return_value=True), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=test_frame,
     ), patch(
-        "pyplumio.requests.ProgramVersion.response",
+        "pyplumio.frames.requests.ProgramVersion.response",
         return_value=test_frame_response,
     ) as program_version_response, patch(
         "pyplumio.stream.FrameWriter.queue"
@@ -296,7 +301,8 @@ async def test_process_uid_response(
 ) -> None:
     """Test processing of uid frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=UID(
@@ -315,7 +321,8 @@ async def test_process_password_response(
 ) -> None:
     """Test processing of password frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=Password(sender=ECOMAX_ADDRESS, data="0000"),
@@ -331,7 +338,8 @@ async def test_process_data_frame(
 ) -> None:
     """Test processing of data frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=CurrentData(
@@ -356,7 +364,8 @@ async def test_process_parameters_response(
 ) -> None:
     """Test processing of parameters frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=BoilerParameters(
@@ -376,7 +385,8 @@ async def test_process_mixer_parameters_response(
 ) -> None:
     """Test processing of mixer parameters frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=MixerParameters(
@@ -396,7 +406,8 @@ async def test_process_data_schema_response(
 ) -> None:
     """Test processing of mixer parameters frame."""
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=DataSchema(sender=ECOMAX_ADDRESS, data="test"),
@@ -433,12 +444,13 @@ async def test_process_check_device_request(
     # Check that network information was successfully passed
     # in response to check device request.
     with patch(
-        "pyplumio.stream.FrameWriter.process_queue", side_effect=tcp_connection.close
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=CheckDevice(sender=ECOMAX_ADDRESS),
     ), patch(
-        "pyplumio.requests.CheckDevice.response"
+        "pyplumio.frames.requests.CheckDevice.response"
     ) as mock_response:
         await tcp_connection.task(AsyncMock())
 

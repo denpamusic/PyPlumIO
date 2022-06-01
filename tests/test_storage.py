@@ -1,6 +1,6 @@
 """Test PyPlumIO version storage bucket."""
 
-from pyplumio import requests, responses
+from pyplumio.frames import requests, responses
 from pyplumio.storage import DEFAULT_VERSION, FrameBucket
 
 

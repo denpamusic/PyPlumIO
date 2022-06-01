@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from pyplumio import util
 from pyplumio.exceptions import UninitializedParameterError
-from pyplumio.frame import BROADCAST_ADDRESS, Request
+from pyplumio.frames import BROADCAST_ADDRESS, Request
 
 from .parameter import Parameter
 

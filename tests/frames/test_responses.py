@@ -1,12 +1,12 @@
 """Test PyPlumIO response frames."""
 
-from pyplumio import responses
 from pyplumio.constants import (
     BROADCAST_ADDRESS,
     ECONET_ADDRESS,
     WLAN_ENCRYPTION,
     WLAN_ENCRYPTION_NONE,
 )
+from pyplumio.frames import responses
 
 _program_version_data = {
     "version": "1.0.0",
@@ -52,8 +52,6 @@ def test_responses_type() -> None:
     for response in (
         responses.ProgramVersion,
         responses.DeviceAvailable,
-        responses.RegData,
-        responses.CurrentData,
         responses.UID,
         responses.Password,
         responses.BoilerParameters,

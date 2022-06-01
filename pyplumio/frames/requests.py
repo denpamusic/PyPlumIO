@@ -1,9 +1,9 @@
 """Contains request frame classes."""
 
-from . import responses
-from .frame import Request
-from .structures.device_parameters import DEVICE_PARAMETERS
-from .structures.mixer_parameters import MIXER_PARAMETERS
+from pyplumio.structures.device_parameters import DEVICE_PARAMETERS
+from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
+
+from . import Request, responses
 
 
 class ProgramVersion(Request):
@@ -72,7 +72,7 @@ class BoilerParameters(Request):
     type_: int = 0x31
 
     def create_message(self) -> bytearray:
-        """Creates SetParameter message."""
+        """Creates BoilerParameters message."""
 
         message = bytearray()
         message.append(0xFF)  # Number of parameters.
@@ -100,7 +100,7 @@ class DataSchema(Request):
     type_: int = 0x55
 
 
-class SetParameter(Request):
+class SetBoilerParameter(Request):
     """Changes current regulator parameter.
 
     Attributes:
@@ -110,7 +110,7 @@ class SetParameter(Request):
     type_: int = 0x33
 
     def create_message(self) -> bytearray:
-        """Creates SetParameter message."""
+        """Creates SetBoilerParameter message."""
 
         message = bytearray()
         name = self._data["name"]

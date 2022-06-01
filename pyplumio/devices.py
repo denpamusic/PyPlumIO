@@ -5,7 +5,6 @@ from abc import abstractmethod
 import time
 from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
-from . import requests
 from .constants import (
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
@@ -19,7 +18,7 @@ from .constants import (
     ECOSTER_ADDRESS,
 )
 from .data_types import DataType
-from .frame import Request
+from .frames import Request, requests
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .mixers import MixersCollection

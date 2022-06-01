@@ -1,7 +1,7 @@
 """Test PyPlumIO request frames."""
 
-from pyplumio import requests, responses
 from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.frames import requests, responses
 
 
 def test_base_class_response() -> None:
@@ -48,7 +48,7 @@ def test_parameters() -> None:
 
 def test_set_parameter() -> None:
     """Test set parameter request bytes."""
-    frame = requests.SetParameter(data={"name": "airflow_power_100", "value": 80})
+    frame = requests.SetBoilerParameter(data={"name": "airflow_power_100", "value": 80})
     assert frame.bytes == b"\x68\x0c\x00\x00\x56\x30\x05\x33\x00\x50\x64\x16"
 
 
