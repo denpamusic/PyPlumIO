@@ -157,7 +157,7 @@ class Frame(ABC):
 class Request(Frame):
     """Base class for all requests frames."""
 
-    def response(self, **args) -> Optional[Frame]:  # pylint: disable=no-self-use
+    def response(self, **args) -> Optional[Frame]:
         """Returns instance of Frame
         for response to request, if needed.
 
