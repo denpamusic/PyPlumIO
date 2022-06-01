@@ -2,23 +2,21 @@
 
 from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.frames import responses
-from pyplumio.helpers.network import EthernetParameters, Network, WirelessParameters
+from pyplumio.helpers.network_info import (
+    EthernetParameters,
+    NetworkInfo,
+    WirelessParameters,
+)
+from pyplumio.helpers.version_info import VersionInfo
 
-_program_version_data = {
-    "version": "1.0.0",
-    "struct_tag": b"\xFF\xFF",
-    "struct_version": 5,
-    "device_id": b"\x7A\x00",
-    "processor_signature": b"\x00\x00\x00",
-    "address": 0x56,
-}
+_program_version_data = {"version": VersionInfo(software="1.0.0")}
 
 _program_version_bytes = bytearray(
     b"\xFF\xFF\x05\x7A\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x56"
 )
 
 _device_available_data = {
-    "network": Network(
+    "network": NetworkInfo(
         eth=EthernetParameters(
             ip="192.168.1.2",
             netmask="255.255.255.0",

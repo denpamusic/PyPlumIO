@@ -23,12 +23,13 @@ from pyplumio.frames.responses import (
     MixerParameters,
     Password,
 )
-from pyplumio.helpers.network import (
+from pyplumio.helpers.network_info import (
     WLAN_ENCRYPTION_WPA,
     EthernetParameters,
-    Network,
+    NetworkInfo,
     WirelessParameters,
 )
+from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.stream import FrameReader, FrameWriter
 
 
@@ -306,14 +307,16 @@ async def test_process_uid_response(
     tcp_connection: TcpConnection, bypass_asyncio_connection
 ) -> None:
     """Test processing of uid frame."""
+    product_info = ProductInfo(
+        type=0, product=0, uid="test_uid", logo=0, image=0, name="test_product"
+    )
+
     with patch(
         "pyplumio.stream.FrameWriter.process_queue",
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=UID(
-            sender=ECOMAX_ADDRESS, data={"UID": "test_uid", "reg_name": "test_product"}
-        ),
+        return_value=UID(sender=ECOMAX_ADDRESS, data={"product": product_info}),
     ):
         await tcp_connection.task(AsyncMock())
 
@@ -331,7 +334,7 @@ async def test_process_password_response(
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=Password(sender=ECOMAX_ADDRESS, data="0000"),
+        return_value=Password(sender=ECOMAX_ADDRESS, data={"password": "0000"}),
     ):
         await tcp_connection.task(AsyncMock())
 
@@ -460,7 +463,7 @@ async def test_process_check_device_request(
 
     mock_response.assert_called_once_with(
         data={
-            "network": Network(
+            "network": NetworkInfo(
                 eth=EthernetParameters(**eth_data, status=True),
                 wlan=WirelessParameters(**wlan_data, status=True),
             )

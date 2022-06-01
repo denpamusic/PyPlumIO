@@ -40,7 +40,7 @@ class WirelessParameters(EthernetParameters):
 
 
 @dataclass
-class Network:
+class NetworkInfo:
     """Represents network parameters."""
 
     eth: EthernetParameters = EthernetParameters()

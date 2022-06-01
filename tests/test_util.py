@@ -46,27 +46,6 @@ def test_ip6_to_bytes() -> None:
     )
 
 
-def test_merge_without_override() -> None:
-    """Test merging dictionaries without overriding keys."""
-    defaults = {"foo": 1}
-    data = {"bar": 2}
-    assert util.merge(defaults, data) == {"foo": 1, "bar": 2}
-
-
-def test_merge_with_empty_override() -> None:
-    """Test merging dictionaries with one key not present in both."""
-    defaults = {"foo": 1, "bar": 2}
-    data = {"foo": 2}
-    assert util.merge(defaults, data) == {"foo": 2, "bar": 2}
-
-
-def test_merge_with_empty_data() -> None:
-    """Test merging with empty dictionary."""
-    defaults = {"foo": 1}
-
-    assert util.merge(defaults, {}) == {"foo": 1}
-
-
 def test_check_parameter_valid() -> None:
     """Test checking if parameter is valid."""
     assert util.check_parameter(bytearray([0xFF, 0xFE, 0xFF, 0xFF]))

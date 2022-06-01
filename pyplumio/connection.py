@@ -16,12 +16,12 @@ from .constants import DATA_MIXERS, ECOMAX_ADDRESS
 from .devices import DevicesCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame, messages, requests, responses
-from .helpers.network import (
+from .helpers.network_info import (
     DEFAULT_IP,
     DEFAULT_NETMASK,
     WLAN_ENCRYPTION_NONE,
     EthernetParameters,
-    Network,
+    NetworkInfo,
     WirelessParameters,
 )
 from .stream import FrameReader, FrameWriter
@@ -54,7 +54,7 @@ class Connection(ABC):
         self.kwargs = kwargs
         self.closing = False
         self.writer = None
-        self._network: Network = Network()
+        self._network = NetworkInfo()
         self._devices = DevicesCollection()
         self._callback_task = None
         self._callback_closed = None
@@ -102,11 +102,11 @@ class Connection(ABC):
             writer.queue(frame.response())
 
         elif isinstance(frame, responses.UID):
-            device.uid = frame.data["UID"]
-            device.product = frame.data["reg_name"]
+            device.uid = frame.data["product"].uid
+            device.product = frame.data["product"].name
 
         elif isinstance(frame, responses.Password):
-            device.password = frame.data
+            device.password = frame.data["password"]
 
         elif isinstance(frame, (messages.RegData, messages.CurrentData)):
             frame.schema = device.schema
