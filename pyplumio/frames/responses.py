@@ -4,14 +4,9 @@ import struct
 from typing import Any, Dict, Final
 
 from pyplumio import util
-from pyplumio.constants import (
-    DATA_MODE,
-    DEFAULT_IP,
-    DEFAULT_NETMASK,
-    WLAN_ENCRYPTION,
-    WLAN_ENCRYPTION_NONE,
-)
+from pyplumio.constants import DATA_MODE
 from pyplumio.data_types import DATA_TYPES
+from pyplumio.helpers.network import Network
 from pyplumio.structures import device_parameters, mixer_parameters, uid, var_string
 from pyplumio.structures.outputs import OUTPUTS
 from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
@@ -86,48 +81,31 @@ class DeviceAvailable(Response):
 
     type_: int = 0xB0
 
-    _defaults: Dict[str, Dict[str, Any]] = {
-        "eth": {
-            "ip": DEFAULT_IP,
-            "netmask": DEFAULT_NETMASK,
-            "gateway": DEFAULT_IP,
-            "status": False,
-        },
-        "wlan": {
-            "ip": DEFAULT_IP,
-            "netmask": DEFAULT_NETMASK,
-            "gateway": DEFAULT_IP,
-            "status": False,
-            "encryption": WLAN_ENCRYPTION[WLAN_ENCRYPTION_NONE],
-            "quality": 100,
-            "ssid": "",
-        },
-        "server": {"status": True},
-    }
-
     def create_message(self) -> bytearray:
         """Creates DeviceAvailable message."""
         message = bytearray()
         message += b"\x01"
-        data = util.merge(self._defaults, self._data)
-        eth = data["eth"]
-        wlan = data["wlan"]
-        server = data["server"]
-        for address in ("ip", "netmask", "gateway"):
-            message += util.ip4_to_bytes(eth[address])
+        if self._data is None:
+            self._data = {}
 
-        message.append(eth["status"])
-        for address in ("ip", "netmask", "gateway"):
-            message += util.ip4_to_bytes(wlan[address])
+        if "network" not in self._data:
+            self._data["network"] = Network()
 
-        message.append(server["status"])
-        message.append(wlan["encryption"])
-        message.append(wlan["quality"])
-        message.append(wlan["status"])
-
+        network = self._data["network"]
+        message += util.ip4_to_bytes(getattr(network.eth, "ip"))
+        message += util.ip4_to_bytes(getattr(network.eth, "netmask"))
+        message += util.ip4_to_bytes(getattr(network.eth, "gateway"))
+        message.append(network.eth.status)
+        message += util.ip4_to_bytes(getattr(network.wlan, "ip"))
+        message += util.ip4_to_bytes(getattr(network.wlan, "netmask"))
+        message += util.ip4_to_bytes(getattr(network.wlan, "gateway"))
+        message.append(network.server_status)
+        message.append(network.wlan.encryption)
+        message.append(network.wlan.quality)
+        message.append(network.wlan.status)
         message += b"\x00" * 4
-        message.append(len(wlan["ssid"]))
-        message += wlan["ssid"].encode("utf-8")
+        message.append(len(network.wlan.ssid))
+        message += network.wlan.ssid.encode("utf-8")
 
         return message
 
@@ -137,24 +115,24 @@ class DeviceAvailable(Response):
         Keywords arguments:
             message -- message to parse
         """
-        self._data = {"eth": {}, "wlan": {}, "server": {}}
         offset = 1
-        for part in ("ip", "netmask", "gateway"):
-            self._data["eth"][part] = util.ip4_from_bytes(message[offset : offset + 4])
-            offset += 4
-
-        self._data["eth"]["status"] = bool(message[offset])
-        offset += 1
-        for part in ("ip", "netmask", "gateway"):
-            self._data["wlan"][part] = util.ip4_from_bytes(message[offset : offset + 4])
-            offset += 4
-
-        self._data["server"]["status"] = bool(message[offset])
-        self._data["wlan"]["encryption"] = int(message[offset + 1])
-        self._data["wlan"]["quality"] = int(message[offset + 2])
-        self._data["wlan"]["status"] = bool(message[offset + 3])
+        network = Network()
+        network.eth.ip = util.ip4_from_bytes(message[offset : offset + 4])
+        network.eth.netmask = util.ip4_from_bytes(message[offset + 4 : offset + 8])
+        network.eth.gateway = util.ip4_from_bytes(message[offset + 8 : offset + 12])
+        network.eth.status = bool(message[offset + 13])
+        offset += 13
+        network.wlan.ip = util.ip4_from_bytes(message[offset : offset + 4])
+        network.wlan.netmask = util.ip4_from_bytes(message[offset + 4 : offset + 8])
+        network.wlan.gateway = util.ip4_from_bytes(message[offset + 8 : offset + 12])
+        network.server_status = bool(message[offset + 12])
+        offset += 12
+        network.wlan.encryption = int(message[offset + 1])
+        network.wlan.quality = int(message[offset + 2])
+        network.wlan.status = bool(message[offset + 3])
         offset += 8
-        self._data["wlan"]["ssid"] = var_string.from_bytes(message, offset)[0]
+        network.wlan.ssid = var_string.from_bytes(message, offset)[0]
+        self._data["network"] = network
 
 
 class UID(Response):

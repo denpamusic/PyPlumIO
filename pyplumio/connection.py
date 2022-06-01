@@ -7,21 +7,23 @@ import asyncio
 from collections.abc import Callable
 import logging
 import sys
-from typing import Any, Awaitable, Dict, Final, Optional, Tuple
+from typing import Any, Awaitable, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
 
-from .constants import (
-    DATA_MIXERS,
-    DEFAULT_IP,
-    DEFAULT_NETMASK,
-    ECOMAX_ADDRESS,
-    WLAN_ENCRYPTION,
-)
+from .constants import DATA_MIXERS, ECOMAX_ADDRESS
 from .devices import DevicesCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame, messages, requests, responses
+from .helpers.network import (
+    DEFAULT_IP,
+    DEFAULT_NETMASK,
+    WLAN_ENCRYPTION_NONE,
+    EthernetParameters,
+    Network,
+    WirelessParameters,
+)
 from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,7 +54,7 @@ class Connection(ABC):
         self.kwargs = kwargs
         self.closing = False
         self.writer = None
-        self._net = {}
+        self._network: Network = Network()
         self._devices = DevicesCollection()
         self._callback_task = None
         self._callback_closed = None
@@ -122,7 +124,7 @@ class Connection(ABC):
             device.schema = frame.data
 
         elif isinstance(frame, requests.CheckDevice):
-            writer.queue(frame.response(data=self._net))
+            writer.queue(frame.response(data={"network": self._network}))
 
         writer.collect(device.changes)
 
@@ -234,18 +236,15 @@ class Connection(ABC):
             netmask -- netmask of eth device
             gateway -- gateway address of eth device
         """
-        eth: Dict[str, Any] = {}
-        eth["ip"] = ip
-        eth["netmask"] = netmask
-        eth["gateway"] = gateway
-        eth["status"] = True
-        self._net["eth"] = eth
+        self._network.eth = EthernetParameters(
+            ip=ip, netmask=netmask, gateway=gateway, status=True
+        )
 
     def set_wlan(
         self,
         ssid: str,
         ip: str,
-        encryption: int = WLAN_ENCRYPTION[1],
+        encryption: int = WLAN_ENCRYPTION_NONE,
         netmask: str = DEFAULT_NETMASK,
         gateway: str = DEFAULT_IP,
         quality: int = 100,
@@ -260,15 +259,15 @@ class Connection(ABC):
             netmask -- netmask of wlan device
             gateway -- gateway address of wlan device
         """
-        wlan: Dict[str, Any] = {}
-        wlan["ssid"] = ssid
-        wlan["encryption"] = encryption
-        wlan["quality"] = quality
-        wlan["ip"] = ip
-        wlan["netmask"] = netmask
-        wlan["gateway"] = gateway
-        wlan["status"] = True
-        self._net["wlan"] = wlan
+        self._network.wlan = WirelessParameters(
+            ssid=ssid,
+            encryption=encryption,
+            quality=quality,
+            ip=ip,
+            netmask=netmask,
+            gateway=gateway,
+            status=True,
+        )
 
     def on_closed(
         self, callback: Optional[Callable[[Connection], Awaitable[Any]]] = None

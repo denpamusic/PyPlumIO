@@ -1,12 +1,8 @@
 """Test PyPlumIO response frames."""
 
-from pyplumio.constants import (
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
-    WLAN_ENCRYPTION,
-    WLAN_ENCRYPTION_NONE,
-)
+from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.frames import responses
+from pyplumio.helpers.network import EthernetParameters, Network, WirelessParameters
 
 _program_version_data = {
     "version": "1.0.0",
@@ -22,22 +18,21 @@ _program_version_bytes = bytearray(
 )
 
 _device_available_data = {
-    "eth": {
-        "ip": "192.168.1.2",
-        "netmask": "255.255.255.0",
-        "gateway": "192.168.1.1",
-        "status": True,
-    },
-    "wlan": {
-        "ip": "192.168.2.2",
-        "netmask": "255.255.255.0",
-        "gateway": "192.168.2.1",
-        "encryption": WLAN_ENCRYPTION[WLAN_ENCRYPTION_NONE],
-        "quality": 100,
-        "status": True,
-        "ssid": "tests",
-    },
-    "server": {"status": True},
+    "network": Network(
+        eth=EthernetParameters(
+            ip="192.168.1.2",
+            netmask="255.255.255.0",
+            gateway="192.168.1.1",
+            status=True,
+        ),
+        wlan=WirelessParameters(
+            ip="192.168.2.2",
+            netmask="255.255.255.0",
+            gateway="192.168.2.1",
+            status=True,
+            ssid="tests",
+        ),
+    )
 }
 
 _device_available_bytes = bytearray(

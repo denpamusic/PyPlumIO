@@ -11,7 +11,7 @@ from serial import SerialException
 from serial_asyncio import serial
 
 from pyplumio.connection import SerialConnection, TcpConnection
-from pyplumio.constants import ECOMAX_ADDRESS, WLAN_ENCRYPTION_WPA
+from pyplumio.constants import ECOMAX_ADDRESS
 from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from pyplumio.frames import requests
 from pyplumio.frames.messages import CurrentData
@@ -22,6 +22,12 @@ from pyplumio.frames.responses import (
     DataSchema,
     MixerParameters,
     Password,
+)
+from pyplumio.helpers.network import (
+    WLAN_ENCRYPTION_WPA,
+    EthernetParameters,
+    Network,
+    WirelessParameters,
 )
 from pyplumio.stream import FrameReader, FrameWriter
 
@@ -438,8 +444,6 @@ async def test_process_check_device_request(
     }
     tcp_connection.set_eth(**eth_data)
     tcp_connection.set_wlan(**wlan_data)
-    eth_data["status"] = True
-    wlan_data["status"] = True
 
     # Check that network information was successfully passed
     # in response to check device request.
@@ -454,4 +458,11 @@ async def test_process_check_device_request(
     ) as mock_response:
         await tcp_connection.task(AsyncMock())
 
-    mock_response.assert_called_once_with(data={"eth": eth_data, "wlan": wlan_data})
+    mock_response.assert_called_once_with(
+        data={
+            "network": Network(
+                eth=EthernetParameters(**eth_data, status=True),
+                wlan=WirelessParameters(**wlan_data, status=True),
+            )
+        }
+    )
