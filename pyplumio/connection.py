@@ -135,7 +135,7 @@ class Connection(ABC):
         while True:
             if self.closing:
                 await self.writer.close()
-                await self._close()
+                await self.force_close()
                 break
 
             try:
@@ -187,10 +187,10 @@ class Connection(ABC):
                     "Connection to device failed, retrying in %i seconds...",
                     RECONNECT_TIMEOUT,
                 )
-                await self._close()
+                await self.force_close()
                 await asyncio.sleep(RECONNECT_TIMEOUT)
 
-    async def _close(self) -> None:
+    async def force_close(self) -> None:
         """Declares connection as closed."""
         self.writer = None
         self.closing = False
