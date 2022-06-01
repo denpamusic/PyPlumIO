@@ -1,7 +1,7 @@
 """Contains versions structure parser."""
 
 import struct
-from typing import Any, Dict, Final, Tuple
+from typing import Any, Dict, Final, Optional, Tuple
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -32,23 +32,31 @@ def from_bytes(
         data = {}
 
     for module in MODULES:
-        if message[offset] == 0xFF:
-            data[module] = None
-            offset += 1
-            continue
-
-        if module == MODULE_A:
-            version_data = struct.unpack("<BBBBB", message[offset : offset + 5])
-            version1 = ".".join(map(str, version_data[:3]))
-            version2 = "." + chr(version_data[3])
-            version3 = str(version_data[4])
-            data[module] = version1 + version2 + version3
-            offset += 5
-            continue
-
-        data[module] = ".".join(
-            map(str, struct.unpack("<BBB", message[offset : offset + 3]))
-        )
-        offset += 3
+        data[module], offset = _parse_module_version(module, message, offset)
 
     return data, offset
+
+
+def _parse_module_version(
+    module: str, message: bytearray, offset: int = 0
+) -> Tuple[Optional[str], int]:
+    """Gets module version by module name.
+
+    Keyword arguments:
+        module - module name
+        message - bytes to parse module version from
+        offset - message offset
+    """
+    if message[offset] == 0xFF:
+        return None, (offset + 1)
+
+    version_data = struct.unpack("<BBB", message[offset : offset + 3])
+    module_version = ".".join(str(i) for i in version_data)
+    offset += 3
+
+    if module == MODULE_A:
+        vendor_code, vendor_version = struct.unpack("<BB", message[offset : offset + 2])
+        module_version += f".{chr(vendor_code)}{str(vendor_version)}"
+        offset += 2
+
+    return module_version, offset
