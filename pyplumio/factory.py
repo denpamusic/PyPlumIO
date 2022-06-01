@@ -41,7 +41,7 @@ class FrameFactory(Singleton):
             module - a module to load types from
         """
         for _, cls in inspect.getmembers(module, inspect.isclass):
-            if cls.__module__ == module.__name__:
+            if cls.__module__ == module.__name__ and issubclass(cls, Frame):
                 # Class is within the module.
                 self._types[cls.type_] = cls
 
