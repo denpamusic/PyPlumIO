@@ -15,25 +15,27 @@ class Parameter:
     Attributes:
         name -- parameter name
         value -- parameter value
-        min_ -- minimum acceptable value
-        max_ -- maximum acceptable value
+        min_value -- minimum acceptable value
+        max_value -- maximum acceptable value
         extra -- extra information
     """
 
-    def __init__(self, name: str, value: int, min_: int, max_: int, extra=None):
+    def __init__(
+        self, name: str, value: int, min_value: int, max_value: int, extra=None
+    ):
         """Creates parameter.
 
         Keyword attributes:
             name -- parameter name
             value -- parameter value
-            min_ -- minimum acceptable value
-            max_ -- maximum acceptable value
+            min_value -- minimum acceptable value
+            max_value -- maximum acceptable value
             extra -- extra information
         """
         self.name = name
         self.value = int(value)
-        self.min_ = min_
-        self.max_ = max_
+        self.min_value = min_value
+        self.max_value = max_value
         self.extra = extra
 
     def set(self, value) -> None:
@@ -42,7 +44,7 @@ class Parameter:
         Keyword arguments:
             value -- new value to set parameter to
         """
-        if self.value != value and self.min_ <= value <= self.max_:
+        if self.value != value and self.min_value <= value <= self.max_value:
             self.value = value
 
     @property
@@ -61,14 +63,14 @@ class Parameter:
         return f"""Parameter(
     name = {self.name},
     value = {self.value},
-    min_ = {self.min_},
-    max_ = {self.max_},
+    min_value = {self.min_value},
+    max_value = {self.max_value},
     extra = {self.extra}
 )""".strip()
 
     def __str__(self) -> str:
         """Returns string representation."""
-        return f"{self.name}: {self.value} (range {self.min_} - {self.max_})"
+        return f"{self.name}: {self.value} (range {self.min_value} - {self.max_value})"
 
     def __int__(self) -> int:
         """Returns integer representation of parameter value.

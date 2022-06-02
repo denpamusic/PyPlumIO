@@ -383,8 +383,8 @@ async def test_process_parameters_response(
     ):
         await tcp_connection.task(AsyncMock())
 
-    assert tcp_connection.devices.ecomax.summer_mode.min_ == 0
-    assert tcp_connection.devices.ecomax.summer_mode.max_ == 1
+    assert tcp_connection.devices.ecomax.summer_mode.min_value == 0
+    assert tcp_connection.devices.ecomax.summer_mode.max_value == 1
     assert tcp_connection.devices.ecomax.summer_mode.value == 1
 
 
@@ -404,8 +404,8 @@ async def test_process_mixer_parameters_response(
     ):
         await tcp_connection.task(AsyncMock())
 
-    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.min_ == 30
-    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.max_ == 60
+    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.min_value == 30
+    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.max_value == 60
     assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.value == 50
 
 

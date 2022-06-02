@@ -67,8 +67,8 @@ MixersCollection(
     parameters = {'mix_set_temp': Parameter(
     name = mix_set_temp,
     value = 60,
-    min_ = 40,
-    max_ = 80,
+    min_value = 40,
+    max_value = 80,
     extra = 0
 )}
     index  = 0

@@ -60,10 +60,10 @@ def unpack_parameter(
         return None
 
     value = unpack_ushort(data[offset : offset + size])
-    min_ = unpack_ushort(data[offset + size : offset + 2 * size])
-    max_ = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
+    min_value = unpack_ushort(data[offset + size : offset + 2 * size])
+    max_value = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
 
-    return value, min_, max_
+    return value, min_value, max_value
 
 
 def ip4_to_bytes(address: str) -> bytes:

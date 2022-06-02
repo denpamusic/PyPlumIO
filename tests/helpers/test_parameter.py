@@ -13,7 +13,7 @@ from pyplumio.helpers.parameter import Parameter
 @pytest.fixture(name="parameter")
 def fixture_parameter() -> Parameter:
     """Returns instance of auto_summer parameter."""
-    return Parameter(name="auto_summer", value=1, min_=0, max_=1)
+    return Parameter(name="auto_summer", value=1, min_value=0, max_value=1)
 
 
 def test_parameter_set(parameter: Parameter) -> None:
@@ -46,8 +46,8 @@ def test_parameter__repr__(parameter: Parameter) -> None:
     output = """Parameter(
     name = auto_summer,
     value = 1,
-    min_ = 0,
-    max_ = 1,
+    min_value = 0,
+    max_value = 1,
     extra = None
 )""".strip()
 
@@ -66,11 +66,13 @@ def test_parameter_request(parameter: Parameter) -> None:
 
 def test_parameter_request_mixer() -> None:
     """Test set mixer parameter request instance."""
-    parameter = Parameter(name="mix_set_temp", value=50, min_=50, max_=80, extra=0)
+    parameter = Parameter(
+        name="mix_set_temp", value=50, min_value=50, max_value=80, extra=0
+    )
     assert isinstance(parameter.request, SetMixerParameter)
 
 
 def test_parameter_request_control() -> None:
     """Test boiler control parameter request instance."""
-    parameter = Parameter(name="boiler_control", value=1, min_=0, max_=1)
+    parameter = Parameter(name="boiler_control", value=1, min_value=0, max_value=1)
     assert isinstance(parameter.request, BoilerControl)

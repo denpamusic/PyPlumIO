@@ -73,8 +73,10 @@ Parameters:
         """
         for name, parameter in parameters.items():
             if name in MIXER_PARAMETERS:
-                value, min_, max_ = parameter
-                self._parameters[name] = Parameter(name, value, min_, max_, self._index)
+                value, min_value, max_value = parameter
+                self._parameters[name] = Parameter(
+                    name, value, min_value, max_value, self._index
+                )
 
     @property
     def editable_parameters(self) -> List[str]:

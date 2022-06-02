@@ -244,8 +244,8 @@ class EcoMAX(Device):
             self._parameters[device_parameters.PARAMETER_BOILER_CONTROL] = Parameter(
                 name=device_parameters.PARAMETER_BOILER_CONTROL,
                 value=int(self.is_on),
-                min_=0,
-                max_=1,
+                min_value=0,
+                max_value=1,
             )
 
     def _set_fuel_burned(self, fuel_consumption: float) -> None:
