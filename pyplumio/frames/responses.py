@@ -135,7 +135,7 @@ class DeviceAvailable(Response):
         network_info.wlan.status = bool(message[offset + 3])
         offset += 8
         network_info.wlan.ssid = var_string.from_bytes(message, offset)[0]
-        self._data["network"] = network_info
+        self._data = {"network": network_info}
 
 
 class UID(Response):
@@ -153,12 +153,13 @@ class UID(Response):
         Keywords arguments:
             message -- message to parse
         """
+
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid, offset = uid.from_bytes(message, offset=3)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
         product_info.name, _ = var_string.from_bytes(message, offset + 4)
-        self._data["product"] = product_info
+        self._data = {"product": product_info}
 
 
 class Password(Response):
@@ -176,7 +177,8 @@ class Password(Response):
         Keywords arguments:
             message -- message to parse
         """
-        self._data["password"] = message[1:].decode() if message[1:] else None
+        password = message[1:].decode() if message[1:] else None
+        self._data = {"password": password}
 
 
 class BoilerParameters(Response):
@@ -194,7 +196,7 @@ class BoilerParameters(Response):
         Keywords arguments:
             message -- message to parse
         """
-        device_parameters.from_bytes(message, offset=0, data=self._data)
+        self._data, _ = device_parameters.from_bytes(message)
 
 
 class MixerParameters(Response):
@@ -212,7 +214,7 @@ class MixerParameters(Response):
         Keywords arguments:
         message -- message to parse
         """
-        mixer_parameters.from_bytes(message, offset=0, data=self._data)
+        self._data, _ = mixer_parameters.from_bytes(message)
 
 
 REGDATA_SCHEMA: Final = {
