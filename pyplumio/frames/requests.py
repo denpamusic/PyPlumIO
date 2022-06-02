@@ -10,10 +10,10 @@ class ProgramVersion(Request):
     """ProgramVersion requests version info from ecoMAX device.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x40
+    frame_type: int = 0x40
 
     def response(self, **kwargs):
         """Returns corresponding response frame instance.
@@ -28,10 +28,10 @@ class CheckDevice(Request):
     """CheckDevice requests if device is available.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x30
+    frame_type: int = 0x30
 
     def response(self, **kwargs):
         """Returns corresponding response frame instance.
@@ -46,30 +46,30 @@ class UID(Request):
     """Requests device UID.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x39
+    frame_type: int = 0x39
 
 
 class Password(Request):
     """Requests service password.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x3A
+    frame_type: int = 0x3A
 
 
 class BoilerParameters(Request):
     """Requests current editable parameters.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x31
+    frame_type: int = 0x31
 
     def create_message(self) -> bytearray:
         """Creates BoilerParameters message."""
@@ -84,30 +84,30 @@ class MixerParameters(Request):
     """Requests current mixer parameters.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x32
+    frame_type: int = 0x32
 
 
 class DataSchema(Request):
     """Requests current regulator data structure.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x55
+    frame_type: int = 0x55
 
 
 class SetBoilerParameter(Request):
     """Changes current regulator parameter.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x33
+    frame_type: int = 0x33
 
     def create_message(self) -> bytearray:
         """Creates SetBoilerParameter message."""
@@ -126,10 +126,10 @@ class SetMixerParameter(Request):
     """Sets mixer parameter.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x34
+    frame_type: int = 0x34
 
     def create_message(self) -> bytearray:
         """Creates SetMixerParameter message."""
@@ -150,10 +150,10 @@ class BoilerControl(Request):
     """Changes regulator state (on/off).
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x3B
+    frame_type: int = 0x3B
 
     def create_message(self) -> bytearray:
         """Creates BoilerControl message."""
@@ -168,17 +168,17 @@ class StartMaster(Request):
     """Designates RS485 device as master.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x19
+    frame_type: int = 0x19
 
 
 class StopMaster(Request):
     """Revokes RS485 device master status.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x18
+    frame_type: int = 0x18

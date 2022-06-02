@@ -22,17 +22,17 @@ class FrameFactory(Singleton):
         """Calls method to make type list."""
         self._types: Dict[int, Type[Frame]] = {}
 
-    def get_frame(self, type_: int, **kwargs) -> Frame:
+    def get_frame(self, frame_type: int, **kwargs) -> Frame:
         """Gets frame by frame type.
 
         Keyword arguments:
             type -- integer that represents frame type
             kwargs -- keywords arguments to pass to the frame class
         """
-        if type_ in self.types:
-            return self.types[type_](**kwargs)
+        if frame_type in self.types:
+            return self.types[frame_type](**kwargs)
 
-        raise FrameTypeError(f"Unknown frame type: {type_}.")
+        raise FrameTypeError(f"Unknown frame type: {frame_type}.")
 
     def _load_types_from_module(self, module: ModuleType) -> None:
         """Loads types from the module.
@@ -43,7 +43,7 @@ class FrameFactory(Singleton):
         for _, cls in inspect.getmembers(module, inspect.isclass):
             if cls.__module__ == module.__name__ and issubclass(cls, Frame):
                 # Class is within the module.
-                self._types[cls.type_] = cls
+                self._types[cls.frame_type] = cls
 
     @property
     def types(self) -> Dict[int, Type[Frame]]:

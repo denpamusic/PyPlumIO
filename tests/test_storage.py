@@ -12,20 +12,20 @@ def test_fill_with_nothing(frame_bucket: FrameBucket) -> None:
 
 def test_fill_bucket(frame_bucket: FrameBucket) -> None:
     """Test filling buckit with requests."""
-    frame_bucket.fill({requests.UID.type_: 1, requests.Password.type_: 2})
-    assert frame_bucket.versions[requests.UID.type_] == 1
+    frame_bucket.fill({requests.UID.frame_type: 1, requests.Password.frame_type: 2})
+    assert frame_bucket.versions[requests.UID.frame_type] == 1
 
 
 def test_fill_bucket_in_init() -> None:
     """Test filling bucket using init function."""
-    frame_bucket = FrameBucket(versions={requests.UID.type_: 1})
-    assert frame_bucket.versions[requests.UID.type_] == 1
+    frame_bucket = FrameBucket(versions={requests.UID.frame_type: 1})
+    assert frame_bucket.versions[requests.UID.frame_type] == 1
 
 
 def test_fill_bucket_required() -> None:
     """Test filling required frames."""
     frame_bucket = FrameBucket(required=(requests.UID, requests.Password))
-    assert frame_bucket.versions[requests.UID.type_] == DEFAULT_VERSION
+    assert frame_bucket.versions[requests.UID.frame_type] == DEFAULT_VERSION
 
 
 def test_repr(frame_bucket: FrameBucket) -> None:
@@ -41,16 +41,16 @@ def test_repr(frame_bucket: FrameBucket) -> None:
 
 def test_fill_with_same_version(frame_bucket: FrameBucket) -> None:
     """Test fill bucket with request having same version number."""
-    frame_bucket.fill({requests.Password.type_: 2})
-    assert frame_bucket.versions[requests.Password.type_] == 2
+    frame_bucket.fill({requests.Password.frame_type: 2})
+    assert frame_bucket.versions[requests.Password.frame_type] == 2
 
 
 def test_bucket_update_with_request(frame_bucket: FrameBucket) -> None:
     """Test update bucket with request having different version."""
-    frame_bucket.update(type_=requests.UID.type_, version=2)
+    frame_bucket.update(frame_type=requests.UID.frame_type, version=2)
     found = False
     for frame in frame_bucket.queue:
-        if frame.type_ == requests.UID.type_:
+        if frame.frame_type == requests.UID.frame_type:
             found = True
             break
 
@@ -59,10 +59,10 @@ def test_bucket_update_with_request(frame_bucket: FrameBucket) -> None:
 
 def test_bucket_update_with_response(frame_bucket: FrameBucket) -> None:
     """Test update bucket with response from ecoMAX."""
-    frame_bucket.update(type_=responses.UID.type_, version=2)
+    frame_bucket.update(frame_type=responses.UID.frame_type, version=2)
     found = False
     for frame in frame_bucket.queue:
-        if frame.type_ == responses.UID.type_:
+        if frame.frame_type == responses.UID.frame_type:
             found = True
             break
 

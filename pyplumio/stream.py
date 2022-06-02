@@ -56,7 +56,7 @@ class FrameWriter:
             request - request to look for
         """
         for frame in self._queue:
-            if frame.type_ == request.type_:
+            if frame.frame_type == request.frame_type:
                 return True
 
         return False
@@ -144,7 +144,7 @@ class FrameReader:
                     raise ChecksumError("Incorrect frame checksum.")
 
                 return FrameFactory().get_frame(
-                    type_=payload[0],
+                    frame_type=payload[0],
                     recipient=recipient,
                     message=payload[1:-2],
                     sender=sender,

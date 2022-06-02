@@ -37,7 +37,7 @@ class FrameBucket:
             self.fill(versions)
 
         if required is not None:
-            self.fill({frame.type_: DEFAULT_VERSION for frame in required})
+            self.fill({frame.frame_type: DEFAULT_VERSION for frame in required})
 
     def __len__(self) -> int:
         """Gets number of stored frame versions."""
@@ -57,20 +57,22 @@ class FrameBucket:
         Keyword arguments:
             frames -- dictionary of frames keyed by frame versions
         """
-        for type_, version in frames.items():
-            if type_ not in self.versions or self.versions[type_] != version:
+        for frame_type, version in frames.items():
+            if frame_type not in self.versions or self.versions[frame_type] != version:
                 # We don't have this frame or it's version has changed.
-                self.update(type_, version)
+                self.update(frame_type, version)
 
-    def update(self, type_: int, version: int) -> None:
+    def update(self, frame_type: int, version: int) -> None:
         """Schedules frame update.
 
         Keyword arguments:
-            type_ -- type of frame
+            frame_type -- type of frame
             version -- new frame version to update to
         """
         try:
-            frame = FrameFactory().get_frame(type_=type_, recipient=self._address)
+            frame = FrameFactory().get_frame(
+                frame_type=frame_type, recipient=self._address
+            )
         except FrameTypeError:
             return None
 
@@ -78,7 +80,7 @@ class FrameBucket:
             # Do not process responses.
             return None
 
-        self.versions[type_] = version
+        self.versions[frame_type] = version
         self._queue.append(frame)
         return None
 

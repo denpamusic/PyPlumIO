@@ -33,10 +33,10 @@ class RegData(Message):
     """Contains current regulator data.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x08
+    frame_type: int = 0x08
 
     VERSION: str = "1.0"
 
@@ -83,10 +83,10 @@ class CurrentData(Message):
     """Contains current device state data.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0x35
+    frame_type: int = 0x35
 
     def __init__(self, *args, **kwargs):
         """Creates new CurrentData frame object.

@@ -21,10 +21,10 @@ class ProgramVersion(Response):
     """Contains information about device software and hardware version.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xC0
+    frame_type: int = 0xC0
 
     def create_message(self) -> bytearray:
         """Creates ProgramVersion message."""
@@ -73,10 +73,10 @@ class DeviceAvailable(Response):
     """Contains device information.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB0
+    frame_type: int = 0xB0
 
     def create_message(self) -> bytearray:
         """Creates DeviceAvailable message."""
@@ -142,10 +142,10 @@ class UID(Response):
     """Contains device UID.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB9
+    frame_type: int = 0xB9
 
     def parse_message(self, message: bytearray) -> None:
         """Parses UID message into usable data.
@@ -165,10 +165,10 @@ class Password(Response):
     """Contains device service password.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xBA
+    frame_type: int = 0xBA
 
     def parse_message(self, message: bytearray) -> None:
         """Parses Password message into usable data.
@@ -183,10 +183,10 @@ class BoilerParameters(Response):
     """Contains editable parameters.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB1
+    frame_type: int = 0xB1
 
     def parse_message(self, message: bytearray) -> None:
         """Parses Parameters message into usable data.
@@ -201,10 +201,10 @@ class MixerParameters(Response):
     """Contains current mixers parameters.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB2
+    frame_type: int = 0xB2
 
     def parse_message(self, message: bytearray) -> None:
         """Parses Parameters message into usable data.
@@ -236,10 +236,10 @@ class DataSchema(Response):
     """Contains device data structure.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xD5
+    frame_type: int = 0xD5
 
     def parse_message(self, message: bytearray) -> None:
         """Parses DataSchema message into usable data.
@@ -264,27 +264,27 @@ class SetBoilerParameter(Response):
     """Contains set parameter response.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB3
+    frame_type: int = 0xB3
 
 
 class SetMixerParameter(Response):
     """Sets mixer parameter.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xB4
+    frame_type: int = 0xB4
 
 
 class BoilerControl(Response):
     """Contains boiler control response.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
     """
 
-    type_: int = 0xBB
+    frame_type: int = 0xBB

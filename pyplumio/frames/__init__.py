@@ -20,7 +20,7 @@ class Frame(ABC):
     frames.
 
     Attributes:
-        type_ -- frame type
+        frame_type -- frame type
         recipient -- recipient address
         sender -- sender address
         sender_type -- sender type
@@ -31,7 +31,7 @@ class Frame(ABC):
 
     def __init__(
         self,
-        type_: int = None,
+        frame_type: int = None,
         recipient: int = BROADCAST_ADDRESS,
         message: bytearray = bytearray(),
         sender: int = ECONET_ADDRESS,
@@ -42,7 +42,7 @@ class Frame(ABC):
         """Creates new Frame object.
 
         Keyword arguments:
-            type_ -- integer repsentation of frame type
+            frame_type -- integer repsentation of frame type
             recipient -- integer repsentation of recipient address
             message -- frame body as bytearray
             sender -- integer respresentation of sender address
@@ -55,15 +55,15 @@ class Frame(ABC):
         self.sender = sender
         self.sender_type = sender_type
         self.econet_version = econet_version
-        if type_ is not None:
-            self.type_ = type_
+        if frame_type is not None:
+            self.frame_type = frame_type
 
         self.message = message if message else self.create_message()
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
         return f"""{self.__class__.__name__}(
-    type = {self.type_},
+    type = {self.frame_type},
     recipient = {self.recipient},
     message = {self.message},
     sender = {self.sender},
@@ -130,7 +130,7 @@ class Frame(ABC):
     def bytes(self) -> bytes:
         """Converts frame to bytes respresentation."""
         data = self.header
-        data.append(self.type_)
+        data.append(self.frame_type)
         data += self.message
         data.append(util.crc(data))
         data.append(FRAME_END)

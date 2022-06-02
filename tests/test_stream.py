@@ -90,7 +90,7 @@ async def test_frame_reader(reader: FrameReader) -> None:
     ) as mock_wait_for:
         frame = await reader.read()
         assert isinstance(frame, BoilerParameters)
-        assert frame.type_ == 0x31
+        assert frame.frame_type == 0x31
         assert frame.sender == 0x56
         assert frame.sender_type == 0x30
         assert frame.recipient == 0x0
