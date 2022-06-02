@@ -102,24 +102,6 @@ def ip6_from_bytes(data: bytes) -> str:
     return socket.inet_ntop(socket.AF_INET6, data)
 
 
-def merge(defaults: Dict[str, Any], options: Dict[str, Any]) -> Dict[str, Any]:
-    """Merges two dictionary with options overriding defaults.
-
-    Keyword arguments:
-        defaults -- dictionary of defaults
-        options -- dictionary containing options for overriding defaults
-    """
-    if not options:
-        # Options is empty.
-        return defaults
-
-    for key in defaults.keys():
-        if key not in options:
-            options[key] = defaults[key]
-
-    return options
-
-
 def check_parameter(data: bytearray) -> bool:
     """Checks if parameter contains any bytes besides 0xFF.
 
