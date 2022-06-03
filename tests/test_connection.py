@@ -11,7 +11,13 @@ from serial import SerialException
 from serial_asyncio import serial
 
 from pyplumio.connection import SerialConnection, TcpConnection
-from pyplumio.constants import ECOMAX_ADDRESS
+from pyplumio.constants import (
+    DATA_NETWORK,
+    DATA_PASSWORD,
+    DATA_PRODUCT,
+    DATA_SCHEMA,
+    ECOMAX_ADDRESS,
+)
 from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from pyplumio.frames import requests
 from pyplumio.frames.messages import CurrentData, RegData
@@ -316,7 +322,7 @@ async def test_process_uid_response(
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=UID(sender=ECOMAX_ADDRESS, data={"product": product_info}),
+        return_value=UID(sender=ECOMAX_ADDRESS, data={DATA_PRODUCT: product_info}),
     ):
         await tcp_connection.task(AsyncMock())
 
@@ -334,7 +340,7 @@ async def test_process_password_response(
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=Password(sender=ECOMAX_ADDRESS, data={"password": "0000"}),
+        return_value=Password(sender=ECOMAX_ADDRESS, data={DATA_PASSWORD: "0000"}),
     ):
         await tcp_connection.task(AsyncMock())
 
@@ -436,7 +442,7 @@ async def test_process_data_schema_response(
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=DataSchema(sender=ECOMAX_ADDRESS, data={"schema": "test"}),
+        return_value=DataSchema(sender=ECOMAX_ADDRESS, data={DATA_SCHEMA: "test"}),
     ):
         await tcp_connection.task(AsyncMock())
 
@@ -480,7 +486,7 @@ async def test_process_check_device_request(
 
     mock_response.assert_called_once_with(
         data={
-            "network": NetworkInfo(
+            DATA_NETWORK: NetworkInfo(
                 eth=EthernetParameters(**eth_data, status=True),
                 wlan=WirelessParameters(**wlan_data, status=True),
             )

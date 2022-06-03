@@ -12,7 +12,15 @@ from typing import Any, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from .constants import DATA_MIXERS, DATA_MODULES, ECOMAX_ADDRESS
+from .constants import (
+    DATA_MIXERS,
+    DATA_MODULES,
+    DATA_NETWORK,
+    DATA_PASSWORD,
+    DATA_PRODUCT,
+    DATA_SCHEMA,
+    ECOMAX_ADDRESS,
+)
 from .devices import DeviceCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame, messages, requests, responses
@@ -102,10 +110,10 @@ class Connection(ABC):
             writer.queue(frame.response())
 
         elif isinstance(frame, responses.UID):
-            device.product = frame.data["product"]
+            device.product = frame.data[DATA_PRODUCT]
 
         elif isinstance(frame, responses.Password):
-            device.password = frame.data["password"]
+            device.password = frame.data[DATA_PASSWORD]
 
         elif isinstance(frame, messages.CurrentData):
             device.set_data(frame.data)
@@ -123,10 +131,10 @@ class Connection(ABC):
             device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
         elif isinstance(frame, responses.DataSchema):
-            device.schema = frame.data["schema"]
+            device.schema = frame.data[DATA_SCHEMA]
 
         elif isinstance(frame, requests.CheckDevice):
-            writer.queue(frame.response(data={"network": self._network}))
+            writer.queue(frame.response(data={DATA_NETWORK: self._network}))
 
         writer.collect(device.changes)
 

@@ -4,7 +4,14 @@ import struct
 from typing import Dict, Final, List, Tuple, Union
 
 from pyplumio import util
-from pyplumio.constants import DATA_MODE
+from pyplumio.constants import (
+    DATA_MODE,
+    DATA_NETWORK,
+    DATA_PASSWORD,
+    DATA_PRODUCT,
+    DATA_SCHEMA,
+    DATA_VERSION,
+)
 from pyplumio.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.product_info import ProductInfo
@@ -31,10 +38,10 @@ class ProgramVersion(Response):
         if self._data is None:
             self._data = {}
 
-        if "version" not in self._data:
-            self._data["version"] = VersionInfo()
+        if DATA_VERSION not in self._data:
+            self._data[DATA_VERSION] = VersionInfo()
 
-        version_info = self._data["version"]
+        version_info = self._data[DATA_VERSION]
         message = bytearray(15)
         struct.pack_into(
             "<2sB2s3s3HB",
@@ -66,7 +73,7 @@ class ProgramVersion(Response):
             self.recipient,
         ] = struct.unpack_from("<2sB2s3s3sB", message)
         version_info.software = ".".join(str(x) for x in software_version)
-        self._data["version"] = version_info
+        self._data[DATA_VERSION] = version_info
 
 
 class DeviceAvailable(Response):
@@ -85,10 +92,10 @@ class DeviceAvailable(Response):
         if self._data is None:
             self._data = {}
 
-        if "network" not in self._data:
-            self._data["network"] = NetworkInfo()
+        if DATA_NETWORK not in self._data:
+            self._data[DATA_NETWORK] = NetworkInfo()
 
-        network_info = self._data["network"]
+        network_info = self._data[DATA_NETWORK]
         message += util.ip4_to_bytes(network_info.eth.ip)
         message += util.ip4_to_bytes(network_info.eth.netmask)
         message += util.ip4_to_bytes(network_info.eth.gateway)
@@ -135,7 +142,7 @@ class DeviceAvailable(Response):
         network_info.wlan.status = bool(message[offset + 3])
         offset += 8
         network_info.wlan.ssid = var_string.from_bytes(message, offset)[0]
-        self._data = {"network": network_info}
+        self._data = {DATA_NETWORK: network_info}
 
 
 class UID(Response):
@@ -159,7 +166,7 @@ class UID(Response):
         product_info.uid, offset = uid.from_bytes(message, offset=3)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
         product_info.model, _ = var_string.from_bytes(message, offset + 4)
-        self._data = {"product": product_info}
+        self._data = {DATA_PRODUCT: product_info}
 
 
 class Password(Response):
@@ -178,7 +185,7 @@ class Password(Response):
             message -- message to parse
         """
         password = message[1:].decode() if message[1:] else None
-        self._data = {"password": password}
+        self._data = {DATA_PASSWORD: password}
 
 
 class BoilerParameters(Response):
@@ -261,7 +268,7 @@ class DataSchema(Response):
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
-        self._data = {"schema": schema}
+        self._data = {DATA_SCHEMA: schema}
 
 
 class SetBoilerParameter(Response):
