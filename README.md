@@ -10,9 +10,13 @@
 ## Overview
 This package aims to provide complete and easy to use solution for communicating with climate devices by [Plum Sp. z o.o.](https://www.plum.pl/)
 
-Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to display on regulator panel.
+![ecoMAX controllers](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/ecomax.png)
+
+Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to show on controller's display.
 
 Devices can be connected directly via RS485 to USB converter or through network by using serial port server (for example [Elfin EW11](https://aliexpress.ru/item/4001104348624.html))
+
+![RS-485 converters](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/rs485.png)
 
 ## Table of contents
 - [Usage](#usage)
