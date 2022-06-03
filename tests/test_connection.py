@@ -14,7 +14,7 @@ from pyplumio.connection import SerialConnection, TcpConnection
 from pyplumio.constants import ECOMAX_ADDRESS
 from pyplumio.exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from pyplumio.frames import requests
-from pyplumio.frames.messages import CurrentData
+from pyplumio.frames.messages import CurrentData, RegData
 from pyplumio.frames.requests import CheckDevice, ProgramVersion
 from pyplumio.frames.responses import (
     UID,
@@ -365,6 +365,23 @@ async def test_process_data_frame(
     assert tcp_connection.devices.ecomax.mixers(0).temp == 50
     assert tcp_connection.devices.ecomax.mixers(0).target == 60
     assert not tcp_connection.devices.ecomax.mixers(0).pump
+
+
+@pytest.mark.asyncio
+async def test_process_regdata_frame(
+    tcp_connection: TcpConnection, bypass_asyncio_connection
+) -> None:
+    """Test processing of data frame."""
+    with patch(
+        "pyplumio.stream.FrameWriter.process_queue",
+        side_effect=tcp_connection.async_close,
+    ), patch(
+        "pyplumio.stream.FrameReader.read",
+        return_value=RegData(sender=ECOMAX_ADDRESS, data={"heating_temp": 65}),
+    ):
+        await tcp_connection.task(AsyncMock())
+
+    assert tcp_connection.devices.ecomax.heating_temp == 65
 
 
 @pytest.mark.asyncio
