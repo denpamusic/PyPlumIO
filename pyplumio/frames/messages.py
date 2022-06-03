@@ -61,7 +61,7 @@ class RegData(Message):
         offset += 2
         self._data = {}
         if frame_version != self.VERSION:
-            raise VersionError(f"Unknown regdata version: {int(frame_version)}")
+            raise VersionError(f"Unknown regdata version: {frame_version}")
 
         _, offset = frame_versions.from_bytes(message, offset, self._data)
         boolean_index = 0
