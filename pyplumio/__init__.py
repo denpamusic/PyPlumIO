@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from .connection import Connection, SerialConnection, TcpConnection
 from .devices import DeviceCollection

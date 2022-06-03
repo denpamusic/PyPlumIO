@@ -19,7 +19,7 @@ class FrameFactory(Singleton):
     """
 
     def __init__(self) -> None:
-        """Calls method to make type list."""
+        """Initializes frame factory."""
         self._types: Dict[int, Type[Frame]] = {}
 
     def get_frame(self, frame_type: int, **kwargs) -> Frame:

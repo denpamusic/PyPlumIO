@@ -47,7 +47,7 @@ def unpack_ushort(data: bytes) -> int:
 
 def unpack_parameter(
     data: bytearray, offset: int, size: int = 1
-) -> Optional[Tuple[int, int, int]]:
+) -> Optional[Tuple[int, ...]]:
     """Unpacks parameter.
 
     Keyword arguments:

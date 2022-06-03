@@ -1,6 +1,7 @@
 """Contains classes for mixer support."""
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any, Dict, List, Optional
 
 from . import util
@@ -21,8 +22,8 @@ class Mixer(BaseDevice):
 
     def __init__(
         self,
-        data: Dict[str, Any] = None,
-        parameters: Dict[str, List[int]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, List[int]]] = None,
         index: int = 0,
     ):
         """Creates device instance.
@@ -79,7 +80,7 @@ Parameters:
                 )
 
     @property
-    def editable_parameters(self) -> List[str]:
+    def editable_parameters(self) -> Iterable[str]:
         """Returns list of editable parameters."""
         return MIXER_PARAMETERS
 
@@ -92,7 +93,9 @@ class MixerCollection:
         _mixers -- collection of mixers
     """
 
-    def __init__(self, address: int = BROADCAST_ADDRESS, mixers: List[Mixer] = None):
+    def __init__(
+        self, address: int = BROADCAST_ADDRESS, mixers: Optional[List[Mixer]] = None
+    ):
         """Creates mixer collection instance.
 
         Keyword arguments:

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
+from collections.abc import Awaitable, Callable
 import logging
 import sys
-from typing import Any, Awaitable, Callable, Final, Optional, Tuple
+from typing import Any, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
@@ -51,8 +52,8 @@ class Connection(ABC):
             **kwargs -- keyword arguments for connection driver
         """
         self.kwargs = kwargs
-        self.closing = False
-        self.writer = None
+        self.closing: bool = False
+        self.writer: Optional[FrameWriter] = None
         self._network = NetworkInfo()
         self._devices = DeviceCollection()
         self._callback_task = None
@@ -122,7 +123,7 @@ class Connection(ABC):
             device.mixers.set_parameters(frame.data[DATA_MIXERS])
 
         elif isinstance(frame, responses.DataSchema):
-            device.schema = frame.data
+            device.schema = frame.data["schema"]
 
         elif isinstance(frame, requests.CheckDevice):
             writer.queue(frame.response(data={"network": self._network}))

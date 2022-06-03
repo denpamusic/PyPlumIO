@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from collections.abc import Iterable
+from typing import Any, Dict, List, Optional
 
 from pyplumio import util
 from pyplumio.exceptions import UninitializedParameterError
@@ -24,7 +25,9 @@ class BaseDevice(ABC):
     _parameters: Dict[str, Parameter] = {}
 
     def __init__(
-        self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, List[int]]] = None,
     ):
         """Creates device instance.
 
@@ -142,5 +145,5 @@ Parameters:
 
     @property
     @abstractmethod
-    def editable_parameters(self) -> List[str]:
+    def editable_parameters(self) -> Iterable[str]:
         """Returns list of editable parameters."""

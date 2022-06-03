@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Dict, Final, List, Tuple, Type
+from collections.abc import Iterable
+from typing import Dict, Final, List, Optional, Type
 
 from .exceptions import FrameTypeError
 from .factory import FrameFactory
@@ -22,8 +23,8 @@ class FrameBucket:
     def __init__(
         self,
         address: int = BROADCAST_ADDRESS,
-        versions: Dict[int, int] = None,
-        required: Tuple[Type[Request], ...] = None,
+        versions: Optional[Dict[int, int]] = None,
+        required: Optional[Iterable[Type[Request]]] = None,
     ):
         """Created FrameBucket instance.
 

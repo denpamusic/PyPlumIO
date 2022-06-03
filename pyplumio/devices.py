@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from collections.abc import Iterable
 import time
 from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
@@ -86,7 +87,9 @@ class Device(BaseDevice):
     """
 
     def __init__(
-        self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, List[int]]] = None,
     ):
         """Creates device instance.
 
@@ -175,8 +178,8 @@ Mixers:
 
     @property
     @abstractmethod
-    def required_frames(self) -> Tuple[Type[Request], ...]:
-        """Returns tuple of required frames."""
+    def required_frames(self) -> Iterable[Type[Request]]:
+        """Returns list of required frames."""
 
 
 class EcoMAX(Device):
@@ -193,7 +196,9 @@ class EcoMAX(Device):
     _fuel_burned_timestamp: float = 0.0
 
     def __init__(
-        self, data: Dict[str, Any] = None, parameters: Dict[str, List[int]] = None
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        parameters: Optional[Dict[str, List[int]]] = None,
     ):
         """Creates device instance.
 
@@ -255,8 +260,8 @@ class EcoMAX(Device):
         return fuel_burned
 
     @property
-    def required_frames(self) -> Tuple[Type[Request], ...]:
-        """Returns tuple of required frames."""
+    def required_frames(self) -> Iterable[Type[Request]]:
+        """Returns list of required frames."""
         return (
             requests.UID,
             requests.Password,

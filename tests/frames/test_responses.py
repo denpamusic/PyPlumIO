@@ -124,7 +124,7 @@ def test_password_parse_message() -> None:
 
 _data_schema_bytes = bytearray(b"\x01\x00\x04\x00\x07")
 _data_schema_bytes_empty = bytearray(b"\x00\x00")
-_data_schema_data = [("mode", Byte())]
+_data_schema_data = {"schema": [("mode", Byte())]}
 
 
 def test_data_schema_parse_message() -> None:
@@ -138,4 +138,4 @@ def test_data_schema_parse_message_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
     frame = responses.DataSchema(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
     frame.parse_message(_data_schema_bytes_empty)
-    assert frame.data == []
+    assert frame.data == {"schema": []}

@@ -436,7 +436,7 @@ async def test_process_data_schema_response(
         side_effect=tcp_connection.async_close,
     ), patch(
         "pyplumio.stream.FrameReader.read",
-        return_value=DataSchema(sender=ECOMAX_ADDRESS, data="test"),
+        return_value=DataSchema(sender=ECOMAX_ADDRESS, data={"schema": "test"}),
     ):
         await tcp_connection.task(AsyncMock())
 

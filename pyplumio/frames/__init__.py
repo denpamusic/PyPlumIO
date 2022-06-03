@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Final, List, Optional
+from typing import Any, Dict, Final, List, Optional
 
 from pyplumio import util
 from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
@@ -31,13 +31,13 @@ class Frame(ABC):
 
     def __init__(
         self,
-        frame_type: int = None,
+        frame_type: Optional[int] = None,
         recipient: int = BROADCAST_ADDRESS,
         message: bytearray = bytearray(),
         sender: int = ECONET_ADDRESS,
         sender_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
-        data=None,
+        data: Optional[Dict[str, Any]] = None,
     ):
         """Creates new Frame object.
 

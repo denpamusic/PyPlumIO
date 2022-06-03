@@ -1,6 +1,6 @@
 """Contains regulator parameter structure parser."""
 
-from typing import Any, Dict, Final, List, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 
@@ -149,7 +149,7 @@ DEVICE_PARAMETERS: List[str] = [
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Dict[str, Any] = None
+    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
     """Parses frame message into usable data.
 

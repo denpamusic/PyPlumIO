@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Final
+from typing import Any, Final, Optional
 
 from . import util
 
@@ -17,7 +17,7 @@ class DataType(ABC):
 
     _data = bytearray()
 
-    def __init__(self, data=None, size: int = None):
+    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
         """Creates data type instance.
 
         Keyword arguments:
@@ -214,7 +214,7 @@ class Boolean(DataType):
         _index -- bit array index
     """
 
-    def __init__(self, data=None, size: int = None):
+    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
         """Creates boolean instance.
 
         Keyword arguments:
@@ -310,7 +310,7 @@ class IPv6(DataType):
 class String(DataType):
     """Variable length bytes representation."""
 
-    def __init__(self, data=None, size: int = None):
+    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
         """Creates variable length type instance."""
         super().__init__(data, size=-1)
 

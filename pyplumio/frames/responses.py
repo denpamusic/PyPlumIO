@@ -1,11 +1,11 @@
 """Contains response frame classes."""
 
 import struct
-from typing import Final
+from typing import Final, List, Tuple, Union
 
 from pyplumio import util
 from pyplumio.constants import DATA_MODE
-from pyplumio.data_types import DATA_TYPES
+from pyplumio.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.version_info import VersionInfo
@@ -252,14 +252,16 @@ class DataSchema(Response):
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        self._data = []
+        schema: List[Tuple[Union[str, int], DataType]] = []
         if blocks_number > 0:
             for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
                 param_name = REGDATA_SCHEMA.get(param_id, param_id)
-                self._data.append((param_name, DATA_TYPES[param_type]()))
+                schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
+
+        self._data = {"schema": schema}
 
 
 class SetBoilerParameter(Response):
