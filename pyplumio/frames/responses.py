@@ -1,7 +1,7 @@
 """Contains response frame classes."""
 
 import struct
-from typing import Final, List, Tuple, Union
+from typing import Dict, Final, List, Tuple, Union
 
 from pyplumio import util
 from pyplumio.constants import DATA_MODE
@@ -217,7 +217,7 @@ class MixerParameters(Response):
         self._data, _ = mixer_parameters.from_bytes(message)
 
 
-REGDATA_SCHEMA: Final = {
+REGDATA_SCHEMA: Final[Dict[int, str]] = {
     1792: DATA_MODE,
     1024: TEMPERATURES[0],
     1026: TEMPERATURES[1],

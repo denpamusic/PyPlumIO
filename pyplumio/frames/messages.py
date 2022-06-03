@@ -1,5 +1,7 @@
 """Contains message frame classes."""
 
+from typing import List, Tuple
+
 from pyplumio import util
 from pyplumio.constants import (
     DATA_FAN_POWER,
@@ -11,7 +13,7 @@ from pyplumio.constants import (
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
 )
-from pyplumio.data_types import Boolean
+from pyplumio.data_types import Boolean, DataType
 from pyplumio.exceptions import VersionError
 from pyplumio.structures import (
     alarms,
@@ -48,7 +50,7 @@ class RegData(Message):
             **kwargs -- keyword arguments for parent class init
         """
         super().__init__(*args, **kwargs)
-        self.schema = []
+        self.schema: List[Tuple[str, DataType]] = []
 
     def parse_message(self, message: bytearray) -> None:
         """Parses RegData message into usable data.
