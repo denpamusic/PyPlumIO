@@ -113,12 +113,12 @@ async def my_callback(devices, connection):
     	devices.ecomax.heating_set_temp = 65
         connection.close()
 ```
-Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_` and `max_` attributes.
+Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_value` and `max_value` attributes.
 ```python
 async def my_callback(devices, connection):
     if devices.has("ecomax") and devices.ecomax.has("heating_set_temp"):
-        print(devices.ecomax.heating_set_temp.min_)  # Prints minimum allowed target temperature.
-        print(devices.ecomax.heating_set_temp.max_)  # Prints maximum allowed target temperature.
+        print(devices.ecomax.heating_set_temp.min_value)  # Prints minimum allowed target temperature.
+        print(devices.ecomax.heating_set_temp.max_value)  # Prints maximum allowed target temperature.
 ```
 
 ### Network and WIFI
@@ -148,7 +148,7 @@ with pyplumio.TcpConnection(host="localhost", port=8899) as c:
 
 ## Home Assistant Integration
 There is companion Home Assistant integration that is being co-developed with this package and depends on it.
-You can find it [here](https://github.com/denpamusic/hassio-plum-ecomax).
+You can find it [here](https://github.com/denpamusic/homeassistant-plum-ecomax).
 
 ## Protocol
 ecoNET communication is based on RS485 standard. Each frame consists of header, message type, message data (optional), CRC and end delimiter.
@@ -170,7 +170,7 @@ Protocol supports unicast and broadcast frames. Broadcast frames always have rec
   - [Byte] Frame end mark `0x16`.
 
 ### Requests and Responses
-Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/requests.py) and [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/responses.py) for a list of supported frames.
+Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frames.
 
 For example we can request list of editable parameters from ecoMAX by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
 
