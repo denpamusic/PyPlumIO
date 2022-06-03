@@ -12,7 +12,7 @@ from typing import Any, Awaitable, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from .constants import DATA_MIXERS, ECOMAX_ADDRESS
+from .constants import DATA_MIXERS, DATA_MODULES, ECOMAX_ADDRESS
 from .devices import DevicesCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame, messages, requests, responses
@@ -107,11 +107,14 @@ class Connection(ABC):
         elif isinstance(frame, responses.Password):
             device.password = frame.data["password"]
 
-        elif isinstance(frame, (messages.RegData, messages.CurrentData)):
+        elif isinstance(frame, messages.CurrentData):
+            device.set_data(frame.data)
+            device.mixers.set_data(frame.data[DATA_MIXERS])
+            device.modules = frame.data[DATA_MODULES]
+
+        elif isinstance(frame, messages.RegData):
             frame.schema = device.schema
             device.set_data(frame.data)
-            if DATA_MIXERS in frame.data:
-                device.mixers.set_data(frame.data[DATA_MIXERS])
 
         elif isinstance(frame, responses.BoilerParameters):
             device.set_parameters(frame.data)

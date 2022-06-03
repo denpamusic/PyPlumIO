@@ -18,16 +18,9 @@ from pyplumio.devices import MODE_HEATING, MODES, DevicesCollection, EcoMAX
 from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frames import requests
 from pyplumio.helpers.parameter import Parameter
+from pyplumio.helpers.product_info import ConnectedModules, ProductInfo
 from pyplumio.structures.device_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.structures.frame_versions import FRAME_VERSIONS
-from pyplumio.structures.modules import (
-    MODULE_A,
-    MODULE_B,
-    MODULE_C,
-    MODULE_ECOSTER,
-    MODULE_LAMBDA,
-    MODULE_PANEL,
-)
 from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
 
 _test_data = {
@@ -51,12 +44,6 @@ _test_data = {
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
-    MODULE_A: None,
-    MODULE_B: None,
-    MODULE_C: None,
-    MODULE_LAMBDA: None,
-    MODULE_ECOSTER: None,
-    MODULE_PANEL: None,
     "heating_temp": 60,
     "exhaust_temp": 60,
     "outside_temp": 30,
@@ -75,6 +62,7 @@ _test_parameters = {"summer_mode": [1, 0, 1]}
 @pytest.fixture(name="ecomax_with_data")
 def fixture_ecomax_with_data(ecomax: EcoMAX) -> EcoMAX:
     """Return ecoMAX instance with test data."""
+    ecomax.product = ProductInfo(model="test_model")
     ecomax.set_data(_test_data)
     ecomax.set_parameters(_test_parameters)
     return ecomax
@@ -82,8 +70,8 @@ def fixture_ecomax_with_data(ecomax: EcoMAX) -> EcoMAX:
 
 @pytest.fixture(name="ecomax_with_version")
 def fixture_ecomax_with_version(ecomax_with_data: EcoMAX) -> EcoMAX:
-    """Return ecoMAX instance with version data."""
-    ecomax_with_data.set_data({MODULE_A: "1.1.15"})
+    """Return ecoMAX instance with module version data."""
+    ecomax_with_data.modules = ConnectedModules(module_a="1.1.15")
     return ecomax_with_data
 
 
@@ -169,19 +157,14 @@ def test_changed_parameters(ecomax_with_data: EcoMAX) -> None:
     )
 
 
-def test_software(ecomax_with_version: EcoMAX) -> None:
-    """Test software version property."""
-    assert ecomax_with_version.software == "1.1.15"
+def test_modules(ecomax_with_version: EcoMAX) -> None:
+    """Test modules property."""
+    assert ecomax_with_version.modules.module_a == "1.1.15"
 
 
-def test_software_not_available(ecomax: EcoMAX) -> None:
-    """Test software version property when data is not yet available."""
-    assert ecomax.software is None
-
-
-def test_software_is_unknown(ecomax_with_data: EcoMAX) -> None:
-    """Test software property when version data is missing."""
-    assert ecomax_with_data.software == "Unknown"
+def test_modules_not_available(ecomax: EcoMAX) -> None:
+    """Test modules property when data is not yet available."""
+    assert ecomax.modules.module_a is None
 
 
 def test_fuel_burned(ecomax: EcoMAX) -> None:
@@ -215,7 +198,8 @@ def test_is_on_unknown(ecomax: EcoMAX) -> None:
 
 def test_str(ecomax_with_version: EcoMAX) -> None:
     """Test ecoMAX string representation."""
-    assert "Software Ver.:  1.1.15" in str(ecomax_with_version)
+    print(str(ecomax_with_version))
+    assert "Model:     test_model" in str(ecomax_with_version)
 
 
 def test_repr(ecomax: EcoMAX) -> None:

@@ -1,7 +1,10 @@
-"""Contains versions structure parser."""
+"""Contains modules structure parser."""
 
 import struct
 from typing import Any, Dict, Final, Optional, Tuple
+
+from pyplumio.constants import DATA_MODULES
+from pyplumio.helpers.product_info import ConnectedModules
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -31,19 +34,23 @@ def from_bytes(
     if data is None:
         data = {}
 
-    for module in MODULES:
-        data[module], offset = _parse_module_version(module, message, offset)
+    connected_modules = ConnectedModules()
+    for module_name in MODULES:
+        module_version, offset = _parse_module_version(module_name, message, offset)
+        setattr(connected_modules, module_name, module_version)
+
+    data[DATA_MODULES] = connected_modules
 
     return data, offset
 
 
 def _parse_module_version(
-    module: str, message: bytearray, offset: int = 0
+    module_name: str, message: bytearray, offset: int = 0
 ) -> Tuple[Optional[str], int]:
     """Gets module version by module name.
 
     Keyword arguments:
-        module - module name
+        module_name - module name
         message - bytes to parse module version from
         offset - message offset
     """
@@ -54,7 +61,7 @@ def _parse_module_version(
     module_version = ".".join(str(i) for i in version_data)
     offset += 3
 
-    if module == MODULE_A:
+    if module_name == MODULE_A:
         vendor_code, vendor_version = struct.unpack("<BB", message[offset : offset + 2])
         module_version += f".{chr(vendor_code)}{str(vendor_version)}"
         offset += 2

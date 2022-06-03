@@ -22,7 +22,7 @@ from .data_types import DataType
 from .frames import Request, requests
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
-from .helpers.product_info import ProductInfo
+from .helpers.product_info import ConnectedModules, ProductInfo
 from .mixers import MixersCollection
 from .storage import FrameBucket
 from .structures import (
@@ -30,7 +30,6 @@ from .structures import (
     device_parameters,
     frame_versions,
     lambda_,
-    modules,
     output_flags,
     outputs,
     statuses,
@@ -71,7 +70,6 @@ DEVICE_DATA.extend(temperatures.TEMPERATURES)
 DEVICE_DATA.extend(outputs.OUTPUTS)
 DEVICE_DATA.extend(output_flags.OUTPUT_FLAGS)
 DEVICE_DATA.extend(statuses.STATUSES)
-DEVICE_DATA.extend(modules.MODULES)
 DEVICE_DATA.extend(lambda_.LAMBDA)
 DEVICE_DATA.extend(thermostats.THERMOSTATS)
 
@@ -82,8 +80,7 @@ class Device(BaseDevice):
     Attributes:
         bucket -- frame version info storage
         mixers -- collection of device mixers
-        product -- device product type
-        uid -- device uid string
+        product -- device product info
         password -- device service password
         schema -- device regdata schema
     """
@@ -100,6 +97,7 @@ class Device(BaseDevice):
         self.bucket = FrameBucket(address=self.address, required=self.required_frames)
         self.mixers = MixersCollection(address=self.address)
         self.product = ProductInfo()
+        self.modules = ConnectedModules()
         self.password = None
         self.schema: List[Tuple[str, DataType]] = []
         super().__init__(data, parameters)
@@ -107,10 +105,10 @@ class Device(BaseDevice):
     def __str__(self) -> str:
         """Converts device instance to a string."""
         return f"""
-Model:          {self.product.model}
-Software Ver.:  {self.software}
-UID:            {self.product.uid}
-Password:       {self.password}
+Model:     {self.product.model}
+UID:       {self.product.uid}
+Password:  {self.password}
+Modules:   {self.modules}
 
 {super().__str__()}
 
@@ -148,17 +146,6 @@ Mixers:
             return self._data[DATA_MODE] != MODE_OFF
 
         return False
-
-    @property
-    def software(self) -> Optional[str]:
-        """Returns software version."""
-        if modules.MODULE_A in self._data:
-            if self._data[modules.MODULE_A] is not None:
-                return self._data[modules.MODULE_A]
-
-            return "Unknown"
-
-        return None
 
     @property
     def mode(self) -> Optional[str]:

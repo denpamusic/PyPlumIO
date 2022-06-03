@@ -14,3 +14,15 @@ class ProductInfo:
     logo: int = 0
     image: int = 0
     model: Optional[str] = None
+
+
+@dataclass
+class ConnectedModules:
+    """Represents firmware version info."""
+
+    module_a: Optional[str] = None
+    module_b: Optional[str] = None
+    module_c: Optional[str] = None
+    module_lambda: Optional[str] = None
+    module_ecoster: Optional[str] = None
+    module_panel: Optional[str] = None
