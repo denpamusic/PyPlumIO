@@ -14,7 +14,7 @@ This package aims to provide complete and easy to use solution for communicating
 
 Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to show on controller's display.
 
-Devices can be connected directly via RS485 to USB converter or through network by using serial port server (for example [Elfin EW11](https://aliexpress.ru/item/4001104348624.html))
+Devices can be connected directly via RS-485 to USB converter or through network by using RS-485 to Ethernet or RS-485 to WiFi converter.
 
 ![RS-485 converters](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/rs485.png)
 
@@ -26,90 +26,93 @@ Devices can be connected directly via RS485 to USB converter or through network 
   - [Data and Parameters](#data-and-parameters)
   - [Reading](#reading)
   - [Writing](#writing)
-  - [Network and WIFI](#network-and-wifi)
-- [Home Assistant Integration](#home-assistant-integration)
+  - [Network Information](#network-information)
 - [Protocol](#protocol)
   - [Frame Structure](#frame-structure)
   - [Requests and Responses](#requests-and-responses)
   - [Communication](#communication)
-  - [Versioning](#versioning)
+  - [Frame Versioning](#frame-versioning)
+- [Home Assistant Integration](#home-assistant-integration)
 - [Attribution](#attribution)
 - [License](#license)
 
 ## Usage
-To interact with devices, you must pass async callback to `EcoNET.run(callback: Callable, interval: int)` method. Callback will receive `pyplumio.DeviceCollection` instance `devices` that will contain all found supported devices and `pyplumio.EcoNET` class instance `econet` that represents current connection.
+To interact with devices, you must pass async callback to `Connection.run(callback: Callable[[DeviceCollection, Connection], Awaitable[Any]], interval: int)` method. Callback will receive two arguments: `devices: DeviceCollection` that will contain all found supported devices and `connection: Connection` that represents current connection.
 
-Second optional parameter for `EcoNET.run(callback: Callable, interval: int)` method - `interval` defines how often the callback will be called in seconds. If unspecified, callback will be called every second.
+Second optional parameter `interval`, defines how often the callback will be called in seconds. If left unspecified, callback will be called every second.
 
 You can find examples for each supported connection type below.
 
 ### TCP
-This is intended to be used with serial to network converters like ser2net server or dedicated devices such as Elfin EW11 mentioned in the [Overview](#overview).
+This is intended to be used with RS-485 to network converters, which are readily available online or can be custom built using RS-485 to USB converter and ser2net software.
 
 ```python
-import pyplumio
+from pyplumio import TcpConnection
+from pyplumio.devices import DeviceCollection
 
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
 	# do something
 	...
 
-connection = pyplumio.TcpConnection(host="localhost", port=8899)
+connection = TcpConnection(host="localhost", port=8899)
 connection.run(my_callback, interval=1)
 ```
 
 ### Serial
-This is intended to be used with RS485 to USB adapters, that are connected directly to the device running PyPlumIO.
+This is intended to be used with RS-485 to USB adapters, that are connected directly to the device running PyPlumIO.
 
 ```python
-import pyplumio
+from pyplumio import SerialConnection
+from pyplumio.devices import DeviceCollection
 
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
 	# do something
 	...
 
-connection = pyplumio.SerialConnection(device="/dev/ttyUSB0", baudrate=115200)
+connection = SerialConnection(device="/dev/ttyUSB0", baudrate=115200)
 connection.run(my_callback, interval=1)
 ```
 
 ### Shortcuts
 It's also possible to use following shortcuts to create connection instance and instantly run it.
 ```python
-import pyplumio
+from pyplumio import tcp as pyplumio_tcp, serial as pyplumio_serial
+from pyplumio.devices import DeviceCollection
 
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
 	# do something
 	...
 
-pyplumio.tcp(my_callback, host="localhost", port=8899, interval=1)
+pyplumio_tcp(my_callback, host="localhost", port=8899, interval=1)
 # or
-pyplumio.serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
+pyplumio_serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
 ```
 
 ### Data and Parameters
-Data is separated into immutable `data` that you can't change and `parameters` that you can. Both can be accessed via instance attributes `devices.ecomax.data['heating_temp']`, `devices.ecomax.parameters['heating_set_temp']` or as shortcut `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`.
+Data is separated into immutable `data` that can't be changed and `parameters` that can. Both can be accessed via instance attributes. (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`)
 
-Each regulator supports different data attributes and parameters. You can check what your regulator supports by calling `print()` on regulator instance.
+Each ecoMAX controller supports different data attributes and parameters. You can check what your controller supports by calling `print()` on controller instance in device collection.
 ```python
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
     if devices.has("ecomax"):
         print(devices.ecomax)
 ```
 
 ### Reading
-Interaction with device is mainly done through device class instances inside your callback.
-For example you can read current feedwater temperature by reading `heating_temp` attribute.
+Interaction with the device is mainly done through device class instances inside your callback.
+For example you can read current feed water temperature by reading `heating_temp` attribute.
 
-Passing my_callback to `EcoNET.run(callback: Callable, interval: int)` as demonstrated above, will print current feedwater temperature every second.
+Passing my_callback function to `Connection.run(callback: Callable[[DeviceCollection, Connection], Awaitable[Any]], interval: int)` as demonstrated above, will print current feed water temperature every second.
 ```python
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
     if devices.has("ecomax"):
-        print(devices.ecomax.heating_temp)  # 61.923828125
+        print(devices.ecomax.heating_temp)  # e. g. 61.923828125
 ```
 
 ### Writing
-You can easily set regulator parameter by changing respective class attribute. Example below will set target temperature to 65 degrees Celsius and close the connection.
+You can easily change controller parameters by modifying their respective class attribute. In example below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) and close the connection.
 ```python
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
     if devices.has("ecomax") and devices.ecomax.has("heating_set_temp"):
         """This will set target heating temperature to 65 degrees Celsius.
         and close the connection.
@@ -117,30 +120,31 @@ async def my_callback(devices, connection):
     	devices.ecomax.heating_set_temp = 65
         connection.close()
 ```
-Please note that each parameter has range of acceptable values that you must check and honor by yourself. This package currently silently ignores out of range values. You can check allowed values by reading `min_value` and `max_value` attributes.
+Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO library currently silently ignores out of range values. You can check allowed values by reading `min_value` and `max_value` attributes of parameter instance.
 ```python
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
     if devices.has("ecomax") and devices.ecomax.has("heating_set_temp"):
         print(devices.ecomax.heating_set_temp.min_value)  # Prints minimum allowed target temperature.
         print(devices.ecomax.heating_set_temp.max_value)  # Prints maximum allowed target temperature.
 ```
 
-### Network and WIFI
-You can send network information to the regulator to be displayed on ecoMAX'es LCD.
+### Network Information
+You can send network information to the controller that will be shown on it's display.
 
-Currently it's used for informational purposes only and can be safely ignored.
+It's used for informational purposes only and can be skipped.
 ```python
-import pyplumio
-from pyplumio.constants import WLAN_ENCRYPTION_WPA2
+from pyplumio import TcpConnection
+from pyplumio.devices import DeviceCollection
+from pyplumio.helpers.network_info import WLAN_ENCRYPTION_WPA2
 
-async def my_callback(devices, connection):
+async def my_callback(devices: DeviceCollection, connection):
 	# do something
 	...
 
-with pyplumio.TcpConnection(host="localhost", port=8899) as c:
+with TcpConnection(host="localhost", port=8899) as c:
     c.set_eth(ip="10.10.1.100", netmask="255.255.255.0", gateway="10.10.1.1")
-    c.set_wifi(
-    	ip="10.10.2.100",
+    c.set_wlan(
+        ip="10.10.2.100",
         netmask="255.255.255.0",
         gateway="10.10.2.1",
         ssid="My WIFI",
@@ -150,42 +154,38 @@ with pyplumio.TcpConnection(host="localhost", port=8899) as c:
     c.run(my_callback)
 ```
 
-## Home Assistant Integration
-There is companion Home Assistant integration that is being co-developed with this package and depends on it.
-You can find it [here](https://github.com/denpamusic/homeassistant-plum-ecomax).
-
 ## Protocol
-ecoNET communication is based on RS485 standard. Each frame consists of header, message type, message data (optional), CRC and end delimiter.
+ecoNET communication uses RS-485 standard. Each frame consists of header (7 bytes), message type (1 byte), message data (optional), CRC (1 byte) and frame end delimiter (1 byte). The minimum frame size therefore is 10 bytes.
 
-Protocol supports unicast and broadcast frames. Broadcast frames always have recipient address set to `0x00`, unicast messages have specific device address. ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
+Protocol supports unicast and broadcast frames. Broadcast frames will always have their recipient address set to `0x00`, while unicast messages will have specific device address. ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
 
 ### Frame Structure
-- Header (header size - 7 bytes):
-  - [Byte] Frame start mark `0x68`.
-  - [Unsigned Short] Byte size of the frame including CRC and frame end mark.
+- Header:
+  - [Byte] Frame start delimiter. Always `0x68`.
+  - [Unsigned Short] Byte size of the frame. Includes CRC and frame end mark 
   - [Byte] Recipient address.
   - [Byte] Sender address.
   - [Byte] Sender type. PyPlumIO uses EcoNET type `0x30`.
   - [Byte] ecoNET version. PyPlumIO uses version `0x05`.
 - Body:
-  - [Byte] Message type.
+  - [Byte] Frame type.
   - [Byte*] Message data (optional).
   - [Byte] Frame CRC.
-  - [Byte] Frame end mark `0x16`.
+  - [Byte] Frame end delimiter. Always `0x16`.
 
 ### Requests and Responses
 Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frames.
 
-For example we can request list of editable parameters from ecoMAX by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
+For example we can request list of editable parameters from the controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
 
 ### Communication
-ecoMAX constantly sends `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` requests to every known device addresses and broadcasts `RegData[type=0x08]` message, that contains basic regulator data.
+ecoMAX controller constantly sends `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` requests to every known device on the network and broadcasts `RegData[type=0x08]` message, that contains basic controller data.
 
-Initial exchange between ecoMAX and PyPlumIO can be illustrated with following diagram:
+Initial exchange between ecoMAX controller and PyPlumIO library can be illustrated with following diagram:
+
+_NOTE: device network address is listed in square brackets._
 
 ```
-NOTE: device address is listed in square brackets.
-
 ecoMAX[0x45] -> Broadcast[0x00]: RegData[type=0x08] Contains basic ecoMAX data.
 ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersion[type=0x40] Program version request.
 ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersion[type=0xC0] Contains program version.
@@ -194,15 +194,13 @@ ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailable[type=0xB0] Contains network inf
 ecoMAX[0x45] -> PyPlumIO[0x56]:  CurrentData[type=0x35] Contains current ecoMAX data.
 ```
 
-PyPlumIO will then request all frames listed in frame version information from `RegData` and `CurrentData` responses. This includes at least `UID[type=0x39]`, `Parameters[type=0x31]` and `MixerParameters[type=0x32]` requests.
-
 ### Versioning
 Protocol has built-in way to track frame versions. This is used to synchronize changes between devices.
-Both broadcast `RegData[type=0x08]` and unicast `CurrentData[type=0x35]` frames send by ecoMAX controller contain versioning information.
+Both broadcast `RegData[type=0x08]` and unicast `CurrentData[type=0x35]` frames sent by ecoMAX controller contain versioning data.
 
-This information can be represented with following dictionary:
+This data can be represented with following dictionary:
 ```python
-{
+frame_versions: Dict[int, int] = {
   0x31: 37,
   0x32: 37,
   0x36: 1,
@@ -218,7 +216,7 @@ This information can be represented with following dictionary:
 In this dictionary keys are frame types and values are version numbers. In example above, frame `Parameters[type=0x31]` has version 37.
 If we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
 ```python
-{
+frame_versions: Dict[int, int] = {
   0x31: 38,  # note version number change
   0x32: 37,
   0x36: 1,
@@ -231,6 +229,10 @@ If we change any parameters either remotely or on ecoMAX itself, version number 
   0x53: 1,
 }
 ```
+
+## Home Assistant Integration
+There is companion Home Assistant integration that is being co-developed with this package and depends on it.
+You can find it [here](https://github.com/denpamusic/homeassistant-plum-ecomax).
 
 ## Attribution
 Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
