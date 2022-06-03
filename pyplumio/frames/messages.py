@@ -88,16 +88,6 @@ class CurrentData(Message):
 
     frame_type: int = 0x35
 
-    def __init__(self, *args, **kwargs):
-        """Creates new CurrentData frame object.
-
-        Keyword arguments:
-            *args -- arguments for parent class init
-            **kwargs -- keyword arguments for parent class init
-        """
-        super().__init__(*args, **kwargs)
-        self.schema = []
-
     def parse_message(self, message: bytearray) -> None:
         """Parses CurrentData message into usable data.
 
