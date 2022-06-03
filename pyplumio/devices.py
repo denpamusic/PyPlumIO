@@ -21,6 +21,7 @@ from .data_types import DataType
 from .frames import Request, requests
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
+from .helpers.product_info import ProductInfo
 from .mixers import MixersCollection
 from .storage import FrameBucket
 from .structures import (
@@ -97,8 +98,7 @@ class Device(BaseDevice):
         """
         self.bucket = FrameBucket(address=self.address, required=self.required_frames)
         self.mixers = MixersCollection(address=self.address)
-        self.product = None
-        self.uid = None
+        self.product = ProductInfo()
         self.password = None
         self.schema: List[Tuple[str, DataType]] = []
         super().__init__(data, parameters)
@@ -106,9 +106,9 @@ class Device(BaseDevice):
     def __str__(self) -> str:
         """Converts device instance to a string."""
         return f"""
-Product:        {self.product}
+Model:          {self.product.model}
 Software Ver.:  {self.software}
-UID:            {self.uid}
+UID:            {self.product.uid}
 Password:       {self.password}
 
 {super().__str__()}

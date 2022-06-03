@@ -308,7 +308,7 @@ async def test_process_uid_response(
 ) -> None:
     """Test processing of uid frame."""
     product_info = ProductInfo(
-        type=0, product=0, uid="test_uid", logo=0, image=0, name="test_product"
+        type=0, product=0, uid="test_uid", logo=0, image=0, model="test_product"
     )
 
     with patch(
@@ -320,8 +320,8 @@ async def test_process_uid_response(
     ):
         await tcp_connection.task(AsyncMock())
 
-    assert tcp_connection.devices.ecomax.uid == "test_uid"
-    assert tcp_connection.devices.ecomax.product == "test_product"
+    assert tcp_connection.devices.ecomax.product.uid == "test_uid"
+    assert tcp_connection.devices.ecomax.product.model == "test_product"
 
 
 @pytest.mark.asyncio

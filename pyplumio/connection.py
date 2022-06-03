@@ -102,8 +102,7 @@ class Connection(ABC):
             writer.queue(frame.response())
 
         elif isinstance(frame, responses.UID):
-            device.uid = frame.data["product"].uid
-            device.product = frame.data["product"].name
+            device.product = frame.data["product"]
 
         elif isinstance(frame, responses.Password):
             device.password = frame.data["password"]
