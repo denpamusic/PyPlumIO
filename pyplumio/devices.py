@@ -23,7 +23,7 @@ from .frames import Request, requests
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .helpers.product_info import ConnectedModules, ProductInfo
-from .mixers import MixersCollection
+from .mixers import MixerCollection
 from .storage import FrameBucket
 from .structures import (
     alarms,
@@ -95,7 +95,7 @@ class Device(BaseDevice):
             parameters -- editable parameters
         """
         self.bucket = FrameBucket(address=self.address, required=self.required_frames)
-        self.mixers = MixersCollection(address=self.address)
+        self.mixers = MixerCollection(address=self.address)
         self.product = ProductInfo()
         self.modules = ConnectedModules()
         self.password = None
@@ -282,7 +282,7 @@ class EcoSTER(Device):
     address = ECOSTER_ADDRESS
 
 
-class DevicesCollection:
+class DeviceCollection:
     """Collection of devices.
 
     Attributes:

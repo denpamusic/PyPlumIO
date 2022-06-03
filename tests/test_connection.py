@@ -268,7 +268,7 @@ async def test_process_unknown_sender(
         "pyplumio.stream.FrameReader.read",
         return_value=CheckDevice(sender=0x0),
     ), patch(
-        "pyplumio.devices.DevicesCollection.has",
+        "pyplumio.devices.DeviceCollection.has",
         return_value=False,
     ) as mock_has_device:
         await tcp_connection.task(AsyncMock())

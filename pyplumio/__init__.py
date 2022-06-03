@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Any, Awaitable, Callable
 
 from .connection import Connection, SerialConnection, TcpConnection
-from .devices import DevicesCollection
+from .devices import DeviceCollection
 from .version import __version__  # noqa
 
 
 def tcp(
-    callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
+    callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
     host: str,
     port: int,
     interval: int = 1,
@@ -29,7 +29,7 @@ def tcp(
 
 
 def serial(
-    callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
+    callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
     device: str,
     baudrate: int = 115200,
     interval: int = 1,

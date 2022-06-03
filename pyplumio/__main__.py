@@ -2,10 +2,10 @@
 
 import pyplumio
 from pyplumio.connection import Connection
-from pyplumio.devices import DevicesCollection
+from pyplumio.devices import DeviceCollection
 
 
-async def main(devices: DevicesCollection, connection: Connection) -> None:
+async def main(devices: DeviceCollection, connection: Connection) -> None:
     """This callback will be called every second.
 
     Keyword arguments:

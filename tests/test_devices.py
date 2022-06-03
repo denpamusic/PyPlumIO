@@ -14,7 +14,7 @@ from pyplumio.constants import (
     DATA_UNKNOWN,
     ECOMAX_ADDRESS,
 )
-from pyplumio.devices import MODE_HEATING, MODES, DevicesCollection, EcoMAX
+from pyplumio.devices import MODE_HEATING, MODES, DeviceCollection, EcoMAX
 from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frames import requests
 from pyplumio.helpers.parameter import Parameter
@@ -218,44 +218,44 @@ def test_has(ecomax_with_data: EcoMAX) -> None:
     assert ecomax_with_data.has("summer_mode")
 
 
-def test_get_attr_from_collection(devices: DevicesCollection) -> None:
+def test_get_attr_from_collection(devices: DeviceCollection) -> None:
     """Test get instance from devices collection."""
     assert isinstance(devices.ecomax, EcoMAX)
 
 
-def test_get_unknown_attr_from_collection(devices: DevicesCollection) -> None:
+def test_get_unknown_attr_from_collection(devices: DeviceCollection) -> None:
     """Test checking for nonexistent key in devices collection."""
     assert not hasattr(devices, "nonexistent")
 
 
-def test_collection_length(devices: DevicesCollection) -> None:
+def test_collection_length(devices: DeviceCollection) -> None:
     """Test len method on devices collection."""
     assert len(devices) == 1
 
 
-def test_collection_has_device(devices: DevicesCollection) -> None:
+def test_collection_has_device(devices: DeviceCollection) -> None:
     """Test if collection has device with address or name."""
     assert devices.has(ECOMAX_ADDRESS)
     assert devices.has("ecomax")
 
 
-def test_collection_has_no_device(devices: DevicesCollection) -> None:
+def test_collection_has_no_device(devices: DeviceCollection) -> None:
     """Test that collection doesn't have device with address or name."""
     assert not devices.has(0x0)
     assert not devices.has("nonexistent")
 
 
-def test_get_device_from_collection(devices: DevicesCollection) -> None:
+def test_get_device_from_collection(devices: DeviceCollection) -> None:
     """Test getting device from the collection with address."""
     assert isinstance(devices.get(ECOMAX_ADDRESS), EcoMAX)
 
 
 def test_init_device_from_collection() -> None:
     """Test initialization of device in the collection."""
-    devices = DevicesCollection()
+    devices = DeviceCollection()
     assert isinstance(devices.get(ECOMAX_ADDRESS), EcoMAX)
 
 
-def test_init_unknown_device_from_collection(devices: DevicesCollection) -> None:
+def test_init_unknown_device_from_collection(devices: DeviceCollection) -> None:
     """Test initialization of unknown device in the collection."""
     assert devices.get(0x0) is None

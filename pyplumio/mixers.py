@@ -84,7 +84,7 @@ Parameters:
         return MIXER_PARAMETERS
 
 
-class MixersCollection:
+class MixerCollection:
     """Collection of mixer devices.
 
     Attributes:
@@ -105,7 +105,7 @@ class MixersCollection:
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
-        return f"""MixersCollection(
+        return f"""MixerCollection(
     address = {self._address},
     mixers = {self._mixers}
 )

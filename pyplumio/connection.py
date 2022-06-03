@@ -4,16 +4,15 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import Callable
 import logging
 import sys
-from typing import Any, Awaitable, Final, Optional, Tuple
+from typing import Any, Awaitable, Callable, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
 
 from .constants import DATA_MIXERS, DATA_MODULES, ECOMAX_ADDRESS
-from .devices import DevicesCollection
+from .devices import DeviceCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame, messages, requests, responses
 from .helpers.network_info import (
@@ -55,7 +54,7 @@ class Connection(ABC):
         self.closing = False
         self.writer = None
         self._network = NetworkInfo()
-        self._devices = DevicesCollection()
+        self._devices = DeviceCollection()
         self._callback_task = None
         self._callback_closed = None
 
@@ -68,7 +67,7 @@ class Connection(ABC):
 
     async def _callback(
         self,
-        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
+        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
         interval: int,
     ) -> None:
         """Calls provided callback method with specified interval.
@@ -157,7 +156,7 @@ class Connection(ABC):
 
     async def task(
         self,
-        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
+        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
         interval: int = 1,
         reconnect_on_failure: bool = True,
     ) -> None:
@@ -206,7 +205,7 @@ class Connection(ABC):
 
     def run(
         self,
-        callback: Callable[[DevicesCollection, Connection], Awaitable[Any]],
+        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
         interval: int = 1,
         reconnect_on_failure: bool = True,
     ) -> None:
@@ -292,7 +291,7 @@ class Connection(ABC):
         await loop.run_in_executor(None, self.close)
 
     @property
-    def devices(self) -> DevicesCollection:
+    def devices(self) -> DeviceCollection:
         """Returns collection of devices."""
         return self._devices
 

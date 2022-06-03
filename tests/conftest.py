@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from pyplumio.constants import ECOMAX_ADDRESS
-from pyplumio.devices import DevicesCollection, EcoMAX
+from pyplumio.devices import DeviceCollection, EcoMAX
 from pyplumio.mixers import Mixer
 from pyplumio.storage import FrameBucket
 
@@ -25,9 +25,9 @@ def fixture_ecomax() -> EcoMAX:
 
 
 @pytest.fixture(name="devices")
-def fixture_devices() -> DevicesCollection:
+def fixture_devices() -> DeviceCollection:
     """Return instance of device collection."""
-    devices = DevicesCollection()
+    devices = DeviceCollection()
     devices.get(ECOMAX_ADDRESS)
     return devices
 

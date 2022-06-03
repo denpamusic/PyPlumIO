@@ -4,7 +4,7 @@ import pytest
 
 from pyplumio.constants import BROADCAST_ADDRESS
 from pyplumio.frames.requests import SetMixerParameter
-from pyplumio.mixers import Mixer, MixersCollection
+from pyplumio.mixers import Mixer, MixerCollection
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 _test_data = {
@@ -36,8 +36,8 @@ def fixture_mixer_with_data(mixer: Mixer) -> Mixer:
 
 
 @pytest.fixture(name="mixers")
-def fixture_mixers(mixer_with_data: Mixer) -> MixersCollection:
-    return MixersCollection(mixers=[mixer_with_data])
+def fixture_mixers(mixer_with_data: Mixer) -> MixerCollection:
+    return MixerCollection(mixers=[mixer_with_data])
 
 
 def test_set_data(mixer: Mixer) -> None:
@@ -57,10 +57,10 @@ def test_editable_parameters(mixer: Mixer) -> None:
     assert mixer.editable_parameters == MIXER_PARAMETERS
 
 
-def test_collection_repr(mixers: MixersCollection) -> None:
+def test_collection_repr(mixers: MixerCollection) -> None:
     """Test mixers collection serializable interpretation."""
     assert """
-MixersCollection(
+MixerCollection(
     address = 0,
     mixers = [Mixer(
     data = {'temp': 40, 'target': 60, 'pump': True},
@@ -79,7 +79,7 @@ MixersCollection(
     )
 
 
-def test_collection_str(mixers: MixersCollection) -> None:
+def test_collection_str(mixers: MixerCollection) -> None:
     """Test mixers collection string representation."""
     assert """
 - 0:
@@ -95,55 +95,55 @@ def test_collection_str(mixers: MixersCollection) -> None:
     )
 
 
-def test_collection_len(mixers: MixersCollection) -> None:
+def test_collection_len(mixers: MixerCollection) -> None:
     """Test getting mixers collection length."""
     assert len(mixers) == 1
 
 
-def test_collection_call(mixers: MixersCollection) -> None:
+def test_collection_call(mixers: MixerCollection) -> None:
     """Test getting mixer from collection via instance call."""
     assert mixers(0).mix_set_temp == 60
 
 
-def test_collection_call_nonexistent(mixers: MixersCollection) -> None:
+def test_collection_call_nonexistent(mixers: MixerCollection) -> None:
     """Test getting nonexistent mixer from collection via call."""
     assert mixers(39) is None
 
 
-def test_collection_set_data(mixers: MixersCollection) -> None:
+def test_collection_set_data(mixers: MixerCollection) -> None:
     """Test setting collection data."""
     mixers.set_data([_test_data2])
     assert mixers(0).temp == 45
 
 
-def test_collection_set_data_for_unknown_mixer(mixers: MixersCollection) -> None:
+def test_collection_set_data_for_unknown_mixer(mixers: MixerCollection) -> None:
     """Test setting data for unknown mixer."""
     mixers.set_data([_test_data, _test_data2])
     assert mixers(0).temp == 40
     assert mixers(1).temp == 45
 
 
-def test_collection_set_parameters(mixers: MixersCollection) -> None:
+def test_collection_set_parameters(mixers: MixerCollection) -> None:
     """Test setting mixer parameters."""
     mixers.set_parameters([_test_parameters2])
     assert mixers(0).mix_set_temp == 65
 
 
-def test_collection_set_parameters_fro_unknown_mixer(mixers: MixersCollection) -> None:
+def test_collection_set_parameters_from_unknown_mixer(mixers: MixerCollection) -> None:
     """Test setting parameters for unknown mixer."""
     mixers.set_parameters([_test_parameters, _test_parameters2])
     assert mixers(0).mix_set_temp == 60
     assert mixers(1).mix_set_temp == 65
 
 
-def test_collection_get_mixers(mixers: MixersCollection) -> None:
+def test_collection_get_mixers(mixers: MixerCollection) -> None:
     """Test get mixers from the list."""
     mixers.set_parameters([_test_parameters, _test_parameters2])
     assert mixers.mixers[0].mix_set_temp == 60
     assert mixers.mixers[1].mix_set_temp == 65
 
 
-def test_collection_queue(mixers: MixersCollection) -> None:
+def test_collection_queue(mixers: MixerCollection) -> None:
     """Test changed parameters queue."""
     mixers(0).mix_set_temp = 65
     request = mixers.queue[0]
