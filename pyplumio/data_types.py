@@ -30,6 +30,14 @@ class DataType(ABC):
         if data is not None:
             self._data = data[0:size] if size > 0 else data
 
+    def __eq__(self, other) -> bool:
+        """Checks if two data types are equal.
+
+        Keyword arguments:
+            other -- data type to compare to
+        """
+        return self._data == other._data and self.size == other.size
+
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
         return f"""{self.__class__.__name__}(

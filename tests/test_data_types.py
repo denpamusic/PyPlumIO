@@ -16,6 +16,13 @@ def test_type_repr():
     )
 
 
+def test_equality():
+    """Test type equality check."""
+    type = data_types.SignedChar(bytearray([0x16]))
+    other = data_types.SignedChar(bytearray([0x16]))
+    assert type == other
+
+
 def test_type_unpack() -> None:
     """Test generic type unpack."""
     type = data_types.SignedChar()
