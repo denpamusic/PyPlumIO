@@ -11,6 +11,7 @@ from pyplumio.constants import (
     DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
+    DATA_UNKNOWN,
     ECOMAX_ADDRESS,
 )
 from pyplumio.devices import MODE_HEATING, MODES, DevicesCollection, EcoMAX
@@ -112,7 +113,7 @@ def test_get_mode(ecomax: EcoMAX) -> None:
     # Test with unknown mode.
     data[DATA_MODE] = 69
     ecomax.set_data(data)
-    assert ecomax.mode == "Unknown"
+    assert ecomax.mode == DATA_UNKNOWN
 
 
 def test_get_mode_unavailable(ecomax: EcoMAX) -> None:

@@ -14,6 +14,7 @@ from .constants import (
     DATA_POWER,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
+    DATA_UNKNOWN,
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
 )
@@ -166,7 +167,7 @@ Mixers:
             if self._data[DATA_MODE] < len(MODES):
                 return MODES[self._data[DATA_MODE]]
 
-            return "Unknown"
+            return DATA_UNKNOWN
 
         return None
 

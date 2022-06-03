@@ -158,7 +158,7 @@ class UID(Response):
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid, offset = uid.from_bytes(message, offset=3)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
-        product_info.name, _ = var_string.from_bytes(message, offset + 4)
+        product_info.model, _ = var_string.from_bytes(message, offset + 4)
         self._data = {"product": product_info}
 
 

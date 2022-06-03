@@ -13,4 +13,4 @@ class ProductInfo:
     uid: Optional[str] = None
     logo: int = 0
     image: int = 0
-    name: Optional[str] = None
+    model: Optional[str] = None
