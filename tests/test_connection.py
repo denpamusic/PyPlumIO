@@ -422,14 +422,14 @@ async def test_process_mixer_parameters_response(
     ), patch(
         "pyplumio.stream.FrameReader.read",
         return_value=MixerParameters(
-            sender=ECOMAX_ADDRESS, data={"mixers": [{"mix_set_temp": [50, 30, 60]}]}
+            sender=ECOMAX_ADDRESS, data={"mixers": [{"mix_target_temp": [50, 30, 60]}]}
         ),
     ):
         await tcp_connection.task(AsyncMock())
 
-    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.min_value == 30
-    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.max_value == 60
-    assert tcp_connection.devices.ecomax.mixers(0).mix_set_temp.value == 50
+    assert tcp_connection.devices.ecomax.mixers(0).mix_target_temp.min_value == 30
+    assert tcp_connection.devices.ecomax.mixers(0).mix_target_temp.max_value == 60
+    assert tcp_connection.devices.ecomax.mixers(0).mix_target_temp.value == 50
 
 
 @pytest.mark.asyncio

@@ -67,7 +67,7 @@ def test_parameter_request(parameter: Parameter) -> None:
 def test_parameter_request_mixer() -> None:
     """Test set mixer parameter request instance."""
     parameter = Parameter(
-        name="mix_set_temp", value=50, min_value=50, max_value=80, extra=0
+        name="mix_target_temp", value=50, min_value=50, max_value=80, extra=0
     )
     assert isinstance(parameter.request, SetMixerParameter)
 

@@ -17,7 +17,9 @@ _message = bytearray(
         0x28,
     ]
 )
-_data = {"mixers": [{"min_mix_set_temp": (20, 30, 40), "mix_set_temp": (30, 40, 60)}]}
+_data = {
+    "mixers": [{"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}]
+}
 
 
 def test_from_bytes_with_zero_parameters():

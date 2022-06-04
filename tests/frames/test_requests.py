@@ -55,7 +55,7 @@ def test_set_parameter() -> None:
 def test_set_mixer_parameter() -> None:
     """Test set mixer parameter request bytes."""
     frame = requests.SetMixerParameter(
-        data={"name": "mix_set_temp", "value": 40, "extra": 0}
+        data={"name": "mix_target_temp", "value": 40, "extra": 0}
     )
     assert frame.bytes == b"\x68\x0d\x00\x00\x56\x30\x05\x34\x00\x00\x28\x1a\x16"
 

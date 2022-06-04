@@ -6,10 +6,10 @@ from pyplumio import util
 from pyplumio.constants import DATA_MIXERS
 
 MIXER_PARAMETERS: List[str] = [
-    "mix_set_temp",
-    "min_mix_set_temp",
-    "max_mix_set_temp",
-    "low_mix_set_temp",
+    "mix_target_temp",
+    "min_mix_target_temp",
+    "max_mix_target_temp",
+    "low_mix_target_temp",
     "ctrl_weather_mix",
     "mix_heat_curve",
     "parallel_offset_heat_curve",

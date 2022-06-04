@@ -20,11 +20,11 @@ _test_data2 = {
 }
 
 _test_parameters = {
-    "mix_set_temp": [60, 40, 80],
+    "mix_target_temp": [60, 40, 80],
 }
 
 _test_parameters2 = {
-    "mix_set_temp": [65, 40, 80],
+    "mix_target_temp": [65, 40, 80],
 }
 
 
@@ -49,7 +49,7 @@ def test_set_data(mixer: Mixer) -> None:
 def test_set_parameters(mixer: Mixer) -> None:
     """Test setting mixer parameters."""
     mixer.set_parameters(_test_parameters)
-    assert mixer.mix_set_temp == 60
+    assert mixer.mix_target_temp == 60
 
 
 def test_editable_parameters(mixer: Mixer) -> None:
@@ -64,8 +64,8 @@ MixerCollection(
     address = 0,
     mixers = [Mixer(
     data = {'temp': 40, 'target': 60, 'pump': True},
-    parameters = {'mix_set_temp': Parameter(
-    name = mix_set_temp,
+    parameters = {'mix_target_temp': Parameter(
+    name = mix_target_temp,
     value = 60,
     min_value = 40,
     max_value = 80,
@@ -89,7 +89,7 @@ def test_collection_str(mixers: MixerCollection) -> None:
     - pump: True
 
     Parameters:
-    - mix_set_temp: 60 (range 40 - 80)
+    - mix_target_temp: 60 (range 40 - 80)
 """.strip() == str(
         mixers
     )
@@ -102,7 +102,7 @@ def test_collection_len(mixers: MixerCollection) -> None:
 
 def test_collection_call(mixers: MixerCollection) -> None:
     """Test getting mixer from collection via instance call."""
-    assert mixers(0).mix_set_temp == 60
+    assert mixers(0).mix_target_temp == 60
 
 
 def test_collection_call_nonexistent(mixers: MixerCollection) -> None:
@@ -126,26 +126,26 @@ def test_collection_set_data_for_unknown_mixer(mixers: MixerCollection) -> None:
 def test_collection_set_parameters(mixers: MixerCollection) -> None:
     """Test setting mixer parameters."""
     mixers.set_parameters([_test_parameters2])
-    assert mixers(0).mix_set_temp == 65
+    assert mixers(0).mix_target_temp == 65
 
 
 def test_collection_set_parameters_from_unknown_mixer(mixers: MixerCollection) -> None:
     """Test setting parameters for unknown mixer."""
     mixers.set_parameters([_test_parameters, _test_parameters2])
-    assert mixers(0).mix_set_temp == 60
-    assert mixers(1).mix_set_temp == 65
+    assert mixers(0).mix_target_temp == 60
+    assert mixers(1).mix_target_temp == 65
 
 
 def test_collection_get_mixers(mixers: MixerCollection) -> None:
     """Test get mixers from the list."""
     mixers.set_parameters([_test_parameters, _test_parameters2])
-    assert mixers.mixers[0].mix_set_temp == 60
-    assert mixers.mixers[1].mix_set_temp == 65
+    assert mixers.mixers[0].mix_target_temp == 60
+    assert mixers.mixers[1].mix_target_temp == 65
 
 
 def test_collection_queue(mixers: MixerCollection) -> None:
     """Test changed parameters queue."""
-    mixers(0).mix_set_temp = 65
+    mixers(0).mix_target_temp = 65
     request = mixers.queue[0]
     assert isinstance(request, SetMixerParameter)
     assert request.recipient == BROADCAST_ADDRESS
