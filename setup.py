@@ -32,6 +32,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Topic :: Software Development :: Libraries",
+        "Topic :: Home Automation",
     ],
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
     python_requires=">=3.8",
