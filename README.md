@@ -14,7 +14,7 @@ This package aims to provide complete and easy to use solution for communicating
 
 Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to show on controller's display.
 
-Devices can be connected directly via RS-485 to USB converter or through network by using RS-485 to Ethernet or RS-485 to WiFi converter.
+Devices can be connected directly via RS-485 to USB adapter or through network by using RS-485 to Ethernet/WiFi converter.
 
 ![RS-485 converters](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/rs485.png)
 
@@ -44,7 +44,7 @@ Second optional parameter `interval`, defines how often the callback will be cal
 You can find examples for each supported connection type below.
 
 ### TCP
-This is intended to be used with RS-485 to network converters, which are readily available online or can be custom built using RS-485 to USB converter and ser2net software.
+This is intended to be used with RS-485 to Ethernet/WiFi converters, which are readily available online or can be custom built using RS-485 to USB converter and ser2net software.
 
 ```python
 from pyplumio import TcpConnection
@@ -89,7 +89,7 @@ pyplumio_serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
 ```
 
 ### Data and Parameters
-Data is separated into immutable `data` that can't be changed and `parameters` that can. Both can be accessed via instance attributes. (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_set_temp`)
+Data is separated into immutable `data` that can't be changed and `parameters` that can. Both can be accessed via instance attributes. (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_target_temp`)
 
 Each ecoMAX controller supports different data attributes and parameters. You can check what your controller supports by calling `print()` on controller instance in device collection.
 ```python
@@ -113,19 +113,19 @@ async def my_callback(devices: DeviceCollection, connection):
 You can easily change controller parameters by modifying their respective class attribute. In example below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) and close the connection.
 ```python
 async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax") and devices.ecomax.has("heating_set_temp"):
+    if devices.has("ecomax") and devices.ecomax.has("heating_target_temp"):
         """This will set target heating temperature to 65 degrees Celsius.
         and close the connection.
         """
-    	devices.ecomax.heating_set_temp = 65
+    	devices.ecomax.heating_target_temp = 65
         connection.close()
 ```
 Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO library currently silently ignores out of range values. You can check allowed values by reading `min_value` and `max_value` attributes of parameter instance.
 ```python
 async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax") and devices.ecomax.has("heating_set_temp"):
-        print(devices.ecomax.heating_set_temp.min_value)  # Prints minimum allowed target temperature.
-        print(devices.ecomax.heating_set_temp.max_value)  # Prints maximum allowed target temperature.
+    if devices.has("ecomax") and devices.ecomax.has("heating_target_temp"):
+        print(devices.ecomax.heating_target_temp.min_value)  # Prints minimum allowed target temperature.
+        print(devices.ecomax.heating_target_temp.max_value)  # Prints maximum allowed target temperature.
 ```
 
 ### Network Information
@@ -162,7 +162,7 @@ Protocol supports unicast and broadcast frames. Broadcast frames will always hav
 ### Frame Structure
 - Header:
   - [Byte] Frame start delimiter. Always `0x68`.
-  - [Unsigned Short] Byte size of the frame. Includes CRC and frame end mark 
+  - [Unsigned Short] Byte size of the frame. Includes CRC and frame end delimiter. 
   - [Byte] Recipient address.
   - [Byte] Sender address.
   - [Byte] Sender type. PyPlumIO uses EcoNET type `0x30`.
@@ -174,7 +174,7 @@ Protocol supports unicast and broadcast frames. Broadcast frames will always hav
   - [Byte] Frame end delimiter. Always `0x16`.
 
 ### Requests and Responses
-Frames can be split into requests and responses. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frames.
+Frames can be split into requests, responses and messages. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frames.
 
 For example we can request list of editable parameters from the controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
 
@@ -231,8 +231,9 @@ frame_versions: Dict[int, int] = {
 ```
 
 ## Home Assistant Integration
-There is companion Home Assistant integration that is being co-developed with this package and depends on it.
-You can find it [here](https://github.com/denpamusic/homeassistant-plum-ecomax).
+There is companion Home Assistant integration that is being co-developed with this package and depends on it. Click button below to check it out.
+
+[![hass integration](https://img.shields.io/badge/hass%20integration-v0.1.2-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
 
 ## Attribution
 Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
