@@ -17,7 +17,7 @@ def fixture_outputs_data() -> Dict[str, bool]:
     return outputs
 
 
-def test_from_bytes(outputs_data) -> None:
+def test_from_bytes(outputs_data: Dict[str, bool]) -> None:
     """Test conversion from bytes."""
     data, offset = from_bytes(_message)
     assert data == outputs_data

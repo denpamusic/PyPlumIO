@@ -48,22 +48,12 @@ def test_fill_with_same_version(frame_bucket: FrameBucket) -> None:
 def test_bucket_update_with_request(frame_bucket: FrameBucket) -> None:
     """Test update bucket with request having different version."""
     frame_bucket.update(frame_type=requests.UID.frame_type, version=2)
-    found = False
-    for frame in frame_bucket.queue:
-        if frame.frame_type == requests.UID.frame_type:
-            found = True
-            break
-
-    assert found
+    assert [x for x in frame_bucket.queue if x.frame_type == requests.UID.frame_type]
 
 
 def test_bucket_update_with_response(frame_bucket: FrameBucket) -> None:
-    """Test update bucket with response from ecoMAX."""
+    """Test update bucket with response instead of request."""
     frame_bucket.update(frame_type=responses.UID.frame_type, version=2)
-    found = False
-    for frame in frame_bucket.queue:
-        if frame.frame_type == responses.UID.frame_type:
-            found = True
-            break
-
-    assert not found
+    assert not [
+        x for x in frame_bucket.queue if x.frame_type == responses.UID.frame_type
+    ]
