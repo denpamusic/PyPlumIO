@@ -92,7 +92,7 @@ def fixture_bypass_serial_asyncio_connection(
 
 @pytest.fixture(name="data_schema")
 def fixture_data_schema() -> Generator[DataSchema, None, None]:
-    """Return sample data schema response from ecoMAX920"""
+    """Return sample data schema response from ecoMAX920."""
     data_schema_bytes = bytearray.fromhex(
         """01010400070A02060A00060A01060A02000A01000A0
 3060A07060A05060A06060A08060A09060A0A060A03000A04060A0B060A0C060A0D060A0E060A0F060A10060
