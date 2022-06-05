@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Final, Optional
+from typing import Final, Optional, Union
 
 from . import util
 
@@ -15,9 +15,11 @@ class DataType(ABC):
         _data -- type bytes
     """
 
-    _data = bytearray()
+    _data: Union[bytes, bytearray] = bytearray()
 
-    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
+    def __init__(
+        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
+    ):
         """Creates data type instance.
 
         Keyword arguments:
@@ -41,12 +43,12 @@ class DataType(ABC):
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
         return f"""{self.__class__.__name__}(
-    data = {self._data},
+    data = {self._data!r},
     size = {self.size}
 )
 """.strip()
 
-    def unpack(self, data):
+    def unpack(self, data: Union[bytes, bytearray]):
         """Unpacks data to a given type.
 
         Keyword arguments:
@@ -214,7 +216,9 @@ class Boolean(DataType):
         _index -- bit array index
     """
 
-    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
+    def __init__(
+        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
+    ):
         """Creates boolean instance.
 
         Keyword arguments:
@@ -232,7 +236,7 @@ class Boolean(DataType):
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
-    def unpack(self, data) -> None:
+    def unpack(self, data: Union[bytes, bytearray]) -> None:
         """Unpacks data to with given type.
 
         Keyword arguments:
@@ -310,11 +314,13 @@ class IPv6(DataType):
 class String(DataType):
     """Variable length bytes representation."""
 
-    def __init__(self, data: Optional[Any] = None, size: Optional[int] = None):
+    def __init__(
+        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
+    ):
         """Creates variable length type instance."""
         super().__init__(data, size=-1)
 
-    def unpack(self, data):
+    def unpack(self, data: Union[bytes, bytearray]):
         """Unpacks data to a given type.
 
         Keyword arguments:
