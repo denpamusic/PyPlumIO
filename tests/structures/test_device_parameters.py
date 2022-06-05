@@ -2,31 +2,8 @@
 
 from pyplumio.structures.device_parameters import DEVICE_PARAMETERS, from_bytes
 
-_message = bytearray(
-    [
-        0x0,
-        0x0,
-        0x5,
-        0x50,
-        0x3D,
-        0x64,
-        0x3C,
-        0x29,
-        0x4C,
-        0x28,
-        0x14,
-        0x3B,
-        0xFF,
-        0xFF,
-        0xFF,
-        0x14,
-        0x01,
-        0xFA,
-    ]
-)
-
-_message_empty = bytearray([0x0, 0x0, 0x0])
-
+_message = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
+_message_empty = bytearray.fromhex("000000")
 _data = {
     DEVICE_PARAMETERS[0]: (80, 61, 100),
     DEVICE_PARAMETERS[1]: (60, 41, 76),

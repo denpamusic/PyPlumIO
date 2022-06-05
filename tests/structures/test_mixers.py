@@ -8,27 +8,7 @@ from pyplumio.structures.mixers import (
     from_bytes,
 )
 
-_message = bytearray(
-    [
-        0x2,
-        0x0,
-        0x0,
-        0x20,
-        0x42,
-        0x26,
-        0x8,
-        0x8,
-        0x0,
-        0x0,
-        0x0,
-        0x20,
-        0x42,
-        0x26,
-        0x8,
-        0x8,
-        0x0,
-    ]
-)
+_message = bytearray.fromhex("0200002042260808000000204226080800")
 _data = {
     DATA_MIXERS: [
         {MIXER_TEMP: 40.0, MIXER_TARGET: 38, MIXER_PUMP: False},

@@ -73,7 +73,7 @@ class ProgramVersion(Response):
             self.recipient,
         ] = struct.unpack_from("<2sB2s3s3sB", message)
         version_info.software = ".".join(str(x) for x in software_version)
-        self._data[DATA_VERSION] = version_info
+        self._data = {DATA_VERSION: version_info}
 
 
 class DeviceAvailable(Response):

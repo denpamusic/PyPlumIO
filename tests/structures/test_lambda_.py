@@ -7,8 +7,8 @@ from pyplumio.structures.lambda_ import (
     from_bytes,
 )
 
-_empty = bytearray([0xFF])
-_message = bytearray([0x1, 0x2, 0x28, 0x0])
+_empty = bytearray.fromhex("FF")
+_message = bytearray.fromhex("01022800")
 _data = {LAMBDA_STATUS: 1, LAMBDA_TARGET: 2, LAMBDA_LEVEL: 40}
 
 

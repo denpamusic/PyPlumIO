@@ -2,6 +2,7 @@
 
 from pyplumio.constants import (
     BROADCAST_ADDRESS,
+    DATA_MODE,
     DATA_NETWORK,
     DATA_PASSWORD,
     DATA_PRODUCT,
@@ -11,6 +12,7 @@ from pyplumio.constants import (
 )
 from pyplumio.data_types import Byte
 from pyplumio.frames import responses
+from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -18,6 +20,7 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.version_info import VersionInfo
+from pyplumio.structures.device_parameters import DEVICE_PARAMETERS
 
 
 def test_responses_type() -> None:
@@ -36,13 +39,11 @@ def test_responses_type() -> None:
 
 
 _program_version_data = {DATA_VERSION: VersionInfo(software="1.0.0")}
-_program_version_bytes = bytearray(
-    b"\xFF\xFF\x05\x7A\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x56"
-)
+_program_version_bytes = bytearray.fromhex("FFFF057A0000000001000000000056")
 
 
 def test_program_version_create_message() -> None:
-    """Test creating message for program version response."""
+    """Test creating program version message."""
     frame = responses.ProgramVersion(
         recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS, data=_program_version_data
     )
@@ -50,9 +51,12 @@ def test_program_version_create_message() -> None:
 
 
 def test_program_version_parse_message() -> None:
-    """Test parsing message for program version response."""
-    frame = responses.ProgramVersion(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    frame.parse_message(_program_version_bytes)
+    """Test parsing program version message."""
+    frame = responses.ProgramVersion(
+        recipient=BROADCAST_ADDRESS,
+        sender=ECONET_ADDRESS,
+        message=_program_version_bytes,
+    )
     assert frame.data == _program_version_data
 
 
@@ -73,15 +77,13 @@ _device_available_data = {
         ),
     )
 }
-_device_available_bytes = bytearray(
-    b"\x01\xC0\xA8\x01\x02\xFF\xFF\xFF\x00\xC0\xA8\x01\x01\x01"
-    + b"\xC0\xA8\x02\x02\xFF\xFF\xFF\x00\xC0\xA8\x02\x01\x01\x01\x64\x01\x00\x00"
-    + b"\x00\x00\x05\x74\x65\x73\x74\x73"
+_device_available_bytes = bytearray.fromhex(
+    "01C0A80102FFFFFF00C0A8010101C0A80202FFFFFF00C0A802010101640100000000057465737473"
 )
 
 
 def test_device_available_create_message() -> None:
-    """Test creating message for device available response."""
+    """Test creating device available message."""
     frame = responses.DeviceAvailable(
         recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS, data=_device_available_data
     )
@@ -89,11 +91,8 @@ def test_device_available_create_message() -> None:
 
 
 def test_device_available_parse_message() -> None:
-    """Test parsing message for device available response."""
-    frame = responses.DeviceAvailable(
-        recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS
-    )
-    frame.parse_message(_device_available_bytes)
+    """Test parsing device available message."""
+    frame = responses.DeviceAvailable(message=_device_available_bytes)
     assert frame.data == _device_available_data
 
 
@@ -107,43 +106,71 @@ _uid_data = {
         model="EM350P2-ZF",
     )
 }
-_uid_bytes = bytearray(
-    b"\x00Z\x00\x0b\x00\x16\x00\x11\r8386U9Z\x00\x00\x00\nEM350P2-ZF"
+_uid_bytes = bytearray.fromhex(
+    "005A000B001600110D3833383655395A0000000A454D33353050322D5A46"
 )
 
 
 def test_uid_parse_message() -> None:
-    """Test parsing message for uid response."""
-    frame = responses.UID(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    frame.parse_message(_uid_bytes)
+    """Test parsing UID message."""
+    frame = responses.UID(message=_uid_bytes)
     assert frame.data == _uid_data
 
 
+_password_bytes = bytearray.fromhex("0430303030")
 _password_data = {DATA_PASSWORD: "0000"}
-_password_bytes = bytearray(b"\x040000")
 
 
 def test_password_parse_message() -> None:
-    """Test parsing message for password response."""
-    frame = responses.Password(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    frame.parse_message(_password_bytes)
+    """Test parsing password message."""
+    frame = responses.Password(message=_password_bytes)
     assert frame.data == _password_data
 
 
-_data_schema_bytes = bytearray(b"\x01\x00\x04\x00\x07")
-_data_schema_bytes_empty = bytearray(b"\x00\x00")
-_data_schema_data = {DATA_SCHEMA: [("mode", Byte())]}
+_boiler_parameters_bytes = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
+_boiler_parameters_data = {
+    DEVICE_PARAMETERS[0]: (80, 61, 100),
+    DEVICE_PARAMETERS[1]: (60, 41, 76),
+    DEVICE_PARAMETERS[2]: (40, 20, 59),
+    DEVICE_PARAMETERS[4]: (20, 1, 250),
+}
 
 
-def test_data_schema_parse_message() -> None:
+def test_boiler_parameters_parse_message() -> None:
+    """Test parsing boiler parameters message."""
+    frame = responses.BoilerParameters(message=_boiler_parameters_bytes)
+    assert frame.data == _boiler_parameters_data
+
+
+_mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
+_mixer_parameters_data = {
+    "mixers": [{"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}]
+}
+
+
+def test_mixer_parameters_parse_message() -> None:
+    """Test parsing message for mixer parameters response."""
+    frame = responses.MixerParameters(message=_mixer_parameters_bytes)
+    assert frame.data == _mixer_parameters_data
+
+
+_data_schema_bytes_empty = bytearray.fromhex("0000")
+
+
+def test_data_schema_parse_message(data_schema: DataSchema) -> None:
     """Test parsing message for data schema response."""
-    frame = responses.DataSchema(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    frame.parse_message(_data_schema_bytes)
-    assert frame.data == _data_schema_data
+    assert DATA_SCHEMA in data_schema.data
+    assert len(data_schema.data[DATA_SCHEMA]) == 257
+    matches = {
+        x[0]: x[1]
+        for x in data_schema.data[DATA_SCHEMA]
+        if x[0] in REGDATA_SCHEMA.values()
+    }
+    assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
+    assert isinstance(matches[DATA_MODE], Byte)
 
 
 def test_data_schema_parse_message_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
-    frame = responses.DataSchema(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    frame.parse_message(_data_schema_bytes_empty)
+    frame = DataSchema(message=_data_schema_bytes_empty)
     assert frame.data == {DATA_SCHEMA: []}

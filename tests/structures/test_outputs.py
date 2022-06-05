@@ -6,7 +6,7 @@ import pytest
 
 from pyplumio.structures.outputs import OUTPUTS, from_bytes
 
-_message = bytearray([0x4, 0x0, 0x0, 0x0])
+_message = bytearray.fromhex("04000000")
 
 
 @pytest.fixture(name="outputs_data")

@@ -8,8 +8,7 @@ from pyplumio.structures.statuses import (
     from_bytes,
 )
 
-_message = bytearray([0x32, 0x0, 0x33, 0x0])
-
+_message = bytearray.fromhex("32003300")
 _data = {
     HEATING_TARGET: 50,
     HEATING_STATUS: 0,

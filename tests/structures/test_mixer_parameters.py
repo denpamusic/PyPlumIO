@@ -2,21 +2,8 @@
 
 from pyplumio.structures.mixer_parameters import from_bytes
 
-_message_zero_parameters = bytearray([0x0, 0x0, 0x0, 0x0])
-_message = bytearray(
-    [
-        0x0,
-        0x0,
-        0x2,
-        0x1,
-        0x1E,
-        0x28,
-        0x3C,
-        0x14,
-        0x1E,
-        0x28,
-    ]
-)
+_message_zero_parameters = bytearray.fromhex("00000000")
+_message = bytearray.fromhex("000002011E283C141E28")
 _data = {
     "mixers": [{"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}]
 }

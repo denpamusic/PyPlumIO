@@ -8,8 +8,7 @@ from pyplumio.structures.output_flags import (
     from_bytes,
 )
 
-_message = bytearray([0xBF, 0x0, 0x0, 0x0])
-
+_message = bytearray.fromhex("BF000000")
 _data = {
     DATA_HEATING_PUMP_FLAG: True,
     DATA_WATER_HEATER_PUMP_FLAG: True,
