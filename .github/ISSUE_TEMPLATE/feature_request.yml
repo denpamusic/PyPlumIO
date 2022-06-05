@@ -1,0 +1,62 @@
+name: Feature request
+description: Use this to request new features.
+labels: ["feature-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting new feature for the PyPlumIO project.
+
+        Please be aware that the best way to get your feature implemented as fast as possible is by submitting Pull Request.
+  - type: checkboxes
+    attributes:
+      label: "Is there an existing issue for this?"
+      description: Please search to see if an issue already exists for the feature you requesting.
+      options:
+      - label: I have searched the existing issues
+        required: true
+  - type: checkboxes
+    attributes:
+      label: "I want to suggest:"
+      description: Please select what type of feature you want implemented?
+      options:
+        - label: support for a new product
+        - label: new functionality for a product
+        - label: documentation improvement
+        - label: security improvement
+        - label: other
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Feature description"
+      description: Describe a feature that you want to suggest with as much detail as you can.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: "Additional information"
+      description: |
+        Please paste any relevant info such as hex dumps or log output here.
+
+        Tip: You can attach files by clicking this area to highlight it and then dragging files in.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    attributes:
+      label: "Product page"
+      description: |
+        If you're suggesting support for new a new Plum product, please provide URL
+        pointing to a product page on Plum's website.
+      placeholder: "https://www.plum.pl/en/project/..."
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/denpamusic/PyPlumIO/blob/main/.github/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
