@@ -1,6 +1,6 @@
 name: Feature request
 description: Use this to request new features.
-labels: ["feature-request"]
+labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
@@ -23,7 +23,6 @@ body:
         - label: support for a new product
         - label: new functionality for a product
         - label: documentation improvement
-        - label: security improvement
         - label: other
     validations:
       required: true
@@ -47,7 +46,7 @@ body:
     attributes:
       label: "Product page"
       description: |
-        If you're suggesting support for new a new Plum product, please provide URL
+        If you're suggesting support for a new product, please provide URL
         pointing to a product page on Plum's website.
       placeholder: "https://www.plum.pl/en/project/..."
     validations:
