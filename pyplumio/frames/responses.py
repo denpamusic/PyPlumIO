@@ -13,7 +13,11 @@ from pyplumio.constants import (
     DATA_VERSION,
 )
 from pyplumio.data_types import DATA_TYPES, DataType
-from pyplumio.helpers.network_info import NetworkInfo
+from pyplumio.helpers.network_info import (
+    EthernetParameters,
+    NetworkInfo,
+    WirelessParameters,
+)
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures import device_parameters, mixer_parameters, uid, var_string
@@ -120,28 +124,24 @@ class DeviceAvailable(Response):
             message -- message to parse
         """
         offset = 1
-        network_info = NetworkInfo()
-        network_info.eth.ip = util.ip4_from_bytes(message[offset : offset + 4])
-        network_info.eth.netmask = util.ip4_from_bytes(message[offset + 4 : offset + 8])
-        network_info.eth.gateway = util.ip4_from_bytes(
-            message[offset + 8 : offset + 12]
+        network_info = NetworkInfo(
+            eth=EthernetParameters(
+                ip=util.ip4_from_bytes(message[offset : offset + 4]),
+                netmask=util.ip4_from_bytes(message[offset + 4 : offset + 8]),
+                gateway=util.ip4_from_bytes(message[offset + 8 : offset + 12]),
+                status=bool(message[offset + 13]),
+            ),
+            wlan=WirelessParameters(
+                ip=util.ip4_from_bytes(message[offset + 13 : offset + 17]),
+                netmask=util.ip4_from_bytes(message[offset + 17 : offset + 21]),
+                gateway=util.ip4_from_bytes(message[offset + 21 : offset + 25]),
+                encryption=int(message[offset + 26]),
+                quality=int(message[offset + 27]),
+                status=bool(message[offset + 28]),
+                ssid=var_string.from_bytes(message, offset + 33)[0],
+            ),
+            server_status=bool(message[offset + 25]),
         )
-        network_info.eth.status = bool(message[offset + 13])
-        offset += 13
-        network_info.wlan.ip = util.ip4_from_bytes(message[offset : offset + 4])
-        network_info.wlan.netmask = util.ip4_from_bytes(
-            message[offset + 4 : offset + 8]
-        )
-        network_info.wlan.gateway = util.ip4_from_bytes(
-            message[offset + 8 : offset + 12]
-        )
-        network_info.server_status = bool(message[offset + 12])
-        offset += 12
-        network_info.wlan.encryption = int(message[offset + 1])
-        network_info.wlan.quality = int(message[offset + 2])
-        network_info.wlan.status = bool(message[offset + 3])
-        offset += 8
-        network_info.wlan.ssid = var_string.from_bytes(message, offset)[0]
         self._data = {DATA_NETWORK: network_info}
 
 
