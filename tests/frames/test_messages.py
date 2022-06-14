@@ -1,7 +1,5 @@
 """Test PyPlumIO message frames."""
 
-from math import isnan
-
 import pytest
 
 from pyplumio.constants import (
@@ -12,12 +10,10 @@ from pyplumio.constants import (
     DATA_MIXERS,
     DATA_MODE,
     DATA_MODULES,
-    DATA_SCHEMA,
     ECONET_ADDRESS,
 )
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import messages
-from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
 
 
 def test_responses_type() -> None:
@@ -46,25 +42,10 @@ _regdata_bytes = bytearray.fromhex(
 _regdata_bytes_unknown_version = bytearray.fromhex("62640002")
 
 
-def test_regdata_parse_message(data_schema: DataSchema) -> None:
+def test_regdata_parse_message() -> None:
     """Test parsing of regdata message."""
     frame = messages.RegData(message=_regdata_bytes)
-    frame.schema = data_schema.data[DATA_SCHEMA]
     assert DATA_FRAME_VERSIONS in frame.data
-    matches = {
-        x[0]: x[1]
-        for x in data_schema.data[DATA_SCHEMA]
-        if x[0] in REGDATA_SCHEMA.values()
-    }
-    assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
-    assert frame.data[DATA_MODE] == 0
-    assert round(frame.data["heating_temp"], 2) == 22.38
-    assert frame.data["heating_target"] == 41
-    assert not frame.data["heating_pump"]
-    assert isnan(frame.data["outside_temp"])
-    assert frame.data[183] == "0.0.0.0"
-    assert frame.data[184] == "255.255.255.0"
-    assert frame.data[195] == ""
 
 
 def test_regdata_parse_message_with_unknown_version() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterable
 import time
-from typing import Any, Dict, Final, List, Optional, Tuple, Type
+from typing import Any, Dict, Final, List, Optional, Type
 
 from .constants import (
     DATA_FUEL_CONSUMPTION,
@@ -13,12 +13,13 @@ from .constants import (
     DATA_MODULES,
     DATA_PASSWORD,
     DATA_PRODUCT,
+    DATA_REGDATA,
     DATA_SCHEMA,
     DATA_UNKNOWN,
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
 )
-from .data_types import DataType
+from .data_types import Boolean
 from .frames import Frame, Request, messages, requests, responses
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
@@ -122,14 +123,6 @@ class Device(BaseDevice):
         return self._data[DATA_MODULES]
 
     @property
-    def schema(self) -> List[Tuple[str, DataType]]:
-        """Returns data schema."""
-        if DATA_SCHEMA not in self._data:
-            self._data[DATA_SCHEMA] = []
-
-        return self._data[DATA_SCHEMA]
-
-    @property
     def is_on(self) -> bool:
         """Returns current state."""
         if DATA_MODE not in self._data:
@@ -217,7 +210,12 @@ Mixers:
         if DATA_FUEL_CONSUMPTION in data:
             self._set_fuel_burned(data[DATA_FUEL_CONSUMPTION])
 
-        self._set_boiler_control_parameter()
+        if DATA_REGDATA in data and DATA_SCHEMA in self.data:
+            self._set_data_from_regdata(data[DATA_REGDATA])
+
+        if DATA_MODE in data:
+            self._set_boiler_control_parameter()
+
         super().set_data(data)
 
     def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
@@ -227,9 +225,6 @@ Mixers:
             frame -- received frame
             writer -- instance of frame writer
         """
-        if isinstance(frame, messages.RegData):
-            frame.schema = self.schema
-
         if isinstance(frame, (messages.RegData, responses.Password)):
             self.set_data(frame.data)
 
@@ -244,7 +239,28 @@ Mixers:
 
         super().handle_frame(frame, writer)
 
-    def _set_boiler_control_parameter(self):
+    def _set_data_from_regdata(self, regdata: bytes) -> None:
+        """Extracts data from regdata message.
+
+        Keyword arguments:
+            regdata -- regdata message
+        """
+        offset = 0
+        boolean_index = 0
+        for param in self.data[DATA_SCHEMA]:
+            param_id, param_type = param
+            if not isinstance(param_type, Boolean) and boolean_index > 0:
+                offset += 1
+                boolean_index = 0
+
+            param_type.unpack(regdata[offset:])
+            if isinstance(param_type, Boolean):
+                boolean_index = param_type.index(boolean_index)
+
+            self._data[param_id] = param_type.value
+            offset += param_type.size
+
+    def _set_boiler_control_parameter(self) -> None:
         """Sets boiler control parameter from device data."""
         if PARAMETER_BOILER_CONTROL in self._parameters and isinstance(
             self._parameters[PARAMETER_BOILER_CONTROL], Parameter

@@ -1,7 +1,7 @@
 """Contains response frame classes."""
 
 import struct
-from typing import Dict, Final, List, Tuple, Union
+from typing import Dict, Final, List, Tuple
 
 from pyplumio import util
 from pyplumio.constants import (
@@ -259,12 +259,12 @@ class DataSchema(Response):
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        schema: List[Tuple[Union[str, int], DataType]] = []
+        schema: List[Tuple[str, DataType]] = []
         if blocks_number > 0:
             for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                param_name = REGDATA_SCHEMA.get(param_id, param_id)
+                param_name = REGDATA_SCHEMA.get(param_id, str(param_id))
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 

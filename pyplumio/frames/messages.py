@@ -1,7 +1,5 @@
 """Contains message frame classes."""
 
-from typing import List, Tuple
-
 from pyplumio import util
 from pyplumio.constants import (
     DATA_FAN_POWER,
@@ -10,10 +8,10 @@ from pyplumio.constants import (
     DATA_LOAD,
     DATA_MODE,
     DATA_POWER,
+    DATA_REGDATA,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
 )
-from pyplumio.data_types import Boolean, DataType
 from pyplumio.exceptions import VersionError
 from pyplumio.structures import (
     alarms,
@@ -42,16 +40,6 @@ class RegData(Message):
 
     VERSION: str = "1.0"
 
-    def __init__(self, *args, **kwargs):
-        """Creates new RegData frame object.
-
-        Keyword arguments:
-            *args -- arguments for parent class init
-            **kwargs -- keyword arguments for parent class init
-        """
-        super().__init__(*args, **kwargs)
-        self.schema: List[Tuple[str, DataType]] = []
-
     def parse_message(self, message: bytearray) -> None:
         """Parses RegData message into usable data.
 
@@ -66,19 +54,7 @@ class RegData(Message):
             raise VersionError(f"Unknown regdata version: {frame_version}")
 
         _, offset = frame_versions.from_bytes(message, offset, self._data)
-        boolean_index = 0
-        for param in self.schema:
-            param_id, param_type = param
-            if not isinstance(param_type, Boolean) and boolean_index > 0:
-                offset += 1
-                boolean_index = 0
-
-            param_type.unpack(message[offset:])
-            if isinstance(param_type, Boolean):
-                boolean_index = param_type.index(boolean_index)
-
-            self._data[param_id] = param_type.value
-            offset += param_type.size
+        self._data[DATA_REGDATA] = message[offset:]
 
 
 class CurrentData(Message):

@@ -1,5 +1,6 @@
 """Test PyPlumIO devices."""
 
+import math
 from unittest.mock import patch
 
 import pytest
@@ -20,11 +21,15 @@ from pyplumio.constants import (
 from pyplumio.devices import MODE_HEATING, MODES, DeviceCollection, EcoMAX, EcoSTER
 from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frames import requests
+from pyplumio.frames.messages import RegData
+from pyplumio.frames.responses import DataSchema
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.product_info import ConnectedModules, ProductInfo
 from pyplumio.structures.device_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.structures.frame_versions import FRAME_VERSIONS
 from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
+
+from .frames.test_messages import _regdata_bytes
 
 _test_data = {
     FRAME_VERSIONS: {
@@ -95,6 +100,21 @@ def test_get_boiler_control_param(ecomax_with_data: EcoMAX) -> None:
     """Test getting boiler control parameter from the ecoMAX."""
     ecomax_with_data.set_data(_test_data)
     assert isinstance(ecomax_with_data.parameters[PARAMETER_BOILER_CONTROL], Parameter)
+
+
+def test_set_data_from_regdata(ecomax: EcoMAX, data_schema: DataSchema) -> None:
+    """Test setting data from regdata."""
+    regdata = RegData(message=_regdata_bytes)
+    ecomax.set_data(data_schema.data)
+    ecomax.set_data(regdata.data)
+    assert ecomax.data[DATA_MODE] == 0
+    assert round(ecomax.data["heating_temp"], 2) == 22.38
+    assert ecomax.data["heating_target"] == 41
+    assert not ecomax.data["heating_pump"]
+    assert math.isnan(ecomax.data["outside_temp"])
+    assert ecomax.data["183"] == "0.0.0.0"
+    assert ecomax.data["184"] == "255.255.255.0"
+    assert ecomax.data["195"] == ""
 
 
 def test_get_mode(ecomax: EcoMAX) -> None:
