@@ -10,7 +10,10 @@ from pyplumio.constants import (
     DATA_FUEL_LEVEL,
     DATA_LOAD,
     DATA_MODE,
+    DATA_MODULES,
+    DATA_PASSWORD,
     DATA_POWER,
+    DATA_PRODUCT,
     DATA_UNKNOWN,
     ECOMAX_ADDRESS,
 )
@@ -44,6 +47,7 @@ _test_data = {
     DATA_FAN_POWER: 100,
     DATA_FUEL_LEVEL: 70,
     DATA_FUEL_CONSUMPTION: 1.27,
+    DATA_PASSWORD: "0000",
     "heating_temp": 60,
     "exhaust_temp": 60,
     "outside_temp": 30,
@@ -62,7 +66,7 @@ _test_parameters = {"summer_mode": [1, 0, 1]}
 @pytest.fixture(name="ecomax_with_data")
 def fixture_ecomax_with_data(ecomax: EcoMAX) -> EcoMAX:
     """Return ecoMAX instance with test data."""
-    ecomax.product = ProductInfo(model="test_model")
+    _test_data[DATA_PRODUCT] = ProductInfo(model="test_model")
     ecomax.set_data(_test_data)
     ecomax.set_parameters(_test_parameters)
     return ecomax
@@ -71,7 +75,8 @@ def fixture_ecomax_with_data(ecomax: EcoMAX) -> EcoMAX:
 @pytest.fixture(name="ecomax_with_version")
 def fixture_ecomax_with_version(ecomax_with_data: EcoMAX) -> EcoMAX:
     """Return ecoMAX instance with module version data."""
-    ecomax_with_data.modules = ConnectedModules(module_a="1.1.15")
+    connected_modules = ConnectedModules(module_a="1.1.15")
+    ecomax_with_data.set_data({DATA_MODULES: connected_modules})
     return ecomax_with_data
 
 
@@ -157,14 +162,45 @@ def test_changed_parameters(ecomax_with_data: EcoMAX) -> None:
     )
 
 
+def test_product(ecomax_with_data: EcoMAX) -> None:
+    """Test product property."""
+    assert ecomax_with_data.product.model == "test_model"
+
+
+def test_product_not_available(ecomax: EcoMAX) -> None:
+    """Test product property when data is not available."""
+    assert ecomax.product.model is None
+
+
 def test_modules(ecomax_with_version: EcoMAX) -> None:
     """Test modules property."""
     assert ecomax_with_version.modules.module_a == "1.1.15"
 
 
 def test_modules_not_available(ecomax: EcoMAX) -> None:
-    """Test modules property when data is not yet available."""
+    """Test modules property when data is not available."""
     assert ecomax.modules.module_a is None
+
+
+def test_password(ecomax_with_data: EcoMAX) -> None:
+    """Test service password property."""
+    assert ecomax_with_data.password == "0000"
+
+
+def test_password_not_available(ecomax: EcoMAX) -> None:
+    """Test service password property when data is not available."""
+    assert ecomax.password is None
+
+
+def test_required_frames(ecomax: EcoMAX, ecoster: EcoSTER):
+    """Test that required frames is correctly set."""
+    assert ecomax.required_frames == (
+        requests.UID,
+        requests.Password,
+        requests.BoilerParameters,
+        requests.MixerParameters,
+    )
+    assert not ecoster.required_frames
 
 
 def test_fuel_burned(ecomax: EcoMAX) -> None:
@@ -199,7 +235,7 @@ def test_is_on_unknown(ecomax: EcoMAX) -> None:
 def test_str(ecomax_with_version: EcoMAX) -> None:
     """Test ecoMAX string representation."""
     print(str(ecomax_with_version))
-    assert "Model:     test_model" in str(ecomax_with_version)
+    assert "Mixers:" in str(ecomax_with_version)
 
 
 def test_repr(ecomax: EcoMAX) -> None:
@@ -259,14 +295,3 @@ def test_init_device_from_collection() -> None:
 def test_init_unknown_device_from_collection(devices: DeviceCollection) -> None:
     """Test initialization of unknown device in the collection."""
     assert devices.get(0x0) is None
-
-
-def test_required_frames(ecomax: EcoMAX, ecoster: EcoSTER):
-    """Test that required frames is correctly set."""
-    assert ecomax.required_frames == (
-        requests.UID,
-        requests.Password,
-        requests.BoilerParameters,
-        requests.MixerParameters,
-    )
-    assert not ecoster.required_frames

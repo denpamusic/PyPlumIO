@@ -7,19 +7,13 @@ import time
 from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
 from .constants import (
-    DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,
-    DATA_FUEL_LEVEL,
-    DATA_LOAD,
     DATA_MIXERS,
     DATA_MODE,
     DATA_MODULES,
     DATA_PASSWORD,
-    DATA_POWER,
     DATA_PRODUCT,
     DATA_SCHEMA,
-    DATA_THERMOSTAT,
-    DATA_TRANSMISSION,
     DATA_UNKNOWN,
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
@@ -32,17 +26,8 @@ from .helpers.product_info import ConnectedModules, ProductInfo
 from .mixers import MixerCollection
 from .storage import FrameBucket
 from .stream import FrameWriter
-from .structures import (
-    alarms,
-    device_parameters,
-    frame_versions,
-    lambda_,
-    output_flags,
-    outputs,
-    statuses,
-    temperatures,
-    thermostats,
-)
+from .structures.device_parameters import DEVICE_PARAMETERS, PARAMETER_BOILER_CONTROL
+from .structures.frame_versions import FRAME_VERSIONS
 
 MODE_OFF: Final = 0
 MODE_FANNING: Final = 1
@@ -61,34 +46,12 @@ MODES: Final = (
     "Standby",
 )
 
-DEVICE_DATA: List[str] = [
-    DATA_FAN_POWER,
-    DATA_FUEL_CONSUMPTION,
-    DATA_FUEL_LEVEL,
-    DATA_LOAD,
-    DATA_MODE,
-    DATA_POWER,
-    DATA_THERMOSTAT,
-    DATA_TRANSMISSION,
-]
-DEVICE_DATA.extend(alarms.ALARMS)
-DEVICE_DATA.extend(frame_versions.FRAME_VERSIONS)
-DEVICE_DATA.extend(temperatures.TEMPERATURES)
-DEVICE_DATA.extend(outputs.OUTPUTS)
-DEVICE_DATA.extend(output_flags.OUTPUT_FLAGS)
-DEVICE_DATA.extend(statuses.STATUSES)
-DEVICE_DATA.extend(lambda_.LAMBDA)
-DEVICE_DATA.extend(thermostats.THERMOSTATS)
-
 
 class Device(BaseDevice):
     """Device representation.
 
     Attributes:
         bucket -- frame version info storage
-        product -- device product info
-        modules -- list of connected modules
-        schema -- device regdata schema
     """
 
     def __init__(
@@ -103,21 +66,7 @@ class Device(BaseDevice):
             parameters -- editable parameters
         """
         self.bucket = FrameBucket(address=self.address, required=self.required_frames)
-        self.product = ProductInfo()
-        self.modules = ConnectedModules()
-        self.schema: List[Tuple[str, DataType]] = []
         super().__init__(data, parameters)
-
-    def __str__(self) -> str:
-        """Converts device instance to a string."""
-        return f"""
-Model:     {self.product.model}
-UID:       {self.product.uid}
-Password:  {self.password}
-Modules:   {self.modules}
-
-{super().__str__()}
-""".strip()
 
     def set_data(self, data: Dict[str, Any]) -> None:
         """Sets device data.
@@ -125,12 +74,9 @@ Modules:   {self.modules}
         Keyword arguments:
             data -- immutable device attributes
         """
-        for name, value in data.items():
-            if name in DEVICE_DATA:
-                self._data[name] = value
-
-        if frame_versions.FRAME_VERSIONS in data:
-            self.bucket.fill(data[frame_versions.FRAME_VERSIONS])
+        self._data = {**self._data, **data}
+        if FRAME_VERSIONS in data:
+            self.bucket.fill(data[FRAME_VERSIONS])
 
     def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets device parameters.
@@ -139,7 +85,7 @@ Modules:   {self.modules}
             parameters -- device changeable parameters
         """
         for name, parameter in parameters.items():
-            if name in device_parameters.DEVICE_PARAMETERS:
+            if name in DEVICE_PARAMETERS:
                 self._parameters[name] = Parameter(name, *parameter)
 
     def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
@@ -152,23 +98,42 @@ Modules:   {self.modules}
         if isinstance(frame, requests.ProgramVersion):
             writer.queue(frame.response())
 
-        elif isinstance(frame, responses.UID):
-            self.product = frame.data[DATA_PRODUCT]
-
-        elif isinstance(frame, responses.DataSchema):
-            self.schema = frame.data[DATA_SCHEMA]
-
-        elif isinstance(frame, messages.CurrentData):
+        elif isinstance(
+            frame, (responses.UID, responses.DataSchema, messages.CurrentData)
+        ):
             self.set_data(frame.data)
-            self.modules = frame.data[DATA_MODULES]
+
+    @property
+    def product(self) -> ProductInfo:
+        """Returns product info."""
+        if DATA_PRODUCT not in self._data:
+            self._data[DATA_PRODUCT] = ProductInfo()
+
+        return self._data[DATA_PRODUCT]
+
+    @property
+    def modules(self) -> ConnectedModules:
+        """Returns list of connected modules."""
+        if DATA_MODULES not in self._data:
+            self._data[DATA_MODULES] = ConnectedModules()
+
+        return self._data[DATA_MODULES]
+
+    @property
+    def schema(self) -> List[Tuple[str, DataType]]:
+        """Returns data schema."""
+        if DATA_SCHEMA not in self._data:
+            self._data[DATA_SCHEMA] = []
+
+        return self._data[DATA_SCHEMA]
 
     @property
     def is_on(self) -> bool:
         """Returns current state."""
-        if DATA_MODE in self._data:
-            return self._data[DATA_MODE] != MODE_OFF
+        if DATA_MODE not in self._data:
+            self._data[DATA_MODE] = MODE_OFF
 
-        return False
+        return self._data[DATA_MODE] != MODE_OFF
 
     @property
     def mode(self) -> Optional[str]:
@@ -192,7 +157,7 @@ Modules:   {self.modules}
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         parameters: List[str] = []
-        parameters.extend(device_parameters.DEVICE_PARAMETERS)
+        parameters.extend(DEVICE_PARAMETERS)
         return parameters
 
     @property
@@ -206,14 +171,12 @@ class EcoMAX(Device):
 
     Attributes:
         address -- device address
-        password -- device service password
         mixers -- collection of device mixers
         _fuel_burned -- amount of fuel burned in kilograms
         _fuel_burned_timestamp -- timestamp of burned fuel value update
     """
 
     address = ECOMAX_ADDRESS
-    password = None
     mixers: Optional[MixerCollection] = None
     _fuel_burned: float = 0.0
     _fuel_burned_timestamp: float = 0.0
@@ -229,7 +192,6 @@ class EcoMAX(Device):
             data -- device data
             parameters -- editable parameters
         """
-        self.password = None
         self.mixers = MixerCollection(address=self.address)
         self._fuel_burned = 0.0
         self._fuel_burned_timestamp = time.time()
@@ -263,11 +225,10 @@ Mixers:
             frame -- received frame
             writer -- instance of frame writer
         """
-        if isinstance(frame, responses.Password):
-            self.password = frame.data[DATA_PASSWORD]
-
-        elif isinstance(frame, messages.RegData):
+        if isinstance(frame, messages.RegData):
             frame.schema = self.schema
+
+        if isinstance(frame, (messages.RegData, responses.Password)):
             self.set_data(frame.data)
 
         elif isinstance(frame, responses.BoilerParameters):
@@ -283,18 +244,13 @@ Mixers:
 
     def _set_boiler_control_parameter(self):
         """Sets boiler control parameter from device data."""
-        if (
-            device_parameters.PARAMETER_BOILER_CONTROL in self._parameters
-            and isinstance(
-                self._parameters[device_parameters.PARAMETER_BOILER_CONTROL], Parameter
-            )
+        if PARAMETER_BOILER_CONTROL in self._parameters and isinstance(
+            self._parameters[PARAMETER_BOILER_CONTROL], Parameter
         ):
-            self._parameters[device_parameters.PARAMETER_BOILER_CONTROL].value = int(
-                self.is_on
-            )
+            self._parameters[PARAMETER_BOILER_CONTROL].value = int(self.is_on)
         else:
-            self._parameters[device_parameters.PARAMETER_BOILER_CONTROL] = Parameter(
-                name=device_parameters.PARAMETER_BOILER_CONTROL,
+            self._parameters[PARAMETER_BOILER_CONTROL] = Parameter(
+                name=PARAMETER_BOILER_CONTROL,
                 value=int(self.is_on),
                 min_value=0,
                 max_value=1,
@@ -310,6 +266,14 @@ Mixers:
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         self._fuel_burned += (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
+
+    @property
+    def password(self) -> Optional[str]:
+        """Returns device service password."""
+        if DATA_PASSWORD in self._data:
+            return self._data[DATA_PASSWORD]
+
+        return None
 
     @property
     def fuel_burned(self) -> float:
@@ -339,7 +303,7 @@ Mixers:
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         parameters = super().editable_parameters
-        parameters.append(device_parameters.PARAMETER_BOILER_CONTROL)
+        parameters.append(PARAMETER_BOILER_CONTROL)
         return parameters
 
 
