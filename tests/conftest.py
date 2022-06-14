@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from pyplumio.constants import ECOMAX_ADDRESS
-from pyplumio.devices import DeviceCollection, EcoMAX
+from pyplumio.devices import DeviceCollection, EcoMAX, EcoSTER
 from pyplumio.frames.responses import DataSchema
 from pyplumio.mixers import Mixer
 from pyplumio.storage import FrameBucket
@@ -23,6 +23,12 @@ def fixture_frame_bucket() -> FrameBucket:
 def fixture_ecomax() -> EcoMAX:
     """Return instance of ecoMAX device class."""
     return EcoMAX()
+
+
+@pytest.fixture(name="ecoster")
+def fixture_ecoster() -> EcoSTER:
+    """Return instance of ecoSTER device class."""
+    return EcoSTER()
 
 
 @pytest.fixture(name="devices")

@@ -12,18 +12,11 @@ from typing import Any, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from .constants import (
-    DATA_MIXERS,
-    DATA_MODULES,
-    DATA_NETWORK,
-    DATA_PASSWORD,
-    DATA_PRODUCT,
-    DATA_SCHEMA,
-    ECOMAX_ADDRESS,
-)
+from .constants import DATA_NETWORK, ECOMAX_ADDRESS
 from .devices import DeviceCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
-from .frames import Frame, messages, requests, responses
+from .frames import Frame
+from .frames.requests import CheckDevice, StartMaster
 from .helpers.network_info import (
     DEFAULT_IP,
     DEFAULT_NETMASK,
@@ -106,34 +99,8 @@ class Connection(ABC):
             return None
 
         device = self._devices.get(frame.sender)
-        if isinstance(frame, requests.ProgramVersion):
-            writer.queue(frame.response())
-
-        elif isinstance(frame, responses.UID):
-            device.product = frame.data[DATA_PRODUCT]
-
-        elif isinstance(frame, responses.Password):
-            device.password = frame.data[DATA_PASSWORD]
-
-        elif isinstance(frame, messages.CurrentData):
-            device.set_data(frame.data)
-            device.mixers.set_data(frame.data[DATA_MIXERS])
-            device.modules = frame.data[DATA_MODULES]
-
-        elif isinstance(frame, messages.RegData):
-            frame.schema = device.schema
-            device.set_data(frame.data)
-
-        elif isinstance(frame, responses.BoilerParameters):
-            device.set_parameters(frame.data)
-
-        elif isinstance(frame, responses.MixerParameters):
-            device.mixers.set_parameters(frame.data[DATA_MIXERS])
-
-        elif isinstance(frame, responses.DataSchema):
-            device.schema = frame.data[DATA_SCHEMA]
-
-        elif isinstance(frame, requests.CheckDevice):
+        device.handle_frame(frame, writer)
+        if isinstance(frame, CheckDevice):
             writer.queue(frame.response(data={DATA_NETWORK: self._network}))
 
         writer.collect(device.changes)
@@ -179,7 +146,7 @@ class Connection(ABC):
         while True:
             try:
                 reader, self.writer = await self.connect()
-                await self.writer.write(requests.StartMaster(recipient=ECOMAX_ADDRESS))
+                await self.writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
                 self._callback_task = asyncio.create_task(
                     self._callback(callback, interval)
                 )

@@ -14,7 +14,7 @@ from pyplumio.constants import (
     DATA_UNKNOWN,
     ECOMAX_ADDRESS,
 )
-from pyplumio.devices import MODE_HEATING, MODES, DeviceCollection, EcoMAX
+from pyplumio.devices import MODE_HEATING, MODES, DeviceCollection, EcoMAX, EcoSTER
 from pyplumio.exceptions import UninitializedParameterError
 from pyplumio.frames import requests
 from pyplumio.helpers.parameter import Parameter
@@ -259,3 +259,14 @@ def test_init_device_from_collection() -> None:
 def test_init_unknown_device_from_collection(devices: DeviceCollection) -> None:
     """Test initialization of unknown device in the collection."""
     assert devices.get(0x0) is None
+
+
+def test_required_frames(ecomax: EcoMAX, ecoster: EcoSTER):
+    """Test that required frames is correctly set."""
+    assert ecomax.required_frames == (
+        requests.UID,
+        requests.Password,
+        requests.BoilerParameters,
+        requests.MixerParameters,
+    )
+    assert not ecoster.required_frames

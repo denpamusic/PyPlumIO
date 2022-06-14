@@ -11,8 +11,13 @@ from .constants import (
     DATA_FUEL_CONSUMPTION,
     DATA_FUEL_LEVEL,
     DATA_LOAD,
+    DATA_MIXERS,
     DATA_MODE,
+    DATA_MODULES,
+    DATA_PASSWORD,
     DATA_POWER,
+    DATA_PRODUCT,
+    DATA_SCHEMA,
     DATA_THERMOSTAT,
     DATA_TRANSMISSION,
     DATA_UNKNOWN,
@@ -20,12 +25,13 @@ from .constants import (
     ECOSTER_ADDRESS,
 )
 from .data_types import DataType
-from .frames import Request, requests
+from .frames import Frame, Request, messages, requests, responses
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .helpers.product_info import ConnectedModules, ProductInfo
 from .mixers import MixerCollection
 from .storage import FrameBucket
+from .stream import FrameWriter
 from .structures import (
     alarms,
     device_parameters,
@@ -80,9 +86,8 @@ class Device(BaseDevice):
 
     Attributes:
         bucket -- frame version info storage
-        mixers -- collection of device mixers
         product -- device product info
-        password -- device service password
+        modules -- list of connected modules
         schema -- device regdata schema
     """
 
@@ -98,10 +103,8 @@ class Device(BaseDevice):
             parameters -- editable parameters
         """
         self.bucket = FrameBucket(address=self.address, required=self.required_frames)
-        self.mixers = MixerCollection(address=self.address)
         self.product = ProductInfo()
         self.modules = ConnectedModules()
-        self.password = None
         self.schema: List[Tuple[str, DataType]] = []
         super().__init__(data, parameters)
 
@@ -114,9 +117,6 @@ Password:  {self.password}
 Modules:   {self.modules}
 
 {super().__str__()}
-
-Mixers:
-{self.mixers}
 """.strip()
 
     def set_data(self, data: Dict[str, Any]) -> None:
@@ -142,6 +142,26 @@ Mixers:
             if name in device_parameters.DEVICE_PARAMETERS:
                 self._parameters[name] = Parameter(name, *parameter)
 
+    def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
+        """Handles received frame.
+
+        Keyword arguments:
+            frame -- received frame
+            writer -- instance of frame writer
+        """
+        if isinstance(frame, requests.ProgramVersion):
+            writer.queue(frame.response())
+
+        elif isinstance(frame, responses.UID):
+            self.product = frame.data[DATA_PRODUCT]
+
+        elif isinstance(frame, responses.DataSchema):
+            self.schema = frame.data[DATA_SCHEMA]
+
+        elif isinstance(frame, messages.CurrentData):
+            self.set_data(frame.data)
+            self.modules = frame.data[DATA_MODULES]
+
     @property
     def is_on(self) -> bool:
         """Returns current state."""
@@ -166,7 +186,6 @@ Mixers:
         """Returns changed device parameters."""
         changes = self.queue
         changes.extend(self.bucket.queue)
-        changes.extend(self.mixers.queue)
         return changes
 
     @property
@@ -187,11 +206,15 @@ class EcoMAX(Device):
 
     Attributes:
         address -- device address
+        password -- device service password
+        mixers -- collection of device mixers
         _fuel_burned -- amount of fuel burned in kilograms
         _fuel_burned_timestamp -- timestamp of burned fuel value update
     """
 
     address = ECOMAX_ADDRESS
+    password = None
+    mixers: Optional[MixerCollection] = None
     _fuel_burned: float = 0.0
     _fuel_burned_timestamp: float = 0.0
 
@@ -206,9 +229,20 @@ class EcoMAX(Device):
             data -- device data
             parameters -- editable parameters
         """
+        self.password = None
+        self.mixers = MixerCollection(address=self.address)
         self._fuel_burned = 0.0
         self._fuel_burned_timestamp = time.time()
         super().__init__(data, parameters)
+
+    def __str__(self) -> str:
+        """Converts device instance to a string."""
+        return f"""
+{super().__str__()}
+
+Mixers:
+{self.mixers}
+""".strip()
 
     def set_data(self, data: Dict[str, Any]) -> None:
         """Sets device data.
@@ -221,6 +255,31 @@ class EcoMAX(Device):
 
         self._set_boiler_control_parameter()
         super().set_data(data)
+
+    def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
+        """Handles received frame.
+
+        Keyword arguments:
+            frame -- received frame
+            writer -- instance of frame writer
+        """
+        if isinstance(frame, responses.Password):
+            self.password = frame.data[DATA_PASSWORD]
+
+        elif isinstance(frame, messages.RegData):
+            frame.schema = self.schema
+            self.set_data(frame.data)
+
+        elif isinstance(frame, responses.BoilerParameters):
+            self.set_parameters(frame.data)
+
+        elif isinstance(frame, messages.CurrentData):
+            self.mixers.set_data(frame.data[DATA_MIXERS])
+
+        elif isinstance(frame, responses.MixerParameters):
+            self.mixers.set_parameters(frame.data[DATA_MIXERS])
+
+        super().handle_frame(frame, writer)
 
     def _set_boiler_control_parameter(self):
         """Sets boiler control parameter from device data."""
@@ -270,6 +329,13 @@ class EcoMAX(Device):
         )
 
     @property
+    def changes(self) -> List[Request]:
+        """Returns changed device parameters."""
+        changes = super().changes
+        changes.extend(self.mixers.queue)
+        return changes
+
+    @property
     def editable_parameters(self) -> List[str]:
         """Returns list of editable parameters."""
         parameters = super().editable_parameters
@@ -285,6 +351,11 @@ class EcoSTER(Device):
     """
 
     address = ECOSTER_ADDRESS
+
+    @property
+    def required_frames(self) -> Iterable[Type[Request]]:
+        """Returns list of required frames."""
+        return []
 
 
 class DeviceCollection:

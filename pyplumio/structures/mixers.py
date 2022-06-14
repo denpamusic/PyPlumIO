@@ -31,7 +31,7 @@ def from_bytes(
     mixers_number = message[offset]
     offset += 1
     if mixers_number > 0:
-        for _ in range(1, mixers_number + 1):
+        for _ in range(mixers_number):
             mixer = {}
             mixer[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[0]
             mixer[MIXER_TARGET] = message[offset + 4]
