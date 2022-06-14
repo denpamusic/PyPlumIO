@@ -4,12 +4,12 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any, Dict, List, Optional
 
+from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
+
 from . import util
 from .frames import BROADCAST_ADDRESS, Request
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
-from .structures.mixer_parameters import MIXER_PARAMETERS
-from .structures.mixers import MIXER_DATA
 
 
 class Mixer(BaseDevice):
@@ -62,9 +62,7 @@ Parameters:
         Keyword arguments:
             data -- mixer immutable attributes
         """
-        for name, value in data.items():
-            if name in MIXER_DATA:
-                self._data[name] = value
+        self._data = {**self._data, **data}
 
     def set_parameters(self, parameters: Dict[str, List[int]]) -> None:
         """Sets mixer parameters.
@@ -72,12 +70,11 @@ Parameters:
         Keyword arguments:
             parameters -- mixer changeable parameters
         """
-        for name, parameter in parameters.items():
-            if name in MIXER_PARAMETERS:
-                value, min_value, max_value = parameter
-                self._parameters[name] = Parameter(
-                    name, value, min_value, max_value, self._index
-                )
+        self._parameters = {
+            name: Parameter(name, parameter[0], parameter[1], parameter[2], self._index)
+            for name, parameter in parameters.items()
+            if name in self.editable_parameters
+        }
 
     @property
     def editable_parameters(self) -> Iterable[str]:

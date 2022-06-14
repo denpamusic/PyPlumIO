@@ -84,9 +84,11 @@ class Device(BaseDevice):
         Keyword arguments:
             parameters -- device changeable parameters
         """
-        for name, parameter in parameters.items():
-            if name in DEVICE_PARAMETERS:
-                self._parameters[name] = Parameter(name, *parameter)
+        self._parameters = {
+            name: Parameter(name, *parameter)
+            for name, parameter in parameters.items()
+            if name in self.editable_parameters
+        }
 
     def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
         """Handles received frame.
