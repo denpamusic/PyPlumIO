@@ -6,6 +6,7 @@ from pyplumio.frames.requests import (
     SetBoilerParameter,
     SetMixerParameter,
 )
+from pyplumio.structures.device_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 
@@ -50,7 +51,7 @@ class Parameter:
     @property
     def request(self) -> Request:
         """Returns request to change parameter."""
-        if self.name == "boiler_control":
+        if self.name == PARAMETER_BOILER_CONTROL:
             return BoilerControl(data=self.__dict__)
 
         if self.name in MIXER_PARAMETERS:
