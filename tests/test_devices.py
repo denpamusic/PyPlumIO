@@ -96,6 +96,12 @@ def test_get_attr_from_data(ecomax_with_data: EcoMAX) -> None:
     assert ecomax_with_data.mode == MODES[MODE_HEATING]
 
 
+def test_has_attr_from_data(ecomax_with_data: EcoMAX) -> None:
+    """Test that hasattr works."""
+    assert not hasattr(ecomax_with_data, "nonexistent")
+    assert hasattr(ecomax_with_data, "heating_temp")
+
+
 def test_get_boiler_control_param(ecomax_with_data: EcoMAX) -> None:
     """Test getting boiler control parameter from the ecoMAX."""
     ecomax_with_data.set_data(_test_data)
