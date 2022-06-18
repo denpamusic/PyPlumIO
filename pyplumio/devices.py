@@ -214,7 +214,7 @@ Mixers:
             self._set_data_from_regdata(data[DATA_REGDATA])
 
         if DATA_MODE in data:
-            self._set_boiler_control_parameter()
+            self._set_boiler_control_parameter(data[DATA_MODE])
 
         super().set_data(data)
 
@@ -260,16 +260,20 @@ Mixers:
             self._data[param_id] = param_type.value
             offset += param_type.size
 
-    def _set_boiler_control_parameter(self) -> None:
-        """Sets boiler control parameter from device data."""
+    def _set_boiler_control_parameter(self, mode: int) -> None:
+        """Sets boiler control parameter from device data.
+
+        Keyword arguments:
+            mode - current boiler mode
+        """
         if PARAMETER_BOILER_CONTROL in self._parameters and isinstance(
             self._parameters[PARAMETER_BOILER_CONTROL], Parameter
         ):
-            self._parameters[PARAMETER_BOILER_CONTROL].value = int(self.is_on)
+            self._parameters[PARAMETER_BOILER_CONTROL].value = int(mode != MODE_OFF)
         else:
             self._parameters[PARAMETER_BOILER_CONTROL] = Parameter(
                 name=PARAMETER_BOILER_CONTROL,
-                value=int(self.is_on),
+                value=int(mode != MODE_OFF),
                 min_value=0,
                 max_value=1,
             )
