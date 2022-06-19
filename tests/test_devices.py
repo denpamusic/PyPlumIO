@@ -238,7 +238,7 @@ def test_data_and_parameters_responses(ecomax: EcoMAX, ecoster: EcoSTER) -> None
         messages.CurrentData,
         messages.RegData,
     )
-    assert ecomax.parameter_responses == (responses.BoilerParameters,)
+    assert ecomax.parameter_responses == responses.BoilerParameters
     assert not ecoster.data_responses
     assert not ecoster.parameter_responses
 
