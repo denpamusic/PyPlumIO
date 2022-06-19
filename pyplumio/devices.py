@@ -190,13 +190,14 @@ class EcoMAX(Device):
     _required_requests: Iterable[Type[Request]] = (
         requests.UID,
         requests.Password,
+        requests.DataSchema,
         requests.BoilerParameters,
         requests.MixerParameters,
     )
     _data_responses: Tuple[Type[Response], ...] = (
         responses.UID,
-        responses.DataSchema,
         responses.Password,
+        responses.DataSchema,
         messages.CurrentData,
         messages.RegData,
     )

@@ -223,6 +223,7 @@ def test_required_requests(ecomax: EcoMAX, ecoster: EcoSTER) -> None:
     assert ecomax.required_requests == (
         requests.UID,
         requests.Password,
+        requests.DataSchema,
         requests.BoilerParameters,
         requests.MixerParameters,
     )
@@ -233,8 +234,8 @@ def test_data_and_parameters_responses(ecomax: EcoMAX, ecoster: EcoSTER) -> None
     """Test that data responses property is correctly set."""
     assert ecomax.data_responses == (
         responses.UID,
-        responses.DataSchema,
         responses.Password,
+        responses.DataSchema,
         messages.CurrentData,
         messages.RegData,
     )
