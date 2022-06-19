@@ -52,9 +52,9 @@ def test_set_parameters(mixer: Mixer) -> None:
     assert mixer.mix_target_temp == 60
 
 
-def test_editable_parameters(mixer: Mixer) -> None:
+def test_parameter_keys(mixer: Mixer) -> None:
     """Test getting editable parameters."""
-    assert mixer.editable_parameters == MIXER_PARAMETERS
+    assert mixer.parameter_keys == MIXER_PARAMETERS
 
 
 def test_collection_repr(mixers: MixerCollection) -> None:

@@ -73,12 +73,12 @@ Parameters:
         self._parameters = {
             name: Parameter(name, parameter[0], parameter[1], parameter[2], self._index)
             for name, parameter in parameters.items()
-            if name in self.editable_parameters
+            if name in self.parameter_keys
         }
 
     @property
-    def editable_parameters(self) -> Iterable[str]:
-        """Returns list of editable parameters."""
+    def parameter_keys(self) -> Iterable[str]:
+        """Returns list of parameter keys."""
         return MIXER_PARAMETERS
 
 

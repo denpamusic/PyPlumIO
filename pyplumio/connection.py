@@ -16,7 +16,7 @@ from .constants import DATA_NETWORK, ECOMAX_ADDRESS
 from .devices import DeviceCollection
 from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
 from .frames import Frame
-from .frames.requests import CheckDevice, StartMaster
+from .frames.requests import CheckDevice, ProgramVersion, StartMaster
 from .helpers.network_info import (
     DEFAULT_IP,
     DEFAULT_NETMASK,
@@ -99,11 +99,10 @@ class Connection(ABC):
             return None
 
         device = self._devices.get(frame.sender)
-        device.handle_frame(frame, writer)
-        if isinstance(frame, CheckDevice):
-            writer.queue(frame.response(data={DATA_NETWORK: self._network}))
-
+        device.handle_frame(frame)
         writer.collect(device.changes)
+        if isinstance(frame, (CheckDevice, ProgramVersion)):
+            writer.queue(frame.response(data={DATA_NETWORK: self._network}))
 
     async def _read(self, reader: FrameReader) -> bool:
         """Handles connection reads.

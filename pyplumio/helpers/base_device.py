@@ -61,7 +61,7 @@ class BaseDevice(ABC):
 
         raise AttributeError
 
-    def __setattr__(self, name: str, value) -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         """Sets class attribute or device parameter.
 
         Keyword arguments:
@@ -72,17 +72,16 @@ class BaseDevice(ABC):
         if key in self._data:
             raise AttributeError()
 
-        if key not in self.editable_parameters:
-            self.__dict__[name] = value
+        if key in self.parameter_keys and key not in self._parameters:
+            raise UninitializedParameterError()
 
-        elif key in self._parameters:
+        if key in self._parameters:
             self._parameters[key].set(value)
             request = self._parameters[key].request
             request.recipient = self.address
             self._queue.append(request)
-
         else:
-            raise UninitializedParameterError
+            self.__dict__[name] = value
 
     def __repr__(self) -> str:
         """Returns serializable string representation of the class."""
@@ -145,5 +144,5 @@ Parameters:
 
     @property
     @abstractmethod
-    def editable_parameters(self) -> Iterable[str]:
-        """Returns list of editable parameters."""
+    def parameter_keys(self) -> Iterable[str]:
+        """Returns list of parameter keys."""

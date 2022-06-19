@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterable
 import time
-from typing import Any, Dict, Final, List, Optional, Type
+from typing import Any, Dict, Final, List, Optional, Tuple, Type
 
 from .constants import (
     DATA_FUEL_CONSUMPTION,
@@ -20,13 +20,12 @@ from .constants import (
     ECOSTER_ADDRESS,
 )
 from .data_types import Boolean
-from .frames import Frame, Request, messages, requests, responses
+from .frames import Frame, Request, Response, messages, requests, responses
 from .helpers.base_device import BaseDevice
 from .helpers.parameter import Parameter
 from .helpers.product_info import ConnectedModules, ProductInfo
 from .mixers import MixerCollection
 from .storage import FrameBucket
-from .stream import FrameWriter
 from .structures.device_parameters import DEVICE_PARAMETERS, PARAMETER_BOILER_CONTROL
 from .structures.frame_versions import FRAME_VERSIONS
 
@@ -66,7 +65,7 @@ class Device(BaseDevice):
             data -- device data
             parameters -- editable parameters
         """
-        self.bucket = FrameBucket(address=self.address, required=self.required_frames)
+        self.bucket = FrameBucket(address=self.address, required=self.required_requests)
         super().__init__(data, parameters)
 
     def set_data(self, data: Dict[str, Any]) -> None:
@@ -88,23 +87,22 @@ class Device(BaseDevice):
         self._parameters = {
             name: Parameter(name, *parameter)
             for name, parameter in parameters.items()
-            if name in self.editable_parameters
+            if name in self.parameter_keys
         }
 
-    def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
+    def handle_frame(self, frame: Frame) -> None:
         """Handles received frame.
 
         Keyword arguments:
             frame -- received frame
-            writer -- instance of frame writer
         """
-        if isinstance(frame, requests.ProgramVersion):
-            writer.queue(frame.response())
-
-        elif isinstance(
-            frame, (responses.UID, responses.DataSchema, messages.CurrentData)
-        ):
+        if self.data_responses is not None and isinstance(frame, self.data_responses):
             self.set_data(frame.data)
+
+        elif self.parameter_responses is not None and isinstance(
+            frame, self.parameter_responses
+        ):
+            self.set_parameters(frame.data)
 
     @property
     def product(self) -> ProductInfo:
@@ -149,16 +147,21 @@ class Device(BaseDevice):
         return changes
 
     @property
-    def editable_parameters(self) -> List[str]:
-        """Returns list of editable parameters."""
-        parameters: List[str] = []
-        parameters.extend(DEVICE_PARAMETERS)
-        return parameters
+    @abstractmethod
+    def required_requests(self) -> Optional[Iterable[Type[Request]]]:
+        """Returns a list of requests that will be queued to be sent
+        when connection is established.
+        """
 
     @property
     @abstractmethod
-    def required_frames(self) -> Iterable[Type[Request]]:
-        """Returns list of required frames."""
+    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain data."""
+
+    @property
+    @abstractmethod
+    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain parameters."""
 
 
 class EcoMAX(Device):
@@ -169,12 +172,29 @@ class EcoMAX(Device):
         mixers -- collection of device mixers
         _fuel_burned -- amount of fuel burned in kilograms
         _fuel_burned_timestamp -- timestamp of burned fuel value update
+        _required_request - requests to be queued on connection
+        _data_responses - responses that contain data
+        _parameter_responses - responses that contain parameters
     """
 
     address = ECOMAX_ADDRESS
-    mixers: Optional[MixerCollection] = None
+    mixers: MixerCollection = None
     _fuel_burned: float = 0.0
     _fuel_burned_timestamp: float = 0.0
+    _required_requests: Iterable[Type[Request]] = (
+        requests.UID,
+        requests.Password,
+        requests.BoilerParameters,
+        requests.MixerParameters,
+    )
+    _data_responses: Tuple[Type[Response], ...] = (
+        responses.UID,
+        responses.DataSchema,
+        responses.Password,
+        messages.CurrentData,
+        messages.RegData,
+    )
+    _parameter_responses: Tuple[Type[Response], ...] = (responses.BoilerParameters,)
 
     def __init__(
         self,
@@ -218,26 +238,19 @@ Mixers:
 
         super().set_data(data)
 
-    def handle_frame(self, frame: Frame, writer: FrameWriter) -> None:
+    def handle_frame(self, frame: Frame) -> None:
         """Handles received frame.
 
         Keyword arguments:
             frame -- received frame
-            writer -- instance of frame writer
         """
-        if isinstance(frame, (messages.RegData, responses.Password)):
-            self.set_data(frame.data)
-
-        elif isinstance(frame, responses.BoilerParameters):
-            self.set_parameters(frame.data)
-
-        elif isinstance(frame, messages.CurrentData):
+        if isinstance(frame, messages.CurrentData):
             self.mixers.set_data(frame.data[DATA_MIXERS])
 
         elif isinstance(frame, responses.MixerParameters):
             self.mixers.set_parameters(frame.data[DATA_MIXERS])
 
-        super().handle_frame(frame, writer)
+        super().handle_frame(frame)
 
     def _set_data_from_regdata(self, regdata: bytes) -> None:
         """Extracts data from regdata message.
@@ -301,18 +314,8 @@ Mixers:
     def fuel_burned(self) -> float:
         """Returns amount of fuel burned and resets counter."""
         fuel_burned = self._fuel_burned
-        self._fuel_burned = 0
+        self._fuel_burned = 0.0
         return fuel_burned
-
-    @property
-    def required_frames(self) -> Iterable[Type[Request]]:
-        """Returns list of required frames."""
-        return (
-            requests.UID,
-            requests.Password,
-            requests.BoilerParameters,
-            requests.MixerParameters,
-        )
 
     @property
     def changes(self) -> List[Request]:
@@ -322,11 +325,29 @@ Mixers:
         return changes
 
     @property
-    def editable_parameters(self) -> List[str]:
-        """Returns list of editable parameters."""
-        parameters = super().editable_parameters
-        parameters.append(PARAMETER_BOILER_CONTROL)
+    def parameter_keys(self) -> List[str]:
+        """Returns list of parameter keys."""
+        parameters: List[str] = []
+        parameters.extend(DEVICE_PARAMETERS)
+        parameters.extend(PARAMETER_BOILER_CONTROL)
         return parameters
+
+    @property
+    def required_requests(self) -> Optional[Iterable[Type[Request]]]:
+        """Returns a list of requests that will be queued to be sent
+        when connection is established.
+        """
+        return self._required_requests
+
+    @property
+    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain data."""
+        return self._data_responses
+
+    @property
+    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain parameters."""
+        return self._parameter_responses
 
 
 class EcoSTER(Device):
@@ -339,9 +360,26 @@ class EcoSTER(Device):
     address = ECOSTER_ADDRESS
 
     @property
-    def required_frames(self) -> Iterable[Type[Request]]:
-        """Returns list of required frames."""
+    def parameter_keys(self) -> List[str]:
+        """Returns list of parameter keys."""
         return []
+
+    @property
+    def required_requests(self) -> Optional[Iterable[Type[Request]]]:
+        """Returns a list of requests that will be queued to be sent
+        when connection is established.
+        """
+        return None
+
+    @property
+    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain data."""
+        return None
+
+    @property
+    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+        """Returns a list of responses that contain parameters."""
+        return None
 
 
 class DeviceCollection:

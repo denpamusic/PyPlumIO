@@ -20,7 +20,7 @@ from pyplumio.constants import (
 )
 from pyplumio.devices import MODE_HEATING, MODES, DeviceCollection, EcoMAX, EcoSTER
 from pyplumio.exceptions import UninitializedParameterError
-from pyplumio.frames import requests
+from pyplumio.frames import messages, requests, responses
 from pyplumio.frames.messages import RegData
 from pyplumio.frames.responses import DataSchema
 from pyplumio.helpers.parameter import Parameter
@@ -218,15 +218,29 @@ def test_password_not_available(ecomax: EcoMAX) -> None:
     assert ecomax.password is None
 
 
-def test_required_frames(ecomax: EcoMAX, ecoster: EcoSTER):
-    """Test that required frames is correctly set."""
-    assert ecomax.required_frames == (
+def test_required_requests(ecomax: EcoMAX, ecoster: EcoSTER) -> None:
+    """Test that required requests property is correctly set."""
+    assert ecomax.required_requests == (
         requests.UID,
         requests.Password,
         requests.BoilerParameters,
         requests.MixerParameters,
     )
-    assert not ecoster.required_frames
+    assert not ecoster.required_requests
+
+
+def test_data_and_parameters_responses(ecomax: EcoMAX, ecoster: EcoSTER) -> None:
+    """Test that data responses property is correctly set."""
+    assert ecomax.data_responses == (
+        responses.UID,
+        responses.DataSchema,
+        responses.Password,
+        messages.CurrentData,
+        messages.RegData,
+    )
+    assert ecomax.parameter_responses == (responses.BoilerParameters,)
+    assert not ecoster.data_responses
+    assert not ecoster.parameter_responses
 
 
 def test_fuel_burned(ecomax: EcoMAX) -> None:
