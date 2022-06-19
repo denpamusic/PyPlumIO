@@ -27,18 +27,21 @@ def from_bytes(
     if data is None:
         data = {}
 
-    mixers: List[Dict[str, Any]] = []
     mixers_number = message[offset]
     offset += 1
-    if mixers_number > 0:
-        for _ in range(mixers_number):
-            mixer = {}
-            mixer[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[0]
-            mixer[MIXER_TARGET] = message[offset + 4]
-            mixer_outputs = message[offset + 6]
-            mixer[MIXER_PUMP] = bool(mixer_outputs & 0x01)
-            mixers.append(mixer)
-            offset += 8
+    if mixers_number == 0:
+        return data, offset
+
+    mixers: List[Dict[str, Any]] = []
+
+    for _ in range(mixers_number):
+        mixer = {}
+        mixer[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[0]
+        mixer[MIXER_TARGET] = message[offset + 4]
+        mixer_outputs = message[offset + 6]
+        mixer[MIXER_PUMP] = bool(mixer_outputs & 0x01)
+        mixers.append(mixer)
+        offset += 8
 
     data[DATA_MIXERS] = mixers
 

@@ -35,26 +35,21 @@ def from_bytes(
     if data is None:
         data = {}
 
-    first_parameter = message[offset + 1]
     parameters_number = message[offset + 2]
     mixers_number = message[offset + 3]
-    total_parameters = mixers_number * parameters_number
     offset += 4
+    if parameters_number == 0:
+        return data, offset
 
     mixer_parameters: List[Dict[str, Tuple[int, ...]]] = []
-
-    if parameters_number > 0:
-        mixer = {}
-        for index in range(first_parameter, total_parameters + first_parameter):
-            parameter = util.unpack_parameter(message, offset)
-            if parameter is not None:
-                mixer[f"{MIXER_PARAMETERS[index%total_parameters]}"] = parameter
-
-            if (index + 1) % total_parameters == 0:
-                mixer_parameters.append(mixer)
-                mixer = {}
-
+    for _ in range(mixers_number):
+        parameters = {}
+        for parameter_key in range(parameters_number):
+            parameter_name = f"{MIXER_PARAMETERS[parameter_key]}"
+            parameters[parameter_name] = util.unpack_parameter(message, offset)
             offset += 3
+
+        mixer_parameters.append(parameters)
 
     data[DATA_MIXER_PARAMETERS] = mixer_parameters
 
