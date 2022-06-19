@@ -37,14 +37,13 @@ class BaseDevice(ABC):
         """
         self._data = {}
         self._parameters = {}
+        self._queue: List[Request] = []
 
         if data is not None:
             self.set_data(data)
 
         if parameters is not None:
             self.set_parameters(parameters)
-
-        self._queue: List[Request] = []
 
     def __getattr__(self, name: str):
         """Gets data or parameter as class attribute.
@@ -59,7 +58,7 @@ class BaseDevice(ABC):
         if key in self._parameters:
             return self._parameters[key]
 
-        raise AttributeError
+        raise AttributeError()
 
     def __setattr__(self, name: str, value: Any) -> None:
         """Sets class attribute or device parameter.
@@ -105,7 +104,7 @@ Parameters:
         """Checks if class has property.
 
         Keyword arguments:
-            name -- name of property
+            name -- name of the property
         """
         return hasattr(self, name)
 
