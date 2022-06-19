@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from collections.abc import Iterable
 import time
-from typing import Any, Dict, Final, List, Optional, Tuple, Type
+from typing import Any, Dict, Final, List, Optional, Tuple, Type, Union
 
 from .constants import (
     DATA_FUEL_CONSUMPTION,
@@ -155,12 +155,16 @@ class Device(BaseDevice):
 
     @property
     @abstractmethod
-    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def data_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain data."""
 
     @property
     @abstractmethod
-    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def parameter_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain parameters."""
 
 
@@ -194,7 +198,7 @@ class EcoMAX(Device):
         messages.CurrentData,
         messages.RegData,
     )
-    _parameter_responses: Tuple[Type[Response], ...] = (responses.BoilerParameters,)
+    _parameter_responses: Type[Response] = responses.BoilerParameters
 
     def __init__(
         self,
@@ -340,12 +344,16 @@ Mixers:
         return self._required_requests
 
     @property
-    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def data_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain data."""
         return self._data_responses
 
     @property
-    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def parameter_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain parameters."""
         return self._parameter_responses
 
@@ -372,12 +380,16 @@ class EcoSTER(Device):
         return None
 
     @property
-    def data_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def data_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain data."""
         return None
 
     @property
-    def parameter_responses(self) -> Optional[Tuple[Type[Response], ...]]:
+    def parameter_responses(
+        self,
+    ) -> Optional[Union[Tuple[Type[Response], ...], Type[Response]]]:
         """Returns a list of responses that contain parameters."""
         return None
 
