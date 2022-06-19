@@ -115,7 +115,7 @@ class SetBoilerParameter(Request):
 
         message = bytearray()
 
-        if "name" in self.data and "value" in self.data:
+        if self._data is not None and "name" in self._data and "value" in self._data:
             name = self.data["name"]
             value = self.data["value"]
 
@@ -142,7 +142,12 @@ class SetMixerParameter(Request):
 
         message = bytearray()
 
-        if "name" in self.data and "value" in self.data and "extra" in self.data:
+        if (
+            self._data is not None
+            and "name" in self.data
+            and "value" in self.data
+            and "extra" in self.data
+        ):
             name = self.data["name"]
             value = self.data["value"]
             index = self.data["extra"]
@@ -170,7 +175,7 @@ class BoilerControl(Request):
 
         message = bytearray()
 
-        if "value" in self.data:
+        if self._data is not None and "value" in self.data:
             message.append(self.data["value"])
 
             return message
