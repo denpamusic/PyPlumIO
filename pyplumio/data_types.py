@@ -11,7 +11,6 @@ class DataType(ABC):
     """Base representation of data type.
 
     Attributes:
-        size -- type size
         _data -- type bytes
     """
 
@@ -211,10 +210,10 @@ class Boolean(DataType):
     """Boolean representation.
 
     Attributes:
-        size -- type size
-        _data -- type bytes
         _index -- bit array index
     """
+
+    _index: int = 0
 
     def __init__(
         self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None

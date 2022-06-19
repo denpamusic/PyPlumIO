@@ -335,4 +335,5 @@ def test_init_device_from_collection() -> None:
 
 def test_init_unknown_device_from_collection(devices: DeviceCollection) -> None:
     """Test initialization of unknown device in the collection."""
-    assert devices.get(0x0) is None
+    with pytest.raises(AttributeError):
+        devices.get(0x0)

@@ -12,7 +12,7 @@ async def main(devices: DeviceCollection, connection: Connection) -> None:
         devices -- collection of all available devices
         connection -- instance of current connection
     """
-    if devices.ecomax:
+    if devices.has("ecomax"):
         print(devices.ecomax)
 
 

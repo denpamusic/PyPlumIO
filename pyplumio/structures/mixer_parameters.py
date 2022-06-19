@@ -41,7 +41,7 @@ def from_bytes(
     if parameters_number == 0:
         return data, offset
 
-    mixer_parameters: List[Dict[str, Tuple[int, ...]]] = []
+    mixer_parameters: List[Dict[str, Optional[Tuple[int, ...]]]] = []
     for _ in range(mixers_number):
         parameters = {}
         for parameter_key in range(parameters_number):

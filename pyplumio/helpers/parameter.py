@@ -1,5 +1,7 @@
 """Contains device parameter representation."""
 
+from typing import Any
+
 from pyplumio.frames import Request
 from pyplumio.frames.requests import (
     BoilerControl,
@@ -21,8 +23,14 @@ class Parameter:
         extra -- extra information
     """
 
+    name: str
+    value: int
+    min_value: int
+    max_value: int
+    extra: Any
+
     def __init__(
-        self, name: str, value: int, min_value: int, max_value: int, extra=None
+        self, name: str, value: int, min_value: int, max_value: int, extra: Any = None
     ):
         """Creates parameter.
 

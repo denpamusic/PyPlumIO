@@ -29,6 +29,14 @@ class Frame(ABC):
         _data -- unpacked frame data
     """
 
+    frame_type: int
+    recipient: int
+    message: bytearray
+    sender: int
+    sender_type: int
+    econet_version: int
+    _data: Optional[Dict[str, Any]]
+
     def __init__(
         self,
         frame_type: Optional[int] = None,

@@ -7,7 +7,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 import logging
 import sys
-from typing import Any, Final, Optional, Tuple
+from typing import Any, Dict, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
@@ -46,6 +46,14 @@ class Connection(ABC):
         _callback_closed -- callback to call when connection is closed
     """
 
+    kwargs: Dict[str, Any]
+    closing: bool = False
+    writer: Optional[FrameWriter] = None
+    _net: NetworkInfo
+    _devices: DeviceCollection
+    _callback_task: Optional[asyncio.Task]
+    _callback_closed: Optional[Callable[[Connection], Awaitable[Any]]]
+
     def __init__(self, **kwargs):
         """Creates connection instance.
 
@@ -54,7 +62,7 @@ class Connection(ABC):
         """
         self.kwargs = kwargs
         self.closing: bool = False
-        self.writer: Optional[FrameWriter] = None
+        self.writer = None
         self._network = NetworkInfo()
         self._devices = DeviceCollection()
         self._callback_task = None
@@ -104,7 +112,7 @@ class Connection(ABC):
         if isinstance(frame, (CheckDevice, ProgramVersion)):
             writer.queue(frame.response(data={DATA_NETWORK: self._network}))
 
-    async def _read(self, reader: FrameReader) -> bool:
+    async def _read(self, reader: FrameReader, writer: FrameWriter) -> bool:
         """Handles connection reads.
 
         Keyword arguments:
@@ -112,8 +120,6 @@ class Connection(ABC):
         """
         while True:
             if self.closing:
-                await self.writer.close()
-                await self.force_close()
                 break
 
             try:
@@ -123,9 +129,9 @@ class Connection(ABC):
             except FrameError as e:
                 _LOGGER.warning("Frame error: %s", e)
             else:
-                asyncio.create_task(self._process(frame, self.writer))
+                asyncio.create_task(self._process(frame, writer))
             finally:
-                await self.writer.process_queue()
+                await writer.process_queue()
 
         return False
 
@@ -144,12 +150,15 @@ class Connection(ABC):
         """
         while True:
             try:
-                reader, self.writer = await self.connect()
-                await self.writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
+                reader, writer = await self.connect()
+                await writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
                 self._callback_task = asyncio.create_task(
                     self._callback(callback, interval)
                 )
-                if not await self._read(reader):
+                self.writer = writer
+                if not await self._read(reader, writer):
+                    await self.writer.close()
+                    await self.force_close()
                     break
             except (
                 asyncio.TimeoutError,

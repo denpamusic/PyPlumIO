@@ -407,6 +407,11 @@ class DeviceCollection:
         _name -- device instances mapped with lowecased class names
     """
 
+    _classes: List[Type[Device]]
+    _addresses: List[int]
+    _instances: Dict[int, Device]
+    _name: Dict[str, int]
+
     def __init__(self):
         """Creates device collection."""
         self._classes = Device.__subclasses__()
@@ -414,7 +419,7 @@ class DeviceCollection:
         self._instances = {}
         self._names = {}
 
-    def __getattr__(self, name: str) -> Optional[Device]:
+    def __getattr__(self, name: str) -> Device:
         """Gets device by name.""
 
         Keyword arguments:
@@ -438,7 +443,7 @@ class DeviceCollection:
         """
         return (needle in self._addresses) or (needle in self._names)
 
-    def get(self, address: int) -> Optional[Device]:
+    def get(self, address: int) -> Device:
         """Gets device by address.
 
         Keyword arguments:
@@ -448,8 +453,8 @@ class DeviceCollection:
             try:
                 index = self._addresses.index(address)
                 cls = self._classes[index]
-            except ValueError:
-                return None
+            except ValueError as missing_handler_error:
+                raise AttributeError() from missing_handler_error
 
             self._instances[address] = cls()
             self._names[cls.__name__.lower()] = address

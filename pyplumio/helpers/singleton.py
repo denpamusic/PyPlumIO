@@ -11,6 +11,8 @@ class Singleton:
         instance -- singleton class instance
     """
 
+    instance: Singleton
+
     def __new__(cls: Type[Singleton]) -> Singleton:
         """Gets singleton instance.
 

@@ -30,6 +30,7 @@ _test_parameters2 = {
 
 @pytest.fixture(name="mixer_with_data")
 def fixture_mixer_with_data(mixer: Mixer) -> Mixer:
+    """Return instance of mixer with data."""
     mixer.set_data(_test_data)
     mixer.set_parameters(_test_parameters)
     return mixer
@@ -37,6 +38,7 @@ def fixture_mixer_with_data(mixer: Mixer) -> Mixer:
 
 @pytest.fixture(name="mixers")
 def fixture_mixers(mixer_with_data: Mixer) -> MixerCollection:
+    """Return instance of mixer collection."""
     return MixerCollection(mixers=[mixer_with_data])
 
 

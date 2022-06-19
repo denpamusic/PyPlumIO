@@ -1,5 +1,6 @@
 """Contains request frame classes."""
 
+from pyplumio.exceptions import FrameDataError
 from pyplumio.structures.device_parameters import DEVICE_PARAMETERS
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
@@ -113,13 +114,18 @@ class SetBoilerParameter(Request):
         """Creates SetBoilerParameter message."""
 
         message = bytearray()
-        name = self._data["name"]
-        value = self._data["value"]
-        if name in DEVICE_PARAMETERS:
-            message.append(DEVICE_PARAMETERS.index(name))
-            message.append(value)
 
-        return message
+        if "name" in self.data and "value" in self.data:
+            name = self.data["name"]
+            value = self.data["value"]
+
+            if name in DEVICE_PARAMETERS:
+                message.append(DEVICE_PARAMETERS.index(name))
+                message.append(value)
+
+            return message
+
+        raise FrameDataError()
 
 
 class SetMixerParameter(Request):
@@ -135,15 +141,19 @@ class SetMixerParameter(Request):
         """Creates SetMixerParameter message."""
 
         message = bytearray()
-        name = self._data["name"]
-        value = self._data["value"]
-        index = self._data["extra"]
-        if name in MIXER_PARAMETERS:
-            message.append(index)
-            message.append(MIXER_PARAMETERS.index(name))
-            message.append(value)
 
-        return message
+        if "name" in self.data and "value" in self.data and "extra" in self.data:
+            name = self.data["name"]
+            value = self.data["value"]
+            index = self.data["extra"]
+            if name in MIXER_PARAMETERS:
+                message.append(index)
+                message.append(MIXER_PARAMETERS.index(name))
+                message.append(value)
+
+            return message
+
+        raise FrameDataError()
 
 
 class BoilerControl(Request):
@@ -159,9 +169,13 @@ class BoilerControl(Request):
         """Creates BoilerControl message."""
 
         message = bytearray()
-        message.append(self._data["value"])
 
-        return message
+        if "value" in self.data:
+            message.append(self.data["value"])
+
+            return message
+
+        raise FrameDataError()
 
 
 class StartMaster(Request):

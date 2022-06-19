@@ -18,6 +18,8 @@ class FrameFactory(Singleton):
         _types -- frame handlers mapped by frame type
     """
 
+    types_: Dict[int, Type[Frame]]
+
     def __init__(self) -> None:
         """Initializes frame factory."""
         self._types: Dict[int, Type[Frame]] = {}

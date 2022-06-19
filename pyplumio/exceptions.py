@@ -31,3 +31,7 @@ class VersionError(FrameError):
 
 class FrameTypeError(FrameError):
     """Raised on unknown frame type."""
+
+
+class FrameDataError(FrameError):
+    """Raised on incorrect frame data."""

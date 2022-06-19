@@ -16,9 +16,10 @@ class Mixer(BaseDevice):
     """Mixer device representation.
 
     Attributes:
-        _index -- mixer index
-        address -- address of device that contains mixer
+        _index -- mixer number
     """
+
+    _index: int = 0
 
     def __init__(
         self,

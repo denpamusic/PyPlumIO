@@ -20,6 +20,10 @@ class FrameBucket:
         versions -- dictionary containing frame versions
     """
 
+    versions: Dict[int, int]
+    _address: int = BROADCAST_ADDRESS
+    _queue: List[Request]
+
     def __init__(
         self,
         address: int = BROADCAST_ADDRESS,
@@ -31,9 +35,9 @@ class FrameBucket:
         Keyword arguments:
             versions -- dictionary containing frame versions
         """
-        self.versions: Dict[int, int] = {}
+        self.versions = {}
         self._address = address
-        self._queue: List[Request] = []
+        self._queue = []
         if versions is not None:
             self.fill(versions)
 
