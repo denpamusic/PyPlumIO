@@ -5,7 +5,6 @@ import socket
 import struct
 from typing import Any, Dict, List, Optional, Tuple
 
-DEGREE_SIGN = "\N{DEGREE SIGN}"
 unpack_float = struct.Struct("<f").unpack
 unpack_char = struct.Struct("<b").unpack
 unpack_short = struct.Struct("<h").unpack
