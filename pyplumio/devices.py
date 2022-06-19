@@ -54,6 +54,8 @@ class Device(BaseDevice):
         bucket -- frame version info storage
     """
 
+    bucket: FrameBucket
+
     def __init__(
         self,
         data: Optional[Dict[str, Any]] = None,
@@ -176,13 +178,13 @@ class EcoMAX(Device):
         mixers -- collection of device mixers
         _fuel_burned -- amount of fuel burned in kilograms
         _fuel_burned_timestamp -- timestamp of burned fuel value update
-        _required_request - requests to be queued on connection
+        _required_requests - requests to be queued on connection
         _data_responses - responses that contain data
         _parameter_responses - responses that contain parameters
     """
 
     address = ECOMAX_ADDRESS
-    mixers: MixerCollection = None
+    mixers: MixerCollection
     _fuel_burned: float = 0.0
     _fuel_burned_timestamp: float = 0.0
     _required_requests: Iterable[Type[Request]] = (
