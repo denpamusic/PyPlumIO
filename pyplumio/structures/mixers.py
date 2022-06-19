@@ -1,6 +1,6 @@
 """Contains mixers structure parser."""
 
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.constants import DATA_MIXERS
@@ -27,7 +27,7 @@ def from_bytes(
     if data is None:
         data = {}
 
-    mixers = []
+    mixers: List[Dict[str, Any]] = []
     mixers_number = message[offset]
     offset += 1
     if mixers_number > 0:

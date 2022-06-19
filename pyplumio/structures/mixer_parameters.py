@@ -3,7 +3,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_MIXERS
+from pyplumio.constants import DATA_MIXER_PARAMETERS
 
 MIXER_PARAMETERS: List[str] = [
     "mix_target_temp",
@@ -35,25 +35,27 @@ def from_bytes(
     if data is None:
         data = {}
 
-    first_parameter = message[1]
-    parameters_number = message[2]
-    mixers_number = message[3]
+    first_parameter = message[offset + 1]
+    parameters_number = message[offset + 2]
+    mixers_number = message[offset + 3]
     total_parameters = mixers_number * parameters_number
-    offset = 4
-    data[DATA_MIXERS] = []
-    if parameters_number == 0:
-        return data, offset
+    offset += 4
 
-    mixer = {}
-    for index in range(first_parameter, total_parameters + first_parameter):
-        parameter = util.unpack_parameter(message, offset)
-        if parameter is not None:
-            mixer[f"{MIXER_PARAMETERS[index%total_parameters]}"] = parameter
+    mixer_parameters: List[Dict[str, Tuple[int, ...]]] = []
 
-        if (index + 1) % total_parameters == 0:
-            data[DATA_MIXERS].append(mixer)
-            mixer = {}
+    if parameters_number > 0:
+        mixer = {}
+        for index in range(first_parameter, total_parameters + first_parameter):
+            parameter = util.unpack_parameter(message, offset)
+            if parameter is not None:
+                mixer[f"{MIXER_PARAMETERS[index%total_parameters]}"] = parameter
 
-        offset += 3
+            if (index + 1) % total_parameters == 0:
+                mixer_parameters.append(mixer)
+                mixer = {}
+
+            offset += 3
+
+    data[DATA_MIXER_PARAMETERS] = mixer_parameters
 
     return data, offset

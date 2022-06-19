@@ -160,9 +160,9 @@ def from_bytes(
     if data is None:
         data = {}
 
-    first_parameter = message[1]
-    parameters_number = message[2]
-    offset = 3
+    first_parameter = message[offset + 1]
+    parameters_number = message[offset + 2]
+    offset += 3
     if parameters_number == 0:
         return data, offset
 

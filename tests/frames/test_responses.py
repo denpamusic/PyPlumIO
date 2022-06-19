@@ -2,6 +2,7 @@
 
 from pyplumio.constants import (
     BROADCAST_ADDRESS,
+    DATA_MIXER_PARAMETERS,
     DATA_MODE,
     DATA_NETWORK,
     DATA_PASSWORD,
@@ -144,7 +145,9 @@ def test_boiler_parameters_parse_message() -> None:
 
 _mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
 _mixer_parameters_data = {
-    "mixers": [{"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}]
+    DATA_MIXER_PARAMETERS: [
+        {"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}
+    ]
 }
 
 
