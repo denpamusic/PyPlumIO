@@ -1,4 +1,5 @@
 """Contains exceptions."""
+from __future__ import annotations
 
 
 class PyPlumIOError(Exception):
@@ -9,8 +10,16 @@ class ConnectionFailedError(PyPlumIOError):
     """Raised on connection failure."""
 
 
-class UninitializedParameterError(PyPlumIOError):
-    """Raised on uninitialized device parameter."""
+class ParameterNotFoundError(PyPlumIOError):
+    """Raised when device parameter is not found."""
+
+
+class UnknownDeviceError(PyPlumIOError):
+    """Raised on unsupported device."""
+
+
+class ReadError(PyPlumIOError):
+    """Raised on read error."""
 
 
 class FrameError(PyPlumIOError):
@@ -29,7 +38,7 @@ class VersionError(FrameError):
     """Raised on unknown frame version."""
 
 
-class FrameTypeError(FrameError):
+class UnknownFrameError(FrameError):
     """Raised on unknown frame type."""
 
 

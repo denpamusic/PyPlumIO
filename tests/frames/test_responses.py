@@ -2,6 +2,7 @@
 
 from pyplumio.constants import (
     BROADCAST_ADDRESS,
+    DATA_BOILER_PARAMETERS,
     DATA_MIXER_PARAMETERS,
     DATA_MODE,
     DATA_NETWORK,
@@ -21,7 +22,7 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures.device_parameters import DEVICE_PARAMETERS
+from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 
 
 def test_responses_type() -> None:
@@ -130,31 +131,34 @@ def test_password_parse_message() -> None:
 
 _boiler_parameters_bytes = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
 _boiler_parameters_data = {
-    DEVICE_PARAMETERS[0]: (80, 61, 100),
-    DEVICE_PARAMETERS[1]: (60, 41, 76),
-    DEVICE_PARAMETERS[2]: (40, 20, 59),
-    DEVICE_PARAMETERS[4]: (20, 1, 250),
+    BOILER_PARAMETERS[0]: (BOILER_PARAMETERS[0], 80, 61, 100),
+    BOILER_PARAMETERS[1]: (BOILER_PARAMETERS[1], 60, 41, 76),
+    BOILER_PARAMETERS[2]: (BOILER_PARAMETERS[2], 40, 20, 59),
+    BOILER_PARAMETERS[4]: (BOILER_PARAMETERS[4], 20, 1, 250),
 }
 
 
 def test_boiler_parameters_parse_message() -> None:
     """Test parsing boiler parameters message."""
     frame = responses.BoilerParameters(message=_boiler_parameters_bytes)
-    assert frame.data == _boiler_parameters_data
+    assert frame.data == {DATA_BOILER_PARAMETERS: _boiler_parameters_data}
 
 
 _mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
-_mixer_parameters_data = {
-    DATA_MIXER_PARAMETERS: [
-        {"min_mix_target_temp": (20, 30, 40), "mix_target_temp": (30, 40, 60)}
-    ]
-}
+_mixer_parameters_data = [
+    {
+        "mix_target_temp": ("mix_target_temp", 30, 40, 60),
+        "min_mix_target_temp": ("min_mix_target_temp", 20, 30, 40),
+    }
+]
 
 
 def test_mixer_parameters_parse_message() -> None:
     """Test parsing message for mixer parameters response."""
     frame = responses.MixerParameters(message=_mixer_parameters_bytes)
-    assert frame.data == _mixer_parameters_data
+    print(frame.data)
+    print({DATA_MIXER_PARAMETERS: _mixer_parameters_data})
+    assert frame.data == {DATA_MIXER_PARAMETERS: _mixer_parameters_data}
 
 
 _data_schema_bytes_empty = bytearray.fromhex("0000")

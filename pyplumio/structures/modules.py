@@ -1,4 +1,5 @@
 """Contains modules structure parser."""
+from __future__ import annotations
 
 import struct
 from typing import Any, Dict, Final, Optional, Tuple
@@ -25,18 +26,13 @@ MODULES: Final = (
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
     connected_modules = ConnectedModules()
     for module_name in MODULES:
-        module_version, offset = _parse_module_version(module_name, message, offset)
+        module_version, offset = _get_module_version(module_name, message, offset)
         setattr(connected_modules, module_name, module_version)
 
     data[DATA_MODULES] = connected_modules
@@ -44,16 +40,10 @@ def from_bytes(
     return data, offset
 
 
-def _parse_module_version(
+def _get_module_version(
     module_name: str, message: bytearray, offset: int = 0
 ) -> Tuple[Optional[str], int]:
-    """Gets module version by module name.
-
-    Keyword arguments:
-        module_name - module name
-        message - bytes to parse module version from
-        offset - message offset
-    """
+    """Get module version from a message."""
     if message[offset] == 0xFF:
         return None, (offset + 1)
 

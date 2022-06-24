@@ -1,80 +1,51 @@
-"""Contains request frame classes."""
+"""Contains request frames."""
+from __future__ import annotations
 
 from pyplumio.exceptions import FrameDataError
-from pyplumio.structures.device_parameters import DEVICE_PARAMETERS
+from pyplumio.frames import Request, responses
+from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
-
-from . import Request, responses
 
 
 class ProgramVersion(Request):
-    """ProgramVersion requests version info from ecoMAX device.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents program version request."""
 
     frame_type: int = 0x40
 
     def response(self, **kwargs):
-        """Returns corresponding response frame instance.
-
-        Keyword arguments:
-            **kwargs -- arguments to pass to response frame constructor
-        """
+        """Return response frame object."""
         return responses.ProgramVersion(recipient=self.sender, **kwargs)
 
 
 class CheckDevice(Request):
-    """CheckDevice requests if device is available.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents check device request."""
 
     frame_type: int = 0x30
 
     def response(self, **kwargs):
-        """Returns corresponding response frame instance.
-
-        Keyword arguments:
-            args -- arguments to pass to response frame constructor
-        """
+        """Return response frame object."""
         return responses.DeviceAvailable(recipient=self.sender, **kwargs)
 
 
 class UID(Request):
-    """Requests device UID.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents uid request."""
 
     frame_type: int = 0x39
 
 
 class Password(Request):
-    """Requests service password.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents password request."""
 
     frame_type: int = 0x3A
 
 
 class BoilerParameters(Request):
-    """Requests current editable parameters.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents boiler parameters request."""
 
     frame_type: int = 0x31
 
     def create_message(self) -> bytearray:
-        """Creates BoilerParameters message."""
-
+        """Create frame message."""
         message = bytearray()
         message.append(0xFF)  # Number of parameters.
         message.append(0x00)  # Index of parameters.
@@ -82,45 +53,32 @@ class BoilerParameters(Request):
 
 
 class MixerParameters(Request):
-    """Requests current mixer parameters.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents mixer parameters request."""
 
     frame_type: int = 0x32
 
 
 class DataSchema(Request):
-    """Requests current regulator data structure.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents data schema request."""
 
     frame_type: int = 0x55
 
 
 class SetBoilerParameter(Request):
-    """Changes current regulator parameter.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents set boiler parameter request."""
 
     frame_type: int = 0x33
 
     def create_message(self) -> bytearray:
-        """Creates SetBoilerParameter message."""
-
+        """Create frame message."""
         message = bytearray()
 
         if self._data is not None and "name" in self._data and "value" in self._data:
             name = self.data["name"]
             value = self.data["value"]
 
-            if name in DEVICE_PARAMETERS:
-                message.append(DEVICE_PARAMETERS.index(name))
+            if name in BOILER_PARAMETERS:
+                message.append(BOILER_PARAMETERS.index(name))
                 message.append(value)
 
             return message
@@ -129,19 +87,13 @@ class SetBoilerParameter(Request):
 
 
 class SetMixerParameter(Request):
-    """Sets mixer parameter.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents set mixer parameter request."""
 
     frame_type: int = 0x34
 
     def create_message(self) -> bytearray:
-        """Creates SetMixerParameter message."""
-
+        """Create frame message."""
         message = bytearray()
-
         if (
             self._data is not None
             and "name" in self.data
@@ -162,19 +114,13 @@ class SetMixerParameter(Request):
 
 
 class BoilerControl(Request):
-    """Changes regulator state (on/off).
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represent boiler control request."""
 
     frame_type: int = 0x3B
 
     def create_message(self) -> bytearray:
-        """Creates BoilerControl message."""
-
+        """Creates frame message."""
         message = bytearray()
-
         if self._data is not None and "value" in self.data:
             message.append(self.data["value"])
 
@@ -184,20 +130,12 @@ class BoilerControl(Request):
 
 
 class StartMaster(Request):
-    """Designates RS485 device as master.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represent start master request."""
 
     frame_type: int = 0x19
 
 
 class StopMaster(Request):
-    """Revokes RS485 device master status.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represent stop master request."""
 
     frame_type: int = 0x18

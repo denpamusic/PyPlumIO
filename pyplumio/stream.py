@@ -1,16 +1,15 @@
 """Contains reader and writer classes."""
-
 from __future__ import annotations
 
 import asyncio
 from asyncio import StreamReader, StreamWriter
-from typing import Final, List, Optional
+from typing import Final, Optional
 
-from . import util
-from .constants import BROADCAST_ADDRESS, ECONET_ADDRESS
-from .exceptions import ChecksumError, LengthError
-from .factory import FrameFactory
-from .frames import HEADER_SIZE, Frame, Request
+from pyplumio import util
+from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.exceptions import ChecksumError, LengthError, ReadError
+from pyplumio.frames import HEADER_SIZE, Frame, get_frame_handler
+from pyplumio.helpers.factory import factory
 
 READER_BUFFER_SIZE: Final = 1000
 READER_TIMEOUT: Final = 5
@@ -18,110 +17,41 @@ WRITER_TIMEOUT: Final = 5
 
 
 class FrameWriter:
-    """Used to asynchronously write frames to a connection using
-    asyncio's StreamWriter and maintains write queue.
+    """Represents frame writer."""
 
-    Attributes:
-        writer -- instance of asyncio.StreamWriter
-        _queue -- request queue
-    """
-
-    writer: StreamWriter
-    _queue: List[Request]
+    _writer: StreamWriter
 
     def __init__(self, writer: StreamWriter):
-        """Creates instance of FrameWriter.
-
-        Keyword arguments:
-            writer -- instance of asyncio.StreamWriter
-        """
-        self.writer = writer
-        self._queue = []
-
-    def __len__(self) -> int:
-        """Gets write queue length."""
-        return len(self._queue)
-
-    def queue(self, *frames: Request) -> None:
-        """Adds frame to write queue.
-
-        Keyword arguments:
-            frame -- Frame instance to add
-        """
-        for frame in frames:
-            if isinstance(frame, Frame) and not self.has(frame):
-                self._queue.append(frame)
-
-    def has(self, request: Request) -> bool:
-        """Checks if write queue contains specific request.
-
-        Keyword arguments:
-            request - request to look for
-        """
-        for frame in self._queue:
-            if frame.frame_type == request.frame_type:
-                return True
-
-        return False
-
-    def collect(self, requests: List[Request]) -> None:
-        """Collects changed parameters and adds them to write queue.
-
-        Keyword arguments:
-            requests -- list of changed parameters
-        """
-        self.queue(*requests)
-
-    async def process_queue(self) -> None:
-        """Processes top-most write request from the stack."""
-        if self._queue:
-            frame = self._queue.pop(0)
-            await self.write(frame)
+        """Initialize new Frame Writer object."""
+        self._writer = writer
 
     async def write(self, frame: Frame) -> None:
-        """Writes frame to connection and waits for buffer to drain.
-
-        Keyword arguments:
-            frame -- Frame instance to add
-        """
-        self.writer.write(frame.bytes)
-        await asyncio.wait_for(self.writer.drain(), timeout=WRITER_TIMEOUT)
+        """Write frame to the connection and
+        wait for buffer to drain."""
+        self._writer.write(frame.bytes)
+        await asyncio.wait_for(self._writer.drain(), timeout=WRITER_TIMEOUT)
 
     async def close(self) -> None:
-        """Closes stream writer."""
-        self.writer.close()
-        await asyncio.wait_for(self.writer.wait_closed(), timeout=WRITER_TIMEOUT)
-
-    @property
-    def is_empty(self) -> bool:
-        """Checks if write queue is empty."""
-        return not self._queue
+        """Close the stream writer."""
+        self._writer.close()
+        await asyncio.wait_for(self._writer.wait_closed(), timeout=WRITER_TIMEOUT)
 
 
 class FrameReader:
-    """Used to read and parse received frames
-    using asyncio's StreamReader.
+    """Represents frame reader."""
 
-    Attributes:
-        reader -- instance of asyncio.StreamReader
-    """
-
-    reader: StreamReader
+    _reader: StreamReader
 
     def __init__(self, reader: StreamReader):
-        """Creates FrameReader instance.
-
-        Keyword arguments:
-            reader -- instance of asyncio.StreamReader
-        """
-        self.reader = reader
+        """Initialize new Frame Reader object."""
+        self._reader = reader
 
     async def read(self) -> Optional[Frame]:
-        """Attempts to read READER_BUFFER_SIZE bytes, find
-        valid frame in it and return corresponding Frame instance.
+        """Attempt to read READER_BUFFER_SIZE bytes, find
+        valid frame in it and return corresponding frame handler object.
         """
         buffer = await asyncio.wait_for(
-            self.reader.read(READER_BUFFER_SIZE), timeout=READER_TIMEOUT
+            self._reader.read(READER_BUFFER_SIZE), timeout=READER_TIMEOUT
         )
 
         if len(buffer) >= HEADER_SIZE:
@@ -135,21 +65,21 @@ class FrameReader:
                 econet_version,
             ] = util.unpack_header(header)
 
-            if recipient in [ECONET_ADDRESS, BROADCAST_ADDRESS]:
+            if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
                 # Destination address is econet or broadcast.
                 payload = buffer[HEADER_SIZE:length]
                 frame_length = HEADER_SIZE + len(payload)
                 if frame_length != length:
                     raise LengthError(
-                        "Incorrect frame length. "
+                        "incorrect frame length. "
                         + f"Expected {length} bytes, got {frame_length} bytes"
                     )
 
                 if payload[-2] != util.crc(header + payload[:-2]):
-                    raise ChecksumError("Incorrect frame checksum.")
+                    raise ChecksumError("incorrect frame checksum")
 
-                return FrameFactory().get_frame(
-                    frame_type=payload[0],
+                return factory(
+                    get_frame_handler(frame_type=payload[0]),
                     recipient=recipient,
                     message=payload[1:-2],
                     sender=sender,
@@ -157,4 +87,4 @@ class FrameReader:
                     econet_version=econet_version,
                 )
 
-        return None
+        raise ReadError("unexpected frame length or unknown recipient")

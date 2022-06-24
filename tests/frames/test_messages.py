@@ -5,9 +5,10 @@ import pytest
 from pyplumio.constants import (
     BROADCAST_ADDRESS,
     DATA_ALARMS,
+    DATA_BOILER_SENSORS,
     DATA_FRAME_VERSIONS,
     DATA_FUEL_LEVEL,
-    DATA_MIXERS,
+    DATA_MIXER_SENSORS,
     DATA_MODE,
     DATA_MODULES,
     ECONET_ADDRESS,
@@ -19,8 +20,8 @@ from pyplumio.frames import messages
 def test_responses_type() -> None:
     """Test if response is instance of frame class."""
     for response in (
-        messages.RegData,
-        messages.CurrentData,
+        messages.RegulatorData,
+        messages.SensorData,
     ):
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert isinstance(frame, response)
@@ -44,13 +45,13 @@ _regdata_bytes_unknown_version = bytearray.fromhex("62640002")
 
 def test_regdata_parse_message() -> None:
     """Test parsing of regdata message."""
-    frame = messages.RegData(message=_regdata_bytes)
+    frame = messages.RegulatorData(message=_regdata_bytes)
     assert DATA_FRAME_VERSIONS in frame.data
 
 
 def test_regdata_parse_message_with_unknown_version() -> None:
     """Test parsing of regdata message with unknown message version."""
-    frame = messages.RegData()
+    frame = messages.RegulatorData()
     with pytest.raises(VersionError, match=r".*version: 2\.0.*"):
         frame.parse_message(message=_regdata_bytes_unknown_version)
 
@@ -68,19 +69,20 @@ FFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D8
 
 def test_current_data_parse_message() -> None:
     """Test parsing current data message."""
-    frame = messages.CurrentData(message=_current_data_bytes)
-    assert DATA_FRAME_VERSIONS in frame.data
-    assert frame.data[DATA_FRAME_VERSIONS][85] == 45559
-    assert len(frame.data[DATA_FRAME_VERSIONS]) == 7
-    assert frame.data[DATA_MODE] == 0
-    assert round(frame.data["heating_temp"], 2) == 22.38
-    assert frame.data["heating_target"] == 41
-    assert not frame.data["heating_pump"]
-    assert frame.data["heating_status"] == 0
-    assert frame.data[DATA_MODULES].module_a == "18.11.58.K1"
-    assert frame.data[DATA_MODULES].module_panel == "18.10.72"
-    assert DATA_MIXERS in frame.data
-    assert len(frame.data[DATA_MIXERS]) == 5
-    assert frame.data[DATA_MIXERS][0]["target"] == 40
-    assert frame.data[DATA_ALARMS] == []
-    assert frame.data[DATA_FUEL_LEVEL] == 32
+    frame = messages.SensorData(message=_current_data_bytes)
+    data = frame.data[DATA_BOILER_SENSORS]
+    assert DATA_FRAME_VERSIONS in data
+    assert data[DATA_FRAME_VERSIONS][85] == 45559
+    assert len(data[DATA_FRAME_VERSIONS]) == 7
+    assert data[DATA_MODE] == 0
+    assert round(data["heating_temp"], 2) == 22.38
+    assert data["heating_target"] == 41
+    assert not data["heating_pump"]
+    assert data["heating_status"] == 0
+    assert data[DATA_MODULES].module_a == "18.11.58.K1"
+    assert data[DATA_MODULES].module_panel == "18.10.72"
+    assert DATA_MIXER_SENSORS in data
+    assert len(data[DATA_MIXER_SENSORS]) == 5
+    assert data[DATA_MIXER_SENSORS][0]["target_temp"] == 40
+    assert data[DATA_ALARMS] == []
+    assert data[DATA_FUEL_LEVEL] == 32

@@ -1,4 +1,5 @@
 """Contains output flags structure parser."""
+from __future__ import annotations
 
 from typing import Any, Dict, Final, Optional, Tuple
 
@@ -19,19 +20,14 @@ OUTPUT_FLAGS: Final = (
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
     output_flags = util.unpack_ushort(message[offset : offset + 4])
-    data[DATA_HEATING_PUMP_FLAG] = bool(output_flags & 0x004)
-    data[DATA_WATER_HEATER_PUMP_FLAG] = bool(output_flags & 0x008)
-    data[DATA_CIRCULATION_PUMP_FLAG] = bool(output_flags & 0x010)
+    data[DATA_HEATING_PUMP_FLAG] = bool(output_flags & 0x04)
+    data[DATA_WATER_HEATER_PUMP_FLAG] = bool(output_flags & 0x08)
+    data[DATA_CIRCULATION_PUMP_FLAG] = bool(output_flags & 0x10)
     data[DATA_SOLAR_PUMP_FLAG] = bool(output_flags & 0x800)
     offset += 4
 

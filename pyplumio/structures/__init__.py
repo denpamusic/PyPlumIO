@@ -2,9 +2,9 @@
 
 __all__ = [
     "alarms",
-    "device_parameters",
+    "boiler_parameters",
     "frame_versions",
-    "lambda_",
+    "lambda_sensor",
     "mixer_parameters",
     "mixers",
     "modules",

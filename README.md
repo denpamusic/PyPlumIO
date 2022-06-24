@@ -22,7 +22,6 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [Usage](#usage)
   - [TCP](#tcp)
   - [Serial](#serial)
-  - [Shortcuts](#serial)
   - [Data and Parameters](#data-and-parameters)
   - [Reading](#reading)
   - [Writing](#writing)
@@ -37,9 +36,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [License](#license)
 
 ## Usage
-To interact with devices, you must pass async callback to `Connection.run(callback: Callable[[DeviceCollection, Connection], Awaitable[Any]], interval: int)` method. Callback will receive two arguments: `devices: DeviceCollection` that will contain all found supported devices and `connection: Connection` that represents current connection.
-
-Second optional parameter `interval`, defines how often the callback will be called in seconds. If left unspecified, callback will be called every second.
+To interact with devices, you must first initialize connection by utilizing `pyplumio.TcpConnection` or `pyplumio.SerialConnection` classes.
 
 You can find examples for each supported connection type below.
 
@@ -47,111 +44,84 @@ You can find examples for each supported connection type below.
 This is intended to be used with RS-485 to Ethernet/WiFi converters, which are readily available online or can be custom built using RS-485 to USB converter and ser2net software.
 
 ```python
+import asyncio
 from pyplumio import TcpConnection
-from pyplumio.devices import DeviceCollection
 
-async def my_callback(devices: DeviceCollection, connection):
-	# do something
-	...
-
-connection = TcpConnection(host="localhost", port=8899)
-connection.run(my_callback, interval=1)
+async def main():
+	async with TcpConnection(host="localhost", port=8899) as conn:
+		ecomax = await conn.wait_for_device("ecomax")
+    	# do something
+	
+asyncio.run(main())
 ```
 
 ### Serial
 This is intended to be used with RS-485 to USB adapters, that are connected directly to the device running PyPlumIO.
 
 ```python
-from pyplumio import SerialConnection
-from pyplumio.devices import DeviceCollection
+import asyncio
+from pyplumio import TcpConnection
 
-async def my_callback(devices: DeviceCollection, connection):
-	# do something
-	...
-
-connection = SerialConnection(device="/dev/ttyUSB0", baudrate=115200)
-connection.run(my_callback, interval=1)
+async def main():
+	async with SerialConnection(device="/dev/ttyUSB0", baudrate=115200) as conn:
+		ecomax = await conn.wait_for_device("ecomax")
+		# do something
+	
+asyncio.run(main())
 ```
 
-### Shortcuts
-It's also possible to use following shortcuts to create connection instance and instantly run it.
+_NB: Although `async_with` it is the preferred way to initialize the connection, this can also be done without using it:_
 ```python
-from pyplumio import tcp as pyplumio_tcp, serial as pyplumio_serial
-from pyplumio.devices import DeviceCollection
-
-async def my_callback(devices: DeviceCollection, connection):
-	# do something
-	...
-
-pyplumio_tcp(my_callback, host="localhost", port=8899, interval=1)
-# or
-pyplumio_serial(my_callback, device="/dev/ttyUSB0", baudrate=115200, interval=1)
+async def main():
+  conn = TcpConnection(host="localhost", port=8899)
+  await conn.connect()
+  conn = await conn.wait_for_device("ecomax")
+  # do something
+	
+asyncio.run(main())
 ```
 
 ### Data and Parameters
-Data is separated into immutable `data` that can't be changed and `parameters` that can. Both can be accessed via instance attributes. (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_target_temp`)
+Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_target_temp`) or awaited (this is preferred) via `get_value(name: str)` and `get_parameter(name: str)` methods.
 
-Each ecoMAX controller supports different data attributes and parameters. You can check what your controller supports by calling `print()` on controller instance in device collection.
-```python
-async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax"):
-        print(devices.ecomax)
-```
+Each Plum device supports different attributes and parameters.
 
 ### Reading
-Interaction with the device is mainly done through device class instances inside your callback.
-For example you can read current feed water temperature by reading `heating_temp` attribute.
+Interaction with the device is mainly done through async getter methods.
+For example you can read current feed water temperature by awaiting for `Device.get_value("heating_temp")`.
 
-Passing my_callback function to `Connection.run(callback: Callable[[DeviceCollection, Connection], Awaitable[Any]], interval: int)` as demonstrated above, will print current feed water temperature every second.
+The following example will print out current feed water temperature and close the connection.
 ```python
-async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax"):
-        print(devices.ecomax.heating_temp)  # e. g. 61.923828125
+async def main():
+  	async with TcpConnection(host="localhost", port=8899) as conn:
+      ecomax = await conn.wait_for_device("ecomax")
+      print(await ecomax.get_value("heating_temp"))
 ```
 
 ### Writing
-You can easily change controller parameters by modifying their respective class attribute. In example below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) and close the connection.
+You can easily change controller parameters by awaiting for `set_value(name: str, value: int)` or by getting parameter via `get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
-async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax") and devices.ecomax.has("heating_target_temp"):
-        """This will set target heating temperature to 65 degrees Celsius.
-        and close the connection.
-        """
-    	devices.ecomax.heating_target_temp = 65
-        connection.close()
-```
-Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO library currently silently ignores out of range values. You can check allowed values by reading `min_value` and `max_value` attributes of parameter instance.
-```python
-async def my_callback(devices: DeviceCollection, connection):
-    if devices.has("ecomax") and devices.ecomax.has("heating_target_temp"):
-        print(devices.ecomax.heating_target_temp.min_value)  # Prints minimum allowed target temperature.
-        print(devices.ecomax.heating_target_temp.max_value)  # Prints maximum allowed target temperature.
+async def main():
+  	async with TcpConnection(host="localhost", port=8899) as conn:
+      ecomax = await conn.wait_for_device("ecomax")
+      await ecomax.set_value("heating_target_temp", 65)
 ```
 
-### Network Information
-You can send network information to the controller that will be shown on it's display.
-
-It's used for informational purposes only and can be skipped.
 ```python
-from pyplumio import TcpConnection
-from pyplumio.devices import DeviceCollection
-from pyplumio.helpers.network_info import WLAN_ENCRYPTION_WPA2
-
-async def my_callback(devices: DeviceCollection, connection):
-	# do something
-	...
-
-with TcpConnection(host="localhost", port=8899) as c:
-    c.set_eth(ip="10.10.1.100", netmask="255.255.255.0", gateway="10.10.1.1")
-    c.set_wlan(
-        ip="10.10.2.100",
-        netmask="255.255.255.0",
-        gateway="10.10.2.1",
-        ssid="My WIFI",
-        encryption=WLAN_ENCRYPTION_WPA2,
-        quality=100
-    )
-    c.run(my_callback)
+async def main():
+  	async with TcpConnection(host="localhost", port=8899) as conn:
+      ecomax = await conn.wait_for_device("ecomax")
+      target_temp = await ecomax.get_parameter("heating_target_temp")
+      target.temp.set(65)
+```
+Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO will raise `ValueError` if value is not within acceptable range. You can check allowed values by reading `min_value` and `max_value` attributes of parameter object.
+```python
+async def main():
+  	async with TcpConnection(host="localhost", port=8899) as conn:
+      ecomax = await conn.wait_for_device("ecomax")
+      target_temp = await ecomax.get_parameter("heating_target_temp")
+      print(target_temp.min_value) # Prints minimum allowed target temperature.
+      print(target_temp.max_value) # Prints maximum allowed target temperature.
 ```
 
 ## Protocol

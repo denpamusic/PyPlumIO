@@ -1,9 +1,9 @@
 """Test PyPlumIO mixers structure."""
 
+from pyplumio.constants import DATA_MIXER_SENSORS
 from pyplumio.structures.mixers import (
-    DATA_MIXERS,
-    MIXER_PUMP,
-    MIXER_TARGET,
+    MIXER_PUMP_OUTPUT,
+    MIXER_TARGET_TEMP,
     MIXER_TEMP,
     from_bytes,
 )
@@ -11,9 +11,9 @@ from pyplumio.structures.mixers import (
 _message = bytearray.fromhex("0200002042260808000000204226080800")
 _message_zero_mixers = bytearray.fromhex("00")
 _data = {
-    DATA_MIXERS: [
-        {MIXER_TEMP: 40.0, MIXER_TARGET: 38, MIXER_PUMP: False},
-        {MIXER_TEMP: 40.0, MIXER_TARGET: 38, MIXER_PUMP: False},
+    DATA_MIXER_SENSORS: [
+        {MIXER_TEMP: 40.0, MIXER_TARGET_TEMP: 38, MIXER_PUMP_OUTPUT: False},
+        {MIXER_TEMP: 40.0, MIXER_TARGET_TEMP: 38, MIXER_PUMP_OUTPUT: False},
     ]
 }
 

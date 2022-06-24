@@ -1,30 +1,20 @@
-"""Contains main connection class."""
+"""Contains connection representation."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable
 import logging
-import sys
 from typing import Any, Dict, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
 
-from .constants import DATA_NETWORK, ECOMAX_ADDRESS
-from .devices import DeviceCollection
-from .exceptions import ConnectionFailedError, FrameError, FrameTypeError
-from .frames import Frame
-from .frames.requests import CheckDevice, ProgramVersion, StartMaster
-from .helpers.network_info import (
-    DEFAULT_IP,
-    DEFAULT_NETMASK,
-    WLAN_ENCRYPTION_NONE,
-    EthernetParameters,
-    NetworkInfo,
-    WirelessParameters,
-)
+from pyplumio.client import Client
+from pyplumio.constants import ECOMAX_ADDRESS
+from pyplumio.frames.requests import StartMaster
+
 from .stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,318 +24,140 @@ RECONNECT_TIMEOUT: Final = 20
 
 
 class Connection(ABC):
-    """Base connection class.
+    """Base connection representation. All specific connection classes
+    must me inherited from this class."""
 
-    Attributes:
-        kwargs -- keyword arguments for connection driver
-        closing -- is connection closing
-        writer -- instance of frame writer
-        _net -- network information for device available message
-        _devices -- collection of all available devices
-        _callback_task -- callback task reference
-        _callback_closed -- callback to call when connection is closed
-    """
+    _kwargs: Dict[str, Any]
+    _client: Optional[Client] = None
+    _closing: bool = False
+    _connection_handler: Awaitable[Any]
+    _reconnect_on_failure: bool = True
 
-    kwargs: Dict[str, Any]
-    closing: bool = False
-    writer: Optional[FrameWriter] = None
-    _net: NetworkInfo
-    _devices: DeviceCollection
-    _callback_task: Optional[asyncio.Task]
-    _callback_closed: Optional[Callable[[Connection], Awaitable[Any]]]
+    def __init__(self, reconnect_on_failure: bool = True, **kwargs):
+        """Initialize Connection object."""
+        self._kwargs = kwargs
+        self._closing = False
+        self._client = None
+        self._reconnect_on_failure = reconnect_on_failure
 
-    def __init__(self, **kwargs):
-        """Creates connection instance.
-
-        Keyword arguments:
-            **kwargs -- keyword arguments for connection driver
-        """
-        self.kwargs = kwargs
-        self.closing: bool = False
-        self.writer = None
-        self._network = NetworkInfo()
-        self._devices = DeviceCollection()
-        self._callback_task = None
-        self._callback_closed = None
-
-    def __enter__(self):
-        """Provides entry point for context manager."""
+    async def __aenter__(self):
+        """Provide entry point for context manager."""
+        await self.connect()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Provides exit point for context manager."""
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        """Provide exit point for context manager."""
+        await self.close()
 
-    async def _callback(
-        self,
-        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
-        interval: int,
-    ) -> None:
-        """Calls provided callback method with specified interval.
+    def __getattr__(self, name: str) -> Any:
+        """Return attributes from the underlying client."""
+        return getattr(self.client, name)
 
-        Keyword arguments:
-            callback -- callback method
-            ecomax -- ecoMAX device instance
-            interval -- update interval in seconds
-        """
+    async def _connect(self) -> None:
+        """Establish connection and initialize client object."""
+
+        def connection_lost():
+            """Reconnect on connection lost."""
+            if self._reconnect_on_failure and not self._closing:
+                asyncio.create_task(self._reconnect())
+
+        reader, writer = await self._open_connection()
+        await writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
+        self._client = Client(reader, writer, connection_lost_callback=connection_lost)
+
+    async def _reconnect(self) -> None:
+        """Establish connection and reconnect on failure."""
         while True:
             try:
-                await callback(self._devices, self)
-            except Exception as e:  # pylint: disable=broad-except
-                _LOGGER.error("Callback error: %s", e)
-
-            await asyncio.sleep(interval)
-
-    async def _process(self, frame: Optional[Frame], writer: FrameWriter) -> None:
-        """Processes received frame.
-
-        Keyword arguments:
-            frame -- instance of received frame
-            writer -- instance of writer
-        """
-
-        if frame is None or not self._devices.has(frame.sender):
-            return None
-
-        device = self._devices.get(frame.sender)
-        device.handle_frame(frame)
-        writer.collect(device.changes)
-        if isinstance(frame, (CheckDevice, ProgramVersion)):
-            writer.queue(frame.response(data={DATA_NETWORK: self._network}))
-
-    async def _read(self, reader: FrameReader, writer: FrameWriter) -> bool:
-        """Handles connection reads.
-
-        Keyword arguments:
-            reader -- instance of frame reader
-        """
-        while True:
-            if self.closing:
-                break
-
-            try:
-                frame = await reader.read()
-            except FrameTypeError as e:
-                _LOGGER.debug("Type error: %s", e)
-            except FrameError as e:
-                _LOGGER.warning("Frame error: %s", e)
-            else:
-                asyncio.create_task(self._process(frame, writer))
-            finally:
-                await writer.process_queue()
-
-        return False
-
-    async def task(
-        self,
-        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
-        interval: int = 1,
-        reconnect_on_failure: bool = True,
-    ) -> None:
-        """Establishes connection and continuously reads new frames.
-
-        Keyword arguments:
-            callback -- user-defined callback method
-            interval -- user-defined update interval in seconds
-            reconnect_on_failure -- should we try reconnecting on failure
-        """
-        while True:
-            try:
-                reader, writer = await self.connect()
-                await writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
-                self._callback_task = asyncio.create_task(
-                    self._callback(callback, interval)
-                )
-                self.writer = writer
-                if not await self._read(reader, writer):
-                    await self.writer.close()
-                    await self.force_close()
-                    break
+                await self._connect()
+                return
             except (
-                asyncio.TimeoutError,
-                ConnectionRefusedError,
-                ConnectionResetError,
-                OSError,
+                ConnectionError,
                 SerialException,
-            ) as connection_failure:
-                if not reconnect_on_failure:
-                    raise ConnectionFailedError from connection_failure
-
+                asyncio.TimeoutError,
+            ):
                 _LOGGER.error(
-                    "Connection to device failed, retrying in %i seconds...",
+                    "Connection error: connection failed, reconnecting in %i seconds...",
                     RECONNECT_TIMEOUT,
                 )
-                await self.force_close()
                 await asyncio.sleep(RECONNECT_TIMEOUT)
 
-    async def force_close(self) -> None:
-        """Declares connection as closed."""
-        self.writer = None
-        self.closing = False
-        if self._callback_task is not None:
-            self._callback_task.cancel()
+    async def connect(self) -> None:
+        """Initialize the connection. This method initializes
+        connection via connect or reconnect routines, depending
+        on _reconnect_on_failure property."""
+        if self._reconnect_on_failure:
+            await self._reconnect()
+        else:
+            await self._connect()
 
-        if self._callback_closed is not None:
-            await self._callback_closed(self)
+    async def close(self) -> None:
+        """Close the connection."""
+        self._closing = True
 
-    def run(
-        self,
-        callback: Callable[[DeviceCollection, Connection], Awaitable[Any]],
-        interval: int = 1,
-        reconnect_on_failure: bool = True,
-    ) -> None:
-        """Run connection in the event loop.
-
-        Keyword arguments:
-            callback -- user-defined callback method
-            interval -- user-defined update interval in seconds
-            reconnect_on_failure -- should we try reconnecting on failure
-        """
-        if sys.platform == "win32" and hasattr(
-            asyncio, "WindowsSelectorEventLoopPolicy"
-        ):
-            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-        try:
-            sys.exit(asyncio.run(self.task(callback, interval, reconnect_on_failure)))
-        except KeyboardInterrupt:
-            pass
-
-    def set_eth(
-        self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
-    ) -> None:
-        """Sets eth parameters to pass to devices.
-        Used for informational purposes only.
-
-        Keyword arguments:
-            ip -- ip address of eth device
-            netmask -- netmask of eth device
-            gateway -- gateway address of eth device
-        """
-        self._network.eth = EthernetParameters(
-            ip=ip, netmask=netmask, gateway=gateway, status=True
-        )
-
-    def set_wlan(
-        self,
-        ssid: str,
-        ip: str,
-        encryption: int = WLAN_ENCRYPTION_NONE,
-        netmask: str = DEFAULT_NETMASK,
-        gateway: str = DEFAULT_IP,
-        quality: int = 100,
-    ) -> None:
-        """Sets wlan parameters to pass to devices.
-        Used for informational purposes only.
-
-        Keyword arguments:
-            ssid -- SSID string
-            encryption -- wlan encryption, must be passed with constant
-            ip -- ip address of wlan device
-            netmask -- netmask of wlan device
-            gateway -- gateway address of wlan device
-        """
-        self._network.wlan = WirelessParameters(
-            ssid=ssid,
-            encryption=encryption,
-            quality=quality,
-            ip=ip,
-            netmask=netmask,
-            gateway=gateway,
-            status=True,
-        )
-
-    def on_closed(
-        self, callback: Optional[Callable[[Connection], Awaitable[Any]]] = None
-    ) -> None:
-        """Sets callback to be called when connection is closed.
-
-        Keyword arguments:
-            callback -- user-defined callback method
-        """
-        self._callback_closed = callback
-
-    def close(self) -> None:
-        """Closes connection."""
-        if not self.closing:
-            self.closing = True
-
-    async def async_close(self) -> None:
-        """Closes connection asynchronously."""
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, self.close)
+        if self._client is not None:
+            await self._client.shutdown()
 
     @property
-    def devices(self) -> DeviceCollection:
-        """Returns collection of devices."""
-        return self._devices
-
-    @property
-    def closed(self) -> bool:
-        """Returns connection state."""
-        return self.writer is None
+    def client(self) -> Optional[Client]:
+        """Return client object."""
+        return self._client
 
     @abstractmethod
-    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
-        """Initializes connection and returns frame reader and writer."""
+    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
+        """Open connection and return instances of
+        frame reader and writer."""
 
 
 class TcpConnection(Connection):
-    """Represents TCP connection through.
-
-    Attributes:
-        host -- server ip or hostname
-        port -- server port
-    """
+    """Represents TCP connection."""
 
     def __init__(self, host: str, port: int, **kwargs):
-        """Creates TCP connection instance."""
+        """Initialize TCP connection object."""
         super().__init__(**kwargs)
         self.host = host
         self.port = port
 
     def __repr__(self):
-        """Creates string representation of class."""
-        return f"""{self.__class__.__name__}(
+        """Return string representation of the class."""
+        return f"""TcpConnection(
     host = {self.host},
     port = {self.port},
-    kwargs = {self.kwargs}
+    kwargs = {self._kwargs}
 )
 """
 
-    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
-        """Initializes connection and returns frame reader and writer."""
+    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
+        """Open connection and return instances of
+        frame reader and writer."""
         reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(host=self.host, port=self.port, **self.kwargs),
+            asyncio.open_connection(host=self.host, port=self.port, **self._kwargs),
             timeout=CONNECT_TIMEOUT,
         )
         return FrameReader(reader), FrameWriter(writer)
 
 
 class SerialConnection(Connection):
-    """Represents serial connection.
-
-    Attributes:
-        device -- serial port interface path
-        baudrate -- serial port baudrate
-    """
+    """Represents Serial connection."""
 
     def __init__(self, device: str, baudrate: int = 115200, **kwargs):
-        """Creates serial connection instance."""
+        """Initialize Serial connection object."""
         super().__init__(**kwargs)
         self.device = device
         self.baudrate = baudrate
 
     def __repr__(self):
-        """Creates string representation of class."""
-        return f"""{self.__class__.__name__}(
+        """Return string representation of the class."""
+        return f"""SerialConnection(
     device = {self.device},
     baudrate = {self.baudrate},
     kwargs = {self.kwargs}
 )
 """
 
-    async def connect(self) -> Tuple[FrameReader, FrameWriter]:
-        """Initializes connection and returns frame reader and writer."""
+    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
+        """Open connection and return instances of
+        frame reader and writer."""
         reader, writer = await asyncio.wait_for(
             serial_asyncio.open_serial_connection(
                 url=self.device,
@@ -353,7 +165,7 @@ class SerialConnection(Connection):
                 bytesize=serial_asyncio.serial.EIGHTBITS,
                 parity=serial_asyncio.serial.PARITY_NONE,
                 stopbits=serial_asyncio.serial.STOPBITS_ONE,
-                **self.kwargs,
+                **self._kwargs,
             ),
             timeout=CONNECT_TIMEOUT,
         )

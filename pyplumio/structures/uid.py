@@ -1,4 +1,5 @@
 """Contains UID structure parser."""
+from __future__ import annotations
 
 from typing import Final, List, Tuple
 
@@ -8,12 +9,7 @@ UID_CHAR_BITS: Final = 8
 
 
 def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     uid_length = message[offset]
     offset += 1
     uid = message[offset : uid_length + offset].decode()
@@ -43,11 +39,7 @@ def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
 
 
 def uid_stamp(message: str) -> str:
-    """Calculates UID stamp.
-
-    Keyword arguments:
-        message -- uid message
-    """
+    """Return UID stamp."""
     crc_ = 0xA3A3
     for byte in message:
         int_ = ord(byte)
@@ -57,11 +49,7 @@ def uid_stamp(message: str) -> str:
 
 
 def uid_byte(byte: int) -> int:
-    """Calculate CRC for single byte.
-
-    Keyword arguments:
-        byte - byte to calculate CRC
-    """
+    """Return CRC for a byte."""
     for _ in range(8):
         byte = (byte >> 1) ^ 0xA001 if byte & 1 else byte >> 1
 
@@ -69,11 +57,7 @@ def uid_byte(byte: int) -> int:
 
 
 def uid_5bits_to_char(number: int) -> str:
-    """Converts 5 bits from UID to ASCII character.
-
-    Keyword arguments:
-        number -- byte for conversion
-    """
+    """Convert 5 bits from UID to ASCII character."""
     if number < 0 or number >= 32:
         return "#"
 

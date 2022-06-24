@@ -1,48 +1,26 @@
 """Fixtures for PyPlumIO test suite."""
 
+import asyncio
 from asyncio import StreamReader, StreamWriter
 from typing import Generator
 from unittest.mock import patch
 
 import pytest
 
-from pyplumio.constants import ECOMAX_ADDRESS
-from pyplumio.devices import DeviceCollection, EcoMAX, EcoSTER
+from pyplumio.devices import EcoMAX, EcoSTER
 from pyplumio.frames.responses import DataSchema
-from pyplumio.mixers import Mixer
-from pyplumio.storage import FrameBucket
-
-
-@pytest.fixture(name="frame_bucket")
-def fixture_frame_bucket() -> FrameBucket:
-    """Return instance of frame version bucket."""
-    return FrameBucket()
 
 
 @pytest.fixture(name="ecomax")
 def fixture_ecomax() -> EcoMAX:
     """Return instance of ecoMAX device class."""
-    return EcoMAX()
+    return EcoMAX(queue=asyncio.Queue())
 
 
 @pytest.fixture(name="ecoster")
 def fixture_ecoster() -> EcoSTER:
     """Return instance of ecoSTER device class."""
-    return EcoSTER()
-
-
-@pytest.fixture(name="devices")
-def fixture_devices() -> DeviceCollection:
-    """Return instance of device collection."""
-    devices = DeviceCollection()
-    devices.get(ECOMAX_ADDRESS)
-    return devices
-
-
-@pytest.fixture(name="mixer")
-def fixture_mixer() -> Mixer:
-    """Return instance of mixer class."""
-    return Mixer()
+    return EcoSTER(queue=asyncio.Queue())
 
 
 @pytest.fixture(name="bypass_asyncio_sleep")

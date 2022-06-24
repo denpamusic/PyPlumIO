@@ -1,11 +1,14 @@
 """Contains regulator parameter structure parser."""
+from __future__ import annotations
 
 from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
+from pyplumio.constants import DATA_BOILER_PARAMETERS
+from pyplumio.typing import ParameterTuple
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
-DEVICE_PARAMETERS: List[str] = [
+BOILER_PARAMETERS: List[str] = [
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -151,26 +154,22 @@ DEVICE_PARAMETERS: List[str] = [
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
     first_parameter = message[offset + 1]
     parameters_number = message[offset + 2]
     offset += 3
-    if parameters_number == 0:
-        return data, offset
-
+    parameters: Dict[str, ParameterTuple] = {}
     for index in range(first_parameter, parameters_number + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
-            data[DEVICE_PARAMETERS[index]] = parameter
+            parameter_name = BOILER_PARAMETERS[index]
+            parameters[parameter_name] = (parameter_name, *parameter)
 
         offset += 3
+
+    data[DATA_BOILER_PARAMETERS] = parameters
 
     return data, offset

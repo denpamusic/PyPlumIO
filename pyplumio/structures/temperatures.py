@@ -1,40 +1,53 @@
 """Contains temperatures structure parser."""
+from __future__ import annotations
 
 import math
 from typing import Any, Dict, Final, Optional, Tuple
 
 from pyplumio import util
 
+HEATING_TEMP: Final = "heating_temp"
+FEEDER_TEMP: Final = "feeder_temp"
+WATER_HEATER_TEMP: Final = "water_heater_temp"
+OUTSIDE_TEMP: Final = "outside_temp"
+RETURN_TEMP: Final = "return_temp"
+EXHAUST_TEMP: Final = "exhaust_temp"
+OPTICAL_TEMP: Final = "optical_temp"
+UPPER_BUFFER_TEMP: Final = "upper_buffer_temp"
+LOWER_BUFFER_TEMP: Final = "lower_buffer_temp"
+UPPER_SOLAR_TEMP: Final = "upper_solar_temp"
+LOWER_SOLAR_TEMP: Final = "lower_solar_temp"
+FIREPLACE_TEMP: Final = "fireplace_temp"
+TOTAL_GAIN: Final = "total_gain"
+HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
+EXCHANGER_TEMP: Final = "exchanger_temp"
+AIR_IN_TEMP: Final = "air_in_temp"
+AIR_OUT_TEMP: Final = "air_out_temp"
 TEMPERATURES: Final = (
-    "heating_temp",
-    "feeder_temp",
-    "water_heater_temp",
-    "outside_temp",
-    "back_temp",
-    "exhaust_temp",
-    "optical_temp",
-    "upper_buffer_temp",
-    "lower_buffer_temp",
-    "upper_solar_temp",
-    "lower_solar_temp",
-    "fireplace_temp",
-    "total_gain",
-    "hydraulic_coupler_temp",
-    "exchanger_temp",
-    "air_in_temp",
-    "air_out_temp",
+    HEATING_TEMP,
+    FEEDER_TEMP,
+    WATER_HEATER_TEMP,
+    OUTSIDE_TEMP,
+    RETURN_TEMP,
+    EXHAUST_TEMP,
+    OPTICAL_TEMP,
+    UPPER_BUFFER_TEMP,
+    LOWER_BUFFER_TEMP,
+    UPPER_SOLAR_TEMP,
+    LOWER_SOLAR_TEMP,
+    FIREPLACE_TEMP,
+    TOTAL_GAIN,
+    HYDRAULIC_COUPLER_TEMP,
+    EXCHANGER_TEMP,
+    AIR_IN_TEMP,
+    AIR_OUT_TEMP,
 )
 
 
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 

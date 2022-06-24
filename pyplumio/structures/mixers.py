@@ -1,29 +1,25 @@
 """Contains mixers structure parser."""
+from __future__ import annotations
 
 from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_MIXERS
+from pyplumio.constants import DATA_MIXER_SENSORS
 
 MIXER_TEMP: Final = "temp"
-MIXER_TARGET: Final = "target"
-MIXER_PUMP: Final = "pump"
+MIXER_TARGET_TEMP: Final = "target_temp"
+MIXER_PUMP_OUTPUT: Final = "pump_output"
 MIXER_DATA: Final = (
     MIXER_TEMP,
-    MIXER_TARGET,
-    MIXER_PUMP,
+    MIXER_TARGET_TEMP,
+    MIXER_PUMP_OUTPUT,
 )
 
 
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
@@ -37,12 +33,12 @@ def from_bytes(
     for _ in range(mixers_number):
         mixer = {}
         mixer[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[0]
-        mixer[MIXER_TARGET] = message[offset + 4]
+        mixer[MIXER_TARGET_TEMP] = message[offset + 4]
         mixer_outputs = message[offset + 6]
-        mixer[MIXER_PUMP] = bool(mixer_outputs & 0x01)
+        mixer[MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
         mixers.append(mixer)
         offset += 8
 
-    data[DATA_MIXERS] = mixers
+    data[DATA_MIXER_SENSORS] = mixers
 
     return data, offset

@@ -1,4 +1,5 @@
 """Contains frame versions structure parser."""
+from __future__ import annotations
 
 from typing import Any, Dict, Final, Optional, Tuple
 
@@ -10,17 +11,11 @@ FRAME_VERSIONS: Final = "frames"
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
-    versions = {}
-
+    versions: Dict[int, int] = {}
     frames_number = message[offset]
     offset += 1
     for _ in range(frames_number):

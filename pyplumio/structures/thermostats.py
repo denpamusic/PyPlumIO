@@ -1,4 +1,5 @@
 """Contains thermostats structure parser."""
+from __future__ import annotations
 
 from typing import Any, Dict, Final, List, Optional, Tuple
 
@@ -15,12 +16,7 @@ ECOSTER_TARGET: Final = "target"
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
 ) -> Tuple[Dict[str, Any], int]:
-    """Parses frame message into usable data.
-
-    Keyword arguments:
-        message -- message bytes
-        offset -- current data offset
-    """
+    """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 

@@ -1,4 +1,5 @@
 """Contains network information dataclasses."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Final
@@ -22,7 +23,7 @@ DEFAULT_NETMASK: Final = "255.255.255.0"
 
 @dataclass
 class EthernetParameters:
-    """Represents ethernet connection parameters."""
+    """Represents ethernet parameters."""
 
     ip: str = DEFAULT_IP
     netmask: str = DEFAULT_NETMASK
@@ -32,7 +33,7 @@ class EthernetParameters:
 
 @dataclass
 class WirelessParameters(EthernetParameters):
-    """Represents wireless connection parameters."""
+    """Represents wireless network parameters."""
 
     ssid: str = ""
     encryption: int = WLAN_ENCRYPTION_NONE

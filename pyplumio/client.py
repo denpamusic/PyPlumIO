@@ -1,0 +1,128 @@
+"""Contains client representation."""
+from __future__ import annotations
+
+import asyncio
+from collections.abc import Awaitable, Callable, Iterable
+import logging
+from typing import Any, Dict, Tuple
+
+from pyplumio.devices import Device, get_device_handler
+from pyplumio.exceptions import (
+    FrameError,
+    ReadError,
+    UnknownDeviceError,
+    UnknownFrameError,
+)
+from pyplumio.frames.requests import CheckDevice, ProgramVersion
+from pyplumio.helpers.factory import factory
+from pyplumio.stream import FrameReader, FrameWriter
+
+_LOGGER = logging.getLogger(__name__)
+
+
+def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
+    """Get device handler full path and lowercased class name."""
+    handler = get_device_handler(address)
+    _, class_name = handler.rsplit(".", 1)
+    return handler, class_name.lower()
+
+
+class Client:
+    """Represents client."""
+
+    writer: FrameWriter
+    reader: FrameReader
+    devices: Dict[str, Device]
+    _queues: Iterable[asyncio.Queue]
+    _tasks: Iterable[asyncio.Task]
+    _connection_lost_callback: Any
+
+    def __init__(
+        self,
+        reader: FrameReader,
+        writer: FrameWriter,
+        connection_lost_callback: Callable[[], Awaitable[Any]],
+    ):
+        """Initialize Client object."""
+        self.writer = writer
+        self.reader = reader
+        self.devices = {}
+        lock: asyncio.Lock = asyncio.Lock()
+        read_queue: asyncio.Queue = asyncio.Queue()
+        write_queue: asyncio.Queue = asyncio.Queue()
+        self._queues = (read_queue, write_queue)
+        self._tasks = [
+            asyncio.create_task(self.handle_frame(*self._queues)) for _ in range(2)
+        ]
+        self._tasks.append(asyncio.create_task(self.handle_read(read_queue, lock)))
+        self._tasks.append(asyncio.create_task(self.handle_write(write_queue, lock)))
+        self._connection_lost_callback = connection_lost_callback
+
+    async def handle_frame(
+        self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
+    ) -> None:
+        """Handle frame processing."""
+        while True:
+            frame = await read_queue.get()
+            try:
+                handler, name = _get_device_handler_and_name(frame.sender)
+                device: Device = (
+                    self.devices[name]
+                    if name in self.devices
+                    else factory(handler, queue=write_queue)
+                )
+                await device.handle_frame(frame)
+                if frame.is_type(CheckDevice, ProgramVersion):
+                    write_queue.put_nowait(frame.response())
+
+                self.devices[name] = device
+
+            except UnknownDeviceError as e:
+                _LOGGER.debug("Device debug: %s", e)
+
+            except UnknownFrameError as e:
+                _LOGGER.debug("Frame debug: %s", e)
+
+            read_queue.task_done()
+
+    async def handle_read(self, read_queue: asyncio.Queue, lock: asyncio.Lock) -> None:
+        """Handle frame reads."""
+        while True:
+            try:
+                async with lock:
+                    read_queue.put_nowait(await self.reader.read())
+            except (UnknownFrameError, ReadError) as e:
+                _LOGGER.debug("Read debug: %s", e)
+            except FrameError as e:
+                _LOGGER.warning("Frame warning: %s", e)
+            except asyncio.TimeoutError:
+                await self.shutdown()
+                self._connection_lost_callback()
+
+    async def handle_write(
+        self, write_queue: asyncio.Queue, lock: asyncio.Lock
+    ) -> None:
+        """Handle frame writes."""
+        while True:
+            frame = await write_queue.get()
+            async with lock:
+                await self.writer.write(frame)
+            write_queue.task_done()
+
+    async def shutdown(self):
+        """Shutdown client tasks and handlers."""
+        for queue in self._queues:
+            await queue.join()
+
+        for task in self._tasks:
+            task.cancel()
+
+        await asyncio.gather(*self._tasks, return_exceptions=True)
+        await self.writer.close()
+
+    async def wait_for_device(self, device: str) -> Device:
+        """Wait for device and return it once it's available."""
+        while device not in self.devices:
+            await asyncio.sleep(1)
+
+        return self.devices[device]

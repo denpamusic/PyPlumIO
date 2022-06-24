@@ -1,4 +1,5 @@
-"""Contains version info representation."""
+"""Contains version info dataclass."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 

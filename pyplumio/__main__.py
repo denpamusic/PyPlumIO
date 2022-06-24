@@ -1,19 +1,21 @@
 """Contains serial connection example."""
+from __future__ import annotations
 
-import pyplumio
-from pyplumio.connection import Connection
-from pyplumio.devices import DeviceCollection
+import asyncio
 
-
-async def main(devices: DeviceCollection, connection: Connection) -> None:
-    """This callback will be called every second.
-
-    Keyword arguments:
-        devices -- collection of all available devices
-        connection -- instance of current connection
-    """
-    if devices.has("ecomax"):
-        print(devices.ecomax)
+from pyplumio import SerialConnection
 
 
-pyplumio.serial(main, device="/dev/ttyUSB0", baudrate=115200, interval=1)
+async def main() -> None:
+    """Connect and print out device sensors and parameters."""
+    async with SerialConnection(device="/dev/ttyUSB0", baudrate=115200) as connection:
+        await connection.connect()
+        device = connection.wait_for_device("ecomax")
+        sensors = await device.get_value("sensors")
+        parameters = await device.get_value("parameters")
+
+    print(sensors)
+    print(parameters)
+
+
+asyncio.run(main())

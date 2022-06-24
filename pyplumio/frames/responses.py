@@ -1,4 +1,5 @@
-"""Contains response frame classes."""
+"""Contains response frames."""
+from __future__ import annotations
 
 import struct
 from typing import Dict, Final, List, Tuple
@@ -13,6 +14,7 @@ from pyplumio.constants import (
     DATA_VERSION,
 )
 from pyplumio.data_types import DATA_TYPES, DataType
+from pyplumio.frames import Response
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -20,25 +22,33 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures import device_parameters, mixer_parameters, uid, var_string
-from pyplumio.structures.outputs import OUTPUTS
+from pyplumio.structures import boiler_parameters, mixer_parameters, uid, var_string
+from pyplumio.structures.outputs import (
+    FAN_OUTPUT,
+    FEEDER_OUTPUT,
+    HEATING_PUMP_OUTPUT,
+    LIGHTER_OUTPUT,
+    WATER_HEATER_PUMP_OUTPUT,
+)
 from pyplumio.structures.statuses import HEATING_TARGET, WATER_HEATER_TARGET
-from pyplumio.structures.temperatures import TEMPERATURES
-
-from . import Response
+from pyplumio.structures.temperatures import (
+    EXHAUST_TEMP,
+    FEEDER_TEMP,
+    HEATING_TEMP,
+    OUTSIDE_TEMP,
+    WATER_HEATER_TEMP,
+)
 
 
 class ProgramVersion(Response):
-    """Contains information about device software and hardware version.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents program version response. Contains software
+    version info.
     """
 
     frame_type: int = 0xC0
 
     def create_message(self) -> bytearray:
-        """Creates ProgramVersion message."""
+        """Create frame message."""
         if self._data is None:
             self._data = {}
 
@@ -62,11 +72,7 @@ class ProgramVersion(Response):
         return message
 
     def parse_message(self, message: bytearray):
-        """Parses ProgramVersion message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
+        """Parse frame message."""
         version_info = VersionInfo()
         [
             version_info.struct_tag,
@@ -81,16 +87,14 @@ class ProgramVersion(Response):
 
 
 class DeviceAvailable(Response):
-    """Contains device information.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents device available response. Contains network
+    information and status.
     """
 
     frame_type: int = 0xB0
 
     def create_message(self) -> bytearray:
-        """Creates DeviceAvailable message."""
+        """Creates frame message."""
         message = bytearray()
         message += b"\x01"
         if self._data is None:
@@ -118,11 +122,7 @@ class DeviceAvailable(Response):
         return message
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses DeviceAvailable message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
+        """Parse frame message."""
         offset = 1
         network_info = NetworkInfo(
             eth=EthernetParameters(
@@ -146,21 +146,12 @@ class DeviceAvailable(Response):
 
 
 class UID(Response):
-    """Contains device UID.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represents UID response. Contains product and model info."""
 
     frame_type: int = 0xB9
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses UID message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
-
+        """Parse frame message."""
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid, offset = uid.from_bytes(message, offset=3)
@@ -170,92 +161,66 @@ class UID(Response):
 
 
 class Password(Response):
-    """Contains device service password.
-
-    Attributes:
-        frame_type -- frame type
-    """
+    """Represent password response. Contains device service password."""
 
     frame_type: int = 0xBA
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses Password message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
+        """Parse frame message."""
         password = message[1:].decode() if message[1:] else None
         self._data = {DATA_PASSWORD: password}
 
 
 class BoilerParameters(Response):
-    """Contains editable parameters.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents boiler parameters response. Contains editable boiler
+    parameters.
     """
 
     frame_type: int = 0xB1
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses Parameters message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
-        self._data, _ = device_parameters.from_bytes(message)
+        """Parse frame message."""
+        self._data, _ = boiler_parameters.from_bytes(message)
 
 
 class MixerParameters(Response):
-    """Contains current mixers parameters.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents mixer parameters response. Contains editable mixer
+    parameters.
     """
 
     frame_type: int = 0xB2
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses Parameters message into usable data.
-
-        Keywords arguments:
-        message -- message to parse
-        """
+        """Parse frame message."""
         self._data, _ = mixer_parameters.from_bytes(message)
 
 
 REGDATA_SCHEMA: Final[Dict[int, str]] = {
     1792: DATA_MODE,
-    1024: TEMPERATURES[0],
-    1026: TEMPERATURES[1],
-    1025: TEMPERATURES[2],
-    1027: TEMPERATURES[3],
-    1030: TEMPERATURES[5],
+    1024: HEATING_TEMP,
+    1026: FEEDER_TEMP,
+    1025: WATER_HEATER_TEMP,
+    1027: OUTSIDE_TEMP,
+    1030: EXHAUST_TEMP,
     1280: HEATING_TARGET,
     1281: WATER_HEATER_TARGET,
-    1536: OUTPUTS[0],
-    1538: OUTPUTS[1],
-    1541: OUTPUTS[2],
-    1542: OUTPUTS[3],
-    3: OUTPUTS[5],
+    1536: FAN_OUTPUT,
+    1538: FEEDER_OUTPUT,
+    1541: HEATING_PUMP_OUTPUT,
+    1542: WATER_HEATER_PUMP_OUTPUT,
+    3: LIGHTER_OUTPUT,
 }
 
 
 class DataSchema(Response):
-    """Contains device data structure.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents data schema response. Contains schema that describes
+    regdata message structure.
     """
 
     frame_type: int = 0xD5
 
     def parse_message(self, message: bytearray) -> None:
-        """Parses DataSchema message into usable data.
-
-        Keywords arguments:
-            message -- message to parse
-        """
+        """Parse frame message."""
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
@@ -272,30 +237,25 @@ class DataSchema(Response):
 
 
 class SetBoilerParameter(Response):
-    """Contains set parameter response.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents set boiler parameter response. Empty response
+    that aknowledges, that boiler parameter was successfully changed.
     """
 
     frame_type: int = 0xB3
 
 
 class SetMixerParameter(Response):
-    """Sets mixer parameter.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents set mixer parameter response. Empty response
+    that aknowledges, that mixer parameter was successfully changed.
     """
 
     frame_type: int = 0xB4
 
 
 class BoilerControl(Response):
-    """Contains boiler control response.
-
-    Attributes:
-        frame_type -- frame type
+    """Represents boiler control response. Empty response
+    that aknowledges, that boiler control request was successfully
+    processed.
     """
 
     frame_type: int = 0xBB

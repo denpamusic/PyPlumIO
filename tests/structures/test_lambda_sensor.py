@@ -1,6 +1,7 @@
 """Test PyPlumIO lambda structure."""
 
-from pyplumio.structures.lambda_ import (
+from pyplumio.constants import DATA_LAMBDA_SENSOR
+from pyplumio.structures.lambda_sensor import (
     LAMBDA_LEVEL,
     LAMBDA_STATUS,
     LAMBDA_TARGET,
@@ -15,12 +16,12 @@ _data = {LAMBDA_STATUS: 1, LAMBDA_TARGET: 2, LAMBDA_LEVEL: 40}
 def test_from_bytes_empty():
     """Test conversion from bytes with empty data."""
     data, offset = from_bytes(_empty)
-    assert data == {}
+    assert data == {DATA_LAMBDA_SENSOR: {}}
     assert offset == 1
 
 
 def test_from_bytes():
     """Test conversion from bytes."""
     data, offset = from_bytes(_message)
-    assert data == _data
+    assert data == {DATA_LAMBDA_SENSOR: _data}
     assert offset == 4

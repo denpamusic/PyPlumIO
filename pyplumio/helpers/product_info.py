@@ -1,4 +1,5 @@
-"""Contains product info representation."""
+"""Contains product info dataclasses."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Optional
