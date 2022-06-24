@@ -6,6 +6,7 @@ from collections.abc import Awaitable, Callable, Iterable
 import logging
 from typing import Any, Dict, Tuple
 
+from pyplumio.constants import DATA_NETWORK
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -15,6 +16,14 @@ from pyplumio.exceptions import (
 )
 from pyplumio.frames.requests import CheckDevice, ProgramVersion
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.network_info import (
+    DEFAULT_IP,
+    DEFAULT_NETMASK,
+    WLAN_ENCRYPTION_NONE,
+    EthernetParameters,
+    NetworkInfo,
+    WirelessParameters,
+)
 from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,6 +42,7 @@ class Client:
     writer: FrameWriter
     reader: FrameReader
     devices: Dict[str, Device]
+    _network: NetworkInfo
     _queues: Iterable[asyncio.Queue]
     _tasks: Iterable[asyncio.Task]
     _connection_lost_callback: Any
@@ -57,6 +67,7 @@ class Client:
         self._tasks.append(asyncio.create_task(self.handle_read(read_queue, lock)))
         self._tasks.append(asyncio.create_task(self.handle_write(write_queue, lock)))
         self._connection_lost_callback = connection_lost_callback
+        self._network = NetworkInfo()
 
     async def handle_frame(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -73,7 +84,9 @@ class Client:
                 )
                 await device.handle_frame(frame)
                 if frame.is_type(CheckDevice, ProgramVersion):
-                    write_queue.put_nowait(frame.response())
+                    write_queue.put_nowait(
+                        frame.response(data={DATA_NETWORK: self._network})
+                    )
 
                 self.devices[name] = device
 
@@ -126,3 +139,33 @@ class Client:
             await asyncio.sleep(1)
 
         return self.devices[device]
+
+    def set_eth(
+        self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
+    ) -> None:
+        """Set ethernet info for sending to the devices. Used for
+        informational purposes only."""
+        self._network.eth = EthernetParameters(
+            ip=ip, netmask=netmask, gateway=gateway, status=True
+        )
+
+    def set_wlan(
+        self,
+        ssid: str,
+        ip: str,
+        encryption: int = WLAN_ENCRYPTION_NONE,
+        netmask: str = DEFAULT_NETMASK,
+        gateway: str = DEFAULT_IP,
+        quality: int = 100,
+    ) -> None:
+        """Set wireless info for sending to the devices. Used for
+        informational purposes only."""
+        self._network.wlan = WirelessParameters(
+            ssid=ssid,
+            encryption=encryption,
+            quality=quality,
+            ip=ip,
+            netmask=netmask,
+            gateway=gateway,
+            status=True,
+        )
