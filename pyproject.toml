@@ -43,6 +43,9 @@ exclude = [
     ".git",
 ]
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 [build-system]
 requires = [
     "setuptools>=42",
