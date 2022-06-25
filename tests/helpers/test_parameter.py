@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from pyplumio.constants import BROADCAST_ADDRESS
+from pyplumio.constants import BROADCAST_ADDRESS, STATE_OFF
 from pyplumio.frames.requests import (
     BoilerControl,
     SetBoilerParameter,
@@ -29,7 +29,7 @@ def fixture_parameter() -> BoilerParameter:
 def test_parameter_set(parameter: BoilerParameter) -> None:
     """Test setting parameter."""
     parameter.set(0)
-    assert parameter == 0
+    assert parameter == STATE_OFF
 
 
 def test_parameter_set_out_of_range(parameter: BoilerParameter) -> None:

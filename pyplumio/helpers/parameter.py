@@ -3,41 +3,50 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from typing import Any, Union
+from typing import Any
 
+from pyplumio.constants import STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.classname import ClassName
 from pyplumio.helpers.factory import factory
-from pyplumio.typing import Numeric
+from pyplumio.typing import ParameterValue
+
+
+def _normalize_parameter_value(value: ParameterValue) -> int:
+    """Normalize parameter value to integer."""
+    if isinstance(value, str):
+        return 1 if value == STATE_ON else 0
+
+    return int(value)
 
 
 class Parameter(ABC, ClassName):
     """Represents device parameter."""
 
     name: str
-    value: int
-    min_value: int
-    max_value: int
     extra: Any
+    _value: ParameterValue
+    _min_value: ParameterValue
+    _max_value: ParameterValue
 
     def __init__(
         self,
         queue: asyncio.Queue,
         recipient: int,
         name: str,
-        value: Numeric,
-        min_value: Numeric,
-        max_value: Numeric,
+        value: ParameterValue,
+        min_value: ParameterValue,
+        max_value: ParameterValue,
         extra: Any = None,
     ):
         """Initialize Parameter object."""
         self.recipient = recipient
         self.name = name
-        self.value = int(value)
-        self.min_value = int(min_value)
-        self.max_value = int(max_value)
         self.extra = extra
         self._queue = queue
+        self._value = value
+        self._min_value = min_value
+        self._max_value = max_value
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
@@ -45,46 +54,64 @@ class Parameter(ABC, ClassName):
     queue = asyncio.Queue(),
     recipient = {self.recipient},
     name = {self.name},
-    value = {self.value},
-    min_value = {self.min_value},
-    max_value = {self.max_value},
+    value = {self._value},
+    min_value = {self._min_value},
+    max_value = {self._max_value},
     extra = {self.extra}
 )"""
 
     def __int__(self) -> int:
         """Return integer representation of parameter value."""
-        return int(self.value)
+        return _normalize_parameter_value(self.value)
 
     def __eq__(self, other) -> bool:
         """Compare if parameter value is equal to other."""
-        return self.value == other
+        return self.value == _normalize_parameter_value(other)
 
     def __ge__(self, other) -> int:
         """Compare if parameter value is greater or equal to other."""
-        return self.value >= other
+        return self.value >= _normalize_parameter_value(other)
 
     def __gt__(self, other) -> int:
         """Compare if parameter value is greater than other."""
-        return self.value > other
+        return self.value > _normalize_parameter_value(other)
 
     def __le__(self, other) -> int:
         """Compare if parameter value is less or equal to other."""
-        return self.value <= other
+        return self.value <= _normalize_parameter_value(other)
 
     def __lt__(self, other) -> int:
         """Compare if parameter value is less that other."""
-        return self.value < other
+        return self.value < _normalize_parameter_value(other)
 
-    def set(self, value: Union[int, float]) -> None:
+    def set(self, value: ParameterValue) -> None:
         """Set parameter value."""
-        value = int(value)
-        if self.value != value and self.min_value <= value <= self.max_value:
-            self.value = value
+        value = _normalize_parameter_value(value)
+        if value == self.value:
+            return
+
+        if self.min_value <= value <= self.max_value:
+            self._value = value
             self._queue.put_nowait(self.request)
         else:
             raise ValueError(
                 f"parameter value must be between {self.min_value} and {self.max_value}"
             )
+
+    @property
+    def value(self) -> int:
+        """Return parameter value."""
+        return _normalize_parameter_value(self._value)
+
+    @property
+    def min_value(self) -> int:
+        """Return minimum allowed value."""
+        return _normalize_parameter_value(self._min_value)
+
+    @property
+    def max_value(self) -> int:
+        """Return maximum allowed value."""
+        return _normalize_parameter_value(self._max_value)
 
     @property
     @abstractmethod
@@ -104,7 +131,11 @@ class BoilerParameter(Parameter):
             else "frames.requests.SetBoilerParameter"
         )
 
-        return factory(handler, recipient=self.recipient, data=self.__dict__)
+        return factory(
+            handler,
+            recipient=self.recipient,
+            data={"name": self.name, "value": self.value},
+        )
 
 
 class MixerParameter(Parameter):
@@ -116,5 +147,5 @@ class MixerParameter(Parameter):
         return factory(
             "frames.requests.SetMixerParameter",
             recipient=self.recipient,
-            data=self.__dict__,
+            data={"name": self.name, "value": self.value, "extra": self.extra},
         )
