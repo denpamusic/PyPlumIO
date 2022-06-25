@@ -48,9 +48,9 @@ import asyncio
 from pyplumio import TcpConnection
 
 async def main():
-	async with TcpConnection(host="localhost", port=8899) as conn:
-		ecomax = await conn.wait_for_device("ecomax")
-    	# do something
+  async with TcpConnection(host="localhost", port=8899) as conn:
+    ecomax = await conn.wait_for_device("ecomax")
+    # do something
 	
 asyncio.run(main())
 ```
@@ -63,9 +63,9 @@ import asyncio
 from pyplumio import TcpConnection
 
 async def main():
-	async with SerialConnection(device="/dev/ttyUSB0", baudrate=115200) as conn:
-		ecomax = await conn.wait_for_device("ecomax")
-		# do something
+  async with SerialConnection(device="/dev/ttyUSB0", baudrate=115200) as conn:
+    ecomax = await conn.wait_for_device("ecomax")
+    # do something
 	
 asyncio.run(main())
 ```
