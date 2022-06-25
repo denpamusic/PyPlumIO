@@ -1,6 +1,9 @@
 """Contains timeout decorator."""
 
 import asyncio
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def timeout(seconds: int, raise_exception=True):
@@ -14,6 +17,12 @@ def timeout(seconds: int, raise_exception=True):
                 if raise_exception:
                     raise
 
+                _LOGGER.warning(
+                    "Timeout error: function timed out after %i second. %s%s",
+                    seconds,
+                    func.__name__,
+                    repr(args),
+                )
                 return None
 
         return wrapper
