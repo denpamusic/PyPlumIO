@@ -12,6 +12,7 @@ from serial import SerialException
 import serial_asyncio
 
 from pyplumio.client import Client
+from pyplumio.helpers.timeout import timeout
 from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -104,6 +105,7 @@ class Connection(ABC):
         return self._client
 
     @abstractmethod
+    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
@@ -128,13 +130,13 @@ class TcpConnection(Connection):
 )
 """
 
+    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open connection and return reader and writer objects."""
-        return await asyncio.wait_for(
-            asyncio.open_connection(host=self.host, port=self.port, **self._kwargs),
-            timeout=CONNECT_TIMEOUT,
+        return await asyncio.open_connection(
+            host=self.host, port=self.port, **self._kwargs
         )
 
 
@@ -156,18 +158,16 @@ class SerialConnection(Connection):
 )
 """
 
+    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open connection and return reader and writer objects."""
-        return await asyncio.wait_for(
-            serial_asyncio.open_serial_connection(
-                url=self.device,
-                baudrate=self.baudrate,
-                bytesize=serial_asyncio.serial.EIGHTBITS,
-                parity=serial_asyncio.serial.PARITY_NONE,
-                stopbits=serial_asyncio.serial.STOPBITS_ONE,
-                **self._kwargs,
-            ),
-            timeout=CONNECT_TIMEOUT,
+        return await serial_asyncio.open_serial_connection(
+            url=self.device,
+            baudrate=self.baudrate,
+            bytesize=serial_asyncio.serial.EIGHTBITS,
+            parity=serial_asyncio.serial.PARITY_NONE,
+            stopbits=serial_asyncio.serial.STOPBITS_ONE,
+            **self._kwargs,
         )

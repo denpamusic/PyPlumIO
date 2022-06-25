@@ -1,7 +1,6 @@
 """Contains reader and writer classes."""
 from __future__ import annotations
 
-import asyncio
 from asyncio import StreamReader, StreamWriter
 from typing import Final, Optional
 
@@ -10,6 +9,7 @@ from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import ChecksumError, LengthError, ReadError
 from pyplumio.frames import HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.timeout import timeout
 
 READER_BUFFER_SIZE: Final = 1000
 READER_TIMEOUT: Final = 5
@@ -25,16 +25,18 @@ class FrameWriter:
         """Initialize new Frame Writer object."""
         self._writer = writer
 
+    @timeout(WRITER_TIMEOUT)
     async def write(self, frame: Frame) -> None:
         """Write frame to the connection and
         wait for buffer to drain."""
         self._writer.write(frame.bytes)
-        await asyncio.wait_for(self._writer.drain(), timeout=WRITER_TIMEOUT)
+        await self._writer.drain()
 
+    @timeout(WRITER_TIMEOUT)
     async def close(self) -> None:
         """Close the stream writer."""
         self._writer.close()
-        await asyncio.wait_for(self._writer.wait_closed(), timeout=WRITER_TIMEOUT)
+        await self._writer.wait_closed()
 
 
 class FrameReader:
@@ -46,13 +48,12 @@ class FrameReader:
         """Initialize new Frame Reader object."""
         self._reader = reader
 
+    @timeout(READER_TIMEOUT)
     async def read(self) -> Optional[Frame]:
         """Attempt to read READER_BUFFER_SIZE bytes, find
         valid frame in it and return corresponding frame handler object.
         """
-        buffer = await asyncio.wait_for(
-            self._reader.read(READER_BUFFER_SIZE), timeout=READER_TIMEOUT
-        )
+        buffer = await self._reader.read(READER_BUFFER_SIZE)
 
         if len(buffer) >= HEADER_SIZE:
             header = buffer[0:HEADER_SIZE]

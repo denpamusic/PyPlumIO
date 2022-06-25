@@ -31,6 +31,7 @@ from pyplumio.frames import Frame, Request, get_frame_handler, requests
 from pyplumio.helpers.classname import ClassName
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BoilerParameter, MixerParameter, Parameter
+from pyplumio.helpers.timeout import timeout
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.typing import AsyncCallback, Numeric, ParameterTuple
 
@@ -38,6 +39,9 @@ devices: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
     ECOSTER_ADDRESS: "EcoSTER",
 }
+
+
+VALUE_TIMEOUT: int = 5
 
 
 def get_device_handler(address: int) -> str:
@@ -89,6 +93,7 @@ class AsyncDevice:
         """Initialize new Device object."""
         self._callbacks = {}
 
+    @timeout(VALUE_TIMEOUT, raise_exception=False)
     async def get_value(self, name: str) -> Any:
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
@@ -99,6 +104,7 @@ class AsyncDevice:
         value = getattr(self, name)
         return int(value) if isinstance(value, Parameter) else value
 
+    @timeout(VALUE_TIMEOUT, raise_exception=False)
     async def set_value(self, name: str, value: Numeric) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
@@ -112,6 +118,7 @@ class AsyncDevice:
 
         raise ParameterNotFoundError(f"parameter {name} not found")
 
+    @timeout(VALUE_TIMEOUT, raise_exception=False)
     async def get_parameter(self, name: str) -> Parameter:
         """Return a parameter."""
         while not hasattr(self, name):
