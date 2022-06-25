@@ -12,10 +12,7 @@ from serial import SerialException
 import serial_asyncio
 
 from pyplumio.client import Client
-from pyplumio.constants import ECOMAX_ADDRESS
-from pyplumio.frames.requests import StartMaster
-
-from .stream import FrameReader, FrameWriter
+from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,8 +59,11 @@ class Connection(ABC):
                 asyncio.create_task(self._reconnect())
 
         reader, writer = await self._open_connection()
-        await writer.write(StartMaster(recipient=ECOMAX_ADDRESS))
-        self._client = Client(reader, writer, connection_lost_callback=connection_lost)
+        self._client = Client(
+            FrameReader(reader),
+            FrameWriter(writer),
+            connection_lost_callback=connection_lost,
+        )
 
     async def _reconnect(self) -> None:
         """Establish connection and reconnect on failure."""
@@ -104,9 +104,10 @@ class Connection(ABC):
         return self._client
 
     @abstractmethod
-    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
-        """Open connection and return instances of
-        frame reader and writer."""
+    async def _open_connection(
+        self,
+    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        """Open connection and return reader and writer objects."""
 
 
 class TcpConnection(Connection):
@@ -127,14 +128,14 @@ class TcpConnection(Connection):
 )
 """
 
-    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
-        """Open connection and return instances of
-        frame reader and writer."""
-        reader, writer = await asyncio.wait_for(
+    async def _open_connection(
+        self,
+    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        """Open connection and return reader and writer objects."""
+        return await asyncio.wait_for(
             asyncio.open_connection(host=self.host, port=self.port, **self._kwargs),
             timeout=CONNECT_TIMEOUT,
         )
-        return FrameReader(reader), FrameWriter(writer)
 
 
 class SerialConnection(Connection):
@@ -155,10 +156,11 @@ class SerialConnection(Connection):
 )
 """
 
-    async def _open_connection(self) -> Tuple[FrameReader, FrameWriter]:
-        """Open connection and return instances of
-        frame reader and writer."""
-        reader, writer = await asyncio.wait_for(
+    async def _open_connection(
+        self,
+    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+        """Open connection and return reader and writer objects."""
+        return await asyncio.wait_for(
             serial_asyncio.open_serial_connection(
                 url=self.device,
                 baudrate=self.baudrate,
@@ -169,4 +171,3 @@ class SerialConnection(Connection):
             ),
             timeout=CONNECT_TIMEOUT,
         )
-        return FrameReader(reader), FrameWriter(writer)

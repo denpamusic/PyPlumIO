@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable, Iterable
 import logging
 from typing import Any, Dict, Tuple
 
-from pyplumio.constants import DATA_NETWORK
+from pyplumio.constants import DATA_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -14,7 +14,7 @@ from pyplumio.exceptions import (
     UnknownDeviceError,
     UnknownFrameError,
 )
-from pyplumio.frames.requests import CheckDevice, ProgramVersion
+from pyplumio.frames.requests import CheckDevice, ProgramVersion, StartMaster
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
     DEFAULT_IP,
@@ -60,6 +60,7 @@ class Client:
         lock: asyncio.Lock = asyncio.Lock()
         read_queue: asyncio.Queue = asyncio.Queue()
         write_queue: asyncio.Queue = asyncio.Queue()
+        write_queue.put_nowait(StartMaster(recipient=ECOMAX_ADDRESS))
         self._queues = (read_queue, write_queue)
         self._tasks = [
             asyncio.create_task(self.handle_frame(*self._queues)) for _ in range(2)
