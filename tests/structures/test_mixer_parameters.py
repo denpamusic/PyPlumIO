@@ -1,6 +1,6 @@
 """Contains tests for parameter structure."""
 
-from pyplumio.constants import DATA_MIXER_PARAMETERS
+from pyplumio.const import DATA_MIXER_PARAMETERS
 from pyplumio.structures.mixer_parameters import from_bytes
 
 _message_zero_parameters = bytearray.fromhex("00000000")

@@ -6,7 +6,7 @@ from collections.abc import Awaitable, Callable, Iterable
 import logging
 from typing import Any, Dict, Tuple
 
-from pyplumio.constants import DATA_NETWORK, ECOMAX_ADDRESS
+from pyplumio.const import DATA_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import (
     FrameError,

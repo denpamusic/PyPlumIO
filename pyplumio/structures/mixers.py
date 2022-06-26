@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_MIXER_SENSORS
+from pyplumio.const import DATA_MIXER_SENSORS
 
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET_TEMP: Final = "target_temp"

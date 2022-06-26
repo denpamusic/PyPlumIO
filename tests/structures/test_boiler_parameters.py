@@ -1,6 +1,6 @@
 """Contains tests for device parameters structure."""
 
-from pyplumio.constants import DATA_BOILER_PARAMETERS
+from pyplumio.const import DATA_BOILER_PARAMETERS
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS, from_bytes
 
 _message = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")

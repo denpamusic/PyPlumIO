@@ -1,6 +1,6 @@
 """Contains tests for modules structure."""
 
-from pyplumio.constants import DATA_MODULES
+from pyplumio.const import DATA_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.structures.modules import from_bytes
 

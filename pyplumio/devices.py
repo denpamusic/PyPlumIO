@@ -7,7 +7,7 @@ from collections.abc import Iterable
 import time
 from typing import Any, Dict, List, Set, Type
 
-from pyplumio.constants import (
+from pyplumio.const import (
     BROADCAST_ADDRESS,
     DATA_BOILER_PARAMETERS,
     DATA_BOILER_SENSORS,

@@ -1,6 +1,6 @@
 """Contains tests for lambda structure."""
 
-from pyplumio.constants import DATA_LAMBDA_SENSOR
+from pyplumio.const import DATA_LAMBDA_SENSOR
 from pyplumio.structures.lambda_sensor import (
     LAMBDA_LEVEL,
     LAMBDA_STATUS,

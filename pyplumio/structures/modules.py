@@ -4,7 +4,7 @@ from __future__ import annotations
 import struct
 from typing import Any, Dict, Final, Optional, Tuple
 
-from pyplumio.constants import DATA_MODULES
+from pyplumio.const import DATA_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
 
 MODULE_A: Final = "module_a"

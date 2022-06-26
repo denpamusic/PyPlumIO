@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import Any
 
-from pyplumio.constants import STATE_ON
+from pyplumio.const import STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.classname import ClassName
 from pyplumio.helpers.factory import factory

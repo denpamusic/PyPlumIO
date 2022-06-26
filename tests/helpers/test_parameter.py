@@ -4,7 +4,7 @@ import asyncio
 
 import pytest
 
-from pyplumio.constants import BROADCAST_ADDRESS, STATE_OFF
+from pyplumio.const import BROADCAST_ADDRESS, STATE_OFF
 from pyplumio.frames.requests import (
     BoilerControl,
     SetBoilerParameter,

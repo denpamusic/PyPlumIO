@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Final, List, Optional
 
 from pyplumio import util
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.classname import ClassName
 

@@ -5,7 +5,7 @@ import math
 from typing import Any, Dict, Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_LAMBDA_SENSOR
+from pyplumio.const import DATA_LAMBDA_SENSOR
 
 LAMBDA_LEVEL: Final = "lambda_level"
 LAMBDA_STATUS: Final = "lambda_status"

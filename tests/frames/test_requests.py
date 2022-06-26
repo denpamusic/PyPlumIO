@@ -2,7 +2,7 @@
 
 import pytest
 
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import requests, responses
 

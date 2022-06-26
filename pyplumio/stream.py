@@ -5,7 +5,7 @@ from asyncio import StreamReader, StreamWriter
 from typing import Final, Optional
 
 from pyplumio import util
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import ChecksumError, LengthError, ReadError
 from pyplumio.frames import HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory

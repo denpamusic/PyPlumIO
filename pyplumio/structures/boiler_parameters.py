@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.constants import DATA_BOILER_PARAMETERS
+from pyplumio.const import DATA_BOILER_PARAMETERS
 from pyplumio.typing import ParameterTuple
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"

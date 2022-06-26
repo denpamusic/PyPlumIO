@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.constants import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.frames import (
     ECONET_TYPE,
     ECONET_VERSION,

@@ -1,6 +1,6 @@
 """Contains tests for mixers structure."""
 
-from pyplumio.constants import DATA_MIXER_SENSORS
+from pyplumio.const import DATA_MIXER_SENSORS
 from pyplumio.structures.mixers import (
     MIXER_PUMP_OUTPUT,
     MIXER_TARGET_TEMP,

@@ -2,7 +2,7 @@
 
 import pytest
 
-from pyplumio.constants import (
+from pyplumio.const import (
     BROADCAST_ADDRESS,
     DATA_ALARMS,
     DATA_BOILER_SENSORS,

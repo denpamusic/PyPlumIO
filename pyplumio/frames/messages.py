@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 from pyplumio import util
-from pyplumio.constants import (
+from pyplumio.const import (
     DATA_BOILER_SENSORS,
     DATA_FAN_POWER,
     DATA_FUEL_CONSUMPTION,

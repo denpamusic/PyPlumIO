@@ -5,7 +5,7 @@ import struct
 from typing import Dict, Final, List, Tuple
 
 from pyplumio import util
-from pyplumio.constants import (
+from pyplumio.const import (
     DATA_MODE,
     DATA_NETWORK,
     DATA_PASSWORD,

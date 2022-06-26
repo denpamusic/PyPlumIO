@@ -1,6 +1,6 @@
 """Test PyPlumIO response frames."""
 
-from pyplumio.constants import (
+from pyplumio.const import (
     BROADCAST_ADDRESS,
     DATA_BOILER_PARAMETERS,
     DATA_MIXER_PARAMETERS,
