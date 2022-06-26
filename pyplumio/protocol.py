@@ -1,4 +1,4 @@
-"""Contains client representation."""
+"""Contains protocol representation."""
 from __future__ import annotations
 
 import asyncio
@@ -36,8 +36,8 @@ def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
     return handler, class_name.lower()
 
 
-class Client:
-    """Represents client."""
+class Protocol:
+    """Represents protocol."""
 
     writer: FrameWriter
     reader: FrameReader
@@ -53,7 +53,7 @@ class Client:
         writer: FrameWriter,
         connection_lost_callback: Callable[[], Awaitable[Any]],
     ):
-        """Initialize Client object."""
+        """Initialize new Protocol object."""
         self.writer = writer
         self.reader = reader
         self.devices = {}
@@ -63,14 +63,14 @@ class Client:
         write_queue.put_nowait(StartMaster(recipient=ECOMAX_ADDRESS))
         self._queues = (read_queue, write_queue)
         self._tasks = [
-            asyncio.create_task(self.handle_frame(*self._queues)) for _ in range(2)
+            asyncio.create_task(self.frame_consumer(*self._queues)) for _ in range(2)
         ]
-        self._tasks.append(asyncio.create_task(self.handle_read(read_queue, lock)))
-        self._tasks.append(asyncio.create_task(self.handle_write(write_queue, lock)))
+        self._tasks.append(asyncio.create_task(self.frame_producer(read_queue, lock)))
+        self._tasks.append(asyncio.create_task(self.write_consumer(write_queue, lock)))
         self._connection_lost_callback = connection_lost_callback
         self._network = NetworkInfo()
 
-    async def handle_frame(
+    async def frame_consumer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
     ) -> None:
         """Handle frame processing."""
@@ -99,7 +99,9 @@ class Client:
 
             read_queue.task_done()
 
-    async def handle_read(self, read_queue: asyncio.Queue, lock: asyncio.Lock) -> None:
+    async def frame_producer(
+        self, read_queue: asyncio.Queue, lock: asyncio.Lock
+    ) -> None:
         """Handle frame reads."""
         while True:
             try:
@@ -113,7 +115,7 @@ class Client:
                 await self.shutdown()
                 self._connection_lost_callback()
 
-    async def handle_write(
+    async def write_consumer(
         self, write_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame writes."""
@@ -124,7 +126,7 @@ class Client:
             write_queue.task_done()
 
     async def shutdown(self):
-        """Shutdown client tasks and handlers."""
+        """Shutdown protocol tasks and handlers."""
         for queue in self._queues:
             await queue.join()
 

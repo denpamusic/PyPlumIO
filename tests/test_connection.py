@@ -9,8 +9,8 @@ import pytest
 from serial import SerialException
 import serial_asyncio
 
-from pyplumio.client import Client
 from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.protocol import Protocol
 
 
 @pytest.fixture(name="tcp_connection")
@@ -25,10 +25,11 @@ def fixture_serial_connection() -> SerialConnection:
     return SerialConnection(device="/dev/ttyUSB0", test="test")
 
 
-@pytest.fixture(name="mock_client")
-def fixture_mock_client():
-    with patch("pyplumio.connection.Client", autospec=True) as mock_client:
-        yield mock_client
+@pytest.fixture(name="mock_protocol")
+def fixture_mock_protocol():
+    """Return mock Protocol object."""
+    with patch("pyplumio.connection.Protocol", autospec=True) as mock_protocol:
+        yield mock_protocol
 
 
 @patch("pyplumio.connection.FrameWriter")
@@ -36,7 +37,7 @@ def fixture_mock_client():
 async def test_tcp_connect(
     mock_reader,
     mock_writer,
-    mock_client,
+    mock_protocol,
     open_tcp_connection,
     tcp_connection: TcpConnection,
     stream_reader: StreamReader,
@@ -44,22 +45,22 @@ async def test_tcp_connect(
 ) -> None:
     """Test tcp connection logic."""
     await tcp_connection.connect()
-    assert isinstance(tcp_connection.client, Client)
+    assert isinstance(tcp_connection.protocol, Protocol)
     open_tcp_connection.assert_called_once_with(
         host="localhost", port=8899, test="test"
     )
     mock_reader.assert_called_with(stream_reader)
     mock_writer.assert_called_with(stream_writer)
-    assert mock_reader.return_value in mock_client.call_args.args
-    assert mock_writer.return_value in mock_client.call_args.args
-    assert "connection_lost_callback" in mock_client.call_args.kwargs
+    assert mock_reader.return_value in mock_protocol.call_args.args
+    assert mock_writer.return_value in mock_protocol.call_args.args
+    assert "connection_lost_callback" in mock_protocol.call_args.kwargs
     with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
-        mock_client.call_args.kwargs["connection_lost_callback"]()
+        mock_protocol.call_args.kwargs["connection_lost_callback"]()
         mock_reconnect.assert_called_once()
 
 
 async def test_serial_connect(
-    mock_client,
+    mock_protocol,
     open_serial_connection,
     serial_connection: SerialConnection,
 ) -> None:
@@ -76,7 +77,7 @@ async def test_serial_connect(
 
 
 async def test_reconnect(
-    mock_client,
+    mock_protocol,
     open_tcp_connection,
     tcp_connection: TcpConnection,
     bypass_asyncio_sleep,
@@ -123,12 +124,12 @@ async def test_context_manager(
 
 
 async def test_getattr(
-    mock_client,
+    mock_protocol,
     open_tcp_connection,
     tcp_connection: TcpConnection,
 ) -> None:
-    """Test that getattr is getting proxied to the client."""
-    instance = mock_client.return_value
+    """Test that getattr is getting proxied to the protocol."""
+    instance = mock_protocol.return_value
     instance.wait_for_device.return_value = None
     await tcp_connection.connect()
     await tcp_connection.wait_for_device("test")
@@ -136,14 +137,14 @@ async def test_getattr(
 
 
 async def test_close(
-    mock_client,
+    mock_protocol,
     open_tcp_connection,
     tcp_connection: TcpConnection,
 ) -> None:
     """Test connection close."""
     await tcp_connection.connect()
     await tcp_connection.close()
-    instance = mock_client.return_value
+    instance = mock_protocol.return_value
     instance.shutdown.assert_called_once()
 
 

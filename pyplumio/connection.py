@@ -11,8 +11,8 @@ from typing import Any, Dict, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from pyplumio.client import Client
 from pyplumio.helpers.timeout import timeout
+from pyplumio.protocol import Protocol
 from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class Connection(ABC):
     must me inherited from this class."""
 
     _kwargs: Dict[str, Any]
-    _client: Optional[Client] = None
+    _protocol: Optional[Protocol] = None
     _closing: bool = False
     _connection_handler: Awaitable[Any]
     _reconnect_on_failure: bool = True
@@ -35,7 +35,7 @@ class Connection(ABC):
         """Initialize Connection object."""
         self._kwargs = kwargs
         self._closing = False
-        self._client = None
+        self._protocol = None
         self._reconnect_on_failure = reconnect_on_failure
 
     async def __aenter__(self):
@@ -48,11 +48,11 @@ class Connection(ABC):
         await self.close()
 
     def __getattr__(self, name: str) -> Any:
-        """Return attributes from the underlying client."""
-        return getattr(self.client, name)
+        """Return attributes from the underlying protocol object."""
+        return getattr(self.protocol, name)
 
     async def _connect(self) -> None:
-        """Establish connection and initialize client object."""
+        """Establish connection and initialize the protocol object."""
 
         def connection_lost():
             """Reconnect on connection lost."""
@@ -60,7 +60,7 @@ class Connection(ABC):
                 asyncio.create_task(self._reconnect())
 
         reader, writer = await self._open_connection()
-        self._client = Client(
+        self._protocol = Protocol(
             FrameReader(reader),
             FrameWriter(writer),
             connection_lost_callback=connection_lost,
@@ -96,13 +96,13 @@ class Connection(ABC):
         """Close the connection."""
         self._closing = True
 
-        if self._client is not None:
-            await self._client.shutdown()
+        if self.protocol is not None:
+            await self.protocol.shutdown()
 
     @property
-    def client(self) -> Optional[Client]:
-        """Return client object."""
-        return self._client
+    def protocol(self) -> Optional[Protocol]:
+        """Return protocol object."""
+        return self._protocol
 
     @abstractmethod
     @timeout(CONNECT_TIMEOUT)
