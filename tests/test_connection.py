@@ -32,11 +32,13 @@ def fixture_mock_protocol():
         yield mock_protocol
 
 
+@patch("pyplumio.connection.Connection._connection_lost_callback")
 @patch("pyplumio.connection.FrameWriter")
 @patch("pyplumio.connection.FrameReader")
 async def test_tcp_connect(
     mock_reader,
     mock_writer,
+    mock_connection_lost_callback,
     mock_protocol,
     open_tcp_connection,
     tcp_connection: TcpConnection,
@@ -51,12 +53,11 @@ async def test_tcp_connect(
     )
     mock_reader.assert_called_with(stream_reader)
     mock_writer.assert_called_with(stream_writer)
-    assert mock_reader.return_value in mock_protocol.call_args.args
-    assert mock_writer.return_value in mock_protocol.call_args.args
-    assert "connection_lost_callback" in mock_protocol.call_args.kwargs
-    with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
-        mock_protocol.call_args.kwargs["connection_lost_callback"]()
-        mock_reconnect.assert_called_once()
+    mock_protocol.assert_called_once_with(
+        mock_reader.return_value,
+        mock_writer.return_value,
+        mock_connection_lost_callback,
+    )
 
 
 async def test_serial_connect(
@@ -94,6 +95,18 @@ async def test_reconnect(
         assert "Connection error" in caplog.text
 
     assert mock_connect.call_count == 4
+
+
+async def test_connection_lost_callback(
+    mock_protocol,
+    open_tcp_connection,
+    tcp_connection: TcpConnection,
+) -> None:
+    """Test that connection lost callback calls reconnect."""
+    await tcp_connection.connect()
+    with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
+        await mock_protocol.call_args.kwargs["connection_lost_callback"]()
+        mock_reconnect.assert_called_once()
 
 
 @patch("pyplumio.connection.Connection._connect")

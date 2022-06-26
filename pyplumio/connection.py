@@ -51,19 +51,18 @@ class Connection(ABC):
         """Return attributes from the underlying protocol object."""
         return getattr(self.protocol, name)
 
+    async def _connection_lost_callback(self) -> None:
+        """Callback to resume the connection on connection lost."""
+        if self._reconnect_on_failure and not self._closing:
+            await self._reconnect()
+
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
-
-        def connection_lost():
-            """Reconnect on connection lost."""
-            if self._reconnect_on_failure and not self._closing:
-                asyncio.create_task(self._reconnect())
-
         reader, writer = await self._open_connection()
         self._protocol = Protocol(
             FrameReader(reader),
             FrameWriter(writer),
-            connection_lost_callback=connection_lost,
+            connection_lost_callback=self._connection_lost_callback,
         )
 
     async def _reconnect(self) -> None:

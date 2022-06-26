@@ -33,7 +33,7 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BoilerParameter, MixerParameter, Parameter
 from pyplumio.helpers.timeout import timeout
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
-from pyplumio.typing import AsyncCallback, Numeric, ParameterTuple
+from pyplumio.typing import Numeric, ParameterTuple, ValueCallback
 
 devices: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
@@ -87,7 +87,7 @@ class FrameVersions:
 class AsyncDevice:
     """Represents a device with awaitable properties."""
 
-    _callbacks: Dict[str, List[AsyncCallback]]
+    _callbacks: Dict[str, List[ValueCallback]]
 
     def __init__(self):
         """Initialize new Device object."""
@@ -139,7 +139,7 @@ class AsyncDevice:
 
         self.__dict__[name] = value
 
-    def register_callback(self, sensors: Iterable[str], callback: AsyncCallback):
+    def register_callback(self, sensors: Iterable[str], callback: ValueCallback):
         """Register callback for sensor change."""
         for sensor in sensors:
             if sensor not in self._callbacks:
@@ -147,7 +147,7 @@ class AsyncDevice:
 
             self._callbacks[sensor].append(callback)
 
-    def remove_callback(self, sensors: Iterable[str], callback: AsyncCallback):
+    def remove_callback(self, sensors: Iterable[str], callback: ValueCallback):
         """Remove callback for sensor change."""
         for sensor in sensors:
             if sensor in self._callbacks and callback in self._callbacks[sensor]:

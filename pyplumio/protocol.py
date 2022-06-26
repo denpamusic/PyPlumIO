@@ -2,9 +2,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Iterable
+from collections.abc import Iterable
 import logging
-from typing import Any, Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from pyplumio.const import DATA_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
@@ -25,6 +25,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.stream import FrameReader, FrameWriter
+from pyplumio.typing import AsyncCallback
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -45,13 +46,13 @@ class Protocol:
     _network: NetworkInfo
     _queues: Iterable[asyncio.Queue]
     _tasks: Iterable[asyncio.Task]
-    _connection_lost_callback: Any
+    _connection_lost_callback: Optional[AsyncCallback]
 
     def __init__(
         self,
         reader: FrameReader,
         writer: FrameWriter,
-        connection_lost_callback: Callable[[], Awaitable[Any]],
+        connection_lost_callback: Optional[AsyncCallback] = None,
     ):
         """Initialize new Protocol object."""
         self.writer = writer
@@ -69,6 +70,23 @@ class Protocol:
         self._tasks.append(asyncio.create_task(self.write_consumer(write_queue, lock)))
         self._connection_lost_callback = connection_lost_callback
         self._network = NetworkInfo()
+
+    async def frame_producer(
+        self, read_queue: asyncio.Queue, lock: asyncio.Lock
+    ) -> None:
+        """Handle frame reads."""
+        while True:
+            try:
+                async with lock:
+                    read_queue.put_nowait(await self.reader.read())
+            except (UnknownFrameError, ReadError) as e:
+                _LOGGER.debug("Read debug: %s", e)
+            except FrameError as e:
+                _LOGGER.warning("Frame warning: %s", e)
+            except asyncio.TimeoutError:
+                await self.shutdown()
+                if self._connection_lost_callback is not None:
+                    await self._connection_lost_callback()
 
     async def frame_consumer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -99,30 +117,20 @@ class Protocol:
 
             read_queue.task_done()
 
-    async def frame_producer(
-        self, read_queue: asyncio.Queue, lock: asyncio.Lock
-    ) -> None:
-        """Handle frame reads."""
-        while True:
-            try:
-                async with lock:
-                    read_queue.put_nowait(await self.reader.read())
-            except (UnknownFrameError, ReadError) as e:
-                _LOGGER.debug("Read debug: %s", e)
-            except FrameError as e:
-                _LOGGER.warning("Frame warning: %s", e)
-            except asyncio.TimeoutError:
-                await self.shutdown()
-                self._connection_lost_callback()
-
     async def write_consumer(
         self, write_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame writes."""
         while True:
             frame = await write_queue.get()
-            async with lock:
-                await self.writer.write(frame)
+            try:
+                async with lock:
+                    await self.writer.write(frame)
+            except asyncio.TimeoutError:
+                await self.shutdown()
+                if self._connection_lost_callback is not None:
+                    await self._connection_lost_callback()
+
             write_queue.task_done()
 
     async def shutdown(self):
