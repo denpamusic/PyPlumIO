@@ -1,4 +1,4 @@
-"""Test PyPlumIO outputs structure."""
+"""Contains tests for outputs structure."""
 
 from typing import Dict
 

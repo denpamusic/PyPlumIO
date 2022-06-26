@@ -1,4 +1,4 @@
-"""Test PyPlumIO frame version structure."""
+"""Contains tests for frame version structure."""
 
 from pyplumio.structures.frame_versions import FRAME_VERSIONS, from_bytes
 

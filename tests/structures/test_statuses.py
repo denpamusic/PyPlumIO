@@ -1,4 +1,4 @@
-"""Test PyPlumIO statuses structure."""
+"""Contains tests for statuses structure."""
 
 from pyplumio.structures.statuses import (
     HEATING_STATUS,

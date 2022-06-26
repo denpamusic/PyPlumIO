@@ -1,4 +1,4 @@
-"""Test PyPlumIO uid structure."""
+"""Contains tests for UID structure."""
 
 from pyplumio.structures import uid
 

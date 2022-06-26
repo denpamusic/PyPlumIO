@@ -1,4 +1,4 @@
-"""Test PyPlumIO alarms structure."""
+"""Contains tests for alarms structure."""
 
 from pyplumio.structures.alarms import ALARMS, from_bytes
 

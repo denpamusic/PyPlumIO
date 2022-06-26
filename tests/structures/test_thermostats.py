@@ -1,4 +1,4 @@
-"""Test PyPlumIO thermostats structure."""
+"""Contains tests for thermostats structure."""
 
 from pyplumio.structures.thermostats import THERMOSTATS, from_bytes
 

@@ -1,4 +1,4 @@
-"""Test PyPlumIO output flags structure."""
+"""Contains tests for output flags structure."""
 
 from pyplumio.structures.output_flags import (
     DATA_CIRCULATION_PUMP_FLAG,

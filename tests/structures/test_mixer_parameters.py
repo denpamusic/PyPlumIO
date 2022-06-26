@@ -1,4 +1,4 @@
-"""Test PyPlumIO mixer parameter structure."""
+"""Contains tests for parameter structure."""
 
 from pyplumio.constants import DATA_MIXER_PARAMETERS
 from pyplumio.structures.mixer_parameters import from_bytes

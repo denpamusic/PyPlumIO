@@ -1,4 +1,4 @@
-"""Test PyPlumIO mixers structure."""
+"""Contains tests for mixers structure."""
 
 from pyplumio.constants import DATA_MIXER_SENSORS
 from pyplumio.structures.mixers import (

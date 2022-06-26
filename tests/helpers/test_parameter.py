@@ -1,4 +1,4 @@
-"""Test PyPlumIO parameter helper."""
+"""Contains test for Parameter class."""
 
 import asyncio
 

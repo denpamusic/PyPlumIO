@@ -1,3 +1,5 @@
+"""Contains tests for variable string structure."""
+
 from pyplumio.structures import var_string
 
 _message = bytearray.fromhex("0A454D33353050322D5A46")

@@ -154,7 +154,7 @@ class SerialConnection(Connection):
         return f"""SerialConnection(
     device = {self.device},
     baudrate = {self.baudrate},
-    kwargs = {self.kwargs}
+    kwargs = {self._kwargs}
 )
 """
 

@@ -37,39 +37,39 @@ def fixture_bypass_asyncio_create_task():
         yield
 
 
-@pytest.fixture(name="mock_stream_writer")
-def fixture_mock_stream_writer() -> Generator[StreamWriter, None, None]:
+@pytest.fixture(name="stream_writer")
+def fixture_stream_writer() -> Generator[StreamWriter, None, None]:
     """Return mock of asyncio stream writer."""
     with patch("asyncio.StreamWriter", autospec=True) as stream_writer:
         yield stream_writer
 
 
-@pytest.fixture(name="mock_stream_reader")
-def fixture_mock_stream_reader() -> Generator[StreamReader, None, None]:
+@pytest.fixture(name="stream_reader")
+def fixture_stream_reader() -> Generator[StreamReader, None, None]:
     """Return mock of asyncio stream reader."""
     with patch("asyncio.StreamReader", autospec=True) as stream_reader:
         yield stream_reader
 
 
-@pytest.fixture(name="bypass_asyncio_connection")
-def fixture_bypass_asyncio_connection(
-    mock_stream_reader: StreamReader, mock_stream_writer: StreamWriter
+@pytest.fixture(name="open_tcp_connection")
+def fixture_open_tcp_connection(
+    stream_reader: StreamReader, stream_writer: StreamWriter
 ) -> Generator:
     """Bypass opening asyncio connection."""
     with patch(
-        "asyncio.open_connection", return_value=(mock_stream_reader, mock_stream_writer)
+        "asyncio.open_connection", return_value=(stream_reader, stream_writer)
     ) as connection:
         yield connection
 
 
-@pytest.fixture(name="bypass_serial_asyncio_connection")
-def fixture_bypass_serial_asyncio_connection(
-    mock_stream_reader: StreamReader, mock_stream_writer: StreamWriter
+@pytest.fixture(name="open_serial_connection")
+def fixture_open_serial_connection(
+    stream_reader: StreamReader, stream_writer: StreamWriter
 ) -> Generator:
     """Bypass opening serial_asyncio connection."""
     with patch(
         "serial_asyncio.open_serial_connection",
-        return_value=(mock_stream_reader, mock_stream_writer),
+        return_value=(stream_reader, stream_writer),
     ) as connection:
         yield connection
 

@@ -1,4 +1,4 @@
-"""Test PyPlumIO device parameters structure."""
+"""Contains tests for device parameters structure."""
 
 from pyplumio.constants import DATA_BOILER_PARAMETERS
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS, from_bytes
