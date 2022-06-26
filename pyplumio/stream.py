@@ -12,8 +12,8 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.timeout import timeout
 
 READER_BUFFER_SIZE: Final = 1000
-READER_TIMEOUT: Final = 5
-WRITER_TIMEOUT: Final = 5
+READER_TIMEOUT: Final = 10
+WRITER_TIMEOUT: Final = 10
 
 
 class FrameWriter:
