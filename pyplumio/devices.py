@@ -92,7 +92,7 @@ class AsyncDevice(ABC):
     def __init__(self):
         self._callbacks = {}
 
-    @timeout(VALUE_TIMEOUT, raise_exception=False)
+    @timeout(VALUE_TIMEOUT)
     async def get_value(self, name: str) -> Any:
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
@@ -103,7 +103,7 @@ class AsyncDevice(ABC):
         value = getattr(self, name)
         return int(value) if isinstance(value, Parameter) else value
 
-    @timeout(VALUE_TIMEOUT, raise_exception=False)
+    @timeout(VALUE_TIMEOUT)
     async def set_value(self, name: str, value: Numeric) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
@@ -117,7 +117,7 @@ class AsyncDevice(ABC):
 
         raise ParameterNotFoundError(f"parameter {name} not found")
 
-    @timeout(VALUE_TIMEOUT, raise_exception=False)
+    @timeout(VALUE_TIMEOUT)
     async def get_parameter(self, name: str) -> Parameter:
         """Return a parameter."""
         while not hasattr(self, name):
@@ -296,7 +296,7 @@ class EcoMAX(Device):
         self._fuel_burned += (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
 
-    async def _parse_regulator_data(self, regulator_data: bytes):
+    async def _parse_regulator_data(self, regulator_data: bytes) -> Dict[str, Any]:
         """Add sensor values from the regulator data."""
         offset = 0
         boolean_index = 0
