@@ -1,7 +1,6 @@
-"""Contains tests for Connection classes."""
+"""Contains tests for connection module."""
 
 import asyncio
-from asyncio import StreamReader, StreamWriter
 import logging
 from unittest.mock import patch
 
@@ -33,30 +32,20 @@ def fixture_mock_protocol():
 
 
 @patch("pyplumio.connection.Connection._connection_lost_callback")
-@patch("pyplumio.connection.FrameWriter")
-@patch("pyplumio.connection.FrameReader")
 async def test_tcp_connect(
-    mock_reader,
-    mock_writer,
     mock_connection_lost_callback,
     mock_protocol,
     open_tcp_connection,
-    tcp_connection: TcpConnection,
-    stream_reader: StreamReader,
-    stream_writer: StreamWriter,
 ) -> None:
     """Test tcp connection logic."""
+    tcp_connection = TcpConnection(host="localhost", port=8899, test="test")
     await tcp_connection.connect()
     assert isinstance(tcp_connection.protocol, Protocol)
     open_tcp_connection.assert_called_once_with(
         host="localhost", port=8899, test="test"
     )
-    mock_reader.assert_called_with(stream_reader)
-    mock_writer.assert_called_with(stream_writer)
     mock_protocol.assert_called_once_with(
-        mock_reader.return_value,
-        mock_writer.return_value,
-        mock_connection_lost_callback,
+        connection_lost_callback=mock_connection_lost_callback,
     )
 
 
