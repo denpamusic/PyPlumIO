@@ -168,6 +168,13 @@ class Protocol(TaskManager):
         if self.writer:
             await self.writer.close()
 
+    async def wait_for_device(self, device: str) -> Device:
+        """Wait for device and return it once it's available."""
+        while device not in self.devices:
+            await asyncio.sleep(0)
+
+        return self.devices[device]
+
     def set_eth(
         self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
     ) -> None:

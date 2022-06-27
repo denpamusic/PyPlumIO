@@ -11,7 +11,6 @@ from typing import Any, Dict, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
-from pyplumio.devices import Device
 from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import Protocol
 
@@ -95,13 +94,6 @@ class Connection(ABC):
         self._closing = True
         if self.protocol is not None:
             await self.protocol.shutdown()
-
-    async def wait_for_device(self, device: str) -> Device:
-        """Wait for device and return it once it's available."""
-        while device not in self.protocol.devices:
-            await asyncio.sleep(0)
-
-        return self.protocol.devices[device]
 
     @property
     def protocol(self) -> Optional[Protocol]:
