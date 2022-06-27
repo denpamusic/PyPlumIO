@@ -11,9 +11,9 @@ from typing import Any, Dict, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
+from pyplumio.devices import Device
 from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import Protocol
-from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +35,9 @@ class Connection(ABC):
         """Initialize Connection object."""
         self._kwargs = kwargs
         self._closing = False
-        self._protocol = None
+        self._protocol = Protocol(
+            connection_lost_callback=self._connection_lost_callback
+        )
         self._reconnect_on_failure = reconnect_on_failure
 
     async def __aenter__(self):
@@ -56,14 +58,11 @@ class Connection(ABC):
         if self._reconnect_on_failure and not self._closing:
             await self._reconnect()
 
+    @timeout(CONNECT_TIMEOUT)
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
         reader, writer = await self._open_connection()
-        self._protocol = Protocol(
-            FrameReader(reader),
-            FrameWriter(writer),
-            connection_lost_callback=self._connection_lost_callback,
-        )
+        self._protocol.connection_established(reader, writer)
 
     async def _reconnect(self) -> None:
         """Establish connection and reconnect on failure."""
@@ -72,7 +71,7 @@ class Connection(ABC):
                 await self._connect()
                 return
             except (
-                ConnectionError,
+                OSError,
                 SerialException,
                 asyncio.TimeoutError,
             ):
@@ -94,9 +93,15 @@ class Connection(ABC):
     async def close(self) -> None:
         """Close the connection."""
         self._closing = True
-
         if self.protocol is not None:
             await self.protocol.shutdown()
+
+    async def wait_for_device(self, device: str) -> Device:
+        """Wait for device and return it once it's available."""
+        while device not in self.protocol.devices:
+            await asyncio.sleep(0)
+
+        return self.protocol.devices[device]
 
     @property
     def protocol(self) -> Optional[Protocol]:
@@ -104,11 +109,10 @@ class Connection(ABC):
         return self._protocol
 
     @abstractmethod
-    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        """Open connection and return reader and writer objects."""
+        """Open the connection and return reader and writer objects."""
 
 
 class TcpConnection(Connection):
@@ -129,11 +133,10 @@ class TcpConnection(Connection):
 )
 """
 
-    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        """Open connection and return reader and writer objects."""
+        """Open the connection and return reader and writer objects."""
         return await asyncio.open_connection(
             host=self.host, port=self.port, **self._kwargs
         )
@@ -157,11 +160,10 @@ class SerialConnection(Connection):
 )
 """
 
-    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        """Open connection and return reader and writer objects."""
+        """Open the connection and return reader and writer objects."""
         return await serial_asyncio.open_serial_connection(
             url=self.device,
             baudrate=self.baudrate,

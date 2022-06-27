@@ -7,7 +7,6 @@ from typing import Any
 
 from pyplumio.const import STATE_ON
 from pyplumio.frames import Request
-from pyplumio.helpers.classname import ClassName
 from pyplumio.helpers.factory import factory
 from pyplumio.typing import ParameterValue
 
@@ -20,7 +19,7 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
     return int(value)
 
 
-class Parameter(ABC, ClassName):
+class Parameter(ABC):
     """Represents device parameter."""
 
     name: str
@@ -50,7 +49,7 @@ class Parameter(ABC, ClassName):
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
-        return f"""{self.get_classname()}(
+        return f"""{self.__class__.__name__}(
     queue = asyncio.Queue(),
     recipient = {self.recipient},
     name = {self.name},

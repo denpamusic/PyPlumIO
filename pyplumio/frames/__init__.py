@@ -7,7 +7,6 @@ from typing import Any, Dict, Final, List, Optional
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.classname import ClassName
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -55,7 +54,7 @@ def get_frame_handler(frame_type: int) -> str:
     raise UnknownFrameError(f"unknown frame type {frame_type}")
 
 
-class Frame(ABC, ClassName):
+class Frame(ABC):
     """Represents base frame class."""
 
     frame_type: int
@@ -89,7 +88,7 @@ class Frame(ABC, ClassName):
 
     def __repr__(self) -> str:
         """Return serializable string representation of the class."""
-        return f"""{self.get_classname()}(
+        return f"""{self.__class__.__name__}(
     type = {self.frame_type},
     recipient = {self.recipient},
     message = {self.message},

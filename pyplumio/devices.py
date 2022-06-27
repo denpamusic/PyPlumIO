@@ -5,7 +5,7 @@ from abc import ABC
 import asyncio
 from collections.abc import Iterable
 import time
-from typing import Any, Dict, List, Set, Type
+from typing import Any, Dict, List, Type
 
 from pyplumio.const import (
     BROADCAST_ADDRESS,
@@ -28,9 +28,9 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames import Frame, Request, get_frame_handler, requests
-from pyplumio.helpers.classname import ClassName
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BoilerParameter, MixerParameter, Parameter
+from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 from pyplumio.typing import Numeric, ParameterTuple, ValueCallback
@@ -84,13 +84,12 @@ class FrameVersions:
                     continue
 
 
-class AsyncDevice:
+class AsyncDevice(ABC):
     """Represents a device with awaitable properties."""
 
     _callbacks: Dict[str, List[ValueCallback]]
 
     def __init__(self):
-        """Initialize new Device object."""
         self._callbacks = {}
 
     @timeout(VALUE_TIMEOUT, raise_exception=False)
@@ -159,23 +158,22 @@ class Mixer(AsyncDevice):
 
     def __init__(self, index: int = 0):
         """Initialize new Mixer object."""
-        AsyncDevice.__init__(self)
+        super().__init__()
         self.index = index
 
 
-class Device(ABC, AsyncDevice, ClassName):
+class Device(AsyncDevice, TaskManager):
     """Represents base device."""
 
     address: int = BROADCAST_ADDRESS
     _queue: asyncio.Queue
-    _tasks: Set[asyncio.Task]
     _required_frames: Iterable[Type[Request]] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
-        AsyncDevice.__init__(self)
+        super().__init__()
+        super(AsyncDevice, self).__init__()
         self._queue = queue
-        self._tasks = set()
         versions = FrameVersions(queue, device=self)
         self.register_callback([DATA_FRAME_VERSIONS], versions.update)
 
@@ -183,9 +181,7 @@ class Device(ABC, AsyncDevice, ClassName):
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                task = asyncio.create_task(self.async_set_attribute(name, value))
-                self._tasks.add(task)
-                task.add_done_callback(self._tasks.discard)
+                self.create_task(self.async_set_attribute(name, value))
 
     @property
     def required_frames(self) -> Iterable[Type[Request]]:
