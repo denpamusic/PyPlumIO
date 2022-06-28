@@ -310,8 +310,8 @@ class EcoMAX(Device):
         offset = 0
         boolean_index = 0
         data = {}
-        schema = await self.get_value(DATA_SCHEMA)
         try:
+            schema = await self.get_value(DATA_SCHEMA)
             for param in schema:
                 param_id, param_type = param
                 if not isinstance(param_type, Boolean) and boolean_index > 0:
