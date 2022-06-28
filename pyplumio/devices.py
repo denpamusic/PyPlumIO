@@ -84,6 +84,14 @@ class FrameVersions:
                     continue
 
 
+def _significantly_changed(old_value: Any, new_value: Any) -> bool:
+    """Check if value is significantly changed."""
+    if isinstance(old_value, float) and isinstance(new_value, float):
+        return round(old_value, 1) != round(new_value, 1)
+
+    return old_value != new_value
+
+
 class AsyncDevice(ABC):
     """Represents a device with awaitable properties."""
 
@@ -131,7 +139,8 @@ class AsyncDevice(ABC):
 
     async def async_set_attribute(self, name: str, value: Any) -> None:
         """Call registered callbacks on setattr call."""
-        if name in self._callbacks:
+        old_value = self.__dict__[name] if name in self.__dict__ else None
+        if name in self._callbacks and _significantly_changed(old_value, value):
             for callback in self._callbacks[name]:
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
@@ -302,18 +311,22 @@ class EcoMAX(Device):
         boolean_index = 0
         data = {}
         schema = await self.get_value(DATA_SCHEMA)
-        for param in schema:
-            param_id, param_type = param
-            if not isinstance(param_type, Boolean) and boolean_index > 0:
-                offset += 1
-                boolean_index = 0
+        try:
+            for param in schema:
+                param_id, param_type = param
+                if not isinstance(param_type, Boolean) and boolean_index > 0:
+                    offset += 1
+                    boolean_index = 0
 
-            param_type.unpack(regulator_data[offset:])
-            if isinstance(param_type, Boolean):
-                boolean_index = param_type.index(boolean_index)
+                param_type.unpack(regulator_data[offset:])
+                if isinstance(param_type, Boolean):
+                    boolean_index = param_type.index(boolean_index)
 
-            data[param_id] = param_type.value
-            offset += param_type.size
+                data[param_id] = param_type.value
+                offset += param_type.size
+        except asyncio.TimeoutError:
+            # Return empty dictionary on exception.
+            pass
 
         return data
 
