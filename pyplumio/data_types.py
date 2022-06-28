@@ -29,8 +29,8 @@ class DataType(ABC):
     def __repr__(self) -> str:
         """Return serializable string representation of the class."""
         return f"""{self.__class__.__name__}(
-    data = {self._data!r},
-    size = {self.size}
+    data={self._data!r},
+    size={self.size},
 )
 """.strip()
 

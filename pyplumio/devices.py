@@ -137,10 +137,14 @@ class AsyncDevice(ABC):
 
         raise ParameterNotFoundError(f"parameter {name} not found")
 
-    async def async_set_attribute(self, name: str, value: Any) -> None:
+    async def async_set_attribute(
+        self, name: str, value: Any, skip_change_check: bool = False
+    ) -> None:
         """Call registered callbacks on setattr call."""
         old_value = self.__dict__[name] if name in self.__dict__ else None
-        if name in self._callbacks and _significantly_changed(old_value, value):
+        if name in self._callbacks and (
+            skip_change_check or _significantly_changed(old_value, value)
+        ):
             for callback in self._callbacks[name]:
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
@@ -203,7 +207,6 @@ class EcoMAX(Device):
 
     address: int = ECOMAX_ADDRESS
     mixers: Dict[int, Mixer] = {}
-    _fuel_burned: float = 0.0
     _fuel_burned_timestamp: float = 0.0
     _required_frames: Iterable[Type[Request]] = [
         requests.UID,
@@ -217,7 +220,6 @@ class EcoMAX(Device):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
         self._mixers: Dict[int, Mixer] = {}
-        self._fuel_burned = 0.0
         self._fuel_burned_timestamp = 0.0
         self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
         self.register_callback([DATA_MODE], self._add_boiler_control_parameter)
@@ -236,11 +238,6 @@ class EcoMAX(Device):
         )
         self.mixers[mixer_number] = mixer
         return mixer
-
-    def reset_burned_fuel(self):
-        """Reset burned fuel counter."""
-        self._fuel_burned = 0.0
-        self._fuel_burned_timestamp = time.time()
 
     async def _add_boiler_sensors(self, sensors: Dict[str, Any]):
         """Add boiler sensors values to the device object."""
@@ -302,8 +299,11 @@ class EcoMAX(Device):
         """Add burned fuel counter."""
         current_timestamp = time.time()
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
-        self._fuel_burned += (fuel_consumption / 3600) * seconds_passed
+        fuel_burned = (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
+        await self.async_set_attribute(
+            "fuel_burned", fuel_burned, skip_change_check=True
+        )
 
     async def _parse_regulator_data(self, regulator_data: bytes) -> Dict[str, Any]:
         """Add sensor values from the regulator data."""
@@ -312,28 +312,23 @@ class EcoMAX(Device):
         data = {}
         try:
             schema = await self.get_value(DATA_SCHEMA)
-            for param in schema:
-                param_id, param_type = param
-                if not isinstance(param_type, Boolean) and boolean_index > 0:
+            for parameter in schema:
+                parameter_id, parameter_type = parameter
+                if not isinstance(parameter_type, Boolean) and boolean_index > 0:
                     offset += 1
                     boolean_index = 0
 
-                param_type.unpack(regulator_data[offset:])
-                if isinstance(param_type, Boolean):
-                    boolean_index = param_type.index(boolean_index)
+                parameter_type.unpack(regulator_data[offset:])
+                if isinstance(parameter_type, Boolean):
+                    boolean_index = parameter_type.index(boolean_index)
 
-                data[param_id] = param_type.value
-                offset += param_type.size
+                data[parameter_id] = parameter_type.value
+                offset += parameter_type.size
         except asyncio.TimeoutError:
             # Return empty dictionary on exception.
             pass
 
         return data
-
-    @property
-    def fuel_burned(self):
-        """Return amount of fuel burned since connection start."""
-        return self._fuel_burned
 
 
 class EcoSTER(Device):

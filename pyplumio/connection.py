@@ -119,9 +119,9 @@ class TcpConnection(Connection):
     def __repr__(self):
         """Return string representation of the class."""
         return f"""TcpConnection(
-    host = {self.host},
-    port = {self.port},
-    kwargs = {self._kwargs}
+    host={self.host},
+    port={self.port},
+    kwargs={self._kwargs},
 )
 """
 
@@ -146,9 +146,9 @@ class SerialConnection(Connection):
     def __repr__(self):
         """Return string representation of the class."""
         return f"""SerialConnection(
-    device = {self.device},
-    baudrate = {self.baudrate},
-    kwargs = {self._kwargs}
+    device={self.device},
+    baudrate={self.baudrate},
+    kwargs={self._kwargs},
 )
 """
 
