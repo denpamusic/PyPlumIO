@@ -36,7 +36,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [License](#license)
 
 ## Usage
-To interact with devices, you must first initialize connection by utilizing `pyplumio.TcpConnection` or `pyplumio.SerialConnection` classes.
+To interact with devices, you must first initialize connection by utilizing `pyplumio.open_tcp_connection` or `pyplumio.open_serial_connection` methods.
 
 You can find examples for each supported connection type below.
 
@@ -45,11 +45,11 @@ This is intended to be used with RS-485 to Ethernet/WiFi converters, which are r
 
 ```python
 import asyncio
-from pyplumio import TcpConnection
+import pyplumio
 
 async def main():
-  async with TcpConnection(host="localhost", port=8899) as conn:
-    ecomax = await conn.wait_for_device("ecomax")
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
     # do something
 	
 asyncio.run(main())
@@ -60,22 +60,24 @@ This is intended to be used with RS-485 to USB adapters, that are connected dire
 
 ```python
 import asyncio
-from pyplumio import TcpConnection
+import pyplumio
 
 async def main():
-  async with SerialConnection(device="/dev/ttyUSB0", baudrate=115200) as conn:
-    ecomax = await conn.wait_for_device("ecomax")
+  async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
     # do something
 	
 asyncio.run(main())
 ```
 
-_NB: Although `async_with` it is the preferred way to initialize the connection, this can also be done without using it:_
+_NB: Although `async with` it is the preferred way to initialize the connection, this can also be done without using it:_
 ```python
+from pyplumio import TcpConnection
+
 async def main():
-  conn = TcpConnection(host="localhost", port=8899)
-  await conn.connect()
-  conn = await conn.wait_for_device("ecomax")
+  connection = TcpConnection("localhost", 8899)
+  await connection.connect()
+  ecomax = await connection.wait_for_device("ecomax")
   # do something
 	
 asyncio.run(main())
@@ -92,36 +94,38 @@ For example you can read current feed water temperature by awaiting for `Device.
 
 The following example will print out current feed water temperature and close the connection.
 ```python
+import pyplumio
+
 async def main():
-  	async with TcpConnection(host="localhost", port=8899) as conn:
-      ecomax = await conn.wait_for_device("ecomax")
-      print(await ecomax.get_value("heating_temp"))
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    print(await ecomax.get_value("heating_temp"))
 ```
 
 ### Writing
 You can easily change controller parameters by awaiting for `set_value(name: str, value: int)` or by getting parameter via `get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 async def main():
-  	async with TcpConnection(host="localhost", port=8899) as conn:
-      ecomax = await conn.wait_for_device("ecomax")
-      await ecomax.set_value("heating_target_temp", 65)
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    await ecomax.set_value("heating_target_temp", 65)
 ```
 
 ```python
 async def main():
-  	async with TcpConnection(host="localhost", port=8899) as conn:
-      ecomax = await conn.wait_for_device("ecomax")
-      target_temp = await ecomax.get_parameter("heating_target_temp")
-      target.temp.set(65)
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    target_temp = await ecomax.get_parameter("heating_target_temp")
+    target.temp.set(65)
 ```
 Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO will raise `ValueError` if value is not within acceptable range. You can check allowed values by reading `min_value` and `max_value` attributes of parameter object.
 ```python
 async def main():
-  	async with TcpConnection(host="localhost", port=8899) as conn:
-      ecomax = await conn.wait_for_device("ecomax")
-      target_temp = await ecomax.get_parameter("heating_target_temp")
-      print(target_temp.min_value) # Prints minimum allowed target temperature.
-      print(target_temp.max_value) # Prints maximum allowed target temperature.
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    target_temp = await ecomax.get_parameter("heating_target_temp")
+    print(target_temp.min_value) # Prints minimum allowed target temperature.
+    print(target_temp.max_value) # Prints maximum allowed target temperature.
 ```
 
 ## Protocol
