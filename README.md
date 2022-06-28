@@ -84,7 +84,7 @@ asyncio.run(main())
 ```
 
 ### Data and Parameters
-Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `devices.ecomax.heating_temp`, `devices.ecomax.heating_target_temp`) or awaited (this is preferred) via `get_value(name: str)` and `get_parameter(name: str)` methods.
+Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `ecomax.heating_temp`, `ecomax.heating_target_temp`) or awaited (this is preferred) via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
 
 Each Plum device supports different attributes and parameters.
 
@@ -94,13 +94,37 @@ For example you can read current feed water temperature by awaiting for `Device.
 
 The following example will print out current feed water temperature and close the connection.
 ```python
+import asyncio
 import pyplumio
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.wait_for_device("ecomax")
     print(await ecomax.get_value("heating_temp"))
+    
+asyncio.run(main())
 ```
+
+It's also possible to register a callback, that will be called every time value is significantly changed.
+```python
+import asyncio
+import pyplumio
+
+async def my_callback(value: float) -> None:
+  print(f"Heating Temperature: {value}")
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    ecomax.register_callback(["heating_temp"], my_callback)
+    
+    while True:
+    	# Wait in the infinite loop.
+    	await asyncio.sleep(1)
+
+asyncio.run(main())
+````
+
 
 ### Writing
 You can easily change controller parameters by awaiting for `set_value(name: str, value: int)` or by getting parameter via `get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
