@@ -5,15 +5,10 @@ from pyplumio import data_types
 
 def test_type_repr():
     """Test serializable type representation."""
-    data_type = data_types.SignedChar(bytearray([0x16]))
-    assert (
-        repr(data_type)
-        == """SignedChar(
-    data = bytearray(b'\\x16'),
-    size = 1
-)
-""".strip()
-    )
+    data_type_repr = repr(data_types.SignedChar(bytearray([0x16])))
+    assert "SignedChar" in data_type_repr
+    assert "data=bytearray(b'\\x16')" in data_type_repr
+    assert "size=1" in data_type_repr
 
 
 def test_equality():

@@ -157,9 +157,9 @@ async def test_repr(
     """Test serializable representation."""
     tcp_repr = repr(tcp_connection)
     assert "TcpConnection" in tcp_repr
-    assert "host = localhost" in tcp_repr
-    assert "port = 8899" in tcp_repr
+    assert "host=localhost" in tcp_repr
+    assert "port=8899" in tcp_repr
     serial_repr = repr(serial_connection)
     assert "SerialConnection" in serial_repr
-    assert "device = /dev/ttyUSB0" in serial_repr
-    assert "baudrate = 115200" in serial_repr
+    assert "device=/dev/ttyUSB0" in serial_repr
+    assert "baudrate=115200" in serial_repr
