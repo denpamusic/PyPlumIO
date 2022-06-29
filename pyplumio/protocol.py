@@ -77,19 +77,20 @@ class Protocol(TaskManager):
         self, read_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame reads."""
-        while True:
+        while self.reader:
             try:
                 async with lock:
                     read_queue.put_nowait(await self.reader.read())
             except UnknownFrameError as e:
-                _LOGGER.debug("Unknown frame: %s", e)
+                _LOGGER.debug("UnknownFrameError: %s", e)
             except ReadError as e:
-                _LOGGER.debug("Read error: %s", e)
+                _LOGGER.debug("ReadError: %s", e)
             except FrameError as e:
-                _LOGGER.warning("Frame error: %s", e)
+                _LOGGER.warning("FrameError: %s", e)
             except (ConnectionError, asyncio.TimeoutError):
-                self.create_task(self.connection_lost())
                 break
+
+        self.create_task(self.connection_lost())
 
     async def frame_consumer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -112,7 +113,7 @@ class Protocol(TaskManager):
 
                 self.devices[name] = device
             except UnknownDeviceError as e:
-                _LOGGER.debug("Unknown device: %s", e)
+                _LOGGER.debug("UnknownDeviceError: %s", e)
 
             read_queue.task_done()
 
@@ -120,16 +121,17 @@ class Protocol(TaskManager):
         self, write_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame writes."""
-        while True:
+        while self.writer:
             frame = await write_queue.get()
             try:
                 async with lock:
                     await self.writer.write(frame)
             except (ConnectionError, asyncio.TimeoutError):
-                self.create_task(self.connection_lost())
                 break
 
             write_queue.task_done()
+
+        self.create_task(self.connection_lost())
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -137,19 +139,19 @@ class Protocol(TaskManager):
         """Start consumers and producer tasks."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
-        read_queue, write_queue = self._queues
+        read_queue, write_queue = self.queues
         write_queue.put_nowait(StartMaster(recipient=ECOMAX_ADDRESS))
         lock: asyncio.Lock = asyncio.Lock()
         self.create_task(self.write_consumer(write_queue, lock))
         self.create_task(self.frame_producer(read_queue, lock))
         for _ in range(2):
-            self.create_task(self.frame_consumer(*self._queues))
+            self.create_task(self.frame_consumer(*self.queues))
 
     async def connection_lost(self):
         """Shutdown consumers and call connection lost callback."""
         self.writer = None
         self.reader = None
-        for queue in self._queues:
+        for queue in self.queues:
             _empty_queue(queue)
 
         await self.shutdown()
@@ -158,7 +160,7 @@ class Protocol(TaskManager):
 
     async def shutdown(self):
         """Shutdown protocol tasks."""
-        await asyncio.wait([queue.join() for queue in self._queues])
+        await asyncio.wait([queue.join() for queue in self.queues])
 
         tasks = [task for task in self.tasks if not task == asyncio.current_task()]
         for task in tasks:
@@ -174,6 +176,11 @@ class Protocol(TaskManager):
             await asyncio.sleep(0)
 
         return self.devices[device]
+
+    @property
+    def queues(self) -> Iterable[asyncio.Queue]:
+        """Return protocol queues."""
+        return self._queues
 
     def set_eth(
         self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP

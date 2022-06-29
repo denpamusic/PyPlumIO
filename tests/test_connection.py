@@ -74,15 +74,13 @@ async def test_reconnect(
     caplog,
 ) -> None:
     """Test reconnect logic."""
-    with patch(
+    with caplog.at_level(logging.ERROR), patch(
         "pyplumio.connection.Connection._connect",
         side_effect=(ConnectionError, SerialException, asyncio.TimeoutError, None),
     ) as mock_connect:
         await tcp_connection.connect()
 
-    with caplog.at_level(logging.ERROR):
-        assert "Connection error" in caplog.text
-
+    assert "ConnectionError" in caplog.text
     assert mock_connect.call_count == 4
 
 
