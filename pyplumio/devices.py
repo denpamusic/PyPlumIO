@@ -29,7 +29,14 @@ from pyplumio.exceptions import (
 )
 from pyplumio.frames import Frame, Request, get_frame_handler, requests
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.parameter import BoilerParameter, MixerParameter, Parameter
+from pyplumio.helpers.parameter import (
+    BoilerBinaryParameter,
+    BoilerParameter,
+    MixerBinaryParameter,
+    MixerParameter,
+    Parameter,
+    is_binary_parameter,
+)
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
@@ -140,7 +147,7 @@ class AsyncDevice(ABC):
     async def async_set_attribute(
         self, name: str, value: Any, skip_change_check: bool = False
     ) -> None:
-        """Call registered callbacks on setattr call."""
+        """Call registered callbacks on value change."""
         old_value = self.__dict__[name] if name in self.__dict__ else None
         if name in self._callbacks and (
             skip_change_check or _significantly_changed(old_value, value)
@@ -250,7 +257,10 @@ class EcoMAX(Device):
         """Add Parameter objects to the device object."""
         parameter_objects: Dict[str, Parameter] = {}
         for name, value in parameters.items():
-            parameter = BoilerParameter(self._queue, self.address, *value)
+            cls = (
+                BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
+            )
+            parameter = cls(self._queue, self.address, *value)
             await self.async_set_attribute(name, parameter)
             parameter_objects[name] = parameter
 
@@ -272,7 +282,12 @@ class EcoMAX(Device):
         for mixer_number, mixer_data in enumerate(parameters):
             mixer = self._get_mixer(mixer_number)
             for name, value in mixer_data.items():
-                parameter = MixerParameter(
+                cls = (
+                    MixerBinaryParameter
+                    if is_binary_parameter(value)
+                    else MixerParameter
+                )
+                parameter = cls(
                     queue=self._queue,
                     recipient=self.address,
                     name=name,
@@ -285,7 +300,7 @@ class EcoMAX(Device):
 
     async def _add_boiler_control_parameter(self, mode: int) -> None:
         """Add BoilerControl parameter to the device instance."""
-        parameter = BoilerParameter(
+        parameter = BoilerBinaryParameter(
             queue=self._queue,
             recipient=self.address,
             name=PARAMETER_BOILER_CONTROL,

@@ -5,10 +5,10 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import Any
 
-from pyplumio.const import STATE_ON
+from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.typing import ParameterValue
+from pyplumio.typing import ParameterTuple, ParameterValue
 
 
 def _normalize_parameter_value(value: ParameterValue) -> int:
@@ -19,14 +19,20 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
     return int(value)
 
 
+def is_binary_parameter(parameter: ParameterTuple) -> bool:
+    """Check if parameter is binary."""
+    _, _, min_value, max_value = parameter
+    return min_value == 0 and max_value == 1
+
+
 class Parameter(ABC):
     """Represents device parameter."""
 
     name: str
     extra: Any
-    _value: ParameterValue
-    _min_value: ParameterValue
-    _max_value: ParameterValue
+    _value: int
+    _min_value: int
+    _max_value: int
 
     def __init__(
         self,
@@ -43,9 +49,9 @@ class Parameter(ABC):
         self.name = name
         self.extra = extra
         self._queue = queue
-        self._value = value
-        self._min_value = min_value
-        self._max_value = max_value
+        self._value = _normalize_parameter_value(value)
+        self._min_value = _normalize_parameter_value(min_value)
+        self._max_value = _normalize_parameter_value(max_value)
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
@@ -61,7 +67,7 @@ class Parameter(ABC):
 
     def __int__(self) -> int:
         """Return integer representation of parameter value."""
-        return _normalize_parameter_value(self.value)
+        return self.value
 
     def __eq__(self, other) -> bool:
         """Compare if parameter value is equal to other."""
@@ -86,7 +92,7 @@ class Parameter(ABC):
     def set(self, value: ParameterValue) -> None:
         """Set parameter value."""
         value = _normalize_parameter_value(value)
-        if value == self.value:
+        if value == self._value:
             return
 
         if self.min_value <= value <= self.max_value:
@@ -100,22 +106,34 @@ class Parameter(ABC):
     @property
     def value(self) -> int:
         """Return parameter value."""
-        return _normalize_parameter_value(self._value)
+        return self._value
 
     @property
     def min_value(self) -> int:
         """Return minimum allowed value."""
-        return _normalize_parameter_value(self._min_value)
+        return self._min_value
 
     @property
     def max_value(self) -> int:
         """Return maximum allowed value."""
-        return _normalize_parameter_value(self._max_value)
+        return self._max_value
 
     @property
     @abstractmethod
     def request(self) -> Request:
         """Return request to change the parameter."""
+
+
+class BinaryParameter(Parameter):
+    """Represents binary device parameter."""
+
+    def turn_on(self) -> None:
+        """Turn parameter on."""
+        self.set(STATE_ON)
+
+    def turn_off(self) -> None:
+        """Turn parameter off"""
+        self.set(STATE_OFF)
 
 
 class BoilerParameter(Parameter):
@@ -137,6 +155,10 @@ class BoilerParameter(Parameter):
         )
 
 
+class BoilerBinaryParameter(BoilerParameter, BinaryParameter):
+    """Represents boiler binary parameter."""
+
+
 class MixerParameter(Parameter):
     """Represents mixer parameter."""
 
@@ -148,3 +170,7 @@ class MixerParameter(Parameter):
             recipient=self.recipient,
             data={"name": self.name, "value": self.value, "extra": self.extra},
         )
+
+
+class MixerBinaryParameter(MixerParameter, BinaryParameter):
+    """Represents mixer binary parameter."""
