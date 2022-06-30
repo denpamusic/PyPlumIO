@@ -50,7 +50,7 @@ import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.wait_for_device("ecomax")
-    # do something
+    # Do something.
 	
 asyncio.run(main())
 ```
@@ -65,7 +65,7 @@ import pyplumio
 async def main():
   async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
     ecomax = await connection.wait_for_device("ecomax")
-    # do something
+    # Do something.
 	
 asyncio.run(main())
 ```
@@ -78,7 +78,7 @@ async def main():
   connection = TcpConnection("localhost", 8899)
   await connection.connect()
   ecomax = await connection.wait_for_device("ecomax")
-  # do something
+  # Do something.
 	
 asyncio.run(main())
 ```
@@ -142,14 +142,49 @@ async def main():
     target_temp = await ecomax.get_parameter("heating_target_temp")
     target.temp.set(65)
 ```
+
+For binary parameters (that can only have 0 or 1 value), you can use string literals "on", "off" as value or use `turn_on()`, `turn_off()` methods.
+```python
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    await ecomax.set_value("boiler_control", "on")
+```
+
+```python
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.wait_for_device("ecomax")
+    boiler = await ecomax.get_parameter("boiler_control")
+    boiler.turn_on()  # or boiler.turn_off()
+```
+
+
 Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO will raise `ValueError` if value is not within acceptable range. You can check allowed values by reading `min_value` and `max_value` attributes of parameter object.
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.wait_for_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
-    print(target_temp.min_value) # Prints minimum allowed target temperature.
-    print(target_temp.max_value) # Prints maximum allowed target temperature.
+    print(target_temp.min_value)  # Prints minimum allowed target temperature.
+    print(target_temp.max_value)  # Prints maximum allowed target temperature.
+```
+
+### Network Information
+You can send ethernet and wlan info to the controller to show on it's display.
+```python
+async def main():
+  connection = pyplumio.open_tcp_connection("localhost", 8899)
+  connection.set_eth(ip="10.10.1.100", netmask="255.255.255.0", gateway="10.10.1.1")
+  connection.set_wlan(
+    ip="10.10.2.100",
+    netmask="255.255.255.0",
+    gateway="10.10.2.1",
+    ssid="My SSID",
+    encryption=WLAN_ENCRYPTION_WPA2,
+    quality=100,
+  )
+  await connection.connect()  # Initializes connection.
 ```
 
 ## Protocol
