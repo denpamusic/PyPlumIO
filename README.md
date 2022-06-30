@@ -159,7 +159,6 @@ async def main():
     boiler.turn_on()  # or boiler.turn_off()
 ```
 
-
 Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO will raise `ValueError` if value is not within acceptable range. You can check allowed values by reading `min_value` and `max_value` attributes of parameter object.
 ```python
 async def main():
