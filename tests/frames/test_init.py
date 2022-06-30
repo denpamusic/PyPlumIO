@@ -6,12 +6,14 @@ from unittest.mock import patch
 import pytest
 
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.exceptions import UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
     ECONET_VERSION,
     HEADER_SIZE,
     Request,
     Response,
+    get_frame_handler,
     requests,
     responses,
 )
@@ -39,6 +41,13 @@ def fixture_frames(request_: Request, response: Response) -> Tuple[Request, Resp
 def fixture_types() -> Tuple[int, int]:
     """Return request and response types as a tuple."""
     return (requests.ProgramVersion.frame_type, responses.ProgramVersion.frame_type)
+
+
+def test_get_frame_handler() -> None:
+    """Test getting frame handler."""
+    assert get_frame_handler(0x18) == "frames.requests.StopMaster"
+    with pytest.raises(UnknownFrameError):
+        get_frame_handler(0x0)
 
 
 def test_passing_frame_type(

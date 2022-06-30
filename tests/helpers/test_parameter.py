@@ -1,6 +1,7 @@
-"""Contains test for Parameter class."""
+"""Contains tests for Parameter class."""
 
 import asyncio
+from unittest.mock import patch
 
 import pytest
 
@@ -30,6 +31,9 @@ def test_parameter_set(parameter: BoilerParameter) -> None:
     """Test setting parameter."""
     parameter.set(0)
     assert parameter == STATE_OFF
+
+    parameter.set("on")
+    assert parameter == 1
 
 
 def test_parameter_set_out_of_range(parameter: BoilerParameter) -> None:
@@ -96,3 +100,14 @@ def test_parameter_request_control() -> None:
         max_value=1,
     )
     assert isinstance(parameter.request, BoilerControl)
+
+
+@patch("asyncio.Queue.put_nowait")
+def test_parameter_request_with_unchanged_value(
+    mock_put_nowait, parameter: BoilerParameter
+) -> None:
+    """Test that frame doesn't get dispatched if value is unchanged."""
+    parameter.set("off")
+    mock_put_nowait.assert_called_once()
+    parameter.set("off")
+    mock_put_nowait.not_called()
