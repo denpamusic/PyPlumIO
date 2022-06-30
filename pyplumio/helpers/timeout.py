@@ -20,10 +20,12 @@ def timeout(seconds: int, raise_exception: bool = True):
                     raise
 
                 _LOGGER.warning(
-                    "Timeout error: function timed out after %i second. %s%s",
+                    "TimeoutError: function timed out after %i second. %s(%s%s%s)",
                     seconds,
                     func.__name__,
-                    repr(args),
+                    ", ".join(args),
+                    ", " if kwargs else "",
+                    ", ".join([f"{k} = {v}" for k, v in kwargs.items()]),
                 )
                 return None
 
