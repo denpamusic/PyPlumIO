@@ -7,12 +7,12 @@ _message_zero_parameters = bytearray.fromhex("00000000")
 _message = bytearray.fromhex("000002021E1428281E3C2314283C1E3C")
 _data = [
     {
-        "mix_target_temp": ("mix_target_temp", 30, 20, 40),
-        "min_mix_target_temp": ("min_mix_target_temp", 40, 30, 60),
+        "mix_target_temp": (30, 20, 40),
+        "min_mix_target_temp": (40, 30, 60),
     },
     {
-        "mix_target_temp": ("mix_target_temp", 35, 20, 40),
-        "min_mix_target_temp": ("min_mix_target_temp", 60, 30, 60),
+        "mix_target_temp": (35, 20, 40),
+        "min_mix_target_temp": (60, 30, 60),
     },
 ]
 

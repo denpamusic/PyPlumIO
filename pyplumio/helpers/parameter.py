@@ -21,7 +21,7 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
 
 def is_binary_parameter(parameter: ParameterTuple) -> bool:
     """Check if parameter is binary."""
-    _, _, min_value, max_value = parameter
+    _, min_value, max_value = parameter
     return min_value == 0 and max_value == 1
 
 

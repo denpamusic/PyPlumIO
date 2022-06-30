@@ -166,7 +166,7 @@ def from_bytes(
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
             parameter_name = BOILER_PARAMETERS[index]
-            parameters[parameter_name] = (parameter_name, *parameter)
+            parameters[parameter_name] = parameter
 
         offset += 3
 

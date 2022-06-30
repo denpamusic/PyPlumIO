@@ -131,10 +131,10 @@ def test_password_parse_message() -> None:
 
 _boiler_parameters_bytes = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
 _boiler_parameters_data = {
-    BOILER_PARAMETERS[0]: (BOILER_PARAMETERS[0], 80, 61, 100),
-    BOILER_PARAMETERS[1]: (BOILER_PARAMETERS[1], 60, 41, 76),
-    BOILER_PARAMETERS[2]: (BOILER_PARAMETERS[2], 40, 20, 59),
-    BOILER_PARAMETERS[4]: (BOILER_PARAMETERS[4], 20, 1, 250),
+    BOILER_PARAMETERS[0]: (80, 61, 100),
+    BOILER_PARAMETERS[1]: (60, 41, 76),
+    BOILER_PARAMETERS[2]: (40, 20, 59),
+    BOILER_PARAMETERS[4]: (20, 1, 250),
 }
 
 
@@ -147,8 +147,8 @@ def test_boiler_parameters_parse_message() -> None:
 _mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
 _mixer_parameters_data = [
     {
-        "mix_target_temp": ("mix_target_temp", 30, 40, 60),
-        "min_mix_target_temp": ("min_mix_target_temp", 20, 30, 40),
+        "mix_target_temp": (30, 40, 60),
+        "min_mix_target_temp": (20, 30, 40),
     }
 ]
 

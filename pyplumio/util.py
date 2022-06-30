@@ -1,9 +1,12 @@
 """Contains various helper methods."""
 
+from collections.abc import Sequence
 import functools
 import socket
 import struct
-from typing import List, Optional, Tuple
+from typing import Optional
+
+from pyplumio.helpers.typing import ParameterTuple
 
 unpack_float = struct.Struct("<f").unpack
 unpack_char = struct.Struct("<b").unpack
@@ -22,7 +25,7 @@ def crc(data: bytes) -> int:
     return functools.reduce(lambda x, y: x ^ y, data)
 
 
-def to_hex(data: bytes) -> List[str]:
+def to_hex(data: bytes) -> Sequence[str]:
     """Return a hex representation of byte string."""
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 
@@ -34,7 +37,7 @@ def unpack_ushort(data: bytes) -> int:
 
 def unpack_parameter(
     data: bytearray, offset: int, size: int = 1
-) -> Optional[Tuple[int, int, int]]:
+) -> Optional[ParameterTuple]:
     """Unpack a device parameter."""
     if not check_parameter(data[offset : offset + size * 3]):
         return None

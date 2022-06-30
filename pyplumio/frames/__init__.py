@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Final, List, Optional
+from collections.abc import Sequence
+from typing import Any, Dict, Final, Optional
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
@@ -159,7 +160,7 @@ class Frame(ABC):
         return bytes(data)
 
     @property
-    def hex(self) -> List[str]:
+    def hex(self) -> Sequence[str]:
         """Return hex frame representation."""
         return util.to_hex(self.bytes)
 

@@ -260,7 +260,14 @@ class EcoMAX(Device):
             cls = (
                 BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
             )
-            parameter = cls(self._queue, self.address, *value)
+            parameter = cls(
+                self._queue,
+                self.address,
+                name,
+                value=value[0],
+                max_value=value[1],
+                min_value=value[2],
+            )
             await self.async_set_attribute(name, parameter)
             parameter_objects[name] = parameter
 
@@ -291,9 +298,9 @@ class EcoMAX(Device):
                     queue=self._queue,
                     recipient=self.address,
                     name=name,
-                    value=value[1],
-                    min_value=value[2],
-                    max_value=value[3],
+                    value=value[0],
+                    min_value=value[1],
+                    max_value=value[2],
                     extra=mixer_number,
                 )
                 await mixer.async_set_attribute(name, parameter)
