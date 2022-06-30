@@ -1,10 +1,12 @@
 """Contains temperatures structure parser."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 import math
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
+from pyplumio.helpers.typing import Records
 
 HEATING_TEMP: Final = "heating_temp"
 FEEDER_TEMP: Final = "feeder_temp"
@@ -23,7 +25,7 @@ HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
 EXCHANGER_TEMP: Final = "exchanger_temp"
 AIR_IN_TEMP: Final = "air_in_temp"
 AIR_OUT_TEMP: Final = "air_out_temp"
-TEMPERATURES: Final = (
+TEMPERATURES: Sequence[str] = (
     HEATING_TEMP,
     FEEDER_TEMP,
     WATER_HEATER_TEMP,
@@ -45,8 +47,8 @@ TEMPERATURES: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

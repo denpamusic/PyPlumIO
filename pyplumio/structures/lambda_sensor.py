@@ -1,16 +1,18 @@
 """Contains lambda structure parser."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 import math
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_LAMBDA_SENSOR
+from pyplumio.helpers.typing import Records
 
 LAMBDA_LEVEL: Final = "lambda_level"
 LAMBDA_STATUS: Final = "lambda_status"
 LAMBDA_TARGET: Final = "lambda_target"
-LAMBDA: Final = (
+LAMBDA: Sequence[str] = (
     LAMBDA_LEVEL,
     LAMBDA_STATUS,
     LAMBDA_TARGET,
@@ -18,13 +20,13 @@ LAMBDA: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
-    lambda_sensor: Dict[str, Any] = {}
+    lambda_sensor: Records = {}
     if message[offset] != 0xFF:
         lambda_sensor[LAMBDA_STATUS] = message[offset]
         lambda_sensor[LAMBDA_TARGET] = message[offset + 1]

@@ -1,8 +1,9 @@
 """Contains response frames."""
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence
 import struct
-from typing import Dict, Final, List, Tuple
+from typing import Tuple
 
 from pyplumio import util
 from pyplumio.const import (
@@ -195,7 +196,7 @@ class MixerParameters(Response):
         self._data, _ = mixer_parameters.from_bytes(message)
 
 
-REGDATA_SCHEMA: Final[Dict[int, str]] = {
+REGDATA_SCHEMA: Mapping[int, str] = {
     1792: DATA_MODE,
     1024: HEATING_TEMP,
     1026: FEEDER_TEMP,
@@ -224,7 +225,7 @@ class DataSchema(Response):
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
-        schema: List[Tuple[str, DataType]] = []
+        schema: MutableSequence[Tuple[str, DataType]] = []
         if blocks_number > 0:
             for _ in range(blocks_number):
                 param_type = message[offset]

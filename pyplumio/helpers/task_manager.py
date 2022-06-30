@@ -1,7 +1,7 @@
 """Contains tasks helper."""
 
 import asyncio
-from typing import Any, Coroutine, Iterable, Set
+from typing import Any, Coroutine, Set
 
 
 class TaskManager:
@@ -30,6 +30,6 @@ class TaskManager:
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 
     @property
-    def tasks(self) -> Iterable[asyncio.Task]:
+    def tasks(self) -> Set[asyncio.Task]:
         """Return set of task references."""
         return self._tasks

@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Any, Dict, Final, Optional
+from collections.abc import Mapping, Sequence
+from typing import Final, Optional
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import UnknownFrameError
+from pyplumio.helpers.typing import Records
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -19,7 +20,7 @@ ECONET_TYPE: Final = 0x30
 ECONET_VERSION: Final = 0x05
 
 # Dictionary of frame handler classes indexed by frame types.
-frames: Dict[int, str] = {
+frames: Mapping[int, str] = {
     0x18: "requests.StopMaster",
     0x19: "requests.StartMaster",
     0x30: "requests.CheckDevice",
@@ -64,7 +65,7 @@ class Frame(ABC):
     sender: int
     sender_type: int
     econet_version: int
-    _data: Optional[Dict[str, Any]]
+    _data: Optional[Records]
 
     def __init__(
         self,
@@ -74,7 +75,7 @@ class Frame(ABC):
         sender: int = ECONET_ADDRESS,
         sender_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
-        data: Optional[Dict[str, Any]] = None,
+        data: Optional[Records] = None,
     ):
         """Initialize new Frame object."""
         self._data = data

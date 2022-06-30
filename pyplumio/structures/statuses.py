@@ -1,13 +1,16 @@
 """Contains outputs structure parser."""
 from __future__ import annotations
 
-from typing import Any, Dict, Final, Optional, Tuple
+from collections.abc import Sequence
+from typing import Final, Optional, Tuple
+
+from pyplumio.helpers.typing import Records
 
 HEATING_TARGET: Final = "heating_target"
 HEATING_STATUS: Final = "heating_status"
 WATER_HEATER_TARGET: Final = "water_heater_target"
 WATER_HEATER_STATUS: Final = "water_heater_status"
-STATUSES: Final = (
+STATUSES: Sequence[str] = (
     HEATING_TARGET,
     HEATING_STATUS,
     WATER_HEATER_TARGET,
@@ -16,8 +19,8 @@ STATUSES: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

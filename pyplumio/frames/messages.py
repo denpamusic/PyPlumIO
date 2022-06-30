@@ -1,8 +1,6 @@
 """Contains message frames."""
 from __future__ import annotations
 
-from typing import Any, Dict
-
 from pyplumio import util
 from pyplumio.const import (
     DATA_BOILER_SENSORS,
@@ -18,6 +16,7 @@ from pyplumio.const import (
 )
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message
+from pyplumio.helpers.typing import Records
 from pyplumio.structures import (
     alarms,
     frame_versions,
@@ -58,7 +57,7 @@ class SensorData(Message):
 
     def parse_message(self, message: bytearray) -> None:
         """Parse message into data."""
-        sensors: Dict[str, Any] = {}
+        sensors: Records = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
         sensors[DATA_MODE] = message[offset]
         offset += 1

@@ -1,10 +1,9 @@
 """Contains various helper methods."""
 
-from collections.abc import Sequence
 import functools
 import socket
 import struct
-from typing import Optional
+from typing import List, Optional
 
 from pyplumio.helpers.typing import ParameterTuple
 
@@ -25,7 +24,7 @@ def crc(data: bytes) -> int:
     return functools.reduce(lambda x, y: x ^ y, data)
 
 
-def to_hex(data: bytes) -> Sequence[str]:
+def to_hex(data: bytes) -> List[str]:
     """Return a hex representation of byte string."""
     return [f"{data[i]:02X}" for i in range(0, len(data))]
 

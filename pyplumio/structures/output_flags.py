@@ -1,15 +1,17 @@
 """Contains output flags structure parser."""
 from __future__ import annotations
 
-from typing import Any, Dict, Final, Optional, Tuple
+from collections.abc import Sequence
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
+from pyplumio.helpers.typing import Records
 
 DATA_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
 DATA_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
 DATA_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
 DATA_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
-OUTPUT_FLAGS: Final = (
+OUTPUT_FLAGS: Sequence[str] = (
     DATA_HEATING_PUMP_FLAG,
     DATA_WATER_HEATER_PUMP_FLAG,
     DATA_CIRCULATION_PUMP_FLAG,
@@ -18,8 +20,8 @@ OUTPUT_FLAGS: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
-from collections.abc import Iterable
+from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 import time
-from typing import Any, Dict, List, Type
+from typing import Type
 
 from pyplumio.const import (
     BROADCAST_ADDRESS,
@@ -39,10 +39,16 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
-from pyplumio.helpers.typing import Numeric, ParameterTuple, ValueCallback
+from pyplumio.helpers.typing import (
+    Numeric,
+    Parameters,
+    ParameterTuple,
+    Records,
+    ValueCallback,
+)
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 
-devices: Dict[int, str] = {
+devices: Mapping[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
     ECOSTER_ADDRESS: "EcoSTER",
 }
@@ -62,10 +68,10 @@ def get_device_handler(address: int) -> str:
 class FrameVersions:
     """Represents frame versions storage."""
 
-    versions: Dict[int, int]
+    versions: MutableMapping[int, int]
     _queue: asyncio.Queue
     _device: Device
-    _required_frames: Dict[int, int]
+    _required_frames: MutableMapping[int, int]
 
     def __init__(self, queue: asyncio.Queue, device: Device):
         """Initialize Frame Versions object."""
@@ -74,7 +80,7 @@ class FrameVersions:
         self._device = device
         self._required_frames = {x.frame_type: 0 for x in device.required_frames}
 
-    async def update(self, frame_versions: Dict[int, int]) -> None:
+    async def update(self, frame_versions: MutableMapping[int, int]) -> None:
         """Check frame versions and fetch outdated frames."""
         frame_versions = {**frame_versions, **self._required_frames}
         for frame_type, version in frame_versions.items():
@@ -91,7 +97,7 @@ class FrameVersions:
                     continue
 
 
-def _significantly_changed(old_value: Any, new_value: Any) -> bool:
+def _significantly_changed(old_value, new_value) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old_value, float) and isinstance(new_value, float):
         return round(old_value, 1) != round(new_value, 1)
@@ -102,13 +108,13 @@ def _significantly_changed(old_value: Any, new_value: Any) -> bool:
 class AsyncDevice(ABC):
     """Represents a device with awaitable properties."""
 
-    _callbacks: Dict[str, List[ValueCallback]]
+    _callbacks: MutableMapping[str, MutableSequence[ValueCallback]]
 
     def __init__(self):
         self._callbacks = {}
 
     @timeout(VALUE_TIMEOUT)
-    async def get_value(self, name: str) -> Any:
+    async def get_value(self, name: str):
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
         get_parameter(name: str) method."""
@@ -145,7 +151,7 @@ class AsyncDevice(ABC):
         raise ParameterNotFoundError(f"parameter {name} not found")
 
     async def async_set_attribute(
-        self, name: str, value: Any, skip_change_check: bool = False
+        self, name: str, value, skip_change_check: bool = False
     ) -> None:
         """Call registered callbacks on value change."""
         old_value = self.__dict__[name] if name in self.__dict__ else None
@@ -158,7 +164,7 @@ class AsyncDevice(ABC):
 
         self.__dict__[name] = value
 
-    def register_callback(self, sensors: Iterable[str], callback: ValueCallback):
+    def register_callback(self, sensors: Sequence[str], callback: ValueCallback):
         """Register callback for sensor change."""
         for sensor in sensors:
             if sensor not in self._callbacks:
@@ -166,7 +172,7 @@ class AsyncDevice(ABC):
 
             self._callbacks[sensor].append(callback)
 
-    def remove_callback(self, sensors: Iterable[str], callback: ValueCallback):
+    def remove_callback(self, sensors: Sequence[str], callback: ValueCallback):
         """Remove callback for sensor change."""
         for sensor in sensors:
             if sensor in self._callbacks and callback in self._callbacks[sensor]:
@@ -187,7 +193,7 @@ class Device(AsyncDevice, TaskManager):
 
     address: int = BROADCAST_ADDRESS
     _queue: asyncio.Queue
-    _required_frames: Iterable[Type[Request]] = []
+    _required_frames: Sequence[Type[Request]] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
@@ -204,7 +210,7 @@ class Device(AsyncDevice, TaskManager):
                 self.create_task(self.async_set_attribute(name, value))
 
     @property
-    def required_frames(self) -> Iterable[Type[Request]]:
+    def required_frames(self) -> Sequence[Type[Request]]:
         """Return list of required frames."""
         return self._required_frames
 
@@ -213,9 +219,9 @@ class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
     address: int = ECOMAX_ADDRESS
-    mixers: Dict[int, Mixer] = {}
+    mixers: MutableMapping[int, Mixer] = {}
     _fuel_burned_timestamp: float = 0.0
-    _required_frames: Iterable[Type[Request]] = [
+    _required_frames: Sequence[Type[Request]] = [
         requests.UID,
         requests.Password,
         requests.DataSchema,
@@ -226,7 +232,7 @@ class EcoMAX(Device):
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
-        self._mixers: Dict[int, Mixer] = {}
+        self._mixers: MutableMapping[int, Mixer] = {}
         self._fuel_burned_timestamp = 0.0
         self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
         self.register_callback([DATA_MODE], self._add_boiler_control_parameter)
@@ -246,16 +252,16 @@ class EcoMAX(Device):
         self.mixers[mixer_number] = mixer
         return mixer
 
-    async def _add_boiler_sensors(self, sensors: Dict[str, Any]):
+    async def _add_boiler_sensors(self, sensors: Records):
         """Add boiler sensors values to the device object."""
         for name, value in sensors.items():
             await self.async_set_attribute(name, value)
 
     async def _add_boiler_parameters(
-        self, parameters: Dict[str, ParameterTuple]
-    ) -> Dict[str, Parameter]:
+        self, parameters: Parameters
+    ) -> MutableMapping[str, Parameter]:
         """Add Parameter objects to the device object."""
-        parameter_objects: Dict[str, Parameter] = {}
+        parameter_objects: MutableMapping[str, Parameter] = {}
         for name, value in parameters.items():
             cls = (
                 BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
@@ -274,7 +280,7 @@ class EcoMAX(Device):
         return parameter_objects
 
     async def _set_mixer_sensors(
-        self, sensors: List[Dict[str, Dict[str, Any]]]
+        self, sensors: Sequence[MutableMapping[str, Records]]
     ) -> None:
         """Set sensor values for the mixer."""
         for mixer_number, mixer_data in enumerate(sensors):
@@ -283,7 +289,7 @@ class EcoMAX(Device):
                 await mixer.async_set_attribute(name, value)
 
     async def _set_mixer_parameters(
-        self, parameters: List[Dict[str, ParameterTuple]]
+        self, parameters: Sequence[MutableMapping[str, ParameterTuple]]
     ) -> None:
         """Set mixer parameters."""
         for mixer_number, mixer_data in enumerate(parameters):
@@ -327,7 +333,7 @@ class EcoMAX(Device):
             "fuel_burned", fuel_burned, skip_change_check=True
         )
 
-    async def _parse_regulator_data(self, regulator_data: bytes) -> Dict[str, Any]:
+    async def _parse_regulator_data(self, regulator_data: bytes) -> Records:
         """Add sensor values from the regulator data."""
         offset = 0
         boolean_index = 0

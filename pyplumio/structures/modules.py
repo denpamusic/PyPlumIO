@@ -1,11 +1,13 @@
 """Contains modules structure parser."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 import struct
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio.const import DATA_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
+from pyplumio.helpers.typing import Records
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -13,7 +15,7 @@ MODULE_C: Final = "module_c"
 MODULE_LAMBDA: Final = "module_lambda"
 MODULE_ECOSTER: Final = "module_ecoster"
 MODULE_PANEL: Final = "module_panel"
-MODULES: Final = (
+MODULES: Sequence[str] = (
     MODULE_A,
     MODULE_B,
     MODULE_C,
@@ -24,8 +26,8 @@ MODULES: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

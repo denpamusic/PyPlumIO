@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import Awaitable
+from collections.abc import MutableMapping
 import logging
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Any, Final, Optional, Tuple
 
 from serial import SerialException
 import serial_asyncio
@@ -24,10 +24,9 @@ class Connection(ABC):
     """Base connection representation. All specific connection classes
     must me inherited from this class."""
 
-    _kwargs: Dict[str, Any]
+    _kwargs: MutableMapping[str, Any]
     _protocol: Optional[Protocol] = None
     _closing: bool = False
-    _connection_handler: Awaitable[Any]
     _reconnect_on_failure: bool = True
 
     def __init__(self, reconnect_on_failure: bool = True, **kwargs):
@@ -48,7 +47,7 @@ class Connection(ABC):
         """Provide exit point for context manager."""
         await self.close()
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str):
         """Return attributes from the underlying protocol object."""
         return getattr(self.protocol, name)
 

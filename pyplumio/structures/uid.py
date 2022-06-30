@@ -1,7 +1,8 @@
 """Contains UID structure parser."""
 from __future__ import annotations
 
-from typing import Final, List, Tuple
+from collections.abc import MutableSequence
+from typing import Final, Tuple
 
 UID_BASE: Final = 32
 UID_BASE_BITS: Final = 5
@@ -16,7 +17,7 @@ def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
     offset += uid_length
     input_ = uid + uid_stamp(uid)
     input_length = len(input_) * UID_CHAR_BITS
-    output: List[str] = []
+    output: MutableSequence[str] = []
     output_length = input_length // UID_BASE_BITS
     if input_length % UID_BASE_BITS:
         output_length += 1

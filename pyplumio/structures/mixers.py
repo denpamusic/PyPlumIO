@@ -1,10 +1,12 @@
 """Contains mixers structure parser."""
 from __future__ import annotations
 
-from typing import Any, Dict, Final, List, Optional, Tuple
+from collections.abc import MutableSequence
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_MIXER_SENSORS
+from pyplumio.helpers.typing import Records
 
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET_TEMP: Final = "target_temp"
@@ -17,8 +19,8 @@ MIXER_DATA: Final = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Dict[str, Any]] = None
-) -> Tuple[Dict[str, Any], int]:
+    message: bytearray, offset: int = 0, data: Optional[Records] = None
+) -> Tuple[Records, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -28,7 +30,7 @@ def from_bytes(
     if mixers_number == 0:
         return data, offset
 
-    mixers: List[Dict[str, Any]] = []
+    mixers: MutableSequence[Records] = []
 
     for _ in range(mixers_number):
         mixer = {}
