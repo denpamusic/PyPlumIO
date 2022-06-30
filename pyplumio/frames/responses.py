@@ -13,8 +13,8 @@ from pyplumio.const import (
     DATA_SCHEMA,
     DATA_VERSION,
 )
-from pyplumio.data_types import DATA_TYPES, DataType
 from pyplumio.frames import Response
+from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,

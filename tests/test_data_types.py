@@ -1,6 +1,6 @@
 """Contains tests for DataType classes."""
 
-from pyplumio import data_types
+from pyplumio.helpers import data_types
 
 
 def test_type_repr():

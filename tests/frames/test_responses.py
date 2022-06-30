@@ -12,9 +12,9 @@ from pyplumio.const import (
     DATA_VERSION,
     ECONET_ADDRESS,
 )
-from pyplumio.data_types import Byte
 from pyplumio.frames import responses
 from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
+from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,

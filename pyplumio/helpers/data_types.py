@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Final, Optional, Union
 
-from . import util
+from pyplumio import util
 
 
 class DataType(ABC):

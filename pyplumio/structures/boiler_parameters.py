@@ -5,7 +5,7 @@ from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_BOILER_PARAMETERS
-from pyplumio.typing import ParameterTuple
+from pyplumio.helpers.typing import ParameterTuple
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
 BOILER_PARAMETERS: List[str] = [

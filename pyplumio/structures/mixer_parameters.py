@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_MIXER_PARAMETERS
-from pyplumio.typing import ParameterTuple
+from pyplumio.helpers.typing import ParameterTuple
 
 MIXER_PARAMETERS: List[str] = [
     "mix_target_temp",

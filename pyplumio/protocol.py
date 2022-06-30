@@ -25,8 +25,8 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.task_manager import TaskManager
+from pyplumio.helpers.typing import AsyncCallback
 from pyplumio.stream import FrameReader, FrameWriter
-from pyplumio.typing import AsyncCallback
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -21,13 +21,13 @@ from pyplumio.const import (
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
 )
-from pyplumio.data_types import Boolean
 from pyplumio.exceptions import (
     ParameterNotFoundError,
     UnknownDeviceError,
     UnknownFrameError,
 )
 from pyplumio.frames import Frame, Request, get_frame_handler, requests
+from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BoilerBinaryParameter,
@@ -39,8 +39,8 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
+from pyplumio.helpers.typing import Numeric, ParameterTuple, ValueCallback
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
-from pyplumio.typing import Numeric, ParameterTuple, ValueCallback
 
 devices: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",

@@ -8,7 +8,7 @@ from typing import Any
 from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.typing import ParameterTuple, ParameterValue
+from pyplumio.helpers.typing import ParameterTuple, ParameterValue
 
 
 def _normalize_parameter_value(value: ParameterValue) -> int:

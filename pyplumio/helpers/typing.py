@@ -1,4 +1,4 @@
-"""Contains custom typing."""
+"""Contains type aliases."""
 
 from typing import Any, Awaitable, Callable, Literal, Tuple, Union
 
