@@ -149,8 +149,6 @@ class Protocol(TaskManager):
 
     async def connection_lost(self):
         """Shutdown consumers and call connection lost callback."""
-        self.writer = None
-        self.reader = None
         for queue in self.queues:
             _empty_queue(queue)
 
@@ -161,7 +159,6 @@ class Protocol(TaskManager):
     async def shutdown(self):
         """Shutdown protocol tasks."""
         await asyncio.wait([queue.join() for queue in self.queues])
-
         tasks = [task for task in self.tasks if not task == asyncio.current_task()]
         for task in tasks:
             task.cancel()
@@ -169,6 +166,9 @@ class Protocol(TaskManager):
         await asyncio.gather(*tasks, return_exceptions=True)
         if self.writer:
             await self.writer.close()
+
+        self.writer = None
+        self.reader = None
 
     async def wait_for_device(self, device: str) -> Device:
         """Wait for device and return it once it's available."""
