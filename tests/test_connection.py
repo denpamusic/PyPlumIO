@@ -130,10 +130,10 @@ async def test_getattr(
 ) -> None:
     """Test that getattr is getting proxied to the protocol."""
     instance = mock_protocol.return_value
-    instance.wait_for_device.return_value = None
+    instance.get_device.return_value = None
     await tcp_connection.connect()
-    await tcp_connection.wait_for_device("test")
-    instance.wait_for_device.assert_called_once()
+    await tcp_connection.get_device("test")
+    instance.get_device.assert_called_once()
 
 
 async def test_close(

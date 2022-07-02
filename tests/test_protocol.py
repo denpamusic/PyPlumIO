@@ -283,14 +283,14 @@ async def test_shutdown(
     mock_writer_close.assert_awaited_once()
 
 
-async def test_wait_for_device(protocol: Protocol):
+async def test_get_device(protocol: Protocol):
     """Test wait for device method."""
     with pytest.raises(RuntimeError), patch(
         "asyncio.sleep",
         side_effect=(None, RuntimeError("break loop")),
         new_callable=AsyncMock,
     ) as mock_sleep:
-        device = await protocol.wait_for_device("ecomax")
+        device = await protocol.get_device("ecomax")
 
     assert mock_sleep.await_count == 2
 
@@ -300,6 +300,6 @@ async def test_wait_for_device(protocol: Protocol):
         "asyncio.sleep",
         new_callable=AsyncMock,
     ) as mock_sleep:
-        device = await protocol.wait_for_device("ecomax")
+        device = await protocol.get_device("ecomax")
 
     assert device == ecomax

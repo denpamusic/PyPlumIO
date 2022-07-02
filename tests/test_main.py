@@ -10,7 +10,7 @@ async def test_main(mock_asyncio_run, capsys) -> None:
     mock_device.get_value.side_effect = ("one", "two")
     mock_connection = AsyncMock()
     mock_connection.__aenter__.return_value = mock_connection
-    mock_connection.wait_for_device.return_value = mock_device
+    mock_connection.get_device.return_value = mock_device
 
     import pyplumio.__main__ as entry
 
@@ -21,7 +21,7 @@ async def test_main(mock_asyncio_run, capsys) -> None:
 
     mock_open_serial_connection.assert_called_with("/dev/ttyUSB0", 115200)
     mock_connection.__aenter__.assert_awaited_once()
-    mock_connection.wait_for_device.assert_awaited_once_with("ecomax")
+    mock_connection.get_device.assert_awaited_once_with("ecomax")
     calls = [call("sensors"), call("parameters")]
     mock_device.get_value.assert_has_calls(calls)
     captured = capsys.readouterr()

@@ -49,7 +49,7 @@ import pyplumio
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     # Do something.
 	
 asyncio.run(main())
@@ -64,7 +64,7 @@ import pyplumio
 
 async def main():
   async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     # Do something.
 	
 asyncio.run(main())
@@ -77,7 +77,7 @@ from pyplumio import TcpConnection
 async def main():
   connection = TcpConnection("localhost", 8899)
   await connection.connect()
-  ecomax = await connection.wait_for_device("ecomax")
+  ecomax = await connection.get_device("ecomax")
   # Do something.
 	
 asyncio.run(main())
@@ -99,7 +99,7 @@ import pyplumio
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     print(await ecomax.get_value("heating_temp"))
     
 asyncio.run(main())
@@ -115,7 +115,7 @@ async def my_callback(value: float) -> None:
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     ecomax.register_callback(["heating_temp"], my_callback)
     
     while True:
@@ -131,14 +131,14 @@ You can easily change controller parameters by awaiting for `set_value(name: str
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     await ecomax.set_value("heating_target_temp", 65)
 ```
 
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
     target.temp.set(65)
 ```
@@ -147,14 +147,14 @@ For binary parameters (that can only have 0 or 1 value), you can use string lite
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     await ecomax.set_value("boiler_control", "on")
 ```
 
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     boiler = await ecomax.get_parameter("boiler_control")
     boiler.turn_on()  # or boiler.turn_off()
 ```
@@ -163,7 +163,7 @@ Please note that each parameter has a range of acceptable values that you must c
 ```python
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.wait_for_device("ecomax")
+    ecomax = await connection.get_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
     print(target_temp.min_value)  # Prints minimum allowed target temperature.
     print(target_temp.max_value)  # Prints maximum allowed target temperature.
