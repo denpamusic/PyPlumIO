@@ -16,6 +16,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.protocol import Protocol
+from tests.test_devices import UNKNOWN_DEVICE
 
 
 @pytest.fixture(name="protocol")
@@ -133,9 +134,6 @@ async def test_write_consumer(
     protocol.writer.write.assert_has_calls(calls)
     assert protocol.writer.write.await_count == 2
     assert mock_lock.__aenter__.await_count == 2
-
-
-UNKNOWN_DEVICE: int = 99
 
 
 @patch("pyplumio.frames.requests.CheckDevice.response")
