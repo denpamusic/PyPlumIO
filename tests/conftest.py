@@ -1,7 +1,7 @@
 """Fixtures for PyPlumIO test suite."""
 
 from asyncio import StreamReader, StreamWriter
-from collections.abc import Generator
+from typing import Generator
 from unittest.mock import patch
 
 import pytest
