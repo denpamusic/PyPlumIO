@@ -1,4 +1,4 @@
-"""Contains tests for Parameter class."""
+"""Contains tests for parameter."""
 
 import asyncio
 from unittest.mock import patch

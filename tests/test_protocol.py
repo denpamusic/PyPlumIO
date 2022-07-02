@@ -1,4 +1,4 @@
-"""Contains tests for protocol module."""
+"""Contains tests for protocol."""
 
 import logging
 from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch

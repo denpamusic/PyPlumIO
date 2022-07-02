@@ -1,4 +1,4 @@
-"""Contains tests for factory helper."""
+"""Contains tests for object factory."""
 
 import pytest
 

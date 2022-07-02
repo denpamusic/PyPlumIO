@@ -1,4 +1,4 @@
-"""Contains tests for DataType classes."""
+"""Contains tests for data types."""
 
 from pyplumio.helpers import data_types
 

@@ -1,4 +1,4 @@
-"""Contains tests for connection module."""
+"""Contains tests for connection."""
 
 import asyncio
 import logging

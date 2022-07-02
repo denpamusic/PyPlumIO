@@ -1,7 +1,7 @@
-"""Contains tests for devices module."""
+"""Contains tests for devices."""
 
 import asyncio
-from unittest.mock import AsyncMock, call, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
@@ -9,16 +9,23 @@ from pyplumio.const import (
     DATA_BOILER_PARAMETERS,
     DATA_BOILER_SENSORS,
     DATA_FUEL_CONSUMPTION,
+    DATA_MIXER_PARAMETERS,
+    DATA_MIXER_SENSORS,
     DATA_MODE,
     DATA_REGDATA,
     ECOMAX_ADDRESS,
 )
-from pyplumio.devices import EcoMAX, FrameVersions, get_device_handler
-from pyplumio.exceptions import UnknownDeviceError
+from pyplumio.devices import EcoMAX, FrameVersions, Mixer, get_device_handler
+from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Response, requests
 from pyplumio.frames.messages import RegulatorData
 from pyplumio.frames.responses import DataSchema
-from pyplumio.helpers.parameter import BoilerBinaryParameter
+from pyplumio.helpers.parameter import (
+    BoilerBinaryParameter,
+    MixerBinaryParameter,
+    MixerParameter,
+    Parameter,
+)
 
 UNKNOWN_DEVICE: int = 99
 
@@ -80,7 +87,7 @@ async def test_boiler_parameters_callbacks(ecomax: EcoMAX) -> None:
             data={
                 DATA_BOILER_PARAMETERS: {
                     "test_binary_parameter": [0, 0, 1],
-                    "test_parameter": [10, 20, 5],
+                    "test_parameter": [10, 5, 20],
                 }
             }
         )
@@ -110,6 +117,15 @@ async def test_regdata_callbacks(
     ecomax: EcoMAX, data_schema: DataSchema, regulator_data: RegulatorData
 ) -> None:
     """Test callbacks that are fired on received regdata."""
+    # Test exception handling on data schema timeout.
+    with patch(
+        "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
+    ):
+        await ecomax.handle_frame(regulator_data)
+
+    # Regulator data should be empty on schema timeout.
+    assert not await ecomax.get_value(DATA_REGDATA)
+
     # Set data schema and parse the regdata.
     await ecomax.handle_frame(data_schema)
     await ecomax.handle_frame(regulator_data)
@@ -120,6 +136,43 @@ async def test_regdata_callbacks(
     assert regdata["heating_target"] == 41
     assert regdata["183"] == "0.0.0.0"
     assert regdata["184"] == "255.255.255.0"
+
+
+async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
+    """Test callbacks that are fired on receiving mixer sensors info."""
+    await ecomax.handle_frame(
+        Response(data={DATA_MIXER_SENSORS: [{"test_sensor": 42}]})
+    )
+    mixers = await ecomax.get_value("mixers")
+    assert len(mixers) == 1
+    assert isinstance(mixers[0], Mixer)
+    assert mixers[0].index == 0
+    assert await mixers[0].get_value("test_sensor") == 42
+
+
+async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
+    """Test callbacks that are fired on receiving mixer parameters."""
+    await ecomax.handle_frame(
+        Response(
+            data={
+                DATA_MIXER_PARAMETERS: [
+                    {
+                        "test_binary_parameter": [0, 0, 1],
+                        "test_parameter": [10, 5, 20],
+                    }
+                ]
+            }
+        )
+    )
+    mixers = await ecomax.get_value("mixers")
+    test_binary_parameter = await mixers[0].get_parameter("test_binary_parameter")
+    assert test_binary_parameter.value == 0
+    assert isinstance(test_binary_parameter, MixerBinaryParameter)
+    test_parameter = await mixers[0].get_parameter("test_parameter")
+    assert isinstance(test_parameter, MixerParameter)
+    assert test_parameter.value == 10
+    assert test_parameter.min_value == 5
+    assert test_parameter.max_value == 20
 
 
 async def test_register_callback(ecomax: EcoMAX) -> None:
@@ -141,3 +194,57 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
     # Test with significant change.
     await ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 45}}))
     mock_callback.assert_awaited_once_with(45)
+    mock_callback.reset_mock()
+
+    # Remove the callback and make sure it doesn't fire again.
+    ecomax.remove_callback(["test_sensor"], mock_callback)
+    await ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 50}}))
+    mock_callback.assert_not_awaited()
+
+
+async def test_get_value(ecomax: EcoMAX) -> None:
+    """Test getting value from the device."""
+    with pytest.raises(RuntimeError), patch(
+        "asyncio.sleep", side_effect=RuntimeError("break loop")
+    ) as mock_sleep:
+        await ecomax.get_value("test")
+
+    mock_sleep.assert_awaited_once_with(0)
+
+
+async def test_set_value(ecomax: EcoMAX) -> None:
+    """Test setting parameter value via set_value helper."""
+    with pytest.raises(RuntimeError), patch(
+        "asyncio.sleep", side_effect=RuntimeError("break loop")
+    ) as mock_sleep:
+        await ecomax.set_value("test_parameter", 1)
+
+    mock_sleep.assert_awaited_once_with(0)
+
+    # Test with valid parameter.
+    valid = Mock(spec=Parameter)
+    ecomax.__dict__["valid_parameter"] = valid
+    await ecomax.set_value("valid_parameter", 1)
+    valid.set.assert_called_once_with(1)
+
+    # Test with invalid parameter.
+    invalid = Mock()
+    ecomax.__dict__["invalid_parameter"] = invalid
+    with pytest.raises(ParameterNotFoundError):
+        await ecomax.set_value("invalid_parameter", 1)
+
+
+async def test_get_parameter(ecomax: EcoMAX) -> None:
+    """Test getting parameter from device."""
+    with pytest.raises(RuntimeError), patch(
+        "asyncio.sleep", side_effect=RuntimeError("break loop")
+    ) as mock_sleep:
+        await ecomax.get_parameter("test")
+
+    mock_sleep.assert_awaited_once_with(0)
+
+    # Test with invalid parameter.
+    invalid = Mock()
+    ecomax.__dict__["invalid_parameter"] = invalid
+    with pytest.raises(ParameterNotFoundError):
+        await ecomax.get_parameter("invalid_parameter")

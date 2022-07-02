@@ -1,4 +1,4 @@
-"""Contains tests for init module."""
+"""Contains tests for init."""
 
 from pyplumio import open_serial_connection, open_tcp_connection
 from pyplumio.connection import SerialConnection, TcpConnection

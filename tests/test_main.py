@@ -1,4 +1,4 @@
-"""Contains test for the entry point."""
+"""Contains tests for main."""
 
 from unittest.mock import AsyncMock, call, patch
 
