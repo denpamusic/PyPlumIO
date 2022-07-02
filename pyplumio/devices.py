@@ -274,8 +274,8 @@ class EcoMAX(Device):
                 self.address,
                 name,
                 value=value[0],
-                max_value=value[1],
-                min_value=value[2],
+                min_value=value[1],
+                max_value=value[2],
             )
             await self.async_set_attribute(name, parameter)
             parameter_objects[name] = parameter
