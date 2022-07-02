@@ -37,7 +37,6 @@ from pyplumio.helpers.parameter import (
     Parameter,
     is_binary_parameter,
 )
-from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.helpers.typing import (
     Numeric,
@@ -188,7 +187,7 @@ class Mixer(AsyncDevice):
         self.index = index
 
 
-class Device(AsyncDevice, TaskManager):
+class Device(AsyncDevice):
     """Represents base device."""
 
     address: int = BROADCAST_ADDRESS
@@ -198,7 +197,6 @@ class Device(AsyncDevice, TaskManager):
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
         super().__init__()
-        super(AsyncDevice, self).__init__()
         self._queue = queue
         versions = FrameVersions(queue, device=self)
         self.register_callback([DATA_FRAME_VERSIONS], versions.update)
@@ -207,12 +205,17 @@ class Device(AsyncDevice, TaskManager):
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                self.create_task(self.async_set_attribute(name, value))
+                await self.async_set_attribute(name, value)
 
     @property
     def required_frames(self) -> Sequence[Type[Request]]:
         """Return list of required frames."""
         return self._required_frames
+
+    @property
+    def queue(self) -> asyncio.Queue:
+        """Return device write queue."""
+        return self._queue
 
 
 class EcoMAX(Device):
@@ -233,7 +236,7 @@ class EcoMAX(Device):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
         self._mixers: MutableMapping[int, Mixer] = {}
-        self._fuel_burned_timestamp = 0.0
+        self._fuel_burned_timestamp = time.time()
         self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
         self.register_callback([DATA_MODE], self._add_boiler_control_parameter)
         self.register_callback([DATA_FUEL_CONSUMPTION], self._add_burned_fuel_counter)
