@@ -16,6 +16,10 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
 
+    if isinstance(value, tuple):
+        # Value is parameter tuple.
+        value = value[0]
+
     return int(value)
 
 
