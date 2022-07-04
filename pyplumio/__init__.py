@@ -1,7 +1,7 @@
 """Contains connection shortcuts and version information."""
 from __future__ import annotations
 
-from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.connection import Connection, SerialConnection, TcpConnection
 from pyplumio.helpers.network_info import (
     WLAN_ENCRYPTION_NONE,
     WLAN_ENCRYPTION_UNKNOWN,
@@ -35,6 +35,7 @@ def wireless_parameters(**kwargs) -> WirelessParameters:
 
 
 __all__ = [
+    "Connection",
     "SerialConnection",
     "TcpConnection",
     "open_serial_connection",
