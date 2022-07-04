@@ -36,7 +36,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [License](#license)
 
 ## Usage
-To interact with devices, you must first initialize connection by utilizing `pyplumio.open_tcp_connection` or `pyplumio.open_serial_connection` methods.
+To interact with devices, you must first initialize connection by utilizing `pyplumio.open_tcp_connection()` or `pyplumio.open_serial_connection()` methods.
 
 You can find examples for each supported connection type below.
 
@@ -70,13 +70,14 @@ async def main():
 asyncio.run(main())
 ```
 
-_NB: Although using `async with` it is preferred, you can open the connection without using it:_
+_NB: Although use of `async with` statement is preferred, you can open the connection without it:_
 ```python
 import asyncio
 import pyplumio
 
 async def main():
   connection = pyplumio.open_tcp_connection("localhost", 8899)
+  await connection.connect()
   ecomax = await connection.get_device("ecomax")
   # Do something.
 	
@@ -84,7 +85,7 @@ asyncio.run(main())
 ```
 
 ### Data and Parameters
-Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `ecomax.heating_temp`, `ecomax.heating_target_temp`) or awaited (this is preferred) via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
+Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `ecomax.heating_temp`, `ecomax.heating_target_temp`) or awaited (preferred) via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
 
 Each Plum device supports different attributes and parameters.
 
@@ -127,9 +128,10 @@ asyncio.run(main())
 
 
 ### Writing
-You can easily change controller parameters by awaiting for `set_value(name: str, value: int)` or by getting parameter via `get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
+You can easily change controller parameters by awaiting `Device.set_value(name: str, value: int)` or by getting parameter via `Device.get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
+
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -138,6 +140,7 @@ async def main():
 
 ```python
 import pyplumio
+
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -145,7 +148,7 @@ async def main():
     target.temp.set(65)
 ```
 
-For binary parameters (that can only have 0 or 1 value), you can use string literals "on", "off" as value or use `turn_on()`, `turn_off()` methods.
+For binary parameters, that can only have 0 or 1 value, you can use string literals "on", "off" as value or use `turn_on()`, `turn_off()` methods.
 ```python
 import pyplumio
 
@@ -187,7 +190,7 @@ async def main():
   ethernet = pyplumio.ethernet_parameters(
     ip="10.10.1.100",
     netmask="255.255.255.0",
-    gateway="10.10.1.1"
+    gateway="10.10.1.1",
   )
   wireless = pyplumio.wireless_parameters(
     ip="10.10.2.100",
@@ -203,7 +206,7 @@ async def main():
     ethernet_parameters=ethernet,
     wireless_parameters=wireless,
   ) as connection:
-    # do something
+    # Do something.
 ```
 
 ## Protocol
