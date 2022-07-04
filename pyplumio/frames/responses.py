@@ -114,7 +114,7 @@ class DeviceAvailable(Response):
         message += util.ip4_to_bytes(network_info.wlan.gateway)
         message.append(network_info.server_status)
         message.append(network_info.wlan.encryption)
-        message.append(network_info.wlan.quality)
+        message.append(network_info.wlan.signal_quality)
         message.append(network_info.wlan.status)
         message += b"\x00" * 4
         message.append(len(network_info.wlan.ssid))
@@ -137,7 +137,7 @@ class DeviceAvailable(Response):
                 netmask=util.ip4_from_bytes(message[offset + 17 : offset + 21]),
                 gateway=util.ip4_from_bytes(message[offset + 21 : offset + 25]),
                 encryption=int(message[offset + 26]),
-                quality=int(message[offset + 27]),
+                signal_quality=int(message[offset + 27]),
                 status=bool(message[offset + 28]),
                 ssid=var_string.from_bytes(message, offset + 33)[0],
             ),

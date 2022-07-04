@@ -17,9 +17,6 @@ from pyplumio.exceptions import (
 from pyplumio.frames.requests import CheckDevice, ProgramVersion, StartMaster
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
-    DEFAULT_IP,
-    DEFAULT_NETMASK,
-    WLAN_ENCRYPTION_NONE,
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
@@ -61,6 +58,8 @@ class Protocol(TaskManager):
     def __init__(
         self,
         connection_lost_callback: Optional[AsyncCallback] = None,
+        ethernet_parameters: Optional[EthernetParameters] = None,
+        wireless_parameters: Optional[WirelessParameters] = None,
     ):
         """Initialize new Protocol object."""
         super().__init__()
@@ -71,7 +70,13 @@ class Protocol(TaskManager):
         write_queue: asyncio.Queue = asyncio.Queue()
         self._queues = (read_queue, write_queue)
         self._connection_lost_callback = connection_lost_callback
-        self._network = NetworkInfo()
+        if ethernet_parameters is None:
+            ethernet_parameters = EthernetParameters()
+
+        if wireless_parameters is None:
+            wireless_parameters = WirelessParameters()
+
+        self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
 
     async def frame_producer(
         self, read_queue: asyncio.Queue, lock: asyncio.Lock
@@ -181,33 +186,3 @@ class Protocol(TaskManager):
     def queues(self) -> Tuple[asyncio.Queue, asyncio.Queue]:
         """Return protocol queues."""
         return self._queues
-
-    def set_eth(
-        self, ip: str, netmask: str = DEFAULT_NETMASK, gateway: str = DEFAULT_IP
-    ) -> None:
-        """Set ethernet info for sending to the devices. Used for
-        informational purposes only."""
-        self._network.eth = EthernetParameters(
-            ip=ip, netmask=netmask, gateway=gateway, status=True
-        )
-
-    def set_wlan(
-        self,
-        ssid: str,
-        ip: str,
-        encryption: int = WLAN_ENCRYPTION_NONE,
-        netmask: str = DEFAULT_NETMASK,
-        gateway: str = DEFAULT_IP,
-        quality: int = 100,
-    ) -> None:
-        """Set wireless info for sending to the devices. Used for
-        informational purposes only."""
-        self._network.wlan = WirelessParameters(
-            ssid=ssid,
-            encryption=encryption,
-            quality=quality,
-            ip=ip,
-            netmask=netmask,
-            gateway=gateway,
-            status=True,
-        )

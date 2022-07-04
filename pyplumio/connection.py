@@ -29,12 +29,20 @@ class Connection(ABC):
     _closing: bool = False
     _reconnect_on_failure: bool = True
 
-    def __init__(self, reconnect_on_failure: bool = True, **kwargs):
+    def __init__(
+        self,
+        reconnect_on_failure: bool = True,
+        ethernet_parameters=None,
+        wireless_parameters=None,
+        **kwargs,
+    ):
         """Initialize Connection object."""
         self._kwargs = kwargs
         self._closing = False
         self._protocol = Protocol(
-            connection_lost_callback=self._connection_lost_callback
+            self._connection_lost_callback,
+            ethernet_parameters,
+            wireless_parameters,
         )
         self._reconnect_on_failure = reconnect_on_failure
 

@@ -70,13 +70,13 @@ async def main():
 asyncio.run(main())
 ```
 
-_NB: Although `async with` it is the preferred way to initialize the connection, this can also be done without using it:_
+_NB: Although using `async with` it is preferred, you can open the connection without using it:_
 ```python
-from pyplumio import TcpConnection
+import asyncio
+import pyplumio
 
 async def main():
-  connection = TcpConnection("localhost", 8899)
-  await connection.connect()
+  connection = pyplumio.open_tcp_connection("localhost", 8899)
   ecomax = await connection.get_device("ecomax")
   # Do something.
 	
@@ -129,6 +129,7 @@ asyncio.run(main())
 ### Writing
 You can easily change controller parameters by awaiting for `set_value(name: str, value: int)` or by getting parameter via `get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
+import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -136,6 +137,7 @@ async def main():
 ```
 
 ```python
+import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -145,6 +147,8 @@ async def main():
 
 For binary parameters (that can only have 0 or 1 value), you can use string literals "on", "off" as value or use `turn_on()`, `turn_off()` methods.
 ```python
+import pyplumio
+
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -152,6 +156,8 @@ async def main():
 ```
 
 ```python
+import pyplumio
+
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -161,6 +167,8 @@ async def main():
 
 Please note that each parameter has a range of acceptable values that you must check by yourself. The PyPlumIO will raise `ValueError` if value is not within acceptable range. You can check allowed values by reading `min_value` and `max_value` attributes of parameter object.
 ```python
+import pyplumio
+
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
@@ -170,20 +178,32 @@ async def main():
 ```
 
 ### Network Information
-You can send ethernet and wlan info to the controller to show on it's display.
+You can send ethernet and wireless network information to the controller to show on it's
+screen. It serves information purposes only and can be omitted.
 ```python
+import pyplumio
+
 async def main():
-  connection = pyplumio.open_tcp_connection("localhost", 8899)
-  connection.set_eth(ip="10.10.1.100", netmask="255.255.255.0", gateway="10.10.1.1")
-  connection.set_wlan(
+  ethernet = pyplumio.ethernet_parameters(
+    ip="10.10.1.100",
+    netmask="255.255.255.0",
+    gateway="10.10.1.1"
+  )
+  wireless = pyplumio.wireless_parameters(
     ip="10.10.2.100",
     netmask="255.255.255.0",
     gateway="10.10.2.1",
     ssid="My SSID",
-    encryption=WLAN_ENCRYPTION_WPA2,
-    quality=100,
+    encryption=pyplumio.WLAN_ENCRYPTION_WPA2,
+    signal_quality=100,
   )
-  await connection.connect()  # Initializes connection.
+  async with pyplumio.open_tcp_connection(
+    host="localhost",
+    port=8899,
+    ethernet_parameters=ethernet,
+    wireless_parameters=wireless,
+  ) as connection:
+    # do something
 ```
 
 ## Protocol

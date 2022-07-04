@@ -44,9 +44,7 @@ async def test_tcp_connect(
     open_tcp_connection.assert_called_once_with(
         host="localhost", port=8899, test="test"
     )
-    mock_protocol.assert_called_once_with(
-        connection_lost_callback=mock_connection_lost_callback,
-    )
+    mock_protocol.assert_called_once_with(mock_connection_lost_callback, None, None)
 
 
 async def test_serial_connect(
@@ -92,7 +90,8 @@ async def test_connection_lost_callback(
     """Test that connection lost callback calls reconnect."""
     await tcp_connection.connect()
     with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
-        await mock_protocol.call_args.kwargs["connection_lost_callback"]()
+        connection_lost_callback = mock_protocol.call_args.args[0]
+        await connection_lost_callback()
         mock_reconnect.assert_called_once()
 
 

@@ -22,7 +22,23 @@ from tests.test_devices import UNKNOWN_DEVICE
 @pytest.fixture(name="protocol")
 def fixture_protocol() -> Protocol:
     """Return protocol instance."""
-    return Protocol()
+    return Protocol(
+        wireless_parameters=WirelessParameters(
+            ssid="test_ssid",
+            ip="2.2.2.2",
+            encryption=WLAN_ENCRYPTION_WPA2,
+            netmask="255.255.255.255",
+            gateway="2.2.2.1",
+            signal_quality=50,
+            status=True,
+        ),
+        ethernet_parameters=EthernetParameters(
+            ip="1.1.1.2",
+            netmask="255.255.255.255",
+            gateway="1.1.1.1",
+            status=True,
+        ),
+    )
 
 
 @patch("pyplumio.protocol.Protocol.create_task")
@@ -158,12 +174,6 @@ async def test_frame_consumer(
         RuntimeError("break loop"),
     )
 
-    # Set eth and wlan parameters.
-    protocol.set_eth("1.1.1.2", "255.255.255.255", "1.1.1.1")
-    protocol.set_wlan(
-        "test_ssid", "2.2.2.2", WLAN_ENCRYPTION_WPA2, "255.255.255.255", "2.2.2.1", 50
-    )
-
     with pytest.raises(RuntimeError), caplog.at_level(logging.DEBUG):
         await protocol.frame_consumer(mock_read_queue, mock_write_queue)
 
@@ -184,7 +194,7 @@ async def test_frame_consumer(
                     status=True,
                     ssid="test_ssid",
                     encryption=4,
-                    quality=50,
+                    signal_quality=50,
                 ),
                 server_status=True,
             )

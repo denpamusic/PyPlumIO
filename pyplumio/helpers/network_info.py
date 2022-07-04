@@ -37,7 +37,7 @@ class WirelessParameters(EthernetParameters):
 
     ssid: str = ""
     encryption: int = WLAN_ENCRYPTION_NONE
-    quality: int = 100
+    signal_quality: int = 100
 
 
 @dataclass
