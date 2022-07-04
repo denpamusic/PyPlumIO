@@ -78,6 +78,13 @@ class Protocol(TaskManager):
 
         self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
 
+    def __getattr__(self, name: str):
+        """Return attributes from the underlying devices table."""
+        if name in self.devices:
+            return self.devices[name]
+
+        raise AttributeError
+
     async def frame_producer(
         self, read_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:

@@ -313,3 +313,8 @@ async def test_get_device(protocol: Protocol):
         device = await protocol.get_device("ecomax")
 
     assert device == ecomax
+    assert protocol.ecomax == ecomax
+
+    # Check that exception is raised on nonexistent device.
+    with pytest.raises(AttributeError):
+        print(protocol.nonexistent)
