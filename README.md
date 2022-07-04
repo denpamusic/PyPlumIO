@@ -85,7 +85,7 @@ asyncio.run(main())
 ```
 
 ### Data and Parameters
-Data can be mutable (Parameters) or immutable (Values). Both can be accessed via instance attributes (e. g. `ecomax.heating_temp`, `ecomax.heating_target_temp`) or awaited (preferred) via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
+Data can be mutable (Parameters) or immutable (Values). They can be accessed via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
 
 Each Plum device supports different attributes and parameters.
 
