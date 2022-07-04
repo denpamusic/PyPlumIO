@@ -145,7 +145,7 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
-    target.temp.set(65)
+    target_temp.set(65)
 ```
 
 For binary parameters, that can only have 0 or 1 value, you can use string literals "on", "off" as value or use `turn_on()`, `turn_off()` methods.
