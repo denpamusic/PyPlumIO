@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from typing import Any
+from typing import Any, Optional
 
 from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
@@ -11,7 +11,7 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import ParameterTuple, ParameterValue
 
 
-def _normalize_parameter_value(value: ParameterValue) -> int:
+def _normalize_parameter_value(value: ParameterValue) -> Optional[int]:
     """Normalize parameter value to integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
@@ -20,7 +20,7 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
         # Value is parameter tuple.
         value = value[0]
 
-    return int(value)
+    return int(value) if value is not None else None
 
 
 def is_binary_parameter(parameter: ParameterTuple) -> bool:
@@ -77,19 +77,19 @@ class Parameter(ABC):
         """Compare if parameter value is equal to other."""
         return self.value == _normalize_parameter_value(other)
 
-    def __ge__(self, other) -> int:
+    def __ge__(self, other) -> bool:
         """Compare if parameter value is greater or equal to other."""
         return self.value >= _normalize_parameter_value(other)
 
-    def __gt__(self, other) -> int:
+    def __gt__(self, other) -> bool:
         """Compare if parameter value is greater than other."""
         return self.value > _normalize_parameter_value(other)
 
-    def __le__(self, other) -> int:
+    def __le__(self, other) -> bool:
         """Compare if parameter value is less or equal to other."""
         return self.value <= _normalize_parameter_value(other)
 
-    def __lt__(self, other) -> int:
+    def __lt__(self, other) -> bool:
         """Compare if parameter value is less that other."""
         return self.value < _normalize_parameter_value(other)
 
