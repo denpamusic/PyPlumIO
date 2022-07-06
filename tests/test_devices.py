@@ -51,15 +51,16 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
     versions = FrameVersions(ecomax.queue, ecomax)
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
-        await versions.update({0x19: 0, UNKNOWN_FRAME: 0})
+        await versions.async_update({0x19: 0, UNKNOWN_FRAME: 0})
+        await versions.async_update({x.frame_type: 0 for x in ecomax.required_frames})
 
     calls = [
         call(requests.StartMaster(recipient=ECOMAX_ADDRESS)),
         call(requests.UID(recipient=ECOMAX_ADDRESS)),
-        call(requests.Password(recipient=ECOMAX_ADDRESS)),
         call(requests.DataSchema(recipient=ECOMAX_ADDRESS)),
         call(requests.BoilerParameters(recipient=ECOMAX_ADDRESS)),
         call(requests.MixerParameters(recipient=ECOMAX_ADDRESS)),
+        call(requests.Password(recipient=ECOMAX_ADDRESS)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {0x19: 0, 0x39: 0, 0x3A: 0, 0x55: 0, 0x31: 0, 0x32: 0}

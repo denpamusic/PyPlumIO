@@ -114,7 +114,9 @@ def test_parameter_request_with_unchanged_value(
     mock_put_nowait, parameter: BoilerParameter
 ) -> None:
     """Test that frame doesn't get dispatched if value is unchanged."""
+    assert not parameter.changed
     parameter.set("off")
+    assert parameter.changed
     mock_put_nowait.assert_called_once()
     parameter.set("off")
     mock_put_nowait.not_called()

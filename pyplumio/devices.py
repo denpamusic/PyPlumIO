@@ -53,7 +53,7 @@ devices: Mapping[int, str] = {
 }
 
 
-VALUE_TIMEOUT: int = 5
+VALUE_TIMEOUT: int = 10
 
 
 def get_device_handler(address: int) -> str:
@@ -70,18 +70,15 @@ class FrameVersions:
     versions: MutableMapping[int, int]
     _queue: asyncio.Queue
     _device: Device
-    _required_frames: MutableMapping[int, int]
 
     def __init__(self, queue: asyncio.Queue, device: Device):
         """Initialize Frame Versions object."""
         self.versions = {}
         self._queue = queue
         self._device = device
-        self._required_frames = {x.frame_type: 0 for x in device.required_frames}
 
-    async def update(self, frame_versions: MutableMapping[int, int]) -> None:
-        """Check frame versions and fetch outdated frames."""
-        frame_versions = {**frame_versions, **self._required_frames}
+    def update(self, frame_versions: MutableMapping[int, int]) -> None:
+        """Check versions and fetch outdated frames."""
         for frame_type, version in frame_versions.items():
             if frame_type not in self.versions or self.versions[frame_type] != version:
                 # We don't have this frame or it's version has changed.
@@ -95,9 +92,16 @@ class FrameVersions:
                     # Ignore unknown frames in version list.
                     continue
 
+    async def async_update(self, *args, **kwargs) -> None:
+        """Asynchronously check versions and fetch outdated frames."""
+        self.update(*args, *kwargs)
+
 
 def _significantly_changed(old_value, new_value) -> bool:
     """Check if value is significantly changed."""
+    if old_value is None or (isinstance(old_value, Parameter) and old_value.changed):
+        return True
+
     if isinstance(old_value, float) and isinstance(new_value, float):
         return round(old_value, 1) != round(new_value, 1)
 
@@ -110,6 +114,7 @@ class AsyncDevice(ABC):
     _callbacks: MutableMapping[str, MutableSequence[ValueCallback]]
 
     def __init__(self):
+        """Initializes Async Device object."""
         self._callbacks = {}
 
     @timeout(VALUE_TIMEOUT)
@@ -153,7 +158,7 @@ class AsyncDevice(ABC):
         self, name: str, value, skip_change_check: bool = False
     ) -> None:
         """Call registered callbacks on value change."""
-        old_value = self.__dict__[name] if name in self.__dict__ else None
+        old_value = getattr(self, name, None)
         if name in self._callbacks and (
             skip_change_check or _significantly_changed(old_value, value)
         ):
@@ -161,7 +166,7 @@ class AsyncDevice(ABC):
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
 
-        self.__dict__[name] = value
+        setattr(self, name, value)
 
     def register_callback(self, sensors: Sequence[str], callback: ValueCallback):
         """Register callback for sensor change."""
@@ -199,13 +204,14 @@ class Device(AsyncDevice):
         super().__init__()
         self._queue = queue
         versions = FrameVersions(queue, device=self)
-        self.register_callback([DATA_FRAME_VERSIONS], versions.update)
+        versions.update({x.frame_type: 0 for x in self.required_frames})
+        self.register_callback([DATA_FRAME_VERSIONS], versions.async_update)
 
     async def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                await self.async_set_attribute(name, value)
+                await self.async_set_attribute(name, value, skip_change_check=True)
 
     @property
     def required_frames(self) -> Sequence[Type[Request]]:
@@ -226,10 +232,10 @@ class EcoMAX(Device):
     _fuel_burned_timestamp: float = 0.0
     _required_frames: Sequence[Type[Request]] = [
         requests.UID,
-        requests.Password,
         requests.DataSchema,
         requests.BoilerParameters,
         requests.MixerParameters,
+        requests.Password,
     ]
 
     def __init__(self, queue: asyncio.Queue):

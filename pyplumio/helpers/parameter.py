@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from typing import Any, Optional
+from typing import Any
 
 from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
@@ -11,7 +11,7 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import ParameterTuple, ParameterValue
 
 
-def _normalize_parameter_value(value: ParameterValue) -> Optional[int]:
+def _normalize_parameter_value(value: ParameterValue) -> int:
     """Normalize parameter value to integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
@@ -20,7 +20,7 @@ def _normalize_parameter_value(value: ParameterValue) -> Optional[int]:
         # Value is parameter tuple.
         value = value[0]
 
-    return int(value) if value is not None else None
+    return int(value)
 
 
 def is_binary_parameter(parameter: ParameterTuple) -> bool:
@@ -37,6 +37,7 @@ class Parameter(ABC):
     _value: int
     _min_value: int
     _max_value: int
+    _changed: bool = False
 
     def __init__(
         self,
@@ -56,6 +57,7 @@ class Parameter(ABC):
         self._value = _normalize_parameter_value(value)
         self._min_value = _normalize_parameter_value(min_value)
         self._max_value = _normalize_parameter_value(max_value)
+        self._changed = False
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
@@ -77,19 +79,19 @@ class Parameter(ABC):
         """Compare if parameter value is equal to other."""
         return self.value == _normalize_parameter_value(other)
 
-    def __ge__(self, other) -> bool:
+    def __ge__(self, other) -> int:
         """Compare if parameter value is greater or equal to other."""
         return self.value >= _normalize_parameter_value(other)
 
-    def __gt__(self, other) -> bool:
+    def __gt__(self, other) -> int:
         """Compare if parameter value is greater than other."""
         return self.value > _normalize_parameter_value(other)
 
-    def __le__(self, other) -> bool:
+    def __le__(self, other) -> int:
         """Compare if parameter value is less or equal to other."""
         return self.value <= _normalize_parameter_value(other)
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other) -> int:
         """Compare if parameter value is less that other."""
         return self.value < _normalize_parameter_value(other)
 
@@ -102,6 +104,7 @@ class Parameter(ABC):
         if self.min_value <= value <= self.max_value:
             self._value = value
             self._queue.put_nowait(self.request)
+            self._changed = True
         else:
             raise ValueError(
                 f"parameter value must be between {self.min_value} and {self.max_value}"
@@ -121,6 +124,11 @@ class Parameter(ABC):
     def max_value(self) -> int:
         """Return maximum allowed value."""
         return self._max_value
+
+    @property
+    def changed(self) -> bool:
+        """Has parameter been changed recently."""
+        return self._changed
 
     @property
     @abstractmethod
