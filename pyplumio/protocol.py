@@ -117,7 +117,7 @@ class Protocol(TaskManager):
                     if name in self.devices
                     else factory(handler, queue=write_queue)
                 )
-                await device.handle_frame(frame)
+                device.handle_frame(frame)
                 if frame.is_type(CheckDevice, ProgramVersion):
                     write_queue.put_nowait(
                         frame.response(data={DATA_NETWORK: self._network})
@@ -181,6 +181,9 @@ class Protocol(TaskManager):
 
         self.writer = None
         self.reader = None
+
+        for _, device in self.devices.items():
+            await device.shutdown()
 
     async def get_device(self, device: str) -> Device:
         """Wait for device and return it once it's available."""

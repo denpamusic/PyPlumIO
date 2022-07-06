@@ -251,7 +251,7 @@ async def test_shutdown(
     bypass_asyncio_create_task,
     protocol: Protocol,
 ) -> None:
-    """f"""
+    """Test protocol shutdown."""
     # Create mock queues.
     mock_read_queue = Mock()
     mock_write_queue = Mock()

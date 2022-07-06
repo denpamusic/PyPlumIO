@@ -37,6 +37,7 @@ from pyplumio.helpers.parameter import (
     Parameter,
     is_binary_parameter,
 )
+from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.helpers.typing import (
     Numeric,
@@ -108,7 +109,7 @@ def _significantly_changed(old_value, new_value) -> bool:
     return old_value != new_value
 
 
-class AsyncDevice(ABC):
+class AsyncDevice(ABC, TaskManager):
     """Represents a device with awaitable properties."""
 
     _callbacks: MutableMapping[str, MutableSequence[ValueCallback]]
@@ -116,6 +117,7 @@ class AsyncDevice(ABC):
     def __init__(self):
         """Initializes Async Device object."""
         self._callbacks = {}
+        super().__init__()
 
     @timeout(VALUE_TIMEOUT)
     async def get_value(self, name: str):
@@ -154,10 +156,14 @@ class AsyncDevice(ABC):
 
         raise ParameterNotFoundError(f"parameter {name} not found")
 
+    def set_attribute(self, *args, **kwargs) -> None:
+        """Call registered callbacks on value change."""
+        self.create_task(self.async_set_attribute(*args, **kwargs))
+
     async def async_set_attribute(
         self, name: str, value, skip_change_check: bool = False
     ) -> None:
-        """Call registered callbacks on value change."""
+        """Asynchronously call registered callbacks on value change."""
         old_value = getattr(self, name, None)
         if name in self._callbacks and (
             skip_change_check or _significantly_changed(old_value, value)
@@ -167,6 +173,11 @@ class AsyncDevice(ABC):
                 value = return_value if return_value is not None else value
 
         setattr(self, name, value)
+
+    async def shutdown(self) -> None:
+        """Cancel scheduled tasks."""
+        self.cancel_tasks()
+        await self.wait_for_tasks()
 
     def register_callback(self, sensors: Sequence[str], callback: ValueCallback):
         """Register callback for sensor change."""
@@ -207,11 +218,11 @@ class Device(AsyncDevice):
         versions.update({x.frame_type: 0 for x in self.required_frames})
         self.register_callback([DATA_FRAME_VERSIONS], versions.async_update)
 
-    async def handle_frame(self, frame: Frame) -> None:
+    def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                await self.async_set_attribute(name, value, skip_change_check=True)
+                self.set_attribute(name, value, skip_change_check=True)
 
     @property
     def required_frames(self) -> Sequence[Type[Request]]:
@@ -366,6 +377,14 @@ class EcoMAX(Device):
             pass
 
         return data
+
+    async def shutdown(self) -> None:
+        """Cancel scheduled tasks."""
+        for _, mixer in self.mixers.items():
+            await mixer.shutdown()
+
+        self.cancel_tasks()
+        await self.wait_for_tasks()
 
 
 class EcoSTER(Device):

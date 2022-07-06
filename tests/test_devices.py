@@ -73,7 +73,7 @@ async def test_boiler_data_callbacks(ecomax: EcoMAX) -> None:
         Response(data={DATA_MODE: 1}),
     )
     for frame in frames:
-        await ecomax.handle_frame(frame)
+        ecomax.handle_frame(frame)
 
     assert await ecomax.get_value("test_sensor") == 42
     boiler_control = await ecomax.get_parameter("boiler_control")
@@ -83,7 +83,7 @@ async def test_boiler_data_callbacks(ecomax: EcoMAX) -> None:
 
 async def test_boiler_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on received parameter frames."""
-    await ecomax.handle_frame(
+    ecomax.handle_frame(
         Response(
             data={
                 DATA_BOILER_PARAMETERS: {
@@ -109,7 +109,8 @@ async def test_fuel_consumption_callbacks() -> None:
 
     with patch("time.time", side_effect=(10, 20)):
         ecomax = EcoMAX(asyncio.Queue())
-        await ecomax.handle_frame(Response(data={DATA_FUEL_CONSUMPTION: 3.6}))
+        ecomax.handle_frame(Response(data={DATA_FUEL_CONSUMPTION: 3.6}))
+        await ecomax.wait_for_tasks()
 
     assert await ecomax.get_value("fuel_burned") == 0.01
 
@@ -122,14 +123,16 @@ async def test_regdata_callbacks(
     with patch(
         "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
     ):
-        await ecomax.handle_frame(regulator_data)
+        ecomax.handle_frame(regulator_data)
+        await ecomax.wait_for_tasks()
 
     # Regulator data should be empty on schema timeout.
     assert not await ecomax.get_value(DATA_REGDATA)
 
     # Set data schema and parse the regdata.
-    await ecomax.handle_frame(data_schema)
-    await ecomax.handle_frame(regulator_data)
+    ecomax.handle_frame(data_schema)
+    ecomax.handle_frame(regulator_data)
+    await ecomax.wait_for_tasks()
 
     regdata = await ecomax.get_value(DATA_REGDATA)
     assert regdata["mode"] == 0
@@ -141,9 +144,7 @@ async def test_regdata_callbacks(
 
 async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on receiving mixer sensors info."""
-    await ecomax.handle_frame(
-        Response(data={DATA_MIXER_SENSORS: [{"test_sensor": 42}]})
-    )
+    ecomax.handle_frame(Response(data={DATA_MIXER_SENSORS: [{"test_sensor": 42}]}))
     mixers = await ecomax.get_value("mixers")
     assert len(mixers) == 1
     assert isinstance(mixers[0], Mixer)
@@ -153,7 +154,7 @@ async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
 
 async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on receiving mixer parameters."""
-    await ecomax.handle_frame(
+    ecomax.handle_frame(
         Response(
             data={
                 DATA_MIXER_PARAMETERS: [
@@ -180,26 +181,26 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
     """Test callback registration."""
     mock_callback = AsyncMock(return_value=None)
     ecomax.register_callback(["test_sensor"], mock_callback)
-    await ecomax.handle_frame(
-        Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.1}})
-    )
+    ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.1}}))
+    await ecomax.wait_for_tasks()
     mock_callback.assert_awaited_once_with(42.1)
     mock_callback.reset_mock()
 
     # Test with insignificant change.
-    await ecomax.handle_frame(
-        Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.11}})
-    )
+    ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.11}}))
+    await ecomax.wait_for_tasks()
     mock_callback.assert_not_awaited()
 
     # Test with significant change.
-    await ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 45}}))
+    ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 45}}))
+    await ecomax.wait_for_tasks()
     mock_callback.assert_awaited_once_with(45)
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
     ecomax.remove_callback(["test_sensor"], mock_callback)
-    await ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 50}}))
+    ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 50}}))
+    await ecomax.wait_for_tasks()
     mock_callback.assert_not_awaited()
 
 
