@@ -156,7 +156,7 @@ class Protocol(TaskManager):
         lock: asyncio.Lock = asyncio.Lock()
         self.create_task(self.write_consumer(write_queue, lock))
         self.create_task(self.frame_producer(read_queue, lock))
-        for _ in range(2):
+        for _ in range(CONSUMERS_NUMBER):
             self.create_task(self.frame_consumer(*self.queues))
 
     async def connection_lost(self):
