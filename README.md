@@ -25,6 +25,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Data and Parameters](#data-and-parameters)
   - [Reading](#reading)
   - [Writing](#writing)
+  - [Callbacks](#callbacks)
   - [Network Information](#network-information)
 - [Protocol](#protocol)
   - [Frame Structure](#frame-structure)
@@ -106,27 +107,6 @@ async def main():
 asyncio.run(main())
 ```
 
-It's also possible to register a callback, that will be called every time value is significantly changed.
-```python
-import asyncio
-import pyplumio
-
-async def my_callback(value: float) -> None:
-  print(f"Heating Temperature: {value}")
-
-async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    ecomax.register_callback(["heating_temp"], my_callback)
-    
-    while True:
-    	# Wait in the infinite loop.
-    	await asyncio.sleep(1)
-
-asyncio.run(main())
-````
-
-
 ### Writing
 You can easily change controller parameters by awaiting `Device.set_value(name: str, value: int)` or by getting parameter via `Device.get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
@@ -178,6 +158,50 @@ async def main():
     target_temp = await ecomax.get_parameter("heating_target_temp")
     print(target_temp.min_value)  # Prints minimum allowed target temperature.
     print(target_temp.max_value)  # Prints maximum allowed target temperature.
+```
+
+### Callbacks
+It's possible to register a callback function that will be called every time a data is received.
+```python
+import asyncio
+import pyplumio
+
+async def my_callback(value) -> None:
+  print(f"Heating Temperature: {value}")
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    ecomax.register_callback(["heating_temp"], my_callback)
+    
+    while True:
+    	# Wait in the infinite loop.
+    	await asyncio.sleep(1)
+
+asyncio.run(main())
+````
+
+Callbacks can be further improved using built-in filters `debounce(callback, min_calls: int = 3)` and `on_change(callback)` to either call a callback only when the value is significantly changed or to debounce the value and call a callback after value is stabilized for a minimum of `min_calls` received frames.
+
+```python
+import pyplumio
+from pyplumio.helpers.filters import debounce, on_change
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    
+    # Callback "my_callback" will be awaited on every received frame that contains "heating_temp"
+    # regardless of whether value is changed or not.
+    ecomax.register_callback(["heating_temp"], my_callback)
+    
+    # Callback "my_other_callback" will be awaited only if the "heating_temp" value
+    # is changed since last call.
+    ecomax.register_callback(["heating_temp"], on_change(my_other_callback))
+    
+    # Callback "your_callback" will be awaited once the "heating_temp" value is stabilized
+    # across three received frames.
+    ecomax.register_callback(["heating_temp"], debounce(your_callback, min_calls = 3))
 ```
 
 ### Network Information

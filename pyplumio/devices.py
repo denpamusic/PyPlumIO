@@ -29,6 +29,7 @@ from pyplumio.exceptions import (
 from pyplumio.frames import Frame, Request, get_frame_handler, requests
 from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.parameter import (
     BoilerBinaryParameter,
     BoilerParameter,
@@ -98,17 +99,6 @@ class FrameVersions:
         self.update(*args, *kwargs)
 
 
-def _significantly_changed(old_value, new_value) -> bool:
-    """Check if value is significantly changed."""
-    if old_value is None or (isinstance(old_value, Parameter) and old_value.changed):
-        return True
-
-    if isinstance(old_value, float) and isinstance(new_value, float):
-        return round(old_value, 1) != round(new_value, 1)
-
-    return old_value != new_value
-
-
 class AsyncDevice(ABC, TaskManager):
     """Represents a device with awaitable properties."""
 
@@ -160,14 +150,9 @@ class AsyncDevice(ABC, TaskManager):
         """Call registered callbacks on value change."""
         self.create_task(self.async_set_attribute(*args, **kwargs))
 
-    async def async_set_attribute(
-        self, name: str, value, skip_change_check: bool = False
-    ) -> None:
+    async def async_set_attribute(self, name: str, value) -> None:
         """Asynchronously call registered callbacks on value change."""
-        old_value = getattr(self, name, None)
-        if name in self._callbacks and (
-            skip_change_check or _significantly_changed(old_value, value)
-        ):
+        if name in self._callbacks:
             for callback in self._callbacks[name]:
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
@@ -216,13 +201,13 @@ class Device(AsyncDevice):
         self._queue = queue
         versions = FrameVersions(queue, device=self)
         versions.update({x.frame_type: 0 for x in self.required_frames})
-        self.register_callback([DATA_FRAME_VERSIONS], versions.async_update)
+        self.register_callback([DATA_FRAME_VERSIONS], on_change(versions.async_update))
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                self.set_attribute(name, value, skip_change_check=True)
+                self.set_attribute(name, value)
 
     @property
     def required_frames(self) -> Sequence[Type[Request]]:
@@ -255,7 +240,9 @@ class EcoMAX(Device):
         self._mixers: MutableMapping[int, Mixer] = {}
         self._fuel_burned_timestamp = time.time()
         self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
-        self.register_callback([DATA_MODE], self._add_boiler_control_parameter)
+        self.register_callback(
+            [DATA_MODE], on_change(self._add_boiler_control_parameter)
+        )
         self.register_callback([DATA_FUEL_CONSUMPTION], self._add_burned_fuel_counter)
         self.register_callback([DATA_BOILER_PARAMETERS], self._add_boiler_parameters)
         self.register_callback([DATA_REGDATA], self._parse_regulator_data)
@@ -349,9 +336,7 @@ class EcoMAX(Device):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         fuel_burned = (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
-        await self.async_set_attribute(
-            "fuel_burned", fuel_burned, skip_change_check=True
-        )
+        await self.async_set_attribute("fuel_burned", fuel_burned)
 
     async def _parse_regulator_data(self, regulator_data: bytes) -> Records:
         """Add sensor values from the regulator data."""
@@ -383,8 +368,7 @@ class EcoMAX(Device):
         for _, mixer in self.mixers.items():
             await mixer.shutdown()
 
-        self.cancel_tasks()
-        await self.wait_for_tasks()
+        await super().shutdown()
 
 
 class EcoSTER(Device):

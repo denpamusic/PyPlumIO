@@ -186,12 +186,7 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
     mock_callback.assert_awaited_once_with(42.1)
     mock_callback.reset_mock()
 
-    # Test with insignificant change.
-    ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.11}}))
-    await ecomax.wait_for_tasks()
-    mock_callback.assert_not_awaited()
-
-    # Test with significant change.
+    # Test with change.
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 45}}))
     await ecomax.wait_for_tasks()
     mock_callback.assert_awaited_once_with(45)
@@ -250,3 +245,17 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     ecomax.__dict__["invalid_parameter"] = invalid
     with pytest.raises(ParameterNotFoundError):
         await ecomax.get_parameter("invalid_parameter")
+
+
+@patch("pyplumio.devices.Mixer.shutdown")
+@patch("pyplumio.devices.AsyncDevice.cancel_tasks")
+@patch("pyplumio.devices.AsyncDevice.wait_for_tasks")
+async def test_shutdown(
+    mock_wait_for_tasks, mock_cancel_tasks, mock_shutdown, ecomax: EcoMAX
+) -> None:
+    """Test device tasks shutdown."""
+    ecomax.handle_frame(Response(data={DATA_MIXER_SENSORS: [{"test_sensor": 42}]}))
+    await ecomax.shutdown()
+    mock_wait_for_tasks.assert_awaited_once()
+    mock_cancel_tasks.assert_called_once()
+    mock_shutdown.assert_awaited_once()

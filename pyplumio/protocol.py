@@ -164,6 +164,8 @@ class Protocol(TaskManager):
         for queue in self.queues:
             _empty_queue(queue)
 
+        self.writer = None
+        self.reader = None
         await self.shutdown()
         if self._connection_lost_callback is not None:
             await self._connection_lost_callback()
@@ -178,9 +180,6 @@ class Protocol(TaskManager):
         await asyncio.gather(*tasks, return_exceptions=True)
         if self.writer:
             await self.writer.close()
-
-        self.writer = None
-        self.reader = None
 
         for _, device in self.devices.items():
             await device.shutdown()
