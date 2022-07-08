@@ -181,27 +181,36 @@ async def main():
 asyncio.run(main())
 ````
 
-Callbacks can be further improved using built-in filters `debounce(callback, min_calls: int = 3)` and `on_change(callback)` to either call a callback only when the value is significantly changed or to debounce the value and call a callback after value is stabilized for a minimum of `min_calls` received frames.
+Callbacks can be further improved using built-in filters `on_change(callback)`, `debounce(callback, min_calls)` and `throttle(callback, timeout)`. Below are some examples on how to use them.
 
 ```python
 import pyplumio
-from pyplumio.helpers.filters import debounce, on_change
+from pyplumio.helpers.filters import debounce, on_change, throttle
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     
-    # Callback "my_callback" will be awaited on every received frame that contains "heating_temp"
-    # regardless of whether value is changed or not.
+    # Callback "my_callback" will be awaited on every received frame
+    # that contains "heating_temp" regardless of whether value is
+    # changed or not.
     ecomax.register_callback(["heating_temp"], my_callback)
     
-    # Callback "my_other_callback" will be awaited only if the "heating_temp" value
-    # is changed since last call.
+    # Callback "my_other_callback" will be awaited only if the
+    # "heating_temp" value is changed since last call.
     ecomax.register_callback(["heating_temp"], on_change(my_other_callback))
     
-    # Callback "your_callback" will be awaited once the "heating_temp" value is stabilized
-    # across three received frames.
-    ecomax.register_callback(["heating_temp"], debounce(your_callback, min_calls = 3))
+    # Callback "your_callback" will be awaited once the "heating_temp"
+    # value is stabilized across three received frames.
+    ecomax.register_callback(["heating_temp"], debounce(your_callback, min_calls=3))
+
+    # Callback "your_other_callback" will be awaited once in 5 seconds.
+    ecomax.register_callback(["heating_temp"], throttle(your_other_callback, timeout=5))
+
+    # Throttle callback can be chained with others.
+    # Callback "the_callback" will be awaited on value change but no
+    # sooner that 5 seconds.
+    ecomax.register_callback(["heating_temp"], throttle(on_change(the_callback), timeout=5))
 ```
 
 ### Network Information
@@ -296,7 +305,7 @@ In this dictionary keys are frame types and values are version numbers. In examp
 If we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
 ```python
 frame_versions: Dict[int, int] = {
-  0x31: 38,  # note version number change
+  0x31: 38,  # Note version number change.
   0x32: 37,
   0x36: 1,
   0x38: 5,

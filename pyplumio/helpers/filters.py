@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+import time
+from typing import Any, Optional
 
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import ValueCallback
@@ -64,15 +65,15 @@ class Debounce(Filter):
     """Provides debounce functionality to the callback."""
 
     _calls: int = 0
-    _min_calls: int = 2
+    _min_calls: int = 3
 
-    def __init__(self, callback: ValueCallback, min_calls: int = 3):
+    def __init__(self, callback: ValueCallback, min_calls: int):
         """Initialize Debounce object."""
         super().__init__(callback)
         self._calls = 0
         self._min_calls = min_calls
 
-    async def __call__(self, new_value, *args, **kwargs):
+    async def __call__(self, new_value):
         """Set new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._calls += 1
@@ -82,9 +83,37 @@ class Debounce(Filter):
         if self._calls >= self._min_calls or self._value is None:
             self._value = new_value
             self._calls = 0
-            return await self._callback(new_value, *args, **kwargs)
+            return await self._callback(new_value)
 
 
-def debounce(callback: ValueCallback, min_calls: int = 3) -> Debounce:
+def debounce(callback: ValueCallback, min_calls) -> Debounce:
     """Helper method for debounce callback filter."""
     return Debounce(callback, min_calls)
+
+
+class Throttle(Filter):
+    """Provides throttle functionality to the callback."""
+
+    _last_called: Optional[float]
+    _timeout: float
+
+    def __init__(self, callback: ValueCallback, timeout: float):
+        """Initialize Debounce object."""
+        super().__init__(callback)
+        self._last_called = None
+        self._timeout = timeout
+
+    async def __call__(self, new_value):
+        """Set new value for the callback."""
+        current_timestamp = time.time()
+        if (
+            self._last_called is None
+            or (current_timestamp - self._last_called) >= self._timeout
+        ):
+            self._last_called = current_timestamp
+            return await self._callback(new_value)
+
+
+def throttle(callback: ValueCallback, timeout: float) -> Throttle:
+    """Helper method for throttle callback filter."""
+    return Throttle(callback, timeout)
