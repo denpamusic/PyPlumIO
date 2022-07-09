@@ -172,7 +172,7 @@ async def my_callback(value) -> None:
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    ecomax.register_callback(["heating_temp"], my_callback)
+    ecomax.register_callback("heating_temp", my_callback)
     
     while True:
     	# Wait in the infinite loop.
@@ -194,23 +194,23 @@ async def main():
     # Callback "my_callback" will be awaited on every received frame
     # that contains "heating_temp" regardless of whether value is
     # changed or not.
-    ecomax.register_callback(["heating_temp"], my_callback)
+    ecomax.register_callback("heating_temp", my_callback)
     
     # Callback "my_other_callback" will be awaited only if the
     # "heating_temp" value is changed since last call.
-    ecomax.register_callback(["heating_temp"], on_change(my_other_callback))
+    ecomax.register_callback("heating_temp", on_change(my_other_callback))
     
     # Callback "your_callback" will be awaited once the "heating_temp"
     # value is stabilized across three received frames.
-    ecomax.register_callback(["heating_temp"], debounce(your_callback, min_calls=3))
+    ecomax.register_callback("heating_temp", debounce(your_callback, min_calls=3))
 
     # Callback "your_other_callback" will be awaited once in 5 seconds.
-    ecomax.register_callback(["heating_temp"], throttle(your_other_callback, timeout=5))
+    ecomax.register_callback("heating_temp", throttle(your_other_callback, timeout=5))
 
     # Throttle callback can be chained with others.
     # Callback "the_callback" will be awaited on value change but no
     # sooner that 5 seconds.
-    ecomax.register_callback(["heating_temp"], throttle(on_change(the_callback), timeout=5))
+    ecomax.register_callback("heating_temp", throttle(on_change(the_callback), timeout=5))
 ```
 
 ### Network Information
