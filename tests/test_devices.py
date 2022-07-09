@@ -180,7 +180,7 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
 async def test_register_callback(ecomax: EcoMAX) -> None:
     """Test callback registration."""
     mock_callback = AsyncMock(return_value=None)
-    ecomax.register_callback(["test_sensor"], mock_callback)
+    ecomax.register_callback("test_sensor", mock_callback)
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.1}}))
     await ecomax.wait_for_tasks()
     mock_callback.assert_awaited_once_with(42.1)
@@ -193,7 +193,7 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
-    ecomax.remove_callback(["test_sensor"], mock_callback)
+    ecomax.remove_callback("test_sensor", mock_callback)
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 50}}))
     await ecomax.wait_for_tasks()
     mock_callback.assert_not_awaited()

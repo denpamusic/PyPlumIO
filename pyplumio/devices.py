@@ -164,21 +164,17 @@ class AsyncDevice(ABC, TaskManager):
         self.cancel_tasks()
         await self.wait_for_tasks()
 
-    def register_callback(
-        self, sensors: Sequence[str], callback: ValueCallback
-    ) -> None:
-        """Register callback for sensor change."""
-        for sensor in sensors:
-            if sensor not in self._callbacks:
-                self._callbacks[sensor] = []
+    def register_callback(self, name: str, callback: ValueCallback) -> None:
+        """Register callback for a value change."""
+        if name not in self._callbacks:
+            self._callbacks[name] = []
 
-            self._callbacks[sensor].append(callback)
+        self._callbacks[name].append(callback)
 
-    def remove_callback(self, sensors: Sequence[str], callback: ValueCallback) -> None:
-        """Remove callback for sensor change."""
-        for sensor in sensors:
-            if sensor in self._callbacks and callback in self._callbacks[sensor]:
-                self._callbacks[sensor].remove(callback)
+    def remove_callback(self, name: str, callback: ValueCallback) -> None:
+        """Remove value change callback."""
+        if name in self._callbacks and callback in self._callbacks[name]:
+            self._callbacks[name].remove(callback)
 
 
 class Mixer(AsyncDevice):
@@ -203,7 +199,7 @@ class Device(AsyncDevice):
         self._queue = queue
         versions = FrameVersions(queue, device=self)
         versions.update({x.frame_type: 0 for x in self.required_frames})
-        self.register_callback([DATA_FRAME_VERSIONS], on_change(versions.async_update))
+        self.register_callback(DATA_FRAME_VERSIONS, on_change(versions.async_update))
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
@@ -241,15 +237,13 @@ class EcoMAX(Device):
         super().__init__(queue)
         self._mixers: Dict[int, Mixer] = {}
         self._fuel_burned_timestamp = time.time()
-        self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
-        self.register_callback(
-            [DATA_MODE], on_change(self._add_boiler_control_parameter)
-        )
-        self.register_callback([DATA_FUEL_CONSUMPTION], self._add_burned_fuel_counter)
-        self.register_callback([DATA_BOILER_PARAMETERS], self._add_boiler_parameters)
-        self.register_callback([DATA_REGDATA], self._parse_regulator_data)
-        self.register_callback([DATA_MIXER_SENSORS], self._set_mixer_sensors)
-        self.register_callback([DATA_MIXER_PARAMETERS], self._set_mixer_parameters)
+        self.register_callback(DATA_BOILER_SENSORS, self._add_boiler_sensors)
+        self.register_callback(DATA_MODE, on_change(self._add_boiler_control_parameter))
+        self.register_callback(DATA_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
+        self.register_callback(DATA_BOILER_PARAMETERS, self._add_boiler_parameters)
+        self.register_callback(DATA_REGDATA, self._parse_regulator_data)
+        self.register_callback(DATA_MIXER_SENSORS, self._set_mixer_sensors)
+        self.register_callback(DATA_MIXER_PARAMETERS, self._set_mixer_parameters)
 
     def _get_mixer(self, mixer_number: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
