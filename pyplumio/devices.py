@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import MutableMapping, Sequence
 import time
-from typing import Type
+from typing import Dict, List, Type
 
 from pyplumio.const import (
     BROADCAST_ADDRESS,
@@ -49,7 +49,7 @@ from pyplumio.helpers.typing import (
 )
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 
-devices: Mapping[int, str] = {
+devices: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
     ECOSTER_ADDRESS: "EcoSTER",
 }
@@ -69,7 +69,7 @@ def get_device_handler(address: int) -> str:
 class FrameVersions:
     """Represents frame versions storage."""
 
-    versions: MutableMapping[int, int]
+    versions: Dict[int, int]
     _queue: asyncio.Queue
     _device: Device
 
@@ -102,7 +102,7 @@ class FrameVersions:
 class AsyncDevice(ABC, TaskManager):
     """Represents a device with awaitable properties."""
 
-    _callbacks: MutableMapping[str, MutableSequence[ValueCallback]]
+    _callbacks: Dict[str, List[ValueCallback]]
 
     def __init__(self):
         """Initializes Async Device object."""
@@ -164,7 +164,9 @@ class AsyncDevice(ABC, TaskManager):
         self.cancel_tasks()
         await self.wait_for_tasks()
 
-    def register_callback(self, sensors: Sequence[str], callback: ValueCallback):
+    def register_callback(
+        self, sensors: Sequence[str], callback: ValueCallback
+    ) -> None:
         """Register callback for sensor change."""
         for sensor in sensors:
             if sensor not in self._callbacks:
@@ -172,7 +174,7 @@ class AsyncDevice(ABC, TaskManager):
 
             self._callbacks[sensor].append(callback)
 
-    def remove_callback(self, sensors: Sequence[str], callback: ValueCallback):
+    def remove_callback(self, sensors: Sequence[str], callback: ValueCallback) -> None:
         """Remove callback for sensor change."""
         for sensor in sensors:
             if sensor in self._callbacks and callback in self._callbacks[sensor]:
@@ -193,7 +195,7 @@ class Device(AsyncDevice):
 
     address: int = BROADCAST_ADDRESS
     _queue: asyncio.Queue
-    _required_frames: Sequence[Type[Request]] = []
+    _required_frames: List[Type[Request]] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
@@ -210,7 +212,7 @@ class Device(AsyncDevice):
                 self.set_attribute(name, value)
 
     @property
-    def required_frames(self) -> Sequence[Type[Request]]:
+    def required_frames(self) -> List[Type[Request]]:
         """Return list of required frames."""
         return self._required_frames
 
@@ -224,9 +226,9 @@ class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
     address: int = ECOMAX_ADDRESS
-    mixers: MutableMapping[int, Mixer] = {}
+    mixers: Dict[int, Mixer] = {}
     _fuel_burned_timestamp: float = 0.0
-    _required_frames: Sequence[Type[Request]] = [
+    _required_frames: List[Type[Request]] = [
         requests.UID,
         requests.DataSchema,
         requests.BoilerParameters,
@@ -237,7 +239,7 @@ class EcoMAX(Device):
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
-        self._mixers: MutableMapping[int, Mixer] = {}
+        self._mixers: Dict[int, Mixer] = {}
         self._fuel_burned_timestamp = time.time()
         self.register_callback([DATA_BOILER_SENSORS], self._add_boiler_sensors)
         self.register_callback(
@@ -266,9 +268,9 @@ class EcoMAX(Device):
 
     async def _add_boiler_parameters(
         self, parameters: Parameters
-    ) -> MutableMapping[str, Parameter]:
+    ) -> Dict[str, Parameter]:
         """Add Parameter objects to the device object."""
-        parameter_objects: MutableMapping[str, Parameter] = {}
+        parameter_objects: Dict[str, Parameter] = {}
         for name, value in parameters.items():
             cls = (
                 BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter

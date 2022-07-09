@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping, Sequence
-from typing import Final, Optional
+from typing import Dict, Final, List, Optional
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
@@ -20,7 +19,7 @@ ECONET_TYPE: Final = 0x30
 ECONET_VERSION: Final = 0x05
 
 # Dictionary of frame handler classes indexed by frame types.
-frames: Mapping[int, str] = {
+frames: Dict[int, str] = {
     0x18: "requests.StopMaster",
     0x19: "requests.StartMaster",
     0x30: "requests.CheckDevice",
@@ -161,7 +160,7 @@ class Frame(ABC):
         return bytes(data)
 
     @property
-    def hex(self) -> Sequence[str]:
+    def hex(self) -> List[str]:
         """Return hex frame representation."""
         return util.to_hex(self.bytes)
 

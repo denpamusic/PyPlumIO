@@ -1,14 +1,13 @@
 """Contains mixer parameter structure parser."""
 from __future__ import annotations
 
-from collections.abc import MutableMapping, Sequence
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_MIXER_PARAMETERS
 from pyplumio.helpers.typing import ParameterTuple, Records
 
-MIXER_PARAMETERS: Sequence[str] = [
+MIXER_PARAMETERS: List[str] = [
     "mix_target_temp",
     "min_mix_target_temp",
     "max_mix_target_temp",
@@ -38,7 +37,7 @@ def from_bytes(
     offset += 4
     mixer_parameters = []
     for _ in range(mixers_number):
-        parameters: MutableMapping[str, ParameterTuple] = {}
+        parameters: Dict[str, ParameterTuple] = {}
         for parameter_key in range(parameters_number):
             parameter = util.unpack_parameter(message, offset)
             if parameter is not None:

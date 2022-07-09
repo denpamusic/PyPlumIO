@@ -1,8 +1,7 @@
 """Contains thermostats structure parser."""
 from __future__ import annotations
 
-from collections.abc import MutableSequence
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import Records
@@ -26,7 +25,7 @@ def from_bytes(
         offset += 1
         return data, offset
 
-    thermostats: MutableSequence[Records] = []
+    thermostats: List[Records] = []
     therm_contacts = message[offset]
     offset += 1
     therm_number = message[offset]

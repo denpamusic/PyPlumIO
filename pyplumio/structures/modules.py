@@ -1,9 +1,8 @@
 """Contains modules structure parser."""
 from __future__ import annotations
 
-from collections.abc import Sequence
 import struct
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio.const import DATA_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
@@ -15,14 +14,14 @@ MODULE_C: Final = "module_c"
 MODULE_LAMBDA: Final = "module_lambda"
 MODULE_ECOSTER: Final = "module_ecoster"
 MODULE_PANEL: Final = "module_panel"
-MODULES: Sequence[str] = (
+MODULES: List[str] = [
     MODULE_A,
     MODULE_B,
     MODULE_C,
     MODULE_LAMBDA,
     MODULE_ECOSTER,
     MODULE_PANEL,
-)
+]
 
 
 def from_bytes(

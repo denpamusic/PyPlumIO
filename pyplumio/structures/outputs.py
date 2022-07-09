@@ -1,9 +1,8 @@
 """Contains outputs structure parser."""
 from __future__ import annotations
 
-from collections.abc import Sequence
 import math
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import Records
@@ -24,7 +23,7 @@ FIREPLACE_PUMP_OUTPUT: Final = "fireplace_pump"
 GCZ_CONTACT: Final = "gcz_contact"
 BLOW_FAN1_OUTPUT: Final = "blow_fan1"
 BLOW_FAN2_OUTPUT: Final = "blow_fan2"
-OUTPUTS: Sequence[str] = (
+OUTPUTS: List[str] = [
     FAN_OUTPUT,
     FEEDER_OUTPUT,
     HEATING_PUMP_OUTPUT,
@@ -41,7 +40,7 @@ OUTPUTS: Sequence[str] = (
     GCZ_CONTACT,
     BLOW_FAN1_OUTPUT,
     BLOW_FAN2_OUTPUT,
-)
+]
 
 
 def from_bytes(

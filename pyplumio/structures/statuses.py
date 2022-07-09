@@ -1,8 +1,7 @@
 """Contains outputs structure parser."""
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio.helpers.typing import Records
 
@@ -10,12 +9,12 @@ HEATING_TARGET: Final = "heating_target"
 HEATING_STATUS: Final = "heating_status"
 WATER_HEATER_TARGET: Final = "water_heater_target"
 WATER_HEATER_STATUS: Final = "water_heater_status"
-STATUSES: Sequence[str] = (
+STATUSES: List[str] = [
     HEATING_TARGET,
     HEATING_STATUS,
     WATER_HEATER_TARGET,
     WATER_HEATER_STATUS,
-)
+]
 
 
 def from_bytes(

@@ -1,8 +1,7 @@
 """Contains mixers structure parser."""
 from __future__ import annotations
 
-from collections.abc import MutableSequence
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_MIXER_SENSORS
@@ -11,11 +10,11 @@ from pyplumio.helpers.typing import Records
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET_TEMP: Final = "target_temp"
 MIXER_PUMP_OUTPUT: Final = "pump_output"
-MIXER_DATA: Final = (
+MIXER_DATA: List[str] = [
     MIXER_TEMP,
     MIXER_TARGET_TEMP,
     MIXER_PUMP_OUTPUT,
-)
+]
 
 
 def from_bytes(
@@ -30,7 +29,7 @@ def from_bytes(
     if mixers_number == 0:
         return data, offset
 
-    mixers: MutableSequence[Records] = []
+    mixers: List[Records] = []
 
     for _ in range(mixers_number):
         mixer = {}

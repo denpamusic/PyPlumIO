@@ -1,15 +1,14 @@
 """Contains regulator parameter structure parser."""
 from __future__ import annotations
 
-from collections.abc import MutableMapping, Sequence
-from typing import Final, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import DATA_BOILER_PARAMETERS
 from pyplumio.helpers.typing import ParameterTuple, Records
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
-BOILER_PARAMETERS: Sequence[str] = [
+BOILER_PARAMETERS: List[str] = [
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -162,7 +161,7 @@ def from_bytes(
     first_parameter = message[offset + 1]
     parameters_number = message[offset + 2]
     offset += 3
-    parameters: MutableMapping[str, ParameterTuple] = {}
+    parameters: Dict[str, ParameterTuple] = {}
     for index in range(first_parameter, parameters_number + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:

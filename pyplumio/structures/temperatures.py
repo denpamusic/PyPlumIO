@@ -1,9 +1,8 @@
 """Contains temperatures structure parser."""
 from __future__ import annotations
 
-from collections.abc import Sequence
 import math
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import Records
@@ -25,7 +24,7 @@ HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
 EXCHANGER_TEMP: Final = "exchanger_temp"
 AIR_IN_TEMP: Final = "air_in_temp"
 AIR_OUT_TEMP: Final = "air_out_temp"
-TEMPERATURES: Sequence[str] = (
+TEMPERATURES: List[str] = [
     HEATING_TEMP,
     FEEDER_TEMP,
     WATER_HEATER_TEMP,
@@ -43,7 +42,7 @@ TEMPERATURES: Sequence[str] = (
     EXCHANGER_TEMP,
     AIR_IN_TEMP,
     AIR_OUT_TEMP,
-)
+]
 
 
 def from_bytes(

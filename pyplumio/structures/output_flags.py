@@ -1,8 +1,7 @@
 """Contains output flags structure parser."""
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Final, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import Records
@@ -11,12 +10,12 @@ DATA_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
 DATA_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
 DATA_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
 DATA_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
-OUTPUT_FLAGS: Sequence[str] = (
+OUTPUT_FLAGS: List[str] = [
     DATA_HEATING_PUMP_FLAG,
     DATA_WATER_HEATER_PUMP_FLAG,
     DATA_CIRCULATION_PUMP_FLAG,
     DATA_SOLAR_PUMP_FLAG,
-)
+]
 
 
 def from_bytes(

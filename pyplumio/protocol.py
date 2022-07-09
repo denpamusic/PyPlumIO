@@ -2,9 +2,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import MutableMapping
 import logging
-from typing import Final, Optional, Tuple
+from typing import Dict, Final, Optional, Tuple
 
 from pyplumio.const import DATA_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
@@ -49,7 +48,7 @@ class Protocol(TaskManager):
 
     writer: Optional[FrameWriter]
     reader: Optional[FrameReader]
-    devices: MutableMapping[str, Device]
+    devices: Dict[str, Device]
     _network: NetworkInfo
     _queues: Tuple[asyncio.Queue, asyncio.Queue]
     _connection_lost_callback: Optional[AsyncCallback]
