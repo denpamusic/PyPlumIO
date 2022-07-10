@@ -11,6 +11,7 @@ from typing import Any, Final, Optional, Tuple
 from serial import SerialException
 import serial_asyncio
 
+from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import Protocol
 
@@ -67,8 +68,15 @@ class Connection(ABC):
     @timeout(CONNECT_TIMEOUT)
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
-        reader, writer = await self._open_connection()
-        self._protocol.connection_established(reader, writer)
+        try:
+            reader, writer = await self._open_connection()
+            self._protocol.connection_established(reader, writer)
+        except (
+            OSError,
+            SerialException,
+            asyncio.TimeoutError,
+        ) as connection_error:
+            raise ConnectionFailedError from connection_error
 
     async def _reconnect(self) -> None:
         """Establish connection and reconnect on failure."""
@@ -76,11 +84,7 @@ class Connection(ABC):
             try:
                 await self._connect()
                 return
-            except (
-                OSError,
-                SerialException,
-                asyncio.TimeoutError,
-            ):
+            except (ConnectionFailedError, asyncio.TimeoutError):
                 _LOGGER.error(
                     "ConnectionError: connection failed, reconnecting in %i seconds...",
                     RECONNECT_TIMEOUT,

@@ -9,6 +9,7 @@ from serial import SerialException
 import serial_asyncio
 
 from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import Protocol
 
 
@@ -38,21 +39,31 @@ async def test_tcp_connect(
     open_tcp_connection,
 ) -> None:
     """Test tcp connection logic."""
-    tcp_connection = TcpConnection(host="localhost", port=8899, test="test")
+    tcp_connection = TcpConnection(
+        host="localhost", port=8899, test="test", reconnect_on_failure=False
+    )
     await tcp_connection.connect()
     assert isinstance(tcp_connection.protocol, Protocol)
     open_tcp_connection.assert_called_once_with(
         host="localhost", port=8899, test="test"
     )
     mock_protocol.assert_called_once_with(mock_connection_lost_callback, None, None)
+    await tcp_connection.close()
+
+    # Raise custom exception on connection failure.
+    open_tcp_connection.side_effect = OSError
+    with pytest.raises(ConnectionFailedError):
+        await tcp_connection.connect()
 
 
 async def test_serial_connect(
     mock_protocol,
     open_serial_connection,
-    serial_connection: SerialConnection,
 ) -> None:
     """Test serial connection logic."""
+    serial_connection = SerialConnection(
+        device="/dev/ttyUSB0", test="test", reconnect_on_failure=False
+    )
     await serial_connection.connect()
     open_serial_connection.assert_called_once_with(
         url="/dev/ttyUSB0",
@@ -62,6 +73,11 @@ async def test_serial_connect(
         stopbits=serial_asyncio.serial.STOPBITS_ONE,
         test="test",
     )
+
+    # Raise custom exception on connection failure.
+    open_serial_connection.side_effect = SerialException
+    with pytest.raises(ConnectionFailedError):
+        await serial_connection.connect()
 
 
 async def test_reconnect(
@@ -74,12 +90,12 @@ async def test_reconnect(
     """Test reconnect logic."""
     with caplog.at_level(logging.ERROR), patch(
         "pyplumio.connection.Connection._connect",
-        side_effect=(ConnectionError, SerialException, asyncio.TimeoutError, None),
+        side_effect=(ConnectionFailedError, asyncio.TimeoutError, None),
     ) as mock_connect:
         await tcp_connection.connect()
 
     assert "ConnectionError" in caplog.text
-    assert mock_connect.call_count == 4
+    assert mock_connect.call_count == 3
 
 
 async def test_connection_lost_callback(
