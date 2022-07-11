@@ -97,7 +97,7 @@ BOILER_PARAMETERS: List[str] = [
     "fuel_flow_kg_h",
     "feeder_calibration",
     "fuel_factor",
-    "fuel_energy_kwh_kg",
+    "fuel_calorific_value_kwh_kg",
     "fuel_detection_time",
     "fuel_detection_fumes_temp",
     "schedule_feeder_2",
