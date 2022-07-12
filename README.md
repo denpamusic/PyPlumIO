@@ -81,6 +81,7 @@ async def main():
   await connection.connect()
   ecomax = await connection.get_device("ecomax")
   # Do something.
+  await connection.close()
 	
 asyncio.run(main())
 ```
