@@ -65,7 +65,7 @@ class ProgramVersion(Response):
             version_info.struct_version,
             version_info.device_id,
             version_info.processor_signature,
-            *(int(x) for x in version_info.software.split(".", 2)),
+            *map(int, version_info.software.split(".", 2)),
             self.sender,
         )
 
@@ -79,10 +79,14 @@ class ProgramVersion(Response):
             version_info.struct_version,
             version_info.device_id,
             version_info.processor_signature,
-            software_version,
+            software_version1,
+            software_version2,
+            software_version3,
             self.recipient,
-        ] = struct.unpack_from("<2sB2s3s3sB", message)
-        version_info.software = ".".join(str(x) for x in software_version)
+        ] = struct.unpack_from("<2sB2s3s3HB", message)
+        version_info.software = ".".join(
+            map(str, [software_version1, software_version2, software_version3])
+        )
         self._data = {DATA_VERSION: version_info}
 
 

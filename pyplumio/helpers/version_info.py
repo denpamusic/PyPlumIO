@@ -20,4 +20,4 @@ class VersionInfo:
     struct_tag: bytes = b"\xFF\xFF"
     struct_version: int = 5
     device_id: bytes = b"\x7A\x00"
-    processor_signature = b"\x00\x00\x00"
+    processor_signature: bytes = b"\x00\x00\x00"
