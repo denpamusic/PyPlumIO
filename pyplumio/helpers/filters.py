@@ -46,7 +46,7 @@ class Filter(ABC):
         """Set new value for the callback."""
 
 
-class OnChange(Filter):
+class _OnChange(Filter):
     """Provides changed functionality to the callback."""
 
     async def __call__(self, new_value):
@@ -56,12 +56,12 @@ class OnChange(Filter):
             return await self._callback(new_value)
 
 
-def on_change(callback: ValueCallback) -> OnChange:
+def on_change(callback: ValueCallback) -> _OnChange:
     """Helper for change callback filter."""
-    return OnChange(callback)
+    return _OnChange(callback)
 
 
-class Debounce(Filter):
+class _Debounce(Filter):
     """Provides debounce functionality to the callback."""
 
     _calls: int = 0
@@ -86,12 +86,12 @@ class Debounce(Filter):
             return await self._callback(new_value)
 
 
-def debounce(callback: ValueCallback, min_calls) -> Debounce:
+def debounce(callback: ValueCallback, min_calls) -> _Debounce:
     """Helper method for debounce callback filter."""
-    return Debounce(callback, min_calls)
+    return _Debounce(callback, min_calls)
 
 
-class Throttle(Filter):
+class _Throttle(Filter):
     """Provides throttle functionality to the callback."""
 
     _last_called: Optional[float]
@@ -114,6 +114,6 @@ class Throttle(Filter):
             return await self._callback(new_value)
 
 
-def throttle(callback: ValueCallback, seconds: float) -> Throttle:
+def throttle(callback: ValueCallback, seconds: float) -> _Throttle:
     """Helper method for throttle callback filter."""
-    return Throttle(callback, seconds)
+    return _Throttle(callback, seconds)
