@@ -123,6 +123,7 @@ class Protocol(TaskManager):
                     )
 
                 self.devices[name] = device
+                self.set_event(name)
             except UnknownDeviceError as e:
                 _LOGGER.debug("UnknownDeviceError: %s", e)
 
@@ -185,8 +186,8 @@ class Protocol(TaskManager):
 
     async def get_device(self, device: str) -> Device:
         """Wait for device and return it once it's available."""
-        while device not in self.devices:
-            await asyncio.sleep(0)
+        if device not in self.devices:
+            await self.create_event(device).wait()
 
         return self.devices[device]
 

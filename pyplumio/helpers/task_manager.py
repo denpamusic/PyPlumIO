@@ -1,17 +1,18 @@
 """Contains tasks helper."""
 
 import asyncio
-from typing import Any, Coroutine, Set
+from typing import Any, Coroutine, Dict, Set
 
 
 class TaskManager:
-    """Helper class for working with asyncio tasks and storing
-    references."""
+    """Helper class for working with asyncio tasks and futures."""
 
     _tasks: Set[asyncio.Task]
+    _events: Dict[str, asyncio.Event]
 
     def __init__(self):
         self._tasks = set()
+        self._events = {}
 
     def create_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
         """Create asyncio Task and store it's reference."""
@@ -29,7 +30,28 @@ class TaskManager:
         """Wait for all task to complete."""
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 
+    def create_event(self, name: str) -> asyncio.Event:
+        """Create the event."""
+        if name in self._events:
+            return self._events[name]
+
+        event = asyncio.Event()
+        self._events[name] = event
+        return event
+
+    def set_event(self, name: str) -> None:
+        """Set the event."""
+        if name in self._events:
+            event = self._events[name]
+            if not event.is_set():
+                event.set()
+
     @property
     def tasks(self) -> Set[asyncio.Task]:
         """Return set of task references."""
         return self._tasks
+
+    @property
+    def events(self) -> Dict[str, asyncio.Event]:
+        """Return events."""
+        return self._events

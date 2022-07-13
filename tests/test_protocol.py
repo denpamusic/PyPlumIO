@@ -1,5 +1,6 @@
 """Contains tests for protocol."""
 
+import asyncio
 import logging
 from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
@@ -301,25 +302,21 @@ async def test_shutdown(
 
 async def test_get_device(protocol: Protocol):
     """Test wait for device method."""
-    with pytest.raises(RuntimeError), patch(
-        "asyncio.sleep",
-        side_effect=(None, RuntimeError("break loop")),
-        new_callable=AsyncMock,
-    ) as mock_sleep:
-        device = await protocol.get_device("ecomax")
+    # Test that event is being created on get device call.
+    mock_ecomax = AsyncMock(spec=EcoMAX)
+    mock_event = AsyncMock(spec=asyncio.Event)
+    with pytest.raises(KeyError), patch(
+        "pyplumio.protocol.Protocol.create_event",
+        return_value=mock_event,
+    ) as mock_create_event:
+        mock_create_event.wait = AsyncMock()
+        await protocol.get_device("ecomax")
 
-    assert mock_sleep.await_count == 2
+    mock_create_event.assert_called_once_with("ecomax")
+    mock_event.wait.assert_awaited_once()
 
-    ecomax = EcoMAX(queue=Mock())
-    protocol.devices["ecomax"] = ecomax
-    with patch(
-        "asyncio.sleep",
-        new_callable=AsyncMock,
-    ) as mock_sleep:
-        device = await protocol.get_device("ecomax")
-
-    assert device == ecomax
-    assert protocol.ecomax == ecomax
+    protocol.devices["ecomax"] = mock_ecomax
+    assert protocol.ecomax == mock_ecomax
 
     # Check that exception is raised on nonexistent device.
     with pytest.raises(AttributeError):

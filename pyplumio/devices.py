@@ -114,8 +114,8 @@ class AsyncDevice(ABC, TaskManager):
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
         get_parameter(name: str) method."""
-        while not hasattr(self, name):
-            await asyncio.sleep(0)
+        if not hasattr(self, name):
+            await self.create_event(name).wait()
 
         value = getattr(self, name)
         return int(value) if isinstance(value, Parameter) else value
@@ -124,8 +124,8 @@ class AsyncDevice(ABC, TaskManager):
     async def set_value(self, name: str, value: Numeric) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
-        while not hasattr(self, name):
-            await asyncio.sleep(0)
+        if not hasattr(self, name):
+            await self.create_event(name).wait()
 
         parameter = getattr(self, name)
         if isinstance(parameter, Parameter):
@@ -137,8 +137,8 @@ class AsyncDevice(ABC, TaskManager):
     @timeout(VALUE_TIMEOUT)
     async def get_parameter(self, name: str) -> Parameter:
         """Return a parameter."""
-        while not hasattr(self, name):
-            await asyncio.sleep(0)
+        if not hasattr(self, name):
+            await self.create_event(name).wait()
 
         parameter = getattr(self, name)
         if isinstance(parameter, Parameter):
@@ -158,6 +158,7 @@ class AsyncDevice(ABC, TaskManager):
                 value = return_value if return_value is not None else value
 
         setattr(self, name, value)
+        self.set_event(name)
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
