@@ -50,7 +50,7 @@ async def test_debounce() -> None:
 async def test_throttle(mock_time) -> None:
     """Test throttle filter."""
     test_callback = AsyncMock()
-    wrapped_callback = throttle(test_callback, timeout=5)
+    wrapped_callback = throttle(test_callback, seconds=5)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()

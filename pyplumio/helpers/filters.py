@@ -97,11 +97,11 @@ class Throttle(Filter):
     _last_called: Optional[float]
     _timeout: float
 
-    def __init__(self, callback: ValueCallback, timeout: float):
+    def __init__(self, callback: ValueCallback, seconds: float):
         """Initialize Debounce object."""
         super().__init__(callback)
         self._last_called = None
-        self._timeout = timeout
+        self._timeout = seconds
 
     async def __call__(self, new_value):
         """Set new value for the callback."""
@@ -114,6 +114,6 @@ class Throttle(Filter):
             return await self._callback(new_value)
 
 
-def throttle(callback: ValueCallback, timeout: float) -> Throttle:
+def throttle(callback: ValueCallback, seconds: float) -> Throttle:
     """Helper method for throttle callback filter."""
-    return Throttle(callback, timeout)
+    return Throttle(callback, seconds)
