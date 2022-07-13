@@ -1,6 +1,5 @@
 """Contains tests for connection."""
 
-import asyncio
 import logging
 from unittest.mock import patch
 
@@ -90,12 +89,12 @@ async def test_reconnect(
     """Test reconnect logic."""
     with caplog.at_level(logging.ERROR), patch(
         "pyplumio.connection.Connection._connect",
-        side_effect=(ConnectionFailedError, asyncio.TimeoutError, None),
+        side_effect=(ConnectionFailedError, None),
     ) as mock_connect:
         await tcp_connection.connect()
 
     assert "ConnectionError" in caplog.text
-    assert mock_connect.call_count == 3
+    assert mock_connect.call_count == 2
 
 
 async def test_connection_lost_callback(

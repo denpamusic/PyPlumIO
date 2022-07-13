@@ -65,7 +65,6 @@ class Connection(ABC):
         if self._reconnect_on_failure and not self._closing:
             await self._reconnect()
 
-    @timeout(CONNECT_TIMEOUT)
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
         try:
@@ -84,7 +83,7 @@ class Connection(ABC):
             try:
                 await self._connect()
                 return
-            except (ConnectionFailedError, asyncio.TimeoutError):
+            except ConnectionFailedError:
                 _LOGGER.error(
                     "ConnectionError: connection failed, reconnecting in %i seconds...",
                     RECONNECT_TIMEOUT,
@@ -136,6 +135,7 @@ class TcpConnection(Connection):
 )
 """
 
+    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
@@ -163,6 +163,7 @@ class SerialConnection(Connection):
 )
 """
 
+    @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
     ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
