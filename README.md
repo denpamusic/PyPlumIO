@@ -206,12 +206,12 @@ async def main():
     ecomax.register_callback("heating_temp", debounce(your_callback, min_calls=3))
 
     # Callback "your_other_callback" will be awaited once in 5 seconds.
-    ecomax.register_callback("heating_temp", throttle(your_other_callback, timeout=5))
+    ecomax.register_callback("heating_temp", throttle(your_other_callback, seconds=5))
 
     # Throttle callback can be chained with others.
     # Callback "the_callback" will be awaited on value change but no
     # sooner that 5 seconds.
-    ecomax.register_callback("heating_temp", throttle(on_change(the_callback), timeout=5))
+    ecomax.register_callback("heating_temp", throttle(on_change(the_callback), seconds=5))
 ```
 
 ### Network Information
@@ -322,7 +322,7 @@ frame_versions: Dict[int, int] = {
 ## Home Assistant Integration
 There is companion Home Assistant integration that is being co-developed with this package and depends on it. Click button below to check it out.
 
-[![hass integration](https://img.shields.io/badge/hass%20integration-v0.2.1-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
+[![hass integration](https://img.shields.io/badge/hass%20integration-v0.2.2-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
 
 ## Attribution
 Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
