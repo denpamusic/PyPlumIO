@@ -17,6 +17,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.protocol import Protocol
+from pyplumio.stream import FrameReader, FrameWriter
 from tests.test_devices import UNKNOWN_DEVICE
 
 
@@ -61,10 +62,10 @@ def test_connection_established(
     assert protocol.queues == (mock_queue.return_value, mock_queue.return_value)
 
     # Create stream reader, stream writer and queue mocks..
-    mock_stream_reader = Mock()
-    mock_stream_writer = Mock()
-    mock_read_queue = Mock()
-    mock_write_queue = Mock()
+    mock_stream_reader = Mock(spec=asyncio.StreamReader)
+    mock_stream_writer = Mock(spec=asyncio.StreamWriter)
+    mock_read_queue = Mock(spec=asyncio.Queue)
+    mock_write_queue = Mock(spec=asyncio.Queue)
     mock_put_nowait = mock_write_queue.put_nowait
 
     # Test connection established.
@@ -94,10 +95,10 @@ async def test_frame_producer(
     mock_connection_lost, bypass_asyncio_create_task, protocol: Protocol, caplog
 ) -> None:
     """Test frame producer task."""
-    mock_lock = AsyncMock()
+    mock_lock = AsyncMock(spec=asyncio.Lock)
 
     # Create mock frame reader.
-    protocol.reader = Mock()
+    protocol.reader = Mock(spec=FrameReader)
     protocol.reader.read = AsyncMock()
     protocol.reader.read.side_effect = (
         "test",
@@ -108,7 +109,7 @@ async def test_frame_producer(
     )
 
     # Create mock read queue.
-    mock_read_queue = AsyncMock()
+    mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_read_queue.put_nowait = Mock()
 
     with caplog.at_level(logging.DEBUG):
@@ -134,15 +135,15 @@ async def test_write_consumer(
     mock_connection_lost, bypass_asyncio_create_task, protocol: Protocol
 ) -> None:
     """Test write consumer task."""
-    mock_lock = AsyncMock()
+    mock_lock = AsyncMock(spec=asyncio.Lock)
 
     # Create mock frame writer.
-    protocol.writer = Mock()
+    protocol.writer = Mock(spec=FrameWriter)
     protocol.writer.write = AsyncMock()
     protocol.writer.write.side_effect = ("test", ConnectionError)
 
     # Create mock write queue.
-    mock_write_queue = Mock()
+    mock_write_queue = Mock(spec=asyncio.Queue)
     mock_write_queue.get = AsyncMock()
     mock_write_queue.get.side_effect = ("test", "test")
 
@@ -165,8 +166,8 @@ async def test_frame_consumer(
 ) -> None:
     """Test frame consumer task."""
     # Create mock queues.
-    mock_read_queue = Mock()
-    mock_write_queue = Mock()
+    mock_read_queue = Mock(spec=asyncio.Queue)
+    mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
     mock_read_queue.get.side_effect = (
         CheckDevice(sender=ECOMAX_ADDRESS),
@@ -218,8 +219,8 @@ async def test_frame_consumer(
 async def test_connection_lost(mock_shutdown) -> None:
     """Test connection lost callback."""
     # Create mock queues.
-    mock_read_queue = Mock()
-    mock_write_queue = Mock()
+    mock_read_queue = Mock(spec=asyncio.Queue)
+    mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.qsize.return_value = 1
     mock_write_queue.qsize.return_value = 1
 
@@ -272,7 +273,7 @@ async def test_shutdown(
     protocol.writer = Mock()
     protocol.writer.close = AsyncMock()
     mock_writer_close = protocol.writer.close
-    protocol.devices["ecomax"] = EcoMAX(queue=Mock())
+    protocol.devices["ecomax"] = EcoMAX(queue=asyncio.Queue())
 
     with patch(
         "pyplumio.protocol.Protocol.queues",
