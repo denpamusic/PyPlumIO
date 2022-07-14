@@ -174,10 +174,8 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     ecomax.register_callback("heating_temp", my_callback)
-    
-    while True:
-    	# Wait in the infinite loop.
-    	await asyncio.sleep(1)
+    # Wait until disconnected.
+    connection.wait_until_done()
 
 asyncio.run(main())
 ````
