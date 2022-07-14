@@ -142,8 +142,8 @@ class _Aggregate(Filter):
         current_timestamp = time.time()
         self._sum += new_value
         if current_timestamp - self._last_update >= self._timeout:
-            self._last_update = current_timestamp
             result = await self._callback(self._sum)
+            self._last_update = current_timestamp
             self._sum = 0
             return result
 
