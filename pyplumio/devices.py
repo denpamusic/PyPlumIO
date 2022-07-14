@@ -12,6 +12,7 @@ from pyplumio.const import (
     DATA_BOILER_PARAMETERS,
     DATA_BOILER_SENSORS,
     DATA_FRAME_VERSIONS,
+    DATA_FUEL_BURNED,
     DATA_FUEL_CONSUMPTION,
     DATA_MIXER_PARAMETERS,
     DATA_MIXER_SENSORS,
@@ -333,7 +334,7 @@ class EcoMAX(Device):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         fuel_burned = (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
-        await self.async_set_attribute("fuel_burned", fuel_burned)
+        await self.async_set_attribute(DATA_FUEL_BURNED, fuel_burned)
 
     async def _parse_regulator_data(self, regulator_data: bytes) -> Records:
         """Add sensor values from the regulator data."""

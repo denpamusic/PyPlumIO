@@ -8,6 +8,7 @@ import pytest
 from pyplumio.const import (
     DATA_BOILER_PARAMETERS,
     DATA_BOILER_SENSORS,
+    DATA_FUEL_BURNED,
     DATA_FUEL_CONSUMPTION,
     DATA_MIXER_PARAMETERS,
     DATA_MIXER_SENSORS,
@@ -112,7 +113,7 @@ async def test_fuel_consumption_callbacks() -> None:
         ecomax.handle_frame(Response(data={DATA_FUEL_CONSUMPTION: 3.6}))
         await ecomax.wait_for_tasks()
 
-    assert await ecomax.get_value("fuel_burned") == 0.01
+    assert await ecomax.get_value(DATA_FUEL_BURNED) == 0.01
 
 
 async def test_regdata_callbacks(
