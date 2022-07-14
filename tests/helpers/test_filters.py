@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.helpers.filters import debounce, on_change, throttle
+from pyplumio.helpers.filters import aggregate, debounce, on_change, throttle
 
 
 async def test_on_change() -> None:
@@ -67,3 +67,31 @@ async def test_throttle(mock_time) -> None:
     # Six seconds passed.
     await wrapped_callback(4)
     test_callback.assert_not_awaited()
+
+
+@patch("time.time", side_effect=(0, 0, 1, 5, 6))
+async def test_aggregate(mock_time) -> None:
+    """Test aggregate filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = aggregate(test_callback, seconds=5)
+
+    # Zero seconds passed.
+    await wrapped_callback(1)
+    test_callback.assert_not_awaited()
+
+    # One second passed.
+    await wrapped_callback(1)
+    test_callback.assert_not_awaited()
+
+    # Five seconds passed.
+    await wrapped_callback(3)
+    test_callback.assert_awaited_once_with(5)
+    test_callback.reset_mock()
+
+    # Six seconds passed.
+    await wrapped_callback(3)
+    test_callback.assert_not_awaited()
+
+    # Test with non-numeric value.
+    with pytest.raises(ValueError):
+        await wrapped_callback("banana")

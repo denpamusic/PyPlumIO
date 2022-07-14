@@ -6,7 +6,7 @@ import time
 from typing import Any, Optional
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import ValueCallback
+from pyplumio.helpers.typing import Numeric, ValueCallback
 
 
 def _significantly_changed(old_value, new_value) -> bool:
@@ -117,3 +117,37 @@ class _Throttle(Filter):
 def throttle(callback: ValueCallback, seconds: float) -> _Throttle:
     """Helper method for throttle callback filter."""
     return _Throttle(callback, seconds)
+
+
+class _Aggregate(Filter):
+    """Provides ability to sum value for some time before sending them
+    to the callback."""
+
+    _sum: Numeric
+    _last_update: Optional[float]
+    _timeout: float
+
+    def __init__(self, callback: ValueCallback, seconds: float):
+        """Initialize Aggregate object."""
+        super().__init__(callback)
+        self._last_update = time.time()
+        self._timeout = seconds
+        self._sum = 0.0
+
+    async def __call__(self, new_value):
+        """Set new value for the callback."""
+        if not isinstance(new_value, (int, float)):
+            raise ValueError("Aggregate filter can not be used with non-numeric values")
+
+        current_timestamp = time.time()
+        self._sum += new_value
+        if current_timestamp - self._last_update >= self._timeout:
+            self._last_update = current_timestamp
+            result = await self._callback(self._sum)
+            self._sum = 0
+            return result
+
+
+def aggregate(callback: ValueCallback, seconds: float) -> _Aggregate:
+    """Helper method for total callback filter."""
+    return _Aggregate(callback, seconds)
