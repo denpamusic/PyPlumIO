@@ -111,7 +111,7 @@ async def test_fuel_consumption_callbacks() -> None:
     with patch("time.time", side_effect=(10, 20)):
         ecomax = EcoMAX(asyncio.Queue())
         ecomax.handle_frame(Response(data={DATA_FUEL_CONSUMPTION: 3.6}))
-        await ecomax.wait_for_tasks()
+        await ecomax.wait_until_done()
 
     assert await ecomax.get_value(DATA_FUEL_BURNED) == 0.01
 
@@ -125,7 +125,7 @@ async def test_regdata_callbacks(
         "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
     ):
         ecomax.handle_frame(regulator_data)
-        await ecomax.wait_for_tasks()
+        await ecomax.wait_until_done()
 
     # Regulator data should be empty on schema timeout.
     assert not await ecomax.get_value(DATA_REGDATA)
@@ -133,7 +133,7 @@ async def test_regdata_callbacks(
     # Set data schema and parse the regdata.
     ecomax.handle_frame(data_schema)
     ecomax.handle_frame(regulator_data)
-    await ecomax.wait_for_tasks()
+    await ecomax.wait_until_done()
 
     regdata = await ecomax.get_value(DATA_REGDATA)
     assert regdata["mode"] == 0
@@ -183,20 +183,20 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
     mock_callback = AsyncMock(return_value=None)
     ecomax.register_callback("test_sensor", mock_callback)
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 42.1}}))
-    await ecomax.wait_for_tasks()
+    await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(42.1)
     mock_callback.reset_mock()
 
     # Test with change.
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 45}}))
-    await ecomax.wait_for_tasks()
+    await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(45)
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
     ecomax.remove_callback("test_sensor", mock_callback)
     ecomax.handle_frame(Response(data={DATA_BOILER_SENSORS: {"test_sensor": 50}}))
-    await ecomax.wait_for_tasks()
+    await ecomax.wait_until_done()
     mock_callback.assert_not_awaited()
 
 
@@ -258,13 +258,13 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
 
 @patch("pyplumio.devices.Mixer.shutdown")
 @patch("pyplumio.devices.AsyncDevice.cancel_tasks")
-@patch("pyplumio.devices.AsyncDevice.wait_for_tasks")
+@patch("pyplumio.devices.AsyncDevice.wait_until_done")
 async def test_shutdown(
-    mock_wait_for_tasks, mock_cancel_tasks, mock_shutdown, ecomax: EcoMAX
+    mock_wait_until_done, mock_cancel_tasks, mock_shutdown, ecomax: EcoMAX
 ) -> None:
     """Test device tasks shutdown."""
     ecomax.handle_frame(Response(data={DATA_MIXER_SENSORS: [{"test_sensor": 42}]}))
     await ecomax.shutdown()
-    mock_wait_for_tasks.assert_awaited_once()
+    mock_wait_until_done.assert_awaited_once()
     mock_cancel_tasks.assert_called_once()
     mock_shutdown.assert_awaited_once()

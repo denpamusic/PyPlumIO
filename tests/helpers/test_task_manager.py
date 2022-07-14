@@ -24,7 +24,7 @@ async def test_task_manager(mock_gather) -> None:
     mock_task.cancel.assert_called_once()
 
     # Check awaiting tasks.
-    await task_manager.wait_for_tasks()
+    await task_manager.wait_until_done()
     mock_gather.assert_awaited_once_with(*task_manager.tasks, return_exceptions=True)
 
     # Test creating event.

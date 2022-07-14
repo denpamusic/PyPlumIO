@@ -26,7 +26,7 @@ class TaskManager:
         for task in self._tasks:
             task.cancel()
 
-    async def wait_for_tasks(self, return_exceptions: bool = True) -> None:
+    async def wait_until_done(self, return_exceptions: bool = True) -> None:
         """Wait for all task to complete."""
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 

@@ -164,7 +164,7 @@ class AsyncDevice(ABC, TaskManager):
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
         self.cancel_tasks()
-        await self.wait_for_tasks()
+        await self.wait_until_done()
 
     def register_callback(self, name: str, callback: ValueCallback) -> None:
         """Register callback for a value change."""
