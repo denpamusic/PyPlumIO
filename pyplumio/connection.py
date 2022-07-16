@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import MutableMapping
 import logging
-from typing import Any, Final, Optional, Tuple
+from typing import Any, Final, Tuple
 
 from serial import SerialException
 import serial_asyncio
@@ -26,7 +26,7 @@ class Connection(ABC):
     must me inherited from this class."""
 
     _kwargs: MutableMapping[str, Any]
-    _protocol: Optional[Protocol] = None
+    _protocol: Protocol
     _closing: bool = False
     _reconnect_on_failure: bool = True
 
@@ -106,7 +106,7 @@ class Connection(ABC):
             await self.protocol.shutdown()
 
     @property
-    def protocol(self) -> Optional[Protocol]:
+    def protocol(self) -> Protocol:
         """Return protocol object."""
         return self._protocol
 

@@ -181,7 +181,7 @@ class Protocol(TaskManager):
         if self.writer:
             await self.writer.close()
 
-        for _, device in self.devices.items():
+        for device in self.devices.values():
             await device.shutdown()
 
     async def get_device(self, device: str) -> Device:
