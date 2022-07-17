@@ -50,7 +50,7 @@ from pyplumio.helpers.typing import (
 )
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 
-devices: Dict[int, str] = {
+DEVICE_TYPES: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
     ECOSTER_ADDRESS: "EcoSTER",
 }
@@ -61,8 +61,8 @@ VALUE_TIMEOUT: int = 10
 
 def get_device_handler(address: int) -> str:
     """Return module and class for device address."""
-    if address in devices:
-        return "devices." + devices[address]
+    if address in DEVICE_TYPES:
+        return "devices." + DEVICE_TYPES[address]
 
     raise UnknownDeviceError(f"Unknown device: {address}")
 

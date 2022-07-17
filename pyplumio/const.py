@@ -33,6 +33,3 @@ DATA_PASSWORD: Final = "password"
 DATA_SCHEMA: Final = "schema"
 DATA_REGDATA: Final = "regdata"
 DATA_LAMBDA_SENSOR: Final = "lambda"
-
-STATE_ON: Final = "on"
-STATE_OFF: Final = "off"

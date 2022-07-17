@@ -5,13 +5,15 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.const import BROADCAST_ADDRESS, STATE_OFF, STATE_ON
+from pyplumio.const import BROADCAST_ADDRESS
 from pyplumio.frames.requests import (
     BoilerControl,
     SetBoilerParameter,
     SetMixerParameter,
 )
 from pyplumio.helpers.parameter import (
+    STATE_OFF,
+    STATE_ON,
     BoilerBinaryParameter,
     BoilerParameter,
     MixerParameter,

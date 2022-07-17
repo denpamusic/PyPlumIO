@@ -19,7 +19,7 @@ ECONET_TYPE: Final = 0x30
 ECONET_VERSION: Final = 0x05
 
 # Dictionary of frame handler classes indexed by frame types.
-frames: Dict[int, str] = {
+FRAME_TYPES: Dict[int, str] = {
     0x18: "requests.StopMaster",
     0x19: "requests.StartMaster",
     0x30: "requests.CheckDevice",
@@ -49,8 +49,8 @@ frames: Dict[int, str] = {
 
 def get_frame_handler(frame_type: int) -> str:
     """Return class path for the frame type."""
-    if frame_type in frames:
-        return "frames." + frames[frame_type]
+    if frame_type in FRAME_TYPES:
+        return "frames." + FRAME_TYPES[frame_type]
 
     raise UnknownFrameError(f"unknown frame type {frame_type}")
 

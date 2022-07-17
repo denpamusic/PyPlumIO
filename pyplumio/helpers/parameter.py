@@ -3,12 +3,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from typing import Any
+from typing import Any, Final
 
-from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import ParameterTuple, ParameterValue
+
+STATE_ON: Final = "on"
+STATE_OFF: Final = "off"
 
 
 def _normalize_parameter_value(value: ParameterValue) -> int:
