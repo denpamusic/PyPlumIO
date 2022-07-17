@@ -81,19 +81,19 @@ class Parameter(ABC):
         """Compare if parameter value is equal to other."""
         return self.value == _normalize_parameter_value(other)
 
-    def __ge__(self, other) -> int:
+    def __ge__(self, other) -> bool:
         """Compare if parameter value is greater or equal to other."""
         return self.value >= _normalize_parameter_value(other)
 
-    def __gt__(self, other) -> int:
+    def __gt__(self, other) -> bool:
         """Compare if parameter value is greater than other."""
         return self.value > _normalize_parameter_value(other)
 
-    def __le__(self, other) -> int:
+    def __le__(self, other) -> bool:
         """Compare if parameter value is less or equal to other."""
         return self.value <= _normalize_parameter_value(other)
 
-    def __lt__(self, other) -> int:
+    def __lt__(self, other) -> bool:
         """Compare if parameter value is less that other."""
         return self.value < _normalize_parameter_value(other)
 
