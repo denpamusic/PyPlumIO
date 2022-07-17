@@ -18,7 +18,7 @@ from pyplumio.helpers.parameter import (
     BoilerParameter,
     MixerParameter,
 )
-from pyplumio.helpers.typing import ParameterTuple
+from pyplumio.helpers.typing import ParameterDataType
 
 
 @pytest.fixture(name="parameter")
@@ -52,7 +52,7 @@ def test_parameter_set_out_of_range(parameter: BoilerBinaryParameter) -> None:
 def test_parameter_compare(parameter: BoilerBinaryParameter) -> None:
     """Test parameter comparison."""
     assert parameter == 1
-    parameter_tuple: ParameterTuple = (1, 0, 1)
+    parameter_tuple: ParameterDataType = (1, 0, 1)
     assert parameter == parameter_tuple
     assert parameter < 2
     assert parameter > 0

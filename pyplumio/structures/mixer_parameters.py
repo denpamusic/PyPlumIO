@@ -5,7 +5,7 @@ from typing import Dict, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_MIXER_PARAMETERS
-from pyplumio.helpers.typing import DeviceData, ParameterTuple
+from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 
 MIXER_PARAMETERS: Tuple[str, ...] = (
     "mix_target_temp",
@@ -26,8 +26,8 @@ MIXER_PARAMETERS: Tuple[str, ...] = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
-) -> Tuple[DeviceData, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+) -> Tuple[DeviceDataType, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -37,7 +37,7 @@ def from_bytes(
     offset += 4
     mixer_parameters = []
     for _ in range(mixers_number):
-        parameters: Dict[str, ParameterTuple] = {}
+        parameters: Dict[str, ParameterDataType] = {}
         for parameter_key in range(parameters_number):
             parameter = util.unpack_parameter(message, offset)
             if parameter is not None:

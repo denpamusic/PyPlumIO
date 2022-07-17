@@ -16,7 +16,7 @@ from pyplumio.const import (
 )
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message
-from pyplumio.helpers.typing import DeviceData
+from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import (
     alarms,
     frame_versions,
@@ -56,7 +56,7 @@ class SensorData(Message):
 
     def parse_message(self, message: bytearray) -> None:
         """Parse message into data."""
-        sensors: DeviceData = {}
+        sensors: DeviceDataType = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
         sensors[ATTR_MODE] = message[offset]
         _, offset = outputs.from_bytes(message, offset + 1, sensors)

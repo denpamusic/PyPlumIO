@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Dict, Final, Optional, Tuple
+from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
 from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
@@ -21,7 +21,6 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.typing import AsyncCallback
 from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -51,12 +50,12 @@ class Protocol(TaskManager):
     devices: Dict[str, Device]
     _network: NetworkInfo
     _queues: Tuple[asyncio.Queue, asyncio.Queue]
-    _connection_lost_callback: Optional[AsyncCallback]
+    _connection_lost_callback: Optional[Callable[[], Awaitable[None]]]
     _closing: bool = False
 
     def __init__(
         self,
-        connection_lost_callback: Optional[AsyncCallback] = None,
+        connection_lost_callback: Optional[Callable[[], Awaitable[None]]] = None,
         ethernet_parameters: Optional[EthernetParameters] = None,
         wireless_parameters: Optional[WirelessParameters] = None,
     ):

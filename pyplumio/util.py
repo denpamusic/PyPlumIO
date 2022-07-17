@@ -6,7 +6,7 @@ import socket
 import struct
 from typing import List, Optional
 
-from pyplumio.helpers.typing import ParameterTuple
+from pyplumio.helpers.typing import ParameterDataType
 
 unpack_float = struct.Struct("<f").unpack
 unpack_char = struct.Struct("<b").unpack
@@ -37,7 +37,7 @@ def unpack_ushort(data: bytes) -> int:
 
 def unpack_parameter(
     data: bytearray, offset: int, size: int = 1
-) -> Optional[ParameterTuple]:
+) -> Optional[ParameterDataType]:
     """Unpack a device parameter."""
     if not check_parameter(data[offset : offset + size * 3]):
         return None

@@ -7,13 +7,13 @@ from typing import Any, Final
 
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.typing import ParameterTuple, ParameterValue
+from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
 
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
 
 
-def _normalize_parameter_value(value: ParameterValue) -> int:
+def _normalize_parameter_value(value: ParameterValueType) -> int:
     """Normalize parameter value to integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
@@ -25,7 +25,7 @@ def _normalize_parameter_value(value: ParameterValue) -> int:
     return int(value)
 
 
-def is_binary_parameter(parameter: ParameterTuple) -> bool:
+def is_binary_parameter(parameter: ParameterDataType) -> bool:
     """Check if parameter is binary."""
     _, min_value, max_value = parameter
     return min_value == 0 and max_value == 1
@@ -46,9 +46,9 @@ class Parameter(ABC):
         queue: asyncio.Queue,
         recipient: int,
         name: str,
-        value: ParameterValue,
-        min_value: ParameterValue,
-        max_value: ParameterValue,
+        value: ParameterValueType,
+        min_value: ParameterValueType,
+        max_value: ParameterValueType,
         extra: Any = None,
     ):
         """Initialize Parameter object."""
@@ -97,7 +97,7 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self.value < _normalize_parameter_value(other)
 
-    def set(self, value: ParameterValue) -> None:
+    def set(self, value: ParameterValueType) -> None:
         """Set parameter value."""
         value = _normalize_parameter_value(value)
         if value == self._value:

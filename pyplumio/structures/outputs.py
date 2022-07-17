@@ -5,7 +5,7 @@ import math
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.helpers.typing import DeviceData
+from pyplumio.helpers.typing import DeviceDataType
 
 FAN_OUTPUT: Final = "fan"
 FEEDER_OUTPUT: Final = "feeder"
@@ -44,8 +44,8 @@ OUTPUTS: Tuple[str, ...] = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
-) -> Tuple[DeviceData, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+) -> Tuple[DeviceDataType, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

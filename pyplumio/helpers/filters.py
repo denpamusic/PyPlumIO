@@ -6,7 +6,7 @@ import time
 from typing import Any, Optional
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import Numeric, ValueCallback
+from pyplumio.helpers.typing import NumericType, SensorCallbackType
 
 
 def _significantly_changed(old_value, new_value) -> bool:
@@ -26,7 +26,7 @@ class Filter(ABC):
     _callback: Any
     _value: Any
 
-    def __init__(self, callback: ValueCallback):
+    def __init__(self, callback: SensorCallbackType):
         """Initialize new Filter object."""
         self._callback = callback
         self._value = None
@@ -56,7 +56,7 @@ class _OnChange(Filter):
             return await self._callback(new_value)
 
 
-def on_change(callback: ValueCallback) -> _OnChange:
+def on_change(callback: SensorCallbackType) -> _OnChange:
     """Helper for change callback filter."""
     return _OnChange(callback)
 
@@ -67,7 +67,7 @@ class _Debounce(Filter):
     _calls: int = 0
     _min_calls: int = 3
 
-    def __init__(self, callback: ValueCallback, min_calls: int):
+    def __init__(self, callback: SensorCallbackType, min_calls: int):
         """Initialize Debounce object."""
         super().__init__(callback)
         self._calls = 0
@@ -86,7 +86,7 @@ class _Debounce(Filter):
             return await self._callback(new_value)
 
 
-def debounce(callback: ValueCallback, min_calls) -> _Debounce:
+def debounce(callback: SensorCallbackType, min_calls) -> _Debounce:
     """Helper method for debounce callback filter."""
     return _Debounce(callback, min_calls)
 
@@ -97,7 +97,7 @@ class _Throttle(Filter):
     _last_called: Optional[float]
     _timeout: float
 
-    def __init__(self, callback: ValueCallback, seconds: float):
+    def __init__(self, callback: SensorCallbackType, seconds: float):
         """Initialize Debounce object."""
         super().__init__(callback)
         self._last_called = None
@@ -114,7 +114,7 @@ class _Throttle(Filter):
             return await self._callback(new_value)
 
 
-def throttle(callback: ValueCallback, seconds: float) -> _Throttle:
+def throttle(callback: SensorCallbackType, seconds: float) -> _Throttle:
     """Helper method for throttle callback filter."""
     return _Throttle(callback, seconds)
 
@@ -123,11 +123,11 @@ class _Aggregate(Filter):
     """Provides ability to sum value for some time before sending them
     to the callback."""
 
-    _sum: Numeric
+    _sum: NumericType
     _last_update: Optional[float]
     _timeout: float
 
-    def __init__(self, callback: ValueCallback, seconds: float):
+    def __init__(self, callback: SensorCallbackType, seconds: float):
         """Initialize Aggregate object."""
         super().__init__(callback)
         self._last_update = time.time()
@@ -148,6 +148,6 @@ class _Aggregate(Filter):
             return result
 
 
-def aggregate(callback: ValueCallback, seconds: float) -> _Aggregate:
+def aggregate(callback: SensorCallbackType, seconds: float) -> _Aggregate:
     """Helper method for total callback filter."""
     return _Aggregate(callback, seconds)

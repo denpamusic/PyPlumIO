@@ -5,7 +5,7 @@ from typing import Dict, Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_BOILER_PARAMETERS
-from pyplumio.helpers.typing import DeviceData, ParameterTuple
+from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
 BOILER_PARAMETERS: Tuple[str, ...] = (
@@ -152,8 +152,8 @@ BOILER_PARAMETERS: Tuple[str, ...] = (
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
-) -> Tuple[DeviceData, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+) -> Tuple[DeviceDataType, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -161,7 +161,7 @@ def from_bytes(
     first_parameter = message[offset + 1]
     parameters_number = message[offset + 2]
     offset += 3
-    parameters: Dict[str, ParameterTuple] = {}
+    parameters: Dict[str, ParameterDataType] = {}
     for index in range(first_parameter, parameters_number + first_parameter):
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
