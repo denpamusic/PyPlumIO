@@ -2,19 +2,18 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Final, Optional, Union
+from typing import Optional, Tuple, Type
 
 from pyplumio import util
+from pyplumio.helpers.typing import BytesType
 
 
 class DataType(ABC):
     """Represents base data type."""
 
-    _data: Union[bytes, bytearray] = bytearray()
+    _data: BytesType = bytearray()
 
-    def __init__(
-        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
-    ):
+    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
         """Initialize new Data Type object."""
         if size is None:
             size = self.size
@@ -34,7 +33,7 @@ class DataType(ABC):
 )
 """.strip()
 
-    def unpack(self, data: Union[bytes, bytearray]):
+    def unpack(self, data: BytesType):
         """Unpack data to a given type."""
         self._data = data[0 : self.size]
 
@@ -194,9 +193,7 @@ class Boolean(DataType):
 
     _index: int = 0
 
-    def __init__(
-        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
-    ):
+    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
         """Initialize new Boolean object."""
         self._index = 0
         super().__init__(data, size=1)
@@ -206,7 +203,7 @@ class Boolean(DataType):
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
-    def unpack(self, data: Union[bytes, bytearray]) -> None:
+    def unpack(self, data: BytesType) -> None:
         """Unpack data to with given type."""
         self._data = data[0:1]
 
@@ -280,13 +277,11 @@ class IPv6(DataType):
 class String(DataType):
     """Represents string data type."""
 
-    def __init__(
-        self, data: Optional[Union[bytes, bytearray]] = None, size: Optional[int] = None
-    ):
+    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
         """Initialize new String object."""
         super().__init__(data, size=-1)
 
-    def unpack(self, data: Union[bytes, bytearray]):
+    def unpack(self, data: BytesType):
         """Unpack data to a given type."""
         self._data = data
         super().unpack(self._data)
@@ -309,7 +304,7 @@ class String(DataType):
         return len(self.value) + 1
 
 
-ATTR_TYPES: Final = (
+DATA_TYPES: Tuple[Type[DataType], ...] = (
     Undefined0,
     SignedChar,
     Short,

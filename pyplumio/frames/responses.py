@@ -14,7 +14,7 @@ from pyplumio.const import (
     ATTR_VERSION,
 )
 from pyplumio.frames import Response
-from pyplumio.helpers.data_types import ATTR_TYPES, DataType
+from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -234,7 +234,7 @@ class DataSchema(Response):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
                 param_name = REGATTR_SCHEMA.get(param_id, str(param_id))
-                schema.append((param_name, ATTR_TYPES[param_type]()))
+                schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
         self._data = {ATTR_SCHEMA: schema}
