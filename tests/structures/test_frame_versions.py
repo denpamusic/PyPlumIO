@@ -1,9 +1,10 @@
 """Contains tests for frame version structure."""
 
-from pyplumio.structures.frame_versions import FRAME_VERSIONS, from_bytes
+from pyplumio.const import ATTR_FRAME_VERSIONS
+from pyplumio.structures.frame_versions import from_bytes
 
 _message = bytearray.fromhex("075500005400006108003DECF43601006401004000")
-_data = {FRAME_VERSIONS: {85: 0, 84: 0, 97: 8, 61: 62700, 54: 1, 100: 1, 64: 0}}
+_data = {ATTR_FRAME_VERSIONS: {85: 0, 84: 0, 97: 8, 61: 62700, 54: 1, 100: 1, 64: 0}}
 
 
 def test_from_bytes():

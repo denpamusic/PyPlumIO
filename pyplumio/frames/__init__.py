@@ -7,7 +7,7 @@ from typing import Dict, Final, List, Optional
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.typing import Records
+from pyplumio.helpers.typing import DeviceData
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -64,7 +64,7 @@ class Frame(ABC):
     sender: int
     sender_type: int
     econet_version: int
-    _data: Optional[Records]
+    _data: Optional[DeviceData]
 
     def __init__(
         self,
@@ -74,7 +74,7 @@ class Frame(ABC):
         sender: int = ECONET_ADDRESS,
         sender_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
-        data: Optional[Records] = None,
+        data: Optional[DeviceData] = None,
     ):
         """Initialize new Frame object."""
         self._data = data

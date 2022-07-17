@@ -1,19 +1,19 @@
 """Contains tests for output flags structure."""
 
 from pyplumio.structures.output_flags import (
-    DATA_CIRCULATION_PUMP_FLAG,
-    DATA_HEATING_PUMP_FLAG,
-    DATA_SOLAR_PUMP_FLAG,
-    DATA_WATER_HEATER_PUMP_FLAG,
+    CIRCULATION_PUMP_FLAG,
+    HEATING_PUMP_FLAG,
+    SOLAR_PUMP_FLAG,
+    WATER_HEATER_PUMP_FLAG,
     from_bytes,
 )
 
 _message = bytearray.fromhex("BF000000")
 _data = {
-    DATA_HEATING_PUMP_FLAG: True,
-    DATA_WATER_HEATER_PUMP_FLAG: True,
-    DATA_CIRCULATION_PUMP_FLAG: True,
-    DATA_SOLAR_PUMP_FLAG: False,
+    HEATING_PUMP_FLAG: True,
+    WATER_HEATER_PUMP_FLAG: True,
+    CIRCULATION_PUMP_FLAG: True,
+    SOLAR_PUMP_FLAG: False,
 }
 
 

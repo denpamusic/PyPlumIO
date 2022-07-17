@@ -309,7 +309,7 @@ class String(DataType):
         return len(self.value) + 1
 
 
-DATA_TYPES: Final = (
+ATTR_TYPES: Final = (
     Undefined0,
     SignedChar,
     Short,

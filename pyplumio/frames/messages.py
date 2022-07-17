@@ -3,20 +3,20 @@ from __future__ import annotations
 
 from pyplumio import util
 from pyplumio.const import (
-    DATA_BOILER_SENSORS,
-    DATA_FAN_POWER,
-    DATA_FUEL_CONSUMPTION,
-    DATA_FUEL_LEVEL,
-    DATA_LOAD,
-    DATA_MODE,
-    DATA_POWER,
-    DATA_REGDATA,
-    DATA_THERMOSTAT,
-    DATA_TRANSMISSION,
+    ATTR_BOILER_SENSORS,
+    ATTR_FAN_POWER,
+    ATTR_FUEL_CONSUMPTION,
+    ATTR_FUEL_LEVEL,
+    ATTR_LOAD,
+    ATTR_MODE,
+    ATTR_POWER,
+    ATTR_REGDATA,
+    ATTR_THERMOSTAT,
+    ATTR_TRANSMISSION,
 )
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message
-from pyplumio.helpers.typing import Records
+from pyplumio.helpers.typing import DeviceData
 from pyplumio.structures import (
     alarms,
     frame_versions,
@@ -47,7 +47,7 @@ class RegulatorData(Message):
             raise VersionError(f"Unknown regdata version: {frame_version}")
 
         _, offset = frame_versions.from_bytes(message, offset, self._data)
-        self._data[DATA_REGDATA] = message[offset:]
+        self._data[ATTR_REGDATA] = message[offset:]
 
 
 class SensorData(Message):
@@ -57,28 +57,28 @@ class SensorData(Message):
 
     def parse_message(self, message: bytearray) -> None:
         """Parse message into data."""
-        sensors: Records = {}
+        sensors: DeviceData = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
-        sensors[DATA_MODE] = message[offset]
+        sensors[ATTR_MODE] = message[offset]
         offset += 1
         _, offset = outputs.from_bytes(message, offset, sensors)
         _, offset = output_flags.from_bytes(message, offset, sensors)
         _, offset = temperatures.from_bytes(message, offset, sensors)
         _, offset = statuses.from_bytes(message, offset, sensors)
         _, offset = alarms.from_bytes(message, offset, sensors)
-        sensors[DATA_FUEL_LEVEL] = message[offset]
-        sensors[DATA_TRANSMISSION] = message[offset + 1]
-        sensors[DATA_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]
-        sensors[DATA_LOAD] = message[offset + 6]
-        sensors[DATA_POWER] = util.unpack_float(message[offset + 7 : offset + 11])[0]
-        sensors[DATA_FUEL_CONSUMPTION] = util.unpack_float(
+        sensors[ATTR_FUEL_LEVEL] = message[offset]
+        sensors[ATTR_TRANSMISSION] = message[offset + 1]
+        sensors[ATTR_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]
+        sensors[ATTR_LOAD] = message[offset + 6]
+        sensors[ATTR_POWER] = util.unpack_float(message[offset + 7 : offset + 11])[0]
+        sensors[ATTR_FUEL_CONSUMPTION] = util.unpack_float(
             message[offset + 11 : offset + 15]
         )[0]
-        sensors[DATA_THERMOSTAT] = message[offset + 15]
+        sensors[ATTR_THERMOSTAT] = message[offset + 15]
         offset += 16
         _, offset = modules.from_bytes(message, offset, sensors)
         _, offset = lambda_sensor.from_bytes(message, offset, sensors)
         _, offset = thermostats.from_bytes(message, offset, sensors)
         _, offset = mixers.from_bytes(message, offset, sensors)
 
-        self._data = {DATA_BOILER_SENSORS: sensors}
+        self._data = {ATTR_BOILER_SENSORS: sensors}

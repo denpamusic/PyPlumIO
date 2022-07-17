@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Dict, Final, Optional, Tuple
 
-from pyplumio.const import DATA_NETWORK, ECOMAX_ADDRESS
+from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -119,7 +119,7 @@ class Protocol(TaskManager):
                 device.handle_frame(frame)
                 if frame.is_type(CheckDevice, ProgramVersion):
                     write_queue.put_nowait(
-                        frame.response(data={DATA_NETWORK: self._network})
+                        frame.response(data={ATTR_NETWORK: self._network})
                     )
 
                 self.devices[name] = device

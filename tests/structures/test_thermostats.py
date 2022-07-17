@@ -1,10 +1,11 @@
 """Contains tests for thermostats structure."""
 
-from pyplumio.structures.thermostats import THERMOSTATS, from_bytes
+from pyplumio.const import ATTR_THERMOSTATS
+from pyplumio.structures.thermostats import from_bytes
 
 _message = bytearray.fromhex("05010300002E4200004842")
 _data = {
-    THERMOSTATS: [
+    ATTR_THERMOSTATS: [
         {"contacts": True, "schedule": False, "mode": 3, "target": 50.0, "temp": 43.5}
     ]
 }

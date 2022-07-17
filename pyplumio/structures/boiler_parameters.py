@@ -1,14 +1,14 @@
 """Contains regulator parameter structure parser."""
 from __future__ import annotations
 
-from typing import Dict, Final, List, Optional, Tuple
+from typing import Dict, Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import DATA_BOILER_PARAMETERS
-from pyplumio.helpers.typing import ParameterTuple, Records
+from pyplumio.const import ATTR_BOILER_PARAMETERS
+from pyplumio.helpers.typing import DeviceData, ParameterTuple
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
-BOILER_PARAMETERS: List[str] = [
+BOILER_PARAMETERS: Tuple[str, ...] = (
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -148,12 +148,12 @@ BOILER_PARAMETERS: List[str] = [
     "buffer_histeresis",
     "buffer_load_start",
     "buffer_load_stop",
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -170,6 +170,6 @@ def from_bytes(
 
         offset += 3
 
-    data[DATA_BOILER_PARAMETERS] = parameters
+    data[ATTR_BOILER_PARAMETERS] = parameters
 
     return data, offset

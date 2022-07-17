@@ -4,9 +4,9 @@ from __future__ import annotations
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.helpers.typing import Records
+from pyplumio.const import ATTR_THERMOSTATS
+from pyplumio.helpers.typing import DeviceData
 
-THERMOSTATS: Final = "thermostats"
 ECOSTER_CONTACTS: Final = "contacts"
 ECOSTER_SCHEDULE: Final = "schedule"
 ECOSTER_MODE: Final = "mode"
@@ -15,8 +15,8 @@ ECOSTER_TARGET: Final = "target"
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -25,7 +25,7 @@ def from_bytes(
         offset += 1
         return data, offset
 
-    thermostats: List[Records] = []
+    thermostats: List[DeviceData] = []
     therm_contacts = message[offset]
     offset += 1
     therm_number = message[offset]
@@ -34,7 +34,7 @@ def from_bytes(
         contact_mask = 1
         schedule_mask = 1 << 3
         for _ in range(1, therm_number + 1):
-            therm: Records = {}
+            therm: DeviceData = {}
             therm[ECOSTER_CONTACTS] = bool(therm_contacts & contact_mask)
             therm[ECOSTER_SCHEDULE] = bool(therm_contacts & schedule_mask)
             therm[ECOSTER_MODE] = message[offset]
@@ -47,6 +47,6 @@ def from_bytes(
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1
 
-    data[THERMOSTATS] = thermostats
+    data[ATTR_THERMOSTATS] = thermostats
 
     return data, offset

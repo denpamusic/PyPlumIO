@@ -4,22 +4,22 @@ from __future__ import annotations
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import DATA_MIXER_SENSORS
-from pyplumio.helpers.typing import Records
+from pyplumio.const import ATTR_MIXER_SENSORS
+from pyplumio.helpers.typing import DeviceData
 
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET_TEMP: Final = "target_temp"
 MIXER_PUMP_OUTPUT: Final = "mixer_pump"
-MIXER_DATA: List[str] = [
+MIXER_DATA: Tuple[str, ...] = (
     MIXER_TEMP,
     MIXER_TARGET_TEMP,
     MIXER_PUMP_OUTPUT,
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -29,7 +29,7 @@ def from_bytes(
     if mixers_number == 0:
         return data, offset
 
-    mixers: List[Records] = []
+    mixers: List[DeviceData] = []
 
     for _ in range(mixers_number):
         mixer = {}
@@ -40,6 +40,6 @@ def from_bytes(
         mixers.append(mixer)
         offset += 8
 
-    data[DATA_MIXER_SENSORS] = mixers
+    data[ATTR_MIXER_SENSORS] = mixers
 
     return data, offset

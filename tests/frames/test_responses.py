@@ -1,19 +1,19 @@
 """Test PyPlumIO response frames."""
 
 from pyplumio.const import (
+    ATTR_BOILER_PARAMETERS,
+    ATTR_MIXER_PARAMETERS,
+    ATTR_MODE,
+    ATTR_NETWORK,
+    ATTR_PASSWORD,
+    ATTR_PRODUCT,
+    ATTR_SCHEMA,
+    ATTR_VERSION,
     BROADCAST_ADDRESS,
-    DATA_BOILER_PARAMETERS,
-    DATA_MIXER_PARAMETERS,
-    DATA_MODE,
-    DATA_NETWORK,
-    DATA_PASSWORD,
-    DATA_PRODUCT,
-    DATA_SCHEMA,
-    DATA_VERSION,
     ECONET_ADDRESS,
 )
 from pyplumio.frames import responses
-from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
+from pyplumio.frames.responses import REGATTR_SCHEMA, DataSchema
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -40,7 +40,7 @@ def test_responses_type() -> None:
         assert isinstance(frame, response)
 
 
-_program_version_data = {DATA_VERSION: VersionInfo(software="1.0.0")}
+_program_version_data = {ATTR_VERSION: VersionInfo(software="1.0.0")}
 _program_version_bytes = bytearray.fromhex("FFFF057A0000000001000000000056")
 
 
@@ -63,7 +63,7 @@ def test_program_version_parse_message() -> None:
 
 
 _device_available_data = {
-    DATA_NETWORK: NetworkInfo(
+    ATTR_NETWORK: NetworkInfo(
         eth=EthernetParameters(
             ip="192.168.1.2",
             netmask="255.255.255.0",
@@ -99,7 +99,7 @@ def test_device_available_parse_message() -> None:
 
 
 _uid_data = {
-    DATA_PRODUCT: ProductInfo(
+    ATTR_PRODUCT: ProductInfo(
         type=0,
         product=90,
         uid="D251PAKR3GCPZ1K8G05G0",
@@ -120,7 +120,7 @@ def test_uid_parse_message() -> None:
 
 
 _password_bytes = bytearray.fromhex("0430303030")
-_password_data = {DATA_PASSWORD: "0000"}
+_password_data = {ATTR_PASSWORD: "0000"}
 
 
 def test_password_parse_message() -> None:
@@ -141,7 +141,7 @@ _boiler_parameters_data = {
 def test_boiler_parameters_parse_message() -> None:
     """Test parsing boiler parameters message."""
     frame = responses.BoilerParameters(message=_boiler_parameters_bytes)
-    assert frame.data == {DATA_BOILER_PARAMETERS: _boiler_parameters_data}
+    assert frame.data == {ATTR_BOILER_PARAMETERS: _boiler_parameters_data}
 
 
 _mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
@@ -157,8 +157,8 @@ def test_mixer_parameters_parse_message() -> None:
     """Test parsing message for mixer parameters response."""
     frame = responses.MixerParameters(message=_mixer_parameters_bytes)
     print(frame.data)
-    print({DATA_MIXER_PARAMETERS: _mixer_parameters_data})
-    assert frame.data == {DATA_MIXER_PARAMETERS: _mixer_parameters_data}
+    print({ATTR_MIXER_PARAMETERS: _mixer_parameters_data})
+    assert frame.data == {ATTR_MIXER_PARAMETERS: _mixer_parameters_data}
 
 
 _data_schema_bytes_empty = bytearray.fromhex("0000")
@@ -166,18 +166,18 @@ _data_schema_bytes_empty = bytearray.fromhex("0000")
 
 def test_data_schema_parse_message(data_schema: DataSchema) -> None:
     """Test parsing message for data schema response."""
-    assert DATA_SCHEMA in data_schema.data
-    assert len(data_schema.data[DATA_SCHEMA]) == 257
+    assert ATTR_SCHEMA in data_schema.data
+    assert len(data_schema.data[ATTR_SCHEMA]) == 257
     matches = {
         x[0]: x[1]
-        for x in data_schema.data[DATA_SCHEMA]
-        if x[0] in REGDATA_SCHEMA.values()
+        for x in data_schema.data[ATTR_SCHEMA]
+        if x[0] in REGATTR_SCHEMA.values()
     }
-    assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
-    assert isinstance(matches[DATA_MODE], Byte)
+    assert list(matches.keys()).sort() == list(REGATTR_SCHEMA.values()).sort()
+    assert isinstance(matches[ATTR_MODE], Byte)
 
 
 def test_data_schema_parse_message_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
     frame = DataSchema(message=_data_schema_bytes_empty)
-    assert frame.data == {DATA_SCHEMA: []}
+    assert frame.data == {ATTR_SCHEMA: []}

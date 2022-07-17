@@ -8,17 +8,17 @@ import time
 from typing import Dict, List, Type
 
 from pyplumio.const import (
+    ATTR_BOILER_PARAMETERS,
+    ATTR_BOILER_SENSORS,
+    ATTR_FRAME_VERSIONS,
+    ATTR_FUEL_BURNED,
+    ATTR_FUEL_CONSUMPTION,
+    ATTR_MIXER_PARAMETERS,
+    ATTR_MIXER_SENSORS,
+    ATTR_MODE,
+    ATTR_REGDATA,
+    ATTR_SCHEMA,
     BROADCAST_ADDRESS,
-    DATA_BOILER_PARAMETERS,
-    DATA_BOILER_SENSORS,
-    DATA_FRAME_VERSIONS,
-    DATA_FUEL_BURNED,
-    DATA_FUEL_CONSUMPTION,
-    DATA_MIXER_PARAMETERS,
-    DATA_MIXER_SENSORS,
-    DATA_MODE,
-    DATA_REGDATA,
-    DATA_SCHEMA,
     ECOMAX_ADDRESS,
     ECOSTER_ADDRESS,
 )
@@ -42,10 +42,10 @@ from pyplumio.helpers.parameter import (
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.helpers.typing import (
+    DeviceData,
     Numeric,
     Parameters,
     ParameterTuple,
-    Records,
     ValueCallback,
 )
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
@@ -201,7 +201,7 @@ class Device(AsyncDevice):
         self._queue = queue
         versions = FrameVersions(queue, device=self)
         versions.update({x.frame_type: 0 for x in self.required_frames})
-        self.register_callback(DATA_FRAME_VERSIONS, on_change(versions.async_update))
+        self.register_callback(ATTR_FRAME_VERSIONS, on_change(versions.async_update))
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
@@ -239,13 +239,13 @@ class EcoMAX(Device):
         super().__init__(queue)
         self._mixers: Dict[int, Mixer] = {}
         self._fuel_burned_timestamp = time.time()
-        self.register_callback(DATA_BOILER_SENSORS, self._add_boiler_sensors)
-        self.register_callback(DATA_MODE, on_change(self._add_boiler_control_parameter))
-        self.register_callback(DATA_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
-        self.register_callback(DATA_BOILER_PARAMETERS, self._add_boiler_parameters)
-        self.register_callback(DATA_REGDATA, self._parse_regulator_data)
-        self.register_callback(DATA_MIXER_SENSORS, self._set_mixer_sensors)
-        self.register_callback(DATA_MIXER_PARAMETERS, self._set_mixer_parameters)
+        self.register_callback(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
+        self.register_callback(ATTR_MODE, on_change(self._add_boiler_control_parameter))
+        self.register_callback(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
+        self.register_callback(ATTR_BOILER_PARAMETERS, self._add_boiler_parameters)
+        self.register_callback(ATTR_REGDATA, self._parse_regulator_data)
+        self.register_callback(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
+        self.register_callback(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
 
     def _get_mixer(self, mixer_number: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
@@ -257,7 +257,7 @@ class EcoMAX(Device):
         self.mixers[mixer_number] = mixer
         return mixer
 
-    async def _add_boiler_sensors(self, sensors: Records):
+    async def _add_boiler_sensors(self, sensors: DeviceData):
         """Add boiler sensors values to the device object."""
         for name, value in sensors.items():
             await self.async_set_attribute(name, value)
@@ -285,7 +285,7 @@ class EcoMAX(Device):
         return parameter_objects
 
     async def _set_mixer_sensors(
-        self, sensors: Sequence[MutableMapping[str, Records]]
+        self, sensors: Sequence[MutableMapping[str, DeviceData]]
     ) -> None:
         """Set sensor values for the mixer."""
         for mixer_number, mixer_data in enumerate(sensors):
@@ -334,15 +334,15 @@ class EcoMAX(Device):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         fuel_burned = (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
-        await self.async_set_attribute(DATA_FUEL_BURNED, fuel_burned)
+        await self.async_set_attribute(ATTR_FUEL_BURNED, fuel_burned)
 
-    async def _parse_regulator_data(self, regulator_data: bytes) -> Records:
+    async def _parse_regulator_data(self, regulator_data: bytes) -> DeviceData:
         """Add sensor values from the regulator data."""
         offset = 0
         boolean_index = 0
         data = {}
         try:
-            schema = await self.get_value(DATA_SCHEMA)
+            schema = await self.get_value(ATTR_SCHEMA)
             for parameter in schema:
                 parameter_id, parameter_type = parameter
                 if not isinstance(parameter_type, Boolean) and boolean_index > 0:

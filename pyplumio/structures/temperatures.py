@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import math
-from typing import Final, List, Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.helpers.typing import Records
+from pyplumio.helpers.typing import DeviceData
 
 HEATING_TEMP: Final = "heating_temp"
 FEEDER_TEMP: Final = "feeder_temp"
@@ -24,7 +24,7 @@ HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
 EXCHANGER_TEMP: Final = "exchanger_temp"
 AIR_IN_TEMP: Final = "air_in_temp"
 AIR_OUT_TEMP: Final = "air_out_temp"
-TEMPERATURES: List[str] = [
+TEMPERATURES: Tuple[str, ...] = (
     HEATING_TEMP,
     FEEDER_TEMP,
     WATER_HEATER_TEMP,
@@ -42,12 +42,12 @@ TEMPERATURES: List[str] = [
     EXCHANGER_TEMP,
     AIR_IN_TEMP,
     AIR_OUT_TEMP,
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}

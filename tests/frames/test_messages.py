@@ -3,14 +3,14 @@
 import pytest
 
 from pyplumio.const import (
+    ATTR_ALARMS,
+    ATTR_BOILER_SENSORS,
+    ATTR_FRAME_VERSIONS,
+    ATTR_FUEL_LEVEL,
+    ATTR_MIXER_SENSORS,
+    ATTR_MODE,
+    ATTR_MODULES,
     BROADCAST_ADDRESS,
-    DATA_ALARMS,
-    DATA_BOILER_SENSORS,
-    DATA_FRAME_VERSIONS,
-    DATA_FUEL_LEVEL,
-    DATA_MIXER_SENSORS,
-    DATA_MODE,
-    DATA_MODULES,
     ECONET_ADDRESS,
 )
 from pyplumio.exceptions import VersionError
@@ -46,7 +46,7 @@ _regdata_bytes_unknown_version = bytearray.fromhex("62640002")
 def test_regdata_parse_message() -> None:
     """Test parsing of regdata message."""
     frame = messages.RegulatorData(message=_regdata_bytes)
-    assert DATA_FRAME_VERSIONS in frame.data
+    assert ATTR_FRAME_VERSIONS in frame.data
 
 
 def test_regdata_parse_message_with_unknown_version() -> None:
@@ -70,19 +70,19 @@ FFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D8
 def test_current_data_parse_message() -> None:
     """Test parsing current data message."""
     frame = messages.SensorData(message=_current_data_bytes)
-    data = frame.data[DATA_BOILER_SENSORS]
-    assert DATA_FRAME_VERSIONS in data
-    assert data[DATA_FRAME_VERSIONS][85] == 45559
-    assert len(data[DATA_FRAME_VERSIONS]) == 7
-    assert data[DATA_MODE] == 0
+    data = frame.data[ATTR_BOILER_SENSORS]
+    assert ATTR_FRAME_VERSIONS in data
+    assert data[ATTR_FRAME_VERSIONS][85] == 45559
+    assert len(data[ATTR_FRAME_VERSIONS]) == 7
+    assert data[ATTR_MODE] == 0
     assert round(data["heating_temp"], 2) == 22.38
     assert data["heating_target"] == 41
     assert not data["heating_pump"]
     assert data["heating_status"] == 0
-    assert data[DATA_MODULES].module_a == "18.11.58.K1"
-    assert data[DATA_MODULES].module_panel == "18.10.72"
-    assert DATA_MIXER_SENSORS in data
-    assert len(data[DATA_MIXER_SENSORS]) == 5
-    assert data[DATA_MIXER_SENSORS][0]["target_temp"] == 40
-    assert data[DATA_ALARMS] == []
-    assert data[DATA_FUEL_LEVEL] == 32
+    assert data[ATTR_MODULES].module_a == "18.11.58.K1"
+    assert data[ATTR_MODULES].module_panel == "18.10.72"
+    assert ATTR_MIXER_SENSORS in data
+    assert len(data[ATTR_MIXER_SENSORS]) == 5
+    assert data[ATTR_MIXER_SENSORS][0]["target_temp"] == 40
+    assert data[ATTR_ALARMS] == []
+    assert data[ATTR_FUEL_LEVEL] == 32

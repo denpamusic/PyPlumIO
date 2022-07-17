@@ -6,15 +6,15 @@ from typing import Dict, List, Tuple
 
 from pyplumio import util
 from pyplumio.const import (
-    DATA_MODE,
-    DATA_NETWORK,
-    DATA_PASSWORD,
-    DATA_PRODUCT,
-    DATA_SCHEMA,
-    DATA_VERSION,
+    ATTR_MODE,
+    ATTR_NETWORK,
+    ATTR_PASSWORD,
+    ATTR_PRODUCT,
+    ATTR_SCHEMA,
+    ATTR_VERSION,
 )
 from pyplumio.frames import Response
-from pyplumio.helpers.data_types import DATA_TYPES, DataType
+from pyplumio.helpers.data_types import ATTR_TYPES, DataType
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -52,10 +52,10 @@ class ProgramVersion(Response):
         if self._data is None:
             self._data = {}
 
-        if DATA_VERSION not in self._data:
-            self._data[DATA_VERSION] = VersionInfo()
+        if ATTR_VERSION not in self._data:
+            self._data[ATTR_VERSION] = VersionInfo()
 
-        version_info = self._data[DATA_VERSION]
+        version_info = self._data[ATTR_VERSION]
         message = bytearray(15)
         struct.pack_into(
             "<2sB2s3s3HB",
@@ -87,7 +87,7 @@ class ProgramVersion(Response):
         version_info.software = ".".join(
             map(str, [software_version1, software_version2, software_version3])
         )
-        self._data = {DATA_VERSION: version_info}
+        self._data = {ATTR_VERSION: version_info}
 
 
 class DeviceAvailable(Response):
@@ -104,10 +104,10 @@ class DeviceAvailable(Response):
         if self._data is None:
             self._data = {}
 
-        if DATA_NETWORK not in self._data:
-            self._data[DATA_NETWORK] = NetworkInfo()
+        if ATTR_NETWORK not in self._data:
+            self._data[ATTR_NETWORK] = NetworkInfo()
 
-        network_info = self._data[DATA_NETWORK]
+        network_info = self._data[ATTR_NETWORK]
         message += util.ip4_to_bytes(network_info.eth.ip)
         message += util.ip4_to_bytes(network_info.eth.netmask)
         message += util.ip4_to_bytes(network_info.eth.gateway)
@@ -146,7 +146,7 @@ class DeviceAvailable(Response):
             ),
             server_status=bool(message[offset + 25]),
         )
-        self._data = {DATA_NETWORK: network_info}
+        self._data = {ATTR_NETWORK: network_info}
 
 
 class UID(Response):
@@ -161,7 +161,7 @@ class UID(Response):
         product_info.uid, offset = uid.from_bytes(message, offset=3)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
         product_info.model, _ = var_string.from_bytes(message, offset + 4)
-        self._data = {DATA_PRODUCT: product_info}
+        self._data = {ATTR_PRODUCT: product_info}
 
 
 class Password(Response):
@@ -172,7 +172,7 @@ class Password(Response):
     def parse_message(self, message: bytearray) -> None:
         """Parse frame message."""
         password = message[1:].decode() if message[1:] else None
-        self._data = {DATA_PASSWORD: password}
+        self._data = {ATTR_PASSWORD: password}
 
 
 class BoilerParameters(Response):
@@ -199,8 +199,8 @@ class MixerParameters(Response):
         self._data, _ = mixer_parameters.from_bytes(message)
 
 
-REGDATA_SCHEMA: Dict[int, str] = {
-    1792: DATA_MODE,
+REGATTR_SCHEMA: Dict[int, str] = {
+    1792: ATTR_MODE,
     1024: HEATING_TEMP,
     1026: FEEDER_TEMP,
     1025: WATER_HEATER_TEMP,
@@ -233,11 +233,11 @@ class DataSchema(Response):
             for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                param_name = REGDATA_SCHEMA.get(param_id, str(param_id))
-                schema.append((param_name, DATA_TYPES[param_type]()))
+                param_name = REGATTR_SCHEMA.get(param_id, str(param_id))
+                schema.append((param_name, ATTR_TYPES[param_type]()))
                 offset += 3
 
-        self._data = {DATA_SCHEMA: schema}
+        self._data = {ATTR_SCHEMA: schema}
 
 
 class SetBoilerParameter(Response):

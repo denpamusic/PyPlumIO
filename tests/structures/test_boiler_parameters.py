@@ -1,6 +1,6 @@
 """Contains tests for device parameters structure."""
 
-from pyplumio.const import DATA_BOILER_PARAMETERS
+from pyplumio.const import ATTR_BOILER_PARAMETERS
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS, from_bytes
 
 _message = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
@@ -16,12 +16,12 @@ _data = {
 def test_from_bytes() -> None:
     """Test conversion from bytes."""
     data, offset = from_bytes(_message)
-    assert data == {DATA_BOILER_PARAMETERS: _data}
+    assert data == {ATTR_BOILER_PARAMETERS: _data}
     assert offset == 18
 
 
 def test_from_bytes_with_no_params() -> None:
     """Test conversion from bytes with no data."""
     data, offset = from_bytes(_message_empty)
-    assert data == {DATA_BOILER_PARAMETERS: {}}
+    assert data == {ATTR_BOILER_PARAMETERS: {}}
     assert offset == 3

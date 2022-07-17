@@ -1,13 +1,13 @@
 """Contains mixer parameter structure parser."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import DATA_MIXER_PARAMETERS
-from pyplumio.helpers.typing import ParameterTuple, Records
+from pyplumio.const import ATTR_MIXER_PARAMETERS
+from pyplumio.helpers.typing import DeviceData, ParameterTuple
 
-MIXER_PARAMETERS: List[str] = [
+MIXER_PARAMETERS: Tuple[str, ...] = (
     "mix_target_temp",
     "min_mix_target_temp",
     "max_mix_target_temp",
@@ -22,12 +22,12 @@ MIXER_PARAMETERS: List[str] = [
     "mix_therm_mode",
     "mix_off_therm_pump",
     "mix_summer_work",
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -48,6 +48,6 @@ def from_bytes(
 
         mixer_parameters.append(parameters)
 
-    data[DATA_MIXER_PARAMETERS] = mixer_parameters
+    data[ATTR_MIXER_PARAMETERS] = mixer_parameters
 
     return data, offset

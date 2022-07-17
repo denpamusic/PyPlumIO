@@ -2,30 +2,30 @@
 from __future__ import annotations
 
 import math
-from typing import Final, List, Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import DATA_LAMBDA_SENSOR
-from pyplumio.helpers.typing import Records
+from pyplumio.const import ATTR_LAMBDA_SENSOR
+from pyplumio.helpers.typing import DeviceData
 
 LAMBDA_LEVEL: Final = "lambda_level"
 LAMBDA_STATUS: Final = "lambda_status"
 LAMBDA_TARGET: Final = "lambda_target"
-LAMBDA: List[str] = [
+LAMBDA: Tuple[str, ...] = (
     LAMBDA_LEVEL,
     LAMBDA_STATUS,
     LAMBDA_TARGET,
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
 
-    lambda_sensor: Records = {}
+    lambda_sensor: DeviceData = {}
     if message[offset] != 0xFF:
         lambda_sensor[LAMBDA_STATUS] = message[offset]
         lambda_sensor[LAMBDA_TARGET] = message[offset + 1]
@@ -34,6 +34,6 @@ def from_bytes(
         offset += 3
 
     offset += 1
-    data[DATA_LAMBDA_SENSOR] = lambda_sensor
+    data[ATTR_LAMBDA_SENSOR] = lambda_sensor
 
     return data, offset

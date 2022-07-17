@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 import struct
-from typing import Final, List, Optional, Tuple
+from typing import Final, Optional, Tuple
 
-from pyplumio.const import DATA_MODULES
+from pyplumio.const import ATTR_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
-from pyplumio.helpers.typing import Records
+from pyplumio.helpers.typing import DeviceData
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -14,19 +14,19 @@ MODULE_C: Final = "module_c"
 MODULE_LAMBDA: Final = "module_lambda"
 MODULE_ECOSTER: Final = "module_ecoster"
 MODULE_PANEL: Final = "module_panel"
-MODULES: List[str] = [
+MODULES: Tuple[str, ...] = (
     MODULE_A,
     MODULE_B,
     MODULE_C,
     MODULE_LAMBDA,
     MODULE_ECOSTER,
     MODULE_PANEL,
-]
+)
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -36,7 +36,7 @@ def from_bytes(
         module_version, offset = _get_module_version(module_name, message, offset)
         setattr(connected_modules, module_name, module_version)
 
-    data[DATA_MODULES] = connected_modules
+    data[ATTR_MODULES] = connected_modules
 
     return data, offset
 

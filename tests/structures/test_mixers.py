@@ -1,6 +1,6 @@
 """Contains tests for mixers structure."""
 
-from pyplumio.const import DATA_MIXER_SENSORS
+from pyplumio.const import ATTR_MIXER_SENSORS
 from pyplumio.structures.mixers import (
     MIXER_PUMP_OUTPUT,
     MIXER_TARGET_TEMP,
@@ -11,7 +11,7 @@ from pyplumio.structures.mixers import (
 _message = bytearray.fromhex("0200002042260808000000204226080800")
 _message_zero_mixers = bytearray.fromhex("00")
 _data = {
-    DATA_MIXER_SENSORS: [
+    ATTR_MIXER_SENSORS: [
         {MIXER_TEMP: 40.0, MIXER_TARGET_TEMP: 38, MIXER_PUMP_OUTPUT: False},
         {MIXER_TEMP: 40.0, MIXER_TARGET_TEMP: 38, MIXER_PUMP_OUTPUT: False},
     ]

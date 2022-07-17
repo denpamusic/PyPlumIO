@@ -1,6 +1,6 @@
 """Contains tests for parameter structure."""
 
-from pyplumio.const import DATA_MIXER_PARAMETERS
+from pyplumio.const import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_parameters import from_bytes
 
 _message_zero_parameters = bytearray.fromhex("00000000")
@@ -20,12 +20,12 @@ _data = [
 def test_from_bytes_with_zero_parameters():
     """Test conversion from bytes with zero parameters."""
     data, offset = from_bytes(_message_zero_parameters)
-    assert data == {DATA_MIXER_PARAMETERS: []}
+    assert data == {ATTR_MIXER_PARAMETERS: []}
     assert offset == 4
 
 
 def test_from_bytes():
     """Test conversion from bytes."""
     data, offset = from_bytes(_message)
-    assert data == {DATA_MIXER_PARAMETERS: _data}
+    assert data == {ATTR_MIXER_PARAMETERS: _data}
     assert offset == 16

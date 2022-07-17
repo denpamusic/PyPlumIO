@@ -1,17 +1,16 @@
 """Contains frame versions structure parser."""
 from __future__ import annotations
 
-from typing import Final, Optional, Tuple
+from typing import Optional, Tuple
 
 from pyplumio import util
-from pyplumio.helpers.typing import Records, Versions
-
-FRAME_VERSIONS: Final = "frames"
+from pyplumio.const import ATTR_FRAME_VERSIONS
+from pyplumio.helpers.typing import DeviceData, Versions
 
 
 def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[Records] = None
-) -> Tuple[Records, int]:
+    message: bytearray, offset: int = 0, data: Optional[DeviceData] = None
+) -> Tuple[DeviceData, int]:
     """Parse bytes and return message data and offset."""
     if data is None:
         data = {}
@@ -25,6 +24,6 @@ def from_bytes(
         versions[frame_type] = version
         offset += 3
 
-    data[FRAME_VERSIONS] = versions
+    data[ATTR_FRAME_VERSIONS] = versions
 
     return data, offset
