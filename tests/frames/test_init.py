@@ -125,7 +125,7 @@ def test_equality() -> None:
 def test_request_repr(request_: Request) -> None:
     """Test serialiazible request representation."""
     repr_ = """Request(
-    type = 64,
+    frame_type = 64,
     recipient = 0,
     message = bytearray(b''),
     sender = 86,
@@ -140,7 +140,7 @@ def test_request_repr(request_: Request) -> None:
 def test_response_repr(response: Response) -> None:
     """Test serialiazible response representation."""
     repr_ = """Response(
-    type = 192,
+    frame_type = 192,
     recipient = 0,
     message = bytearray(b''),
     sender = 86,

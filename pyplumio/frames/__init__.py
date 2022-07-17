@@ -90,7 +90,7 @@ class Frame(ABC):
     def __repr__(self) -> str:
         """Return serializable string representation of the class."""
         return f"""{self.__class__.__name__}(
-    type = {self.frame_type},
+    frame_type = {self.frame_type},
     recipient = {self.recipient},
     message = {self.message},
     sender = {self.sender},
@@ -106,7 +106,18 @@ class Frame(ABC):
 
     def __eq__(self, other) -> bool:
         """Check if two frames are equal."""
-        return repr(self) == repr(other)
+        return all(
+            hasattr(other, attr) and getattr(self, attr) == getattr(other, attr)
+            for attr in (
+                "frame_type",
+                "recipient",
+                "message",
+                "sender",
+                "sender_type",
+                "econet_version",
+                "data",
+            )
+        )
 
     def is_type(self, *args) -> bool:
         """Check if frame is instance of type."""
