@@ -1,4 +1,5 @@
 """Contains various helper methods."""
+from __future__ import annotations
 
 import functools
 import socket
