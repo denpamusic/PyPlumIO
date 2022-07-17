@@ -9,7 +9,7 @@ from pyplumio.helpers.typing import Records
 
 MIXER_TEMP: Final = "temp"
 MIXER_TARGET_TEMP: Final = "target_temp"
-MIXER_PUMP_OUTPUT: Final = "pump_output"
+MIXER_PUMP_OUTPUT: Final = "mixer_pump"
 MIXER_DATA: List[str] = [
     MIXER_TEMP,
     MIXER_TARGET_TEMP,
