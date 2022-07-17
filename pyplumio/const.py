@@ -6,7 +6,7 @@ from typing import Final
 BROADCAST_ADDRESS: Final[int] = 0x00
 ECONET_ADDRESS: Final[int] = 0x56
 ECOMAX_ADDRESS: Final[int] = 0x45
-ECOSTER_ADDRESS: Final[int] = 0x51F
+ECOSTER_ADDRESS: Final[int] = 0x51
 
 ATTR_BOILER_SENSORS: Final = "sensors"
 ATTR_BOILER_PARAMETERS: Final = "parameters"
