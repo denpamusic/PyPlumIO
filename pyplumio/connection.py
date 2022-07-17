@@ -84,7 +84,7 @@ class Connection(ABC):
                 return
             except ConnectionFailedError:
                 _LOGGER.error(
-                    "ConnectionError: connection failed, reconnecting in %i seconds...",
+                    "ConnectionError: connection to device failed, retrying in %.1f seconds",
                     RECONNECT_TIMEOUT,
                 )
                 await asyncio.sleep(RECONNECT_TIMEOUT)

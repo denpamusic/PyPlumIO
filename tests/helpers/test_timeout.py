@@ -25,7 +25,7 @@ async def test_timeout(mock_wait_for, caplog) -> None:
 
     assert result is None
     assert "TimeoutError" in caplog.text
-    assert "func_name(test_arg, kwarg = test_kwarg)" in caplog.text
+    assert "func_name" in caplog.text
     mock_wait_for.assert_awaited_once_with("test", timeout=10)
     mock_func.assert_called_once_with("test_arg", kwarg="test_kwarg")
 
