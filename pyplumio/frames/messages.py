@@ -41,12 +41,11 @@ class RegulatorData(Message):
         """Parse message into data."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
-        offset += 2
         self._data = {}
         if frame_version != self.VERSION:
             raise VersionError(f"Unknown regdata version: {frame_version}")
 
-        _, offset = frame_versions.from_bytes(message, offset, self._data)
+        _, offset = frame_versions.from_bytes(message, offset + 2, self._data)
         self._data[ATTR_REGDATA] = message[offset:]
 
 
@@ -60,8 +59,7 @@ class SensorData(Message):
         sensors: DeviceData = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
         sensors[ATTR_MODE] = message[offset]
-        offset += 1
-        _, offset = outputs.from_bytes(message, offset, sensors)
+        _, offset = outputs.from_bytes(message, offset + 1, sensors)
         _, offset = output_flags.from_bytes(message, offset, sensors)
         _, offset = temperatures.from_bytes(message, offset, sensors)
         _, offset = statuses.from_bytes(message, offset, sensors)
@@ -75,8 +73,7 @@ class SensorData(Message):
             message[offset + 11 : offset + 15]
         )[0]
         sensors[ATTR_THERMOSTAT] = message[offset + 15]
-        offset += 16
-        _, offset = modules.from_bytes(message, offset, sensors)
+        _, offset = modules.from_bytes(message, offset + 16, sensors)
         _, offset = lambda_sensor.from_bytes(message, offset, sensors)
         _, offset = thermostats.from_bytes(message, offset, sensors)
         _, offset = mixers.from_bytes(message, offset, sensors)
