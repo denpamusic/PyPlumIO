@@ -13,7 +13,7 @@ from pyplumio.const import (
     ECONET_ADDRESS,
 )
 from pyplumio.frames import responses
-from pyplumio.frames.responses import REGATTR_SCHEMA, DataSchema
+from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -169,9 +169,9 @@ def test_data_schema_parse_message(data_schema: DataSchema) -> None:
     matches = {
         x[0]: x[1]
         for x in data_schema.data[ATTR_SCHEMA]
-        if x[0] in REGATTR_SCHEMA.values()
+        if x[0] in REGDATA_SCHEMA.values()
     }
-    assert list(matches.keys()).sort() == list(REGATTR_SCHEMA.values()).sort()
+    assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
     assert isinstance(matches[ATTR_MODE], Byte)
 
 
