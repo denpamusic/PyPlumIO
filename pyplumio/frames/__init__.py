@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import ClassVar, Dict, Final, List, Optional
 
@@ -91,18 +91,16 @@ class Frame(ABC):
     sender: int = ECONET_ADDRESS
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
-    message: Optional[MessageType] = None
-    data: Optional[DeviceDataType] = None
+    message: MessageType = field(default_factory=bytearray)
+    data: DeviceDataType = field(default_factory=dict)
     frame_type: ClassVar[int]
 
     def __post_init__(self) -> None:
         """Process frame message and data."""
-        if self.message is None:
-            self.data = self.data if self.data is not None else {}
+        if not self.message:
             self.message = self.create_message(self.data)
 
-        if self.data is None:
-            self.message = self.message if self.message is not None else bytearray()
+        if self.message and not self.data:
             self.data = self.parse_message(self.message)
 
     def __len__(self) -> int:
