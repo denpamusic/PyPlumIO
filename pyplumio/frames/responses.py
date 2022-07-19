@@ -40,6 +40,22 @@ from pyplumio.structures.temperatures import (
     WATER_HEATER_TEMP,
 )
 
+REGDATA_SCHEMA: Dict[int, str] = {
+    1792: ATTR_MODE,
+    1024: HEATING_TEMP,
+    1026: FEEDER_TEMP,
+    1025: WATER_HEATER_TEMP,
+    1027: OUTSIDE_TEMP,
+    1030: EXHAUST_TEMP,
+    1280: HEATING_TARGET,
+    1281: WATER_HEATER_TARGET,
+    1536: FAN_OUTPUT,
+    1538: FEEDER_OUTPUT,
+    1541: HEATING_PUMP_OUTPUT,
+    1542: WATER_HEATER_PUMP_OUTPUT,
+    3: LIGHTER_OUTPUT,
+}
+
 
 class ProgramVersion(Response):
     """Represents program version response. Contains software
@@ -186,23 +202,6 @@ class MixerParameters(Response):
         return mixer_parameters.from_bytes(message)[0]
 
 
-REGATTR_SCHEMA: Dict[int, str] = {
-    1792: ATTR_MODE,
-    1024: HEATING_TEMP,
-    1026: FEEDER_TEMP,
-    1025: WATER_HEATER_TEMP,
-    1027: OUTSIDE_TEMP,
-    1030: EXHAUST_TEMP,
-    1280: HEATING_TARGET,
-    1281: WATER_HEATER_TARGET,
-    1536: FAN_OUTPUT,
-    1538: FEEDER_OUTPUT,
-    1541: HEATING_PUMP_OUTPUT,
-    1542: WATER_HEATER_PUMP_OUTPUT,
-    3: LIGHTER_OUTPUT,
-}
-
-
 class DataSchema(Response):
     """Represents data schema response. Contains schema that describes
     regdata message structure.
@@ -220,7 +219,7 @@ class DataSchema(Response):
             for _ in range(blocks_number):
                 param_type = message[offset]
                 param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                param_name = REGATTR_SCHEMA.get(param_id, str(param_id))
+                param_name = REGDATA_SCHEMA.get(param_id, str(param_id))
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 

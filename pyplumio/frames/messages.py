@@ -1,7 +1,7 @@
 """Contains message frames."""
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import ClassVar, Final
 
 from pyplumio import util
 from pyplumio.const import (
@@ -32,11 +32,11 @@ from pyplumio.structures import (
     thermostats,
 )
 
+REGDATA_VERSION: Final = "1.0"
+
 
 class RegulatorData(Message):
     """Represents current regulator data."""
-
-    VERSION: str = "1.0"
 
     frame_type: ClassVar[int] = MessageTypes.REGULATOR_DATA
 
@@ -44,7 +44,7 @@ class RegulatorData(Message):
         """Parse message into data."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
-        if frame_version != self.VERSION:
+        if frame_version != REGDATA_VERSION:
             raise VersionError(f"unknown regdata version {frame_version}")
 
         data, offset = frame_versions.from_bytes(message, offset + 2)
