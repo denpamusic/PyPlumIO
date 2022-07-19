@@ -1,4 +1,4 @@
-"""Contains mixer parameter structure parser."""
+"""Contains mixer parameter structure decoder."""
 from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
@@ -28,7 +28,7 @@ MIXER_PARAMETERS: List[str] = [
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
 ) -> Tuple[DeviceDataType, int]:
-    """Parse bytes and return message data and offset."""
+    """Decode bytes and return message data and offset."""
     if data is None:
         data = {}
 

@@ -1,4 +1,4 @@
-"""Contains frame versions structure parser."""
+"""Contains frame versions structure decoder."""
 from __future__ import annotations
 
 from typing import Optional, Tuple
@@ -11,7 +11,7 @@ from pyplumio.helpers.typing import DeviceDataType, VersionsInfoType
 def from_bytes(
     message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
 ) -> Tuple[DeviceDataType, int]:
-    """Parse bytes and return message data and offset."""
+    """Decode bytes and return message data and offset."""
     if data is None:
         data = {}
 

@@ -43,17 +43,17 @@ F0FFF0FFF0F9F04080FFF0FFF0F0000000000000000000000000000000000000000000000000000C
 _regdata_bytes_unknown_version = bytearray.fromhex("62640002")
 
 
-def test_regdata_parse_message() -> None:
+def test_regdata_decode_message() -> None:
     """Test parsing of regdata message."""
     frame = messages.RegulatorData(message=_regdata_bytes)
     assert ATTR_FRAME_VERSIONS in frame.data
 
 
-def test_regdata_parse_message_with_unknown_version() -> None:
+def test_regdata_decode_message_with_unknown_version() -> None:
     """Test parsing of regdata message with unknown message version."""
     frame = messages.RegulatorData()
     with pytest.raises(VersionError, match=r".*version 2\.0.*"):
-        frame.parse_message(message=_regdata_bytes_unknown_version)
+        frame.decode_message(message=_regdata_bytes_unknown_version)
 
 
 _current_data_bytes = bytearray.fromhex(
@@ -67,7 +67,7 @@ FFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D8
 )
 
 
-def test_current_data_parse_message() -> None:
+def test_current_data_decode_message() -> None:
     """Test parsing current data message."""
     frame = messages.SensorData(message=_current_data_bytes)
     data = frame.data[ATTR_BOILER_SENSORS]

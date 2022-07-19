@@ -81,8 +81,8 @@ class ProgramVersion(Response):
         )
         return message
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         version_info = VersionInfo()
         [
             version_info.struct_tag,
@@ -128,8 +128,8 @@ class DeviceAvailable(Response):
         message += network_info.wlan.ssid.encode("utf-8")
         return message
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         offset = 1
         network_info = NetworkInfo(
             eth=EthernetParameters(
@@ -157,8 +157,8 @@ class UID(Response):
 
     frame_type: ClassVar[int] = ResponseTypes.UID
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid, offset = uid.from_bytes(message, offset=3)
@@ -172,8 +172,8 @@ class Password(Response):
 
     frame_type: ClassVar[int] = ResponseTypes.PASSWORD
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         password = message[1:].decode() if message[1:] else None
         return {ATTR_PASSWORD: password}
 
@@ -185,8 +185,8 @@ class BoilerParameters(Response):
 
     frame_type: ClassVar[int] = ResponseTypes.BOILER_PARAMETERS
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         return boiler_parameters.from_bytes(message)[0]
 
 
@@ -197,8 +197,8 @@ class MixerParameters(Response):
 
     frame_type: ClassVar[int] = ResponseTypes.MIXER_PARAMETERS
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         return mixer_parameters.from_bytes(message)[0]
 
 
@@ -209,8 +209,8 @@ class DataSchema(Response):
 
     frame_type: ClassVar[int] = ResponseTypes.DATA_SCHEMA
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse frame message."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2

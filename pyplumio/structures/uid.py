@@ -1,4 +1,4 @@
-"""Contains UID structure parser."""
+"""Contains UID structure decoder."""
 from __future__ import annotations
 
 from typing import Final, List, Tuple
@@ -9,7 +9,7 @@ UID_CHAR_BITS: Final = 8
 
 
 def from_bytes(message: bytearray, offset: int = 0) -> Tuple[str, int]:
-    """Parse bytes and return message data and offset."""
+    """Decode bytes and return message data and offset."""
     uid_length = message[offset]
     offset += 1
     uid = message[offset : uid_length + offset].decode()

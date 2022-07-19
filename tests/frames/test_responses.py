@@ -50,7 +50,7 @@ def test_program_version_create_message() -> None:
     assert frame.create_message(data=_program_version_data) == _program_version_bytes
 
 
-def test_program_version_parse_message() -> None:
+def test_program_version_decode_message() -> None:
     """Test parsing program version message."""
     frame = responses.ProgramVersion(
         recipient=BROADCAST_ADDRESS,
@@ -90,7 +90,7 @@ def test_device_available_create_message() -> None:
     assert frame.create_message(data=_device_available_data) == _device_available_bytes
 
 
-def test_device_available_parse_message() -> None:
+def test_device_available_decode_message() -> None:
     """Test parsing device available message."""
     frame = responses.DeviceAvailable(message=_device_available_bytes)
     assert frame.data == _device_available_data
@@ -111,7 +111,7 @@ _uid_bytes = bytearray.fromhex(
 )
 
 
-def test_uid_parse_message() -> None:
+def test_uid_decode_message() -> None:
     """Test parsing UID message."""
     frame = responses.UID(message=_uid_bytes)
     assert frame.data == _uid_data
@@ -121,7 +121,7 @@ _password_bytes = bytearray.fromhex("0430303030")
 _password_data = {ATTR_PASSWORD: "0000"}
 
 
-def test_password_parse_message() -> None:
+def test_password_decode_message() -> None:
     """Test parsing password message."""
     frame = responses.Password(message=_password_bytes)
     assert frame.data == _password_data
@@ -136,7 +136,7 @@ _boiler_parameters_data = {
 }
 
 
-def test_boiler_parameters_parse_message() -> None:
+def test_boiler_parameters_decode_message() -> None:
     """Test parsing boiler parameters message."""
     frame = responses.BoilerParameters(message=_boiler_parameters_bytes)
     assert frame.data == {ATTR_BOILER_PARAMETERS: _boiler_parameters_data}
@@ -151,7 +151,7 @@ _mixer_parameters_data = [
 ]
 
 
-def test_mixer_parameters_parse_message() -> None:
+def test_mixer_parameters_decode_message() -> None:
     """Test parsing message for mixer parameters response."""
     frame = responses.MixerParameters(message=_mixer_parameters_bytes)
     print(frame.data)
@@ -162,7 +162,7 @@ def test_mixer_parameters_parse_message() -> None:
 _data_schema_bytes_empty = bytearray.fromhex("0000")
 
 
-def test_data_schema_parse_message(data_schema: DataSchema) -> None:
+def test_data_schema_decode_message(data_schema: DataSchema) -> None:
     """Test parsing message for data schema response."""
     assert ATTR_SCHEMA in data_schema.data
     assert len(data_schema.data[ATTR_SCHEMA]) == 257
@@ -175,7 +175,7 @@ def test_data_schema_parse_message(data_schema: DataSchema) -> None:
     assert isinstance(matches[ATTR_MODE], Byte)
 
 
-def test_data_schema_parse_message_with_no_parameters() -> None:
+def test_data_schema_decode_message_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
     frame = DataSchema(message=_data_schema_bytes_empty)
     assert frame.data == {ATTR_SCHEMA: []}

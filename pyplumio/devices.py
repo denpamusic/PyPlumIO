@@ -242,7 +242,7 @@ class EcoMAX(Device):
         self.register_callback(ATTR_MODE, on_change(self._add_boiler_control_parameter))
         self.register_callback(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.register_callback(ATTR_BOILER_PARAMETERS, self._add_boiler_parameters)
-        self.register_callback(ATTR_REGDATA, self._parse_regulator_data)
+        self.register_callback(ATTR_REGDATA, self._decode_regulator_data)
         self.register_callback(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
         self.register_callback(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
 
@@ -331,7 +331,7 @@ class EcoMAX(Device):
         self._fuel_burned_timestamp = current_timestamp
         await self.async_set_attribute(ATTR_FUEL_BURNED, fuel_burned)
 
-    async def _parse_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
+    async def _decode_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
         """Add sensor values from the regulator data."""
         offset = 0
         boolean_index = 0

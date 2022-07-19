@@ -40,8 +40,8 @@ class RegulatorData(Message):
 
     frame_type: ClassVar[int] = MessageTypes.REGULATOR_DATA
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse message into data."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
         if frame_version != REGDATA_VERSION:
@@ -58,8 +58,8 @@ class SensorData(Message):
 
     frame_type: ClassVar[int] = MessageTypes.SENSOR_DATA
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse message into data."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         sensors: DeviceDataType = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
         sensors[ATTR_MODE] = message[offset]

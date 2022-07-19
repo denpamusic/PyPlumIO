@@ -1,1 +1,1 @@
-"""Contains structure parsers."""
+"""Contains structure decoders."""

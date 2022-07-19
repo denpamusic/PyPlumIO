@@ -130,7 +130,7 @@ async def test_regdata_callbacks(
     # Regulator data should be empty on schema timeout.
     assert not await ecomax.get_value(ATTR_REGDATA)
 
-    # Set data schema and parse the regdata.
+    # Set data schema and decode the regdata.
     ecomax.handle_frame(data_schema)
     ecomax.handle_frame(regulator_data)
     await ecomax.wait_until_done()

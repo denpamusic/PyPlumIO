@@ -101,7 +101,7 @@ class Frame(ABC):
             self.message = self.create_message(self.data)
 
         if self.message and not self.data:
-            self.data = self.parse_message(self.message)
+            self.data = self.decode_message(self.message)
 
     def __len__(self) -> int:
         """Return frame length."""
@@ -112,11 +112,11 @@ class Frame(ABC):
         return any(self.frame_type == x for x in args)
 
     def create_message(self, data: DeviceDataType) -> MessageType:
-        """Create message from a frame data."""
+        """Create frame message."""
         return bytearray()
 
-    def parse_message(self, message: MessageType) -> DeviceDataType:
-        """Parse message to a frame data."""
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
         return {}
 
     @property
