@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import struct
-from typing import Dict, List, Tuple
+from typing import ClassVar, Dict, List, Tuple
 
 from pyplumio import util
 from pyplumio.const import (
@@ -13,7 +13,7 @@ from pyplumio.const import (
     ATTR_SCHEMA,
     ATTR_VERSION,
 )
-from pyplumio.frames import Response
+from pyplumio.frames import Response, ResponseTypes
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -21,8 +21,9 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.product_info import ProductInfo
+from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures import boiler_parameters, mixer_parameters, uid, var_string
+from pyplumio.structures import boiler_parameters, mixer_parameters, uid
 from pyplumio.structures.outputs import (
     FAN_OUTPUT,
     FEEDER_OUTPUT,
@@ -45,18 +46,12 @@ class ProgramVersion(Response):
     version info.
     """
 
-    frame_type: int = 0xC0
+    frame_type: ClassVar[int] = ResponseTypes.PROGRAM_VERSION
 
-    def create_message(self) -> bytearray:
+    def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
-        if self._data is None:
-            self._data = {}
-
-        if ATTR_VERSION not in self._data:
-            self._data[ATTR_VERSION] = VersionInfo()
-
-        version_info = self._data[ATTR_VERSION]
         message = bytearray(15)
+        version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
         struct.pack_into(
             "<2sB2s3s3HB",
             message,
@@ -68,10 +63,9 @@ class ProgramVersion(Response):
             *map(int, version_info.software.split(".", 2)),
             self.sender,
         )
-
         return message
 
-    def parse_message(self, message: bytearray):
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
         version_info = VersionInfo()
         [
@@ -87,7 +81,7 @@ class ProgramVersion(Response):
         version_info.software = ".".join(
             map(str, [software_version1, software_version2, software_version3])
         )
-        self._data = {ATTR_VERSION: version_info}
+        return {ATTR_VERSION: version_info}
 
 
 class DeviceAvailable(Response):
@@ -95,19 +89,13 @@ class DeviceAvailable(Response):
     information and status.
     """
 
-    frame_type: int = 0xB0
+    frame_type: ClassVar[int] = ResponseTypes.DEVICE_AVAILABLE
 
-    def create_message(self) -> bytearray:
+    def create_message(self, data: DeviceDataType) -> MessageType:
         """Creates frame message."""
         message = bytearray()
         message += b"\x01"
-        if self._data is None:
-            self._data = {}
-
-        if ATTR_NETWORK not in self._data:
-            self._data[ATTR_NETWORK] = NetworkInfo()
-
-        network_info = self._data[ATTR_NETWORK]
+        network_info = data[ATTR_NETWORK] if ATTR_NETWORK in data else NetworkInfo()
         message += util.ip4_to_bytes(network_info.eth.ip)
         message += util.ip4_to_bytes(network_info.eth.netmask)
         message += util.ip4_to_bytes(network_info.eth.gateway)
@@ -122,10 +110,9 @@ class DeviceAvailable(Response):
         message += b"\x00" * 4
         message.append(len(network_info.wlan.ssid))
         message += network_info.wlan.ssid.encode("utf-8")
-
         return message
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
         offset = 1
         network_info = NetworkInfo(
@@ -142,37 +129,37 @@ class DeviceAvailable(Response):
                 encryption=int(message[offset + 26]),
                 signal_quality=int(message[offset + 27]),
                 status=bool(message[offset + 28]),
-                ssid=var_string.from_bytes(message, offset + 33)[0],
+                ssid=util.unpack_string(message, offset + 33),
             ),
             server_status=bool(message[offset + 25]),
         )
-        self._data = {ATTR_NETWORK: network_info}
+        return {ATTR_NETWORK: network_info}
 
 
 class UID(Response):
     """Represents UID response. Contains product and model info."""
 
-    frame_type: int = 0xB9
+    frame_type: ClassVar[int] = ResponseTypes.UID
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid, offset = uid.from_bytes(message, offset=3)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
-        product_info.model, _ = var_string.from_bytes(message, offset + 4)
-        self._data = {ATTR_PRODUCT: product_info}
+        product_info.model = util.unpack_string(message, offset + 4)
+        return {ATTR_PRODUCT: product_info}
 
 
 class Password(Response):
     """Represent password response. Contains device service password."""
 
-    frame_type: int = 0xBA
+    frame_type: ClassVar[int] = ResponseTypes.PASSWORD
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
         password = message[1:].decode() if message[1:] else None
-        self._data = {ATTR_PASSWORD: password}
+        return {ATTR_PASSWORD: password}
 
 
 class BoilerParameters(Response):
@@ -180,11 +167,11 @@ class BoilerParameters(Response):
     parameters.
     """
 
-    frame_type: int = 0xB1
+    frame_type: ClassVar[int] = ResponseTypes.BOILER_PARAMETERS
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
-        self._data, _ = boiler_parameters.from_bytes(message)
+        return boiler_parameters.from_bytes(message)[0]
 
 
 class MixerParameters(Response):
@@ -192,11 +179,11 @@ class MixerParameters(Response):
     parameters.
     """
 
-    frame_type: int = 0xB2
+    frame_type: ClassVar[int] = ResponseTypes.MIXER_PARAMETERS
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
-        self._data, _ = mixer_parameters.from_bytes(message)
+        return mixer_parameters.from_bytes(message)[0]
 
 
 REGATTR_SCHEMA: Dict[int, str] = {
@@ -221,9 +208,9 @@ class DataSchema(Response):
     regdata message structure.
     """
 
-    frame_type: int = 0xD5
+    frame_type: ClassVar[int] = ResponseTypes.DATA_SCHEMA
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse frame message."""
         offset = 0
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
@@ -237,7 +224,7 @@ class DataSchema(Response):
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
-        self._data = {ATTR_SCHEMA: schema}
+        return {ATTR_SCHEMA: schema}
 
 
 class SetBoilerParameter(Response):
@@ -245,7 +232,7 @@ class SetBoilerParameter(Response):
     that aknowledges, that boiler parameter was successfully changed.
     """
 
-    frame_type: int = 0xB3
+    frame_type: ClassVar[int] = ResponseTypes.SET_BOILER_PARAMETER
 
 
 class SetMixerParameter(Response):
@@ -253,7 +240,7 @@ class SetMixerParameter(Response):
     that aknowledges, that mixer parameter was successfully changed.
     """
 
-    frame_type: int = 0xB4
+    frame_type: ClassVar[int] = ResponseTypes.SET_MIXER_PARAMETER
 
 
 class BoilerControl(Response):
@@ -262,4 +249,4 @@ class BoilerControl(Response):
     processed.
     """
 
-    frame_type: int = 0xBB
+    frame_type: ClassVar[int] = ResponseTypes.BOILER_CONTROL

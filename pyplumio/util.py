@@ -35,6 +35,13 @@ def unpack_ushort(data: bytes) -> int:
     return int.from_bytes(data, byteorder="little", signed=False)
 
 
+def unpack_string(data: bytearray, offset: int) -> str:
+    """Unpack a string."""
+    strlen = data[offset]
+    offset += 1
+    return data[offset : offset + strlen + 1].decode()
+
+
 def unpack_parameter(
     data: bytearray, offset: int, size: int = 1
 ) -> Optional[ParameterDataType]:
@@ -47,6 +54,11 @@ def unpack_parameter(
     max_value = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
 
     return value, min_value, max_value
+
+
+def check_parameter(data: bytearray) -> bool:
+    """Check if parameter contains any bytes besides 0xFF."""
+    return any(x for x in data if x != 0xFF)
 
 
 def ip4_to_bytes(address: str) -> bytes:
@@ -69,6 +81,10 @@ def ip6_from_bytes(data: bytes) -> str:
     return socket.inet_ntop(socket.AF_INET6, data)
 
 
-def check_parameter(data: bytearray) -> bool:
-    """Check if parameter contains any bytes besides 0xFF."""
-    return any(x for x in data if x != 0xFF)
+def to_camelcase(text: str) -> str:
+    """Convert snake_case to CamelCase."""
+    ignores = ("UID",)
+
+    return "".join(
+        (x.capitalize() or "_") if x not in ignores else x for x in text.split("_")
+    )

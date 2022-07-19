@@ -23,11 +23,11 @@ from pyplumio.helpers.typing import ParameterDataType
 
 @pytest.fixture(name="parameter")
 def fixture_parameter() -> BoilerBinaryParameter:
-    """Returns instance of auto_summer parameter."""
+    """Returns instance of summer_mode parameter."""
     return BoilerBinaryParameter(
         queue=asyncio.Queue(),
         recipient=BROADCAST_ADDRESS,
-        name="auto_summer",
+        name="summer_mode",
         value=1,
         min_value=0,
         max_value=1,
@@ -69,7 +69,7 @@ def test_parameter__repr__(parameter: BoilerBinaryParameter) -> None:
     output = f"""BoilerBinaryParameter(
     queue = asyncio.Queue(),
     recipient = {BROADCAST_ADDRESS},
-    name = auto_summer,
+    name = summer_mode,
     value = 1,
     min_value = 0,
     max_value = 1,

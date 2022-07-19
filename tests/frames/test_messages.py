@@ -52,7 +52,7 @@ def test_regdata_parse_message() -> None:
 def test_regdata_parse_message_with_unknown_version() -> None:
     """Test parsing of regdata message with unknown message version."""
     frame = messages.RegulatorData()
-    with pytest.raises(VersionError, match=r".*version: 2\.0.*"):
+    with pytest.raises(VersionError, match=r".*version 2\.0.*"):
         frame.parse_message(message=_regdata_bytes_unknown_version)
 
 

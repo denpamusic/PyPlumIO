@@ -13,7 +13,8 @@ from pyplumio.exceptions import (
     UnknownDeviceError,
     UnknownFrameError,
 )
-from pyplumio.frames.requests import CheckDevice, ProgramVersion, StartMaster
+from pyplumio.frames import RequestTypes
+from pyplumio.frames.requests import StartMaster
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -110,19 +111,20 @@ class Protocol(TaskManager):
             frame = await read_queue.get()
             try:
                 handler, name = _get_device_handler_and_name(frame.sender)
-                device: Device = (
-                    self.devices[name]
-                    if name in self.devices
-                    else factory(handler, queue=write_queue)
-                )
-                device.handle_frame(frame)
-                if frame.is_type(CheckDevice, ProgramVersion):
-                    write_queue.put_nowait(
-                        frame.response(data={ATTR_NETWORK: self._network})
-                    )
 
-                self.devices[name] = device
-                self.set_event(name)
+                if name not in self.devices:
+                    device = factory(handler, queue=write_queue)
+                    self.devices[name] = device
+                    self.set_event(name)
+
+                self.devices[name].handle_frame(frame)
+
+                if frame.is_type(
+                    RequestTypes.CHECK_DEVICE, RequestTypes.PROGRAM_VERSION
+                ):
+                    response = frame.response(data={ATTR_NETWORK: self._network})
+                    write_queue.put_nowait(response)
+
             except UnknownDeviceError as e:
                 _LOGGER.debug("UnknownDeviceError: %s", e)
 

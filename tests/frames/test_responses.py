@@ -46,10 +46,8 @@ _program_version_bytes = bytearray.fromhex("FFFF057A0000000001000000000056")
 
 def test_program_version_create_message() -> None:
     """Test creating program version message."""
-    frame = responses.ProgramVersion(
-        recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS, data=_program_version_data
-    )
-    assert frame.create_message() == _program_version_bytes
+    frame = responses.ProgramVersion(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+    assert frame.create_message(data=_program_version_data) == _program_version_bytes
 
 
 def test_program_version_parse_message() -> None:
@@ -87,9 +85,9 @@ _device_available_bytes = bytearray.fromhex(
 def test_device_available_create_message() -> None:
     """Test creating device available message."""
     frame = responses.DeviceAvailable(
-        recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS, data=_device_available_data
+        recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS
     )
-    assert frame.create_message() == _device_available_bytes
+    assert frame.create_message(data=_device_available_data) == _device_available_bytes
 
 
 def test_device_available_parse_message() -> None:

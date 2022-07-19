@@ -10,3 +10,4 @@ DeviceDataType = Dict[str, Any]
 SensorCallbackType = Callable[[Any], Awaitable[Any]]
 VersionsInfoType = Dict[int, int]
 BytesType = Union[bytes, bytearray]
+MessageType = bytearray

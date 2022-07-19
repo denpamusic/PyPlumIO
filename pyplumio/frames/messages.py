@@ -1,6 +1,8 @@
 """Contains message frames."""
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pyplumio import util
 from pyplumio.const import (
     ATTR_BOILER_SENSORS,
@@ -15,8 +17,8 @@ from pyplumio.const import (
     ATTR_TRANSMISSION,
 )
 from pyplumio.exceptions import VersionError
-from pyplumio.frames import Message
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.frames import Message, MessageTypes
+from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures import (
     alarms,
     frame_versions,
@@ -34,27 +36,29 @@ from pyplumio.structures import (
 class RegulatorData(Message):
     """Represents current regulator data."""
 
-    frame_type: int = 0x08
     VERSION: str = "1.0"
 
-    def parse_message(self, message: bytearray) -> None:
+    frame_type: ClassVar[int] = MessageTypes.REGULATOR_DATA
+
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse message into data."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
-        self._data = {}
         if frame_version != self.VERSION:
-            raise VersionError(f"Unknown regdata version: {frame_version}")
+            raise VersionError(f"unknown regdata version {frame_version}")
 
-        _, offset = frame_versions.from_bytes(message, offset + 2, self._data)
-        self._data[ATTR_REGDATA] = message[offset:]
+        data, offset = frame_versions.from_bytes(message, offset + 2)
+        data[ATTR_REGDATA] = message[offset:]
+
+        return data
 
 
 class SensorData(Message):
     """Represents current device state."""
 
-    frame_type: int = 0x35
+    frame_type: ClassVar[int] = MessageTypes.SENSOR_DATA
 
-    def parse_message(self, message: bytearray) -> None:
+    def parse_message(self, message: MessageType) -> DeviceDataType:
         """Parse message into data."""
         sensors: DeviceDataType = {}
         _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
@@ -78,4 +82,4 @@ class SensorData(Message):
         _, offset = thermostats.from_bytes(message, offset, sensors)
         _, offset = mixers.from_bytes(message, offset, sensors)
 
-        self._data = {ATTR_BOILER_SENSORS: sensors}
+        return {ATTR_BOILER_SENSORS: sensors}

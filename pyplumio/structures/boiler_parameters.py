@@ -1,14 +1,14 @@
 """Contains regulator parameter structure parser."""
 from __future__ import annotations
 
-from typing import Dict, Final, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_BOILER_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
-BOILER_PARAMETERS: Tuple[str, ...] = (
+BOILER_PARAMETERS: List[str] = [
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -148,7 +148,7 @@ BOILER_PARAMETERS: Tuple[str, ...] = (
     "buffer_histeresis",
     "buffer_load_start",
     "buffer_load_stop",
-)
+]
 
 
 def from_bytes(

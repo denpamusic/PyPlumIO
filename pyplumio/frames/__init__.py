@@ -1,13 +1,15 @@
 """Contains frame class."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Dict, Final, List, Optional
+from abc import ABC
+from dataclasses import dataclass
+from enum import IntEnum
+from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import DeviceDataType, MessageType
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -18,110 +20,106 @@ DELIMITER_SIZE: Final = 1
 ECONET_TYPE: Final = 0x30
 ECONET_VERSION: Final = 0x05
 
-# Dictionary of frame handler classes indexed by frame types.
-FRAME_TYPES: Dict[int, str] = {
-    0x18: "requests.StopMaster",
-    0x19: "requests.StartMaster",
-    0x30: "requests.CheckDevice",
-    0x31: "requests.BoilerParameters",
-    0x32: "requests.MixerParameters",
-    0x33: "requests.SetBoilerParameter",
-    0x34: "requests.SetMixerParameter",
-    0x39: "requests.UID",
-    0x3A: "requests.Password",
-    0x3B: "requests.BoilerControl",
-    0x40: "requests.ProgramVersion",
-    0x55: "requests.DataSchema",
-    0xB0: "responses.DeviceAvailable",
-    0xB9: "responses.UID",
-    0xB1: "responses.BoilerParameters",
-    0xB2: "responses.MixerParameters",
-    0xB3: "responses.SetBoilerParameter",
-    0xB4: "responses.SetMixerParameter",
-    0xBA: "responses.Password",
-    0xBB: "responses.BoilerControl",
-    0xC0: "responses.ProgramVersion",
-    0xD5: "responses.DataSchema",
-    0x08: "messages.RegulatorData",
-    0x35: "messages.SensorData",
+
+class RequestTypes(IntEnum):
+    """Contains request frame types."""
+
+    STOP_MASTER = 0x18
+    START_MASTER = 0x19
+    CHECK_DEVICE = 0x30
+    BOILER_PARAMETERS = 0x31
+    MIXER_PARAMETERS = 0x32
+    SET_BOILER_PARAMETER = 0x33
+    SET_MIXER_PARAMETER = 0x34
+    UID = 0x39
+    PASSWORD = 0x3A
+    BOILER_CONTROL = 0x3B
+    PROGRAM_VERSION = 0x40
+    DATA_SCHEMA = 0x55
+
+
+REQUEST_TYPES = {x.value: f"requests.{util.to_camelcase(x.name)}" for x in RequestTypes}
+
+
+class ResponseTypes(IntEnum):
+    """Contains response frame types."""
+
+    DEVICE_AVAILABLE = 0xB0
+    UID = 0xB9
+    BOILER_PARAMETERS = 0xB1
+    MIXER_PARAMETERS = 0xB2
+    SET_BOILER_PARAMETER = 0xB3
+    SET_MIXER_PARAMETER = 0xB4
+    PASSWORD = 0xBA
+    BOILER_CONTROL = 0xBB
+    PROGRAM_VERSION = 0xC0
+    DATA_SCHEMA = 0xD5
+
+
+RESPONSE_TYPES = {
+    x.value: f"responses.{util.to_camelcase(x.name)}" for x in ResponseTypes
 }
+
+
+class MessageTypes(IntEnum):
+    """Contains message frame types."""
+
+    REGULATOR_DATA = 0x08
+    SENSOR_DATA = 0x35
+
+
+MESSAGE_TYPES = {x.value: f"messages.{util.to_camelcase(x.name)}" for x in MessageTypes}
+
+
+# Dictionary of frame handler classes indexed by frame types.
+FRAME_TYPES: Dict[int, str] = {**REQUEST_TYPES, **RESPONSE_TYPES, **MESSAGE_TYPES}
 
 
 def get_frame_handler(frame_type: int) -> str:
     """Return class path for the frame type."""
     if frame_type in FRAME_TYPES:
-        return "frames." + FRAME_TYPES[frame_type]
+        return f"frames.{FRAME_TYPES[frame_type]}"
 
     raise UnknownFrameError(f"unknown frame type {frame_type}")
 
 
+@dataclass
 class Frame(ABC):
     """Represents base frame class."""
 
-    frame_type: int
-    recipient: int
-    message: bytearray
-    sender: int
-    sender_type: int
-    econet_version: int
-    _data: Optional[DeviceDataType]
+    recipient: int = BROADCAST_ADDRESS
+    sender: int = ECONET_ADDRESS
+    sender_type: int = ECONET_TYPE
+    econet_version: int = ECONET_VERSION
+    message: Optional[MessageType] = None
+    data: Optional[DeviceDataType] = None
+    frame_type: ClassVar[int]
 
-    def __init__(
-        self,
-        frame_type: Optional[int] = None,
-        recipient: int = BROADCAST_ADDRESS,
-        message: bytearray = bytearray(),
-        sender: int = ECONET_ADDRESS,
-        sender_type: int = ECONET_TYPE,
-        econet_version: int = ECONET_VERSION,
-        data: Optional[DeviceDataType] = None,
-    ):
-        """Initialize new Frame object."""
-        self._data = data
-        self.recipient = recipient
-        self.sender = sender
-        self.sender_type = sender_type
-        self.econet_version = econet_version
-        if frame_type is not None:
-            self.frame_type = frame_type
+    def __post_init__(self) -> None:
+        """Process frame message and data."""
+        if self.message is None:
+            self.data = self.data if self.data is not None else {}
+            self.message = self.create_message(self.data)
 
-        self.message = message if message else self.create_message()
-
-    def __repr__(self) -> str:
-        """Return serializable string representation of the class."""
-        return f"""{self.__class__.__name__}(
-    frame_type = {self.frame_type},
-    recipient = {self.recipient},
-    message = {self.message},
-    sender = {self.sender},
-    sender_type = {self.sender_type},
-    econet_version = {self.econet_version},
-    data = {self._data}
-)
-""".strip()
+        if self.data is None:
+            self.message = self.message if self.message is not None else bytearray()
+            self.data = self.parse_message(self.message)
 
     def __len__(self) -> int:
         """Return frame length."""
         return self.length
 
-    def __eq__(self, other) -> bool:
-        """Check if two frames are equal."""
-        return all(
-            hasattr(other, attr) and getattr(self, attr) == getattr(other, attr)
-            for attr in (
-                "frame_type",
-                "recipient",
-                "message",
-                "sender",
-                "sender_type",
-                "econet_version",
-                "data",
-            )
-        )
-
     def is_type(self, *args) -> bool:
         """Check if frame is instance of type."""
-        return isinstance(self, tuple(args))
+        return any(self.frame_type == x for x in args)
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create message from a frame data."""
+        return bytearray()
+
+    def parse_message(self, message: MessageType) -> DeviceDataType:
+        """Parse message to a frame data."""
+        return {}
 
     @property
     def length(self) -> int:
@@ -133,15 +131,6 @@ class Frame(ABC):
             + CRC_SIZE
             + DELIMITER_SIZE
         )
-
-    @property
-    def data(self):
-        """Return frame data."""
-        if self._data is None:
-            # If frame data not present.
-            self.parse_message(self.message)
-
-        return self._data
 
     @property
     def header(self) -> bytearray:
@@ -175,40 +164,18 @@ class Frame(ABC):
         """Return hex frame representation."""
         return util.to_hex(self.bytes)
 
-    @abstractmethod
-    def create_message(self) -> bytearray:
-        """Create message from the frame data."""
-
-    @abstractmethod
-    def parse_message(self, message: bytearray) -> None:
-        """Parse message to the frame data."""
-
 
 class Request(Frame):
-    """Represents request frames."""
+    """Represents request frame."""
 
-    def response(self, **args) -> Optional[Frame]:
+    def response(self, **args) -> Optional[Response]:
         """Return response object for current request."""
         return None
 
-    def create_message(self) -> bytearray:
-        """Create message from the frame data."""
-        return bytearray()
-
-    def parse_message(self, message: bytearray) -> None:
-        """Parse message to the frame data."""
-
 
 class Response(Frame):
-    """Represents response frames."""
-
-    def create_message(self) -> bytearray:
-        """Create message from the frame data."""
-        return bytearray()
-
-    def parse_message(self, message: bytearray) -> None:
-        """Parse message to the frame data."""
+    """Represents response frame."""
 
 
 class Message(Response):
-    """Represent message frames."""
+    """Represents message frame."""
