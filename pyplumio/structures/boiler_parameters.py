@@ -145,7 +145,7 @@ BOILER_PARAMETERS: List[str] = [
     "buffer_control",
     "max_buffer_temp",
     "min_buffer_temp",
-    "buffer_histeresis",
+    "buffer_hysteresis",
     "buffer_load_start",
     "buffer_load_stop",
 ]
