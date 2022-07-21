@@ -1,9 +1,6 @@
 """Contains UID decoder."""
 from __future__ import annotations
 
-from collections import deque
-from typing import Deque
-
 
 def unpack_uid(message: bytearray, offset: int = 0) -> str:
     """Decode and return uid string."""
@@ -16,24 +13,15 @@ def unpack_uid(message: bytearray, offset: int = 0) -> str:
 
 def _encode_base5(data: bytes) -> str:
     """Encode bytes to base5 encided string."""
+    key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
     number = int.from_bytes(data, "little")
-    ret: Deque[str] = deque()
+    output: str = ""
     mask = (1 << 5) - 1
     while number:
-        ret.appendleft(_digit_to_char(number & mask))
+        output = key_string[number & mask] + output
         number >>= 5
 
-    return "".join(ret)
-
-
-def _digit_to_char(digit: int) -> str:
-    """Convert digit to 5 bit char."""
-    if digit < 10:
-        return str(digit)
-
-    char = chr(ord("A") + digit - 10)
-
-    return "Z" if char == "O" else char
+    return output
 
 
 def _uid_crc(message: bytes) -> bytes:
