@@ -22,8 +22,9 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.typing import DeviceDataType, MessageType
+from pyplumio.helpers.uid import unpack_uid
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures import boiler_parameters, mixer_parameters, uid
+from pyplumio.structures import boiler_parameters, mixer_parameters
 from pyplumio.structures.outputs import (
     FAN_OUTPUT,
     FEEDER_OUTPUT,
@@ -159,11 +160,12 @@ class UID(Response):
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
+        offset = 3
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
-        product_info.uid, offset = uid.from_bytes(message, offset=3)
+        product_info.uid = unpack_uid(message, offset)
         product_info.logo, product_info.image = struct.unpack_from("<HH", message)
-        product_info.model = util.unpack_string(message, offset + 4)
+        product_info.model = util.unpack_string(message, offset + 16)
         return {ATTR_PRODUCT: product_info}
 
 

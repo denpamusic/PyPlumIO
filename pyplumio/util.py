@@ -35,7 +35,7 @@ def unpack_ushort(data: bytes) -> int:
     return int.from_bytes(data, byteorder="little", signed=False)
 
 
-def unpack_string(data: bytearray, offset: int) -> str:
+def unpack_string(data: bytearray, offset: int = 0) -> str:
     """Unpack a string."""
     strlen = data[offset]
     offset += 1
@@ -43,7 +43,7 @@ def unpack_string(data: bytearray, offset: int) -> str:
 
 
 def unpack_parameter(
-    data: bytearray, offset: int, size: int = 1
+    data: bytearray, offset: int = 0, size: int = 1
 ) -> Optional[ParameterDataType]:
     """Unpack a device parameter."""
     if not check_parameter(data[offset : offset + size * 3]):
