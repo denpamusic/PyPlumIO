@@ -6,17 +6,16 @@ from typing import Deque
 
 
 def unpack_uid(message: bytearray, offset: int = 0) -> str:
-    """Decode bytes and return message data and offset."""
+    """Decode and return uid string."""
     uid_length = message[offset]
     offset += 1
     uid = message[offset : uid_length + offset]
-    uid += _uid_stamp(uid)
 
-    return _encode_base5(uid)
+    return _encode_base5(uid + _uid_crc(uid))
 
 
 def _encode_base5(data: bytes) -> str:
-    """Encode data str to base5."""
+    """Encode bytes to base5 encided string."""
     number = int.from_bytes(data, "little")
     ret: Deque[str] = deque()
     mask = (1 << 5) - 1
@@ -28,7 +27,7 @@ def _encode_base5(data: bytes) -> str:
 
 
 def _digit_to_char(digit: int) -> str:
-    """Convert 5 bits from UID to ASCII character."""
+    """Convert digit to 5 bit char."""
     if digit < 10:
         return str(digit)
 
@@ -37,8 +36,8 @@ def _digit_to_char(digit: int) -> str:
     return "Z" if char == "O" else char
 
 
-def _uid_stamp(message: bytes) -> bytes:
-    """Return UID stamp."""
+def _uid_crc(message: bytes) -> bytes:
+    """Return UID crc."""
     crc_value = 0xA3A3
     for byte in message:
         crc_value = _uid_byte(crc_value ^ byte)
