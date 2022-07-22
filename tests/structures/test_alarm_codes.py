@@ -1,7 +1,7 @@
-"""Contains tests for alarms structure."""
+"""Contains tests for alarm codes structure."""
 
 from pyplumio.const import ATTR_ALARMS
-from pyplumio.structures.alarms import from_bytes
+from pyplumio.structures.alarm_codes import from_bytes
 
 _message = bytearray.fromhex("03101112")
 _data = {ATTR_ALARMS: [3, 16, 17]}
