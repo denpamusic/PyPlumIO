@@ -9,7 +9,11 @@ import pytest
 from pyplumio.const import ECOMAX_ADDRESS
 from pyplumio.devices import EcoMAX
 from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
-from pyplumio.frames.requests import CheckDevice, ProgramVersion, StartMaster
+from pyplumio.frames.requests import (
+    CheckDeviceRequest,
+    ProgramVersionRequest,
+    StartMasterRequest,
+)
 from pyplumio.helpers.network_info import (
     WLAN_ENCRYPTION_WPA2,
     EthernetParameters,
@@ -79,7 +83,7 @@ def test_connection_established(
     # Check that StartMaster request was added to the write queue.
     mock_put_nowait.assert_called_once()
     frame = mock_put_nowait.call_args.args[0]
-    assert isinstance(frame, StartMaster)
+    assert isinstance(frame, StartMasterRequest)
     assert frame.recipient == 69
 
     # Check that two frame consumers, one write consumer and one frame
@@ -154,8 +158,8 @@ async def test_write_consumer(
     assert mock_lock.__aenter__.await_count == 2
 
 
-@patch("pyplumio.frames.requests.CheckDevice.response")
-@patch("pyplumio.frames.requests.ProgramVersion.response")
+@patch("pyplumio.frames.requests.CheckDeviceRequest.response")
+@patch("pyplumio.frames.requests.ProgramVersionRequest.response")
 @patch("pyplumio.protocol.Device.handle_frame")
 async def test_frame_consumer(
     mock_handle_frame,
@@ -170,9 +174,9 @@ async def test_frame_consumer(
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
     mock_read_queue.get.side_effect = (
-        CheckDevice(sender=ECOMAX_ADDRESS),
-        ProgramVersion(sender=ECOMAX_ADDRESS),
-        CheckDevice(sender=UNKNOWN_DEVICE),
+        CheckDeviceRequest(sender=ECOMAX_ADDRESS),
+        ProgramVersionRequest(sender=ECOMAX_ADDRESS),
+        CheckDeviceRequest(sender=UNKNOWN_DEVICE),
         RuntimeError("break loop"),
     )
 

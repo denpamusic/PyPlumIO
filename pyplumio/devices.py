@@ -226,11 +226,11 @@ class EcoMAX(Device):
     mixers: Dict[int, Mixer] = {}
     _fuel_burned_timestamp: float = 0.0
     _required_frames: List[Type[Request]] = [
-        requests.UID,
-        requests.DataSchema,
-        requests.BoilerParameters,
-        requests.MixerParameters,
-        requests.Password,
+        requests.UIDRequest,
+        requests.DataSchemaRequest,
+        requests.BoilerParametersRequest,
+        requests.MixerParametersRequest,
+        requests.PasswordRequest,
     ]
 
     def __init__(self, queue: asyncio.Queue):

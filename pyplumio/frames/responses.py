@@ -58,7 +58,7 @@ REGDATA_SCHEMA: Dict[int, str] = {
 }
 
 
-class ProgramVersion(Response):
+class ProgramVersionResponse(Response):
     """Represents program version response. Contains software
     version info.
     """
@@ -101,7 +101,7 @@ class ProgramVersion(Response):
         return {ATTR_VERSION: version_info}
 
 
-class DeviceAvailable(Response):
+class DeviceAvailableResponse(Response):
     """Represents device available response. Contains network
     information and status.
     """
@@ -153,7 +153,7 @@ class DeviceAvailable(Response):
         return {ATTR_NETWORK: network_info}
 
 
-class UID(Response):
+class UIDResponse(Response):
     """Represents UID response. Contains product and model info."""
 
     frame_type: ClassVar[int] = ResponseTypes.UID
@@ -169,7 +169,7 @@ class UID(Response):
         return {ATTR_PRODUCT: product_info}
 
 
-class Password(Response):
+class PasswordResponse(Response):
     """Represent password response. Contains device service password."""
 
     frame_type: ClassVar[int] = ResponseTypes.PASSWORD
@@ -180,7 +180,7 @@ class Password(Response):
         return {ATTR_PASSWORD: password}
 
 
-class BoilerParameters(Response):
+class BoilerParametersResponse(Response):
     """Represents boiler parameters response. Contains editable boiler
     parameters.
     """
@@ -192,7 +192,7 @@ class BoilerParameters(Response):
         return boiler_parameters.from_bytes(message)[0]
 
 
-class MixerParameters(Response):
+class MixerParametersResponse(Response):
     """Represents mixer parameters response. Contains editable mixer
     parameters.
     """
@@ -204,7 +204,7 @@ class MixerParameters(Response):
         return mixer_parameters.from_bytes(message)[0]
 
 
-class DataSchema(Response):
+class DataSchemaResponse(Response):
     """Represents data schema response. Contains schema that describes
     regdata message structure.
     """
@@ -228,7 +228,7 @@ class DataSchema(Response):
         return {ATTR_SCHEMA: schema}
 
 
-class SetBoilerParameter(Response):
+class SetBoilerParameterResponse(Response):
     """Represents set boiler parameter response. Empty response
     that aknowledges, that boiler parameter was successfully changed.
     """
@@ -236,7 +236,7 @@ class SetBoilerParameter(Response):
     frame_type: ClassVar[int] = ResponseTypes.SET_BOILER_PARAMETER
 
 
-class SetMixerParameter(Response):
+class SetMixerParameterResponse(Response):
     """Represents set mixer parameter response. Empty response
     that aknowledges, that mixer parameter was successfully changed.
     """
@@ -244,7 +244,7 @@ class SetMixerParameter(Response):
     frame_type: ClassVar[int] = ResponseTypes.SET_MIXER_PARAMETER
 
 
-class BoilerControl(Response):
+class BoilerControlResponse(Response):
     """Represents boiler control response. Empty response
     that aknowledges, that boiler control request was successfully
     processed.

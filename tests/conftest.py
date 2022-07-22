@@ -6,8 +6,8 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.frames.messages import RegulatorData
-from pyplumio.frames.responses import DataSchema
+from pyplumio.frames.messages import RegulatorDataMessage
+from pyplumio.frames.responses import DataSchemaResponse
 
 
 @pytest.fixture(name="bypass_asyncio_sleep")
@@ -62,7 +62,7 @@ def fixture_open_serial_connection(
 
 
 @pytest.fixture(name="data_schema")
-def fixture_data_schema() -> Generator[DataSchema, None, None]:
+def fixture_data_schema() -> Generator[DataSchemaResponse, None, None]:
     """Return sample data schema response from ecoMAX920."""
     data_schema_bytes = bytearray.fromhex(
         """01010400070A02060A00060A01060A02000A01000A0
@@ -89,11 +89,11 @@ A7A000A7B000A7C000A7D000A7E000A7F00048000048300048400049100049200049300049400049
         )
     )
 
-    yield DataSchema(message=data_schema_bytes)
+    yield DataSchemaResponse(message=data_schema_bytes)
 
 
 @pytest.fixture(name="regulator_data")
-def fixture_regulator_data() -> Generator[RegulatorData, None, None]:
+def fixture_regulator_data() -> Generator[RegulatorDataMessage, None, None]:
     """Return sample regulator data response from ecoMAX920."""
     regulator_data_bytes = bytearray.fromhex(
         """626400010855F7B15420BE6101003D183136010064010040041C5698FA0000000000FF0FFF0FFF0FF
@@ -107,4 +107,4 @@ F0FFF0FFF0F9F04080FFF0FFF0F0000000000000000000000000000000000000000000000000000C
             "\n", ""
         )
     )
-    yield RegulatorData(message=regulator_data_bytes)
+    yield RegulatorDataMessage(message=regulator_data_bytes)

@@ -4,45 +4,46 @@ from __future__ import annotations
 from typing import ClassVar, Optional
 
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, RequestTypes, Response, responses
+from pyplumio.frames import Request, RequestTypes, Response
+from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 
 
-class ProgramVersion(Request):
+class ProgramVersionRequest(Request):
     """Represents program version request."""
 
     frame_type: ClassVar[int] = RequestTypes.PROGRAM_VERSION
 
     def response(self, **kwargs) -> Optional[Response]:
         """Return response frame object."""
-        return responses.ProgramVersion(recipient=self.sender, **kwargs)
+        return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
 
-class CheckDevice(Request):
+class CheckDeviceRequest(Request):
     """Represents check device request."""
 
     frame_type: ClassVar[int] = RequestTypes.CHECK_DEVICE
 
     def response(self, **kwargs) -> Optional[Response]:
         """Return response frame object."""
-        return responses.DeviceAvailable(recipient=self.sender, **kwargs)
+        return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 
 
-class UID(Request):
+class UIDRequest(Request):
     """Represents uid request."""
 
     frame_type: ClassVar[int] = RequestTypes.UID
 
 
-class Password(Request):
+class PasswordRequest(Request):
     """Represents password request."""
 
     frame_type: ClassVar[int] = RequestTypes.PASSWORD
 
 
-class BoilerParameters(Request):
+class BoilerParametersRequest(Request):
     """Represents boiler parameters request."""
 
     frame_type: ClassVar[int] = RequestTypes.BOILER_PARAMETERS
@@ -55,19 +56,19 @@ class BoilerParameters(Request):
         return message
 
 
-class MixerParameters(Request):
+class MixerParametersRequest(Request):
     """Represents mixer parameters request."""
 
     frame_type: ClassVar[int] = RequestTypes.MIXER_PARAMETERS
 
 
-class DataSchema(Request):
+class DataSchemaRequest(Request):
     """Represents data schema request."""
 
     frame_type: ClassVar[int] = RequestTypes.DATA_SCHEMA
 
 
-class SetBoilerParameter(Request):
+class SetBoilerParameterRequest(Request):
     """Represents set boiler parameter request."""
 
     frame_type: ClassVar[int] = RequestTypes.SET_BOILER_PARAMETER
@@ -85,7 +86,7 @@ class SetBoilerParameter(Request):
             raise FrameDataError from e
 
 
-class SetMixerParameter(Request):
+class SetMixerParameterRequest(Request):
     """Represents set mixer parameter request."""
 
     frame_type: ClassVar[int] = RequestTypes.SET_MIXER_PARAMETER
@@ -105,7 +106,7 @@ class SetMixerParameter(Request):
             raise FrameDataError from e
 
 
-class BoilerControl(Request):
+class BoilerControlRequest(Request):
     """Represent boiler control request."""
 
     frame_type: ClassVar[int] = RequestTypes.BOILER_CONTROL
@@ -120,13 +121,13 @@ class BoilerControl(Request):
             raise FrameDataError from e
 
 
-class StartMaster(Request):
+class StartMasterRequest(Request):
     """Represent start master request."""
 
     frame_type: ClassVar[int] = RequestTypes.START_MASTER
 
 
-class StopMaster(Request):
+class StopMasterRequest(Request):
     """Represent stop master request."""
 
     frame_type: ClassVar[int] = RequestTypes.STOP_MASTER

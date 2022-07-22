@@ -14,14 +14,14 @@ from pyplumio.const import (
     ECONET_ADDRESS,
 )
 from pyplumio.exceptions import VersionError
-from pyplumio.frames import messages
+from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 
 
 def test_responses_type() -> None:
     """Test if response is instance of frame class."""
     for response in (
-        messages.RegulatorData,
-        messages.SensorData,
+        RegulatorDataMessage,
+        SensorDataMessage,
     ):
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert isinstance(frame, response)
@@ -45,13 +45,13 @@ _regdata_bytes_unknown_version = bytearray.fromhex("62640002")
 
 def test_regdata_decode_message() -> None:
     """Test parsing of regdata message."""
-    frame = messages.RegulatorData(message=_regdata_bytes)
+    frame = RegulatorDataMessage(message=_regdata_bytes)
     assert ATTR_FRAME_VERSIONS in frame.data
 
 
 def test_regdata_decode_message_with_unknown_version() -> None:
     """Test parsing of regdata message with unknown message version."""
-    frame = messages.RegulatorData()
+    frame = RegulatorDataMessage()
     with pytest.raises(VersionError, match=r".*version 2\.0.*"):
         frame.decode_message(message=_regdata_bytes_unknown_version)
 
@@ -69,7 +69,7 @@ FFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D8
 
 def test_current_data_decode_message() -> None:
     """Test parsing current data message."""
-    frame = messages.SensorData(message=_current_data_bytes)
+    frame = SensorDataMessage(message=_current_data_bytes)
     data = frame.data[ATTR_BOILER_SENSORS]
     assert ATTR_FRAME_VERSIONS in data
     assert data[ATTR_FRAME_VERSIONS][85] == 45559

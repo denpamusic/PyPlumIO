@@ -7,9 +7,9 @@ import pytest
 
 from pyplumio.const import BROADCAST_ADDRESS
 from pyplumio.frames.requests import (
-    BoilerControl,
-    SetBoilerParameter,
-    SetMixerParameter,
+    BoilerControlRequest,
+    SetBoilerParameterRequest,
+    SetMixerParameterRequest,
 )
 from pyplumio.helpers.parameter import (
     STATE_OFF,
@@ -81,7 +81,7 @@ def test_parameter__repr__(parameter: BoilerBinaryParameter) -> None:
 
 def test_parameter_request(parameter: BoilerBinaryParameter) -> None:
     """Test parameter set request instance."""
-    assert isinstance(parameter.request, SetBoilerParameter)
+    assert isinstance(parameter.request, SetBoilerParameterRequest)
 
 
 def test_parameter_request_mixer() -> None:
@@ -95,7 +95,7 @@ def test_parameter_request_mixer() -> None:
         max_value=80,
         extra=0,
     )
-    assert isinstance(parameter.request, SetMixerParameter)
+    assert isinstance(parameter.request, SetMixerParameterRequest)
 
 
 def test_parameter_request_control() -> None:
@@ -108,7 +108,7 @@ def test_parameter_request_control() -> None:
         min_value=0,
         max_value=1,
     )
-    assert isinstance(parameter.request, BoilerControl)
+    assert isinstance(parameter.request, BoilerControlRequest)
 
 
 @patch("asyncio.Queue.put_nowait")

@@ -12,8 +12,16 @@ from pyplumio.const import (
     BROADCAST_ADDRESS,
     ECONET_ADDRESS,
 )
-from pyplumio.frames import responses
-from pyplumio.frames.responses import REGDATA_SCHEMA, DataSchema
+from pyplumio.frames.responses import (
+    REGDATA_SCHEMA,
+    BoilerParametersResponse,
+    DataSchemaResponse,
+    DeviceAvailableResponse,
+    MixerParametersResponse,
+    PasswordResponse,
+    ProgramVersionResponse,
+    UIDResponse,
+)
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -27,14 +35,15 @@ from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 
 def test_responses_type() -> None:
     """Test if response is instance of frame class."""
+
     for response in (
-        responses.ProgramVersion,
-        responses.DeviceAvailable,
-        responses.UID,
-        responses.Password,
-        responses.BoilerParameters,
-        responses.MixerParameters,
-        responses.DataSchema,
+        ProgramVersionResponse,
+        DeviceAvailableResponse,
+        UIDResponse,
+        PasswordResponse,
+        BoilerParametersResponse,
+        MixerParametersResponse,
+        DataSchemaResponse,
     ):
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert isinstance(frame, response)
@@ -46,13 +55,13 @@ _program_version_bytes = bytearray.fromhex("FFFF057A0000000001000000000056")
 
 def test_program_version_create_message() -> None:
     """Test creating program version message."""
-    frame = responses.ProgramVersion(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+    frame = ProgramVersionResponse(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
     assert frame.create_message(data=_program_version_data) == _program_version_bytes
 
 
 def test_program_version_decode_message() -> None:
     """Test parsing program version message."""
-    frame = responses.ProgramVersion(
+    frame = ProgramVersionResponse(
         recipient=BROADCAST_ADDRESS,
         sender=ECONET_ADDRESS,
         message=_program_version_bytes,
@@ -84,15 +93,13 @@ _device_available_bytes = bytearray.fromhex(
 
 def test_device_available_create_message() -> None:
     """Test creating device available message."""
-    frame = responses.DeviceAvailable(
-        recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS
-    )
+    frame = DeviceAvailableResponse(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
     assert frame.create_message(data=_device_available_data) == _device_available_bytes
 
 
 def test_device_available_decode_message() -> None:
     """Test parsing device available message."""
-    frame = responses.DeviceAvailable(message=_device_available_bytes)
+    frame = DeviceAvailableResponse(message=_device_available_bytes)
     assert frame.data == _device_available_data
 
 
@@ -113,7 +120,7 @@ _uid_bytes = bytearray.fromhex(
 
 def test_uid_decode_message() -> None:
     """Test parsing UID message."""
-    frame = responses.UID(message=_uid_bytes)
+    frame = UIDResponse(message=_uid_bytes)
     assert frame.data == _uid_data
 
 
@@ -123,7 +130,7 @@ _password_data = {ATTR_PASSWORD: "0000"}
 
 def test_password_decode_message() -> None:
     """Test parsing password message."""
-    frame = responses.Password(message=_password_bytes)
+    frame = PasswordResponse(message=_password_bytes)
     assert frame.data == _password_data
 
 
@@ -138,7 +145,7 @@ _boiler_parameters_data = {
 
 def test_boiler_parameters_decode_message() -> None:
     """Test parsing boiler parameters message."""
-    frame = responses.BoilerParameters(message=_boiler_parameters_bytes)
+    frame = BoilerParametersResponse(message=_boiler_parameters_bytes)
     assert frame.data == {ATTR_BOILER_PARAMETERS: _boiler_parameters_data}
 
 
@@ -153,7 +160,7 @@ _mixer_parameters_data = [
 
 def test_mixer_parameters_decode_message() -> None:
     """Test parsing message for mixer parameters response."""
-    frame = responses.MixerParameters(message=_mixer_parameters_bytes)
+    frame = MixerParametersResponse(message=_mixer_parameters_bytes)
     print(frame.data)
     print({ATTR_MIXER_PARAMETERS: _mixer_parameters_data})
     assert frame.data == {ATTR_MIXER_PARAMETERS: _mixer_parameters_data}
@@ -162,7 +169,7 @@ def test_mixer_parameters_decode_message() -> None:
 _data_schema_bytes_empty = bytearray.fromhex("0000")
 
 
-def test_data_schema_decode_message(data_schema: DataSchema) -> None:
+def test_data_schema_decode_message(data_schema: DataSchemaResponse) -> None:
     """Test parsing message for data schema response."""
     assert ATTR_SCHEMA in data_schema.data
     assert len(data_schema.data[ATTR_SCHEMA]) == 257
@@ -177,5 +184,5 @@ def test_data_schema_decode_message(data_schema: DataSchema) -> None:
 
 def test_data_schema_decode_message_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
-    frame = DataSchema(message=_data_schema_bytes_empty)
+    frame = DataSchemaResponse(message=_data_schema_bytes_empty)
     assert frame.data == {ATTR_SCHEMA: []}

@@ -18,9 +18,17 @@ from pyplumio.const import (
 )
 from pyplumio.devices import EcoMAX, FrameVersions, Mixer, get_device_handler
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Response, requests
-from pyplumio.frames.messages import RegulatorData
-from pyplumio.frames.responses import DataSchema
+from pyplumio.frames import Response
+from pyplumio.frames.messages import RegulatorDataMessage
+from pyplumio.frames.requests import (
+    BoilerParametersRequest,
+    DataSchemaRequest,
+    MixerParametersRequest,
+    PasswordRequest,
+    StartMasterRequest,
+    UIDRequest,
+)
+from pyplumio.frames.responses import DataSchemaResponse
 from pyplumio.helpers.parameter import (
     BoilerBinaryParameter,
     MixerBinaryParameter,
@@ -56,12 +64,12 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         await versions.async_update({x.frame_type: 0 for x in ecomax.required_frames})
 
     calls = [
-        call(requests.StartMaster(recipient=ECOMAX_ADDRESS)),
-        call(requests.UID(recipient=ECOMAX_ADDRESS)),
-        call(requests.DataSchema(recipient=ECOMAX_ADDRESS)),
-        call(requests.BoilerParameters(recipient=ECOMAX_ADDRESS)),
-        call(requests.MixerParameters(recipient=ECOMAX_ADDRESS)),
-        call(requests.Password(recipient=ECOMAX_ADDRESS)),
+        call(StartMasterRequest(recipient=ECOMAX_ADDRESS)),
+        call(UIDRequest(recipient=ECOMAX_ADDRESS)),
+        call(DataSchemaRequest(recipient=ECOMAX_ADDRESS)),
+        call(BoilerParametersRequest(recipient=ECOMAX_ADDRESS)),
+        call(MixerParametersRequest(recipient=ECOMAX_ADDRESS)),
+        call(PasswordRequest(recipient=ECOMAX_ADDRESS)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {0x19: 0, 0x39: 0, 0x3A: 0, 0x55: 0, 0x31: 0, 0x32: 0}
@@ -117,7 +125,9 @@ async def test_fuel_consumption_callbacks() -> None:
 
 
 async def test_regdata_callbacks(
-    ecomax: EcoMAX, data_schema: DataSchema, regulator_data: RegulatorData
+    ecomax: EcoMAX,
+    data_schema: DataSchemaResponse,
+    regulator_data: RegulatorDataMessage,
 ) -> None:
     """Test callbacks that are fired on received regdata."""
     # Test exception handling on data schema timeout.

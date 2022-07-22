@@ -35,7 +35,7 @@ from pyplumio.structures import (
 REGDATA_VERSION: Final = "1.0"
 
 
-class RegulatorData(Message):
+class RegulatorDataMessage(Message):
     """Represents current regulator data."""
 
     frame_type: ClassVar[int] = MessageTypes.REGULATOR_DATA
@@ -53,7 +53,7 @@ class RegulatorData(Message):
         return data
 
 
-class SensorData(Message):
+class SensorDataMessage(Message):
     """Represents current device state."""
 
     frame_type: ClassVar[int] = MessageTypes.SENSOR_DATA

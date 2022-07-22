@@ -157,9 +157,9 @@ class BoilerParameter(Parameter):
     def request(self) -> Request:
         """Return request to change the parameter."""
         handler = (
-            "frames.requests.BoilerControl"
+            "frames.requests.BoilerControlRequest"
             if self.name == "boiler_control"
-            else "frames.requests.SetBoilerParameter"
+            else "frames.requests.SetBoilerParameterRequest"
         )
 
         return factory(
@@ -180,7 +180,7 @@ class MixerParameter(Parameter):
     def request(self) -> Request:
         """Return request to change the parameter."""
         return factory(
-            "frames.requests.SetMixerParameter",
+            "frames.requests.SetMixerParameterRequest",
             recipient=self.recipient,
             data={"name": self.name, "value": self.value, "extra": self.extra},
         )

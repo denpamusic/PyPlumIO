@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.exceptions import ChecksumError, LengthError, ReadError
-from pyplumio.frames.requests import BoilerParameters, ProgramVersion
+from pyplumio.frames.requests import BoilerParametersRequest, ProgramVersionRequest
 from pyplumio.stream import FrameReader, FrameWriter
 
 
@@ -20,7 +20,7 @@ def fixture_frame_reader() -> Generator[FrameReader, None, None]:
 @patch("asyncio.StreamWriter", autospec=True)
 async def test_frame_writer(mock_stream_writer) -> None:
     """Test frame writer."""
-    frame = ProgramVersion
+    frame = ProgramVersionRequest
     writer = FrameWriter(mock_stream_writer)
     await writer.write(frame)
     mock_stream_writer.write.assert_called_once_with(frame.bytes)
@@ -38,7 +38,7 @@ async def test_frame_writer(mock_stream_writer) -> None:
 async def test_frame_reader(mock_read, frame_reader: FrameReader) -> None:
     """Test frame reader."""
     frame = await frame_reader.read()
-    assert isinstance(frame, BoilerParameters)
+    assert isinstance(frame, BoilerParametersRequest)
     assert frame.frame_type == 0x31
     assert frame.sender == 0x56
     assert frame.sender_type == 0x30

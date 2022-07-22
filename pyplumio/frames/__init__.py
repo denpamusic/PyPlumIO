@@ -38,7 +38,9 @@ class RequestTypes(IntEnum):
     DATA_SCHEMA = 0x55
 
 
-REQUEST_TYPES = {x.value: f"requests.{util.to_camelcase(x.name)}" for x in RequestTypes}
+REQUEST_TYPES = {
+    x.value: f"requests.{util.to_camelcase(x.name)}Request" for x in RequestTypes
+}
 
 
 class ResponseTypes(IntEnum):
@@ -57,7 +59,7 @@ class ResponseTypes(IntEnum):
 
 
 RESPONSE_TYPES = {
-    x.value: f"responses.{util.to_camelcase(x.name)}" for x in ResponseTypes
+    x.value: f"responses.{util.to_camelcase(x.name)}Response" for x in ResponseTypes
 }
 
 
@@ -68,7 +70,9 @@ class MessageTypes(IntEnum):
     SENSOR_DATA = 0x35
 
 
-MESSAGE_TYPES = {x.value: f"messages.{util.to_camelcase(x.name)}" for x in MessageTypes}
+MESSAGE_TYPES = {
+    x.value: f"messages.{util.to_camelcase(x.name)}Message" for x in MessageTypes
+}
 
 
 # Dictionary of frame handler classes indexed by frame types.
@@ -105,9 +109,11 @@ class Frame(ABC, FrameDataClass):
         super().__init__(*args, **kwargs)
 
         if not self.message:
+            # If message not set, create message bytes from data.
             self.message = self.create_message(self.data)
 
         if self.message and not self.data:
+            # If message is set and data is not, decode message.
             self.data = self.decode_message(self.message)
 
     def __len__(self) -> int:

@@ -14,7 +14,7 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames import RequestTypes
-from pyplumio.frames.requests import StartMaster
+from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -153,7 +153,7 @@ class Protocol(TaskManager):
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         read_queue, write_queue = self.queues
-        write_queue.put_nowait(StartMaster(recipient=ECOMAX_ADDRESS))
+        write_queue.put_nowait(StartMasterRequest(recipient=ECOMAX_ADDRESS))
         lock: asyncio.Lock = asyncio.Lock()
         self.create_task(self.write_consumer(write_queue, lock))
         self.create_task(self.frame_producer(read_queue, lock))

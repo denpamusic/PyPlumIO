@@ -15,8 +15,8 @@ from pyplumio.frames import (
     Response,
     ResponseTypes,
     get_frame_handler,
-    responses,
 )
+from pyplumio.frames.responses import ProgramVersionResponse
 
 
 class TestRequest(Request):
@@ -57,7 +57,7 @@ def fixture_types() -> Tuple[int, int]:
 
 def test_get_frame_handler() -> None:
     """Test getting frame handler."""
-    assert get_frame_handler(0x18) == "frames.requests.StopMaster"
+    assert get_frame_handler(0x18) == "frames.requests.StopMasterRequest"
     with pytest.raises(UnknownFrameError):
         get_frame_handler(0x0)
 
@@ -114,7 +114,7 @@ def test_to_hex() -> None:
 
 def test_equality() -> None:
     """Test equality check."""
-    assert responses.ProgramVersion() == responses.ProgramVersion()
+    assert ProgramVersionResponse() == ProgramVersionResponse()
 
 
 def test_request_repr(request_: Request) -> None:
