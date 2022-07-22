@@ -55,6 +55,13 @@ def fixture_types() -> Tuple[int, int]:
     return (RequestTypes.PROGRAM_VERSION, ResponseTypes.PROGRAM_VERSION)
 
 
+def test_decode_create_message(frames: Tuple[Request, Response]) -> None:
+    """Test creating and decoding message."""
+    for frame in frames:
+        assert frame.create_message(data={}) == bytearray()
+        assert frame.decode_message(message=bytearray()) == {}
+
+
 def test_get_frame_handler() -> None:
     """Test getting frame handler."""
     assert get_frame_handler(0x18) == "frames.requests.StopMasterRequest"
