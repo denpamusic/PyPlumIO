@@ -14,12 +14,6 @@ def from_bytes(
     if data is None:
         data = {}
 
-    alarms = []
     alarms_number = message[offset]
-    for i in range(alarms_number):
-        alarms.append(message[offset + i])
-
-    offset += alarms_number + 1
-    data[ATTR_ALARMS] = alarms
-
-    return data, offset
+    data[ATTR_ALARMS] = [message[offset + i] for i in range(alarms_number)]
+    return data, (offset + alarms_number + 1)
