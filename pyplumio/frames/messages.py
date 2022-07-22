@@ -20,7 +20,7 @@ from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message, MessageTypes
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures import (
-    alarm_codes,
+    current_alerts,
     frame_versions,
     lambda_sensor,
     mixers,
@@ -67,7 +67,7 @@ class SensorDataMessage(Message):
         _, offset = output_flags.from_bytes(message, offset, sensors)
         _, offset = temperatures.from_bytes(message, offset, sensors)
         _, offset = statuses.from_bytes(message, offset, sensors)
-        _, offset = alarm_codes.from_bytes(message, offset, sensors)
+        _, offset = current_alerts.from_bytes(message, offset, sensors)
         sensors[ATTR_FUEL_LEVEL] = message[offset]
         sensors[ATTR_TRANSMISSION] = message[offset + 1]
         sensors[ATTR_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]

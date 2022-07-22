@@ -3,7 +3,7 @@
 import pytest
 
 from pyplumio.const import (
-    ATTR_ALARMS,
+    ATTR_ALERTS,
     ATTR_BOILER_SENSORS,
     ATTR_FRAME_VERSIONS,
     ATTR_FUEL_LEVEL,
@@ -84,5 +84,5 @@ def test_current_data_decode_message() -> None:
     assert ATTR_MIXER_SENSORS in data
     assert len(data[ATTR_MIXER_SENSORS]) == 5
     assert data[ATTR_MIXER_SENSORS][0]["target_temp"] == 40
-    assert data[ATTR_ALARMS] == []
+    assert data[ATTR_ALERTS] == []
     assert data[ATTR_FUEL_LEVEL] == 32

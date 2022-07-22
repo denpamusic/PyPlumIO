@@ -21,7 +21,7 @@ _data = {
 def test_from_bytes_with_zero_mixers():
     """Test conversion from bytes with zero mixers."""
     data, offset = from_bytes(_message_zero_mixers)
-    assert data == {}
+    assert data == {ATTR_MIXER_SENSORS: []}
     assert offset == 1
 
 

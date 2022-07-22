@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from pyplumio.const import ATTR_ALARMS
+from pyplumio.const import ATTR_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
 
 
@@ -14,6 +14,6 @@ def from_bytes(
     if data is None:
         data = {}
 
-    alarms_number = message[offset]
-    data[ATTR_ALARMS] = [message[offset + i] for i in range(alarms_number)]
-    return data, (offset + alarms_number + 1)
+    alerts_number = message[offset]
+    data[ATTR_ALERTS] = [message[offset + i] for i in range(alerts_number)]
+    return data, (offset + alerts_number + 1)

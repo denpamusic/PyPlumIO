@@ -26,13 +26,9 @@ def from_bytes(
 
     mixers_number = message[offset]
     offset += 1
-    if mixers_number == 0:
-        return data, offset
-
     mixers: List[DeviceDataType] = []
-
     for _ in range(mixers_number):
-        mixer = {}
+        mixer: DeviceDataType = {}
         mixer[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[0]
         mixer[MIXER_TARGET_TEMP] = message[offset + 4]
         mixer_outputs = message[offset + 6]
