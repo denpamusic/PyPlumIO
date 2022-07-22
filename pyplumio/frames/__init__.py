@@ -1,7 +1,7 @@
 """Contains frame class."""
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import ClassVar, Dict, Final, List, Optional
@@ -84,8 +84,8 @@ def get_frame_handler(frame_type: int) -> str:
 
 
 @dataclass
-class Frame(ABC):
-    """Represents base frame class."""
+class FrameDataClass:
+    """Data class mixin for the frame."""
 
     recipient: int = BROADCAST_ADDRESS
     sender: int = ECONET_ADDRESS
@@ -93,10 +93,17 @@ class Frame(ABC):
     econet_version: int = ECONET_VERSION
     message: MessageType = field(default_factory=bytearray)
     data: DeviceDataType = field(default_factory=dict)
+
+
+class Frame(ABC, FrameDataClass):
+    """Represents base frame class."""
+
     frame_type: ClassVar[int]
 
-    def __post_init__(self) -> None:
+    def __init__(self, *args, **kwargs):
         """Process frame message and data."""
+        super().__init__(*args, **kwargs)
+
         if not self.message:
             self.message = self.create_message(self.data)
 
@@ -111,13 +118,13 @@ class Frame(ABC):
         """Check if frame is instance of type."""
         return any(self.frame_type == x for x in args)
 
+    @abstractmethod
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
-        return bytearray()
 
+    @abstractmethod
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
-        return {}
 
     @property
     def length(self) -> int:
@@ -166,6 +173,14 @@ class Frame(ABC):
 class Request(Frame):
     """Represents request frame."""
 
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        return bytearray()
+
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
+        return {}
+
     def response(self, **args) -> Optional[Response]:
         """Return response object for current request."""
         return None
@@ -173,6 +188,14 @@ class Request(Frame):
 
 class Response(Frame):
     """Represents response frame."""
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        return bytearray()
+
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
+        return {}
 
 
 class Message(Response):
