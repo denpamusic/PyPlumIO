@@ -5,15 +5,23 @@ from typing import Optional, Tuple
 
 from pyplumio.const import ATTR_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures import Structure
 
 
-def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-) -> Tuple[DeviceDataType, int]:
-    """Decode bytes and return message data and offset."""
-    if data is None:
-        data = {}
+class CurrentAlertsStructure(Structure):
+    """Represents current alert data structure."""
 
-    alerts_number = message[offset]
-    data[ATTR_ALERTS] = [message[offset + i] for i in range(alerts_number)]
-    return data, (offset + alerts_number + 1)
+    def encode(self, data: DeviceDataType) -> bytearray:
+        """Encode device data to bytearray message."""
+        return bytearray()
+
+    def decode(
+        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+    ) -> Tuple[DeviceDataType, int]:
+        """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
+        alerts_number = message[offset]
+        data[ATTR_ALERTS] = [message[offset + i] for i in range(alerts_number)]
+        return data, (offset + alerts_number + 1)

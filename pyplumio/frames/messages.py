@@ -19,18 +19,16 @@ from pyplumio.const import (
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message, MessageTypes
 from pyplumio.helpers.typing import DeviceDataType, MessageType
-from pyplumio.structures import (
-    current_alerts,
-    frame_versions,
-    lambda_sensor,
-    mixers,
-    modules,
-    output_flags,
-    outputs,
-    statuses,
-    temperatures,
-    thermostats,
-)
+from pyplumio.structures.current_alerts import CurrentAlertsStructure
+from pyplumio.structures.frame_versions import FrameVersionStructure
+from pyplumio.structures.lambda_sensor import LambaSensorStructure
+from pyplumio.structures.mixers import MixersStructure
+from pyplumio.structures.modules import ModulesStructure
+from pyplumio.structures.output_flags import OutputFlagsStructure
+from pyplumio.structures.outputs import OutputsStructure
+from pyplumio.structures.statuses import StatusesStructure
+from pyplumio.structures.temperatures import TemperaturesStructure
+from pyplumio.structures.thermostats import ThermostatsStructure
 
 REGDATA_VERSION: Final = "1.0"
 
@@ -47,7 +45,7 @@ class RegulatorDataMessage(Message):
         if frame_version != REGDATA_VERSION:
             raise VersionError(f"unknown regdata version {frame_version}")
 
-        data, offset = frame_versions.from_bytes(message, offset + 2)
+        data, offset = FrameVersionStructure(self).decode(message, offset + 2)
         data[ATTR_REGDATA] = message[offset:]
 
         return data
@@ -61,13 +59,14 @@ class SensorDataMessage(Message):
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
         sensors: DeviceDataType = {}
-        _, offset = frame_versions.from_bytes(message, offset=0, data=sensors)
+
+        offset = FrameVersionStructure(self).decode(message, offset=0, data=sensors)[1]
         sensors[ATTR_MODE] = message[offset]
-        _, offset = outputs.from_bytes(message, offset + 1, sensors)
-        _, offset = output_flags.from_bytes(message, offset, sensors)
-        _, offset = temperatures.from_bytes(message, offset, sensors)
-        _, offset = statuses.from_bytes(message, offset, sensors)
-        _, offset = current_alerts.from_bytes(message, offset, sensors)
+        offset = OutputsStructure(self).decode(message, offset + 1, sensors)[1]
+        offset = OutputFlagsStructure(self).decode(message, offset, sensors)[1]
+        offset = TemperaturesStructure(self).decode(message, offset, sensors)[1]
+        offset = StatusesStructure(self).decode(message, offset, sensors)[1]
+        offset = CurrentAlertsStructure(self).decode(message, offset, sensors)[1]
         sensors[ATTR_FUEL_LEVEL] = message[offset]
         sensors[ATTR_TRANSMISSION] = message[offset + 1]
         sensors[ATTR_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]
@@ -77,9 +76,9 @@ class SensorDataMessage(Message):
             message[offset + 11 : offset + 15]
         )[0]
         sensors[ATTR_THERMOSTAT] = message[offset + 15]
-        _, offset = modules.from_bytes(message, offset + 16, sensors)
-        _, offset = lambda_sensor.from_bytes(message, offset, sensors)
-        _, offset = thermostats.from_bytes(message, offset, sensors)
-        _, offset = mixers.from_bytes(message, offset, sensors)
+        offset = ModulesStructure(self).decode(message, offset + 16, sensors)[1]
+        offset = LambaSensorStructure(self).decode(message, offset, sensors)[1]
+        offset = ThermostatsStructure(self).decode(message, offset, sensors)[1]
+        offset = MixersStructure(self).decode(message, offset, sensors)[1]
 
         return {ATTR_BOILER_SENSORS: sensors}

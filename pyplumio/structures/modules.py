@@ -7,6 +7,7 @@ from typing import Final, Optional, Tuple
 from pyplumio.const import ATTR_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures import Structure
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -22,23 +23,6 @@ MODULES: Tuple[str, ...] = (
     MODULE_ECOSTER,
     MODULE_PANEL,
 )
-
-
-def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-) -> Tuple[DeviceDataType, int]:
-    """Decode bytes and return message data and offset."""
-    if data is None:
-        data = {}
-
-    connected_modules = ConnectedModules()
-    for module_name in MODULES:
-        module_version, offset = _get_module_version(module_name, message, offset)
-        setattr(connected_modules, module_name, module_version)
-
-    data[ATTR_MODULES] = connected_modules
-
-    return data, offset
 
 
 def _get_module_version(
@@ -58,3 +42,27 @@ def _get_module_version(
         offset += 2
 
     return module_version, offset
+
+
+class ModulesStructure(Structure):
+    """Represents modules data structure."""
+
+    def encode(self, data: DeviceDataType) -> bytearray:
+        """Encode device data to bytearray message."""
+        return bytearray()
+
+    def decode(
+        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+    ) -> Tuple[DeviceDataType, int]:
+        """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
+        connected_modules = ConnectedModules()
+        for module_name in MODULES:
+            module_version, offset = _get_module_version(module_name, message, offset)
+            setattr(connected_modules, module_name, module_version)
+
+        data[ATTR_MODULES] = connected_modules
+
+        return data, offset

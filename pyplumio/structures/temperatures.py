@@ -6,6 +6,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures import Structure
 
 HEATING_TEMP: Final = "heating_temp"
 FEEDER_TEMP: Final = "feeder_temp"
@@ -45,23 +46,29 @@ TEMPERATURES: Tuple[str, ...] = (
 )
 
 
-def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-) -> Tuple[DeviceDataType, int]:
-    """Decode bytes and return message data and offset."""
-    if data is None:
-        data = {}
+class TemperaturesStructure(Structure):
+    """Represents temperatures data structures."""
 
-    temp_number = message[offset]
-    offset += 1
-    for _ in range(temp_number):
-        index = message[offset]
-        temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
+    def encode(self, data: DeviceDataType) -> bytearray:
+        return bytearray()
 
-        if (not math.isnan(temp)) and 0 <= index < len(TEMPERATURES):
-            # Temperature exists and index is in the correct range.
-            data[TEMPERATURES[index]] = temp
+    def decode(
+        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+    ) -> Tuple[DeviceDataType, int]:
+        """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
 
-        offset += 5
+        temp_number = message[offset]
+        offset += 1
+        for _ in range(temp_number):
+            index = message[offset]
+            temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
 
-    return data, offset
+            if (not math.isnan(temp)) and 0 <= index < len(TEMPERATURES):
+                # Temperature exists and index is in the correct range.
+                data[TEMPERATURES[index]] = temp
+
+            offset += 5
+
+        return data, offset

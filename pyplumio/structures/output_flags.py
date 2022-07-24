@@ -5,6 +5,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures import Structure
 
 HEATING_PUMP_FLAG: Final = "heating_pump_flag"
 WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
@@ -18,18 +19,25 @@ OUTPUT_FLAGS: Tuple[str, ...] = (
 )
 
 
-def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-) -> Tuple[DeviceDataType, int]:
-    """Decode bytes and return message data and offset."""
-    if data is None:
-        data = {}
+class OutputFlagsStructure(Structure):
+    """Represents output flags structure."""
 
-    output_flags = util.unpack_ushort(message[offset : offset + 4])
-    data[HEATING_PUMP_FLAG] = bool(output_flags & 0x04)
-    data[WATER_HEATER_PUMP_FLAG] = bool(output_flags & 0x08)
-    data[CIRCULATION_PUMP_FLAG] = bool(output_flags & 0x10)
-    data[SOLAR_PUMP_FLAG] = bool(output_flags & 0x800)
-    offset += 4
+    def encode(self, data: DeviceDataType) -> bytearray:
+        """Encode device data to bytearray message."""
+        return bytearray()
 
-    return data, offset
+    def decode(
+        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+    ) -> Tuple[DeviceDataType, int]:
+        """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
+        output_flags = util.unpack_ushort(message[offset : offset + 4])
+        data[HEATING_PUMP_FLAG] = bool(output_flags & 0x04)
+        data[WATER_HEATER_PUMP_FLAG] = bool(output_flags & 0x08)
+        data[CIRCULATION_PUMP_FLAG] = bool(output_flags & 0x10)
+        data[SOLAR_PUMP_FLAG] = bool(output_flags & 0x800)
+        offset += 4
+
+        return data, offset

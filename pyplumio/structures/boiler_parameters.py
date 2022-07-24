@@ -6,6 +6,7 @@ from typing import Dict, Final, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_BOILER_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
+from pyplumio.structures import Structure
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
 BOILER_PARAMETERS: List[str] = [
@@ -151,25 +152,32 @@ BOILER_PARAMETERS: List[str] = [
 ]
 
 
-def from_bytes(
-    message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-) -> Tuple[DeviceDataType, int]:
-    """Decode bytes and return message data and offset."""
-    if data is None:
-        data = {}
+class BoilerParametersStructure(Structure):
+    """Represents boiler parameters data structure."""
 
-    first_parameter = message[offset + 1]
-    parameters_number = message[offset + 2]
-    offset += 3
-    boiler_parameters: Dict[str, ParameterDataType] = {}
-    for index in range(first_parameter, parameters_number + first_parameter):
-        parameter = util.unpack_parameter(message, offset)
-        if parameter is not None:
-            parameter_name = BOILER_PARAMETERS[index]
-            boiler_parameters[parameter_name] = parameter
+    def encode(self, data: DeviceDataType) -> bytearray:
+        """Encode device data to bytearray message."""
+        return bytearray()
 
+    def decode(
+        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
+    ) -> Tuple[DeviceDataType, int]:
+        """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
+        first_parameter = message[offset + 1]
+        parameters_number = message[offset + 2]
         offset += 3
+        boiler_parameters: Dict[str, ParameterDataType] = {}
+        for index in range(first_parameter, parameters_number + first_parameter):
+            parameter = util.unpack_parameter(message, offset)
+            if parameter is not None:
+                parameter_name = BOILER_PARAMETERS[index]
+                boiler_parameters[parameter_name] = parameter
 
-    data[ATTR_BOILER_PARAMETERS] = boiler_parameters
+            offset += 3
 
-    return data, offset
+        data[ATTR_BOILER_PARAMETERS] = boiler_parameters
+
+        return data, offset
