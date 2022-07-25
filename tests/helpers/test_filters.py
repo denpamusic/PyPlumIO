@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.helpers.filters import aggregate, debounce, on_change, throttle
+from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
 
 
 async def test_on_change() -> None:
@@ -67,6 +67,26 @@ async def test_throttle(mock_time) -> None:
     # Six seconds passed.
     await wrapped_callback(4)
     test_callback.assert_not_awaited()
+
+
+async def test_delta() -> None:
+    """Test delta filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = delta(test_callback)
+
+    await wrapped_callback(5)
+    test_callback.assert_not_awaited()
+
+    await wrapped_callback(3)
+    test_callback.assert_awaited_once_with(-2)
+    test_callback.reset_mock()
+
+    wrapped_callback = delta(test_callback)
+    await wrapped_callback(["foo"])
+    test_callback.assert_not_awaited()
+
+    await wrapped_callback(["foo", "bar"])
+    test_callback.assert_awaited_once_with(["bar"])
 
 
 @patch("time.time", side_effect=(0, 0, 1, 5, 6))

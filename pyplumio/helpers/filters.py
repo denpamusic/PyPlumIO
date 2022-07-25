@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import math
 import time
-from typing import Any, Optional
+from typing import Any, Final, Optional
 
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import NumericType, SensorCallbackType
+
+TOLERANCE: Final = 0.1
 
 
 def _significantly_changed(old_value, new_value) -> bool:
@@ -15,9 +18,20 @@ def _significantly_changed(old_value, new_value) -> bool:
         return True
 
     if isinstance(old_value, (int, float)) and isinstance(new_value, (int, float)):
-        return round(old_value, 1) != round(new_value, 1)
+        return not math.isclose(old_value, new_value, abs_tol=TOLERANCE)
 
     return old_value != new_value
+
+
+def _diffence_between(old_value, new_value):
+    """Return the difference between values."""
+    if isinstance(old_value, list) and isinstance(new_value, list):
+        return list(set(new_value) - set(old_value))
+
+    if hasattr(old_value, "__sub__") and hasattr(new_value, "__sub__"):
+        return new_value - old_value
+
+    return None
 
 
 class Filter(ABC):
@@ -117,6 +131,24 @@ class _Throttle(Filter):
 def throttle(callback: SensorCallbackType, seconds: float) -> _Throttle:
     """Helper method for throttle callback filter."""
     return _Throttle(callback, seconds)
+
+
+class _Delta(Filter):
+    """Provides ability to pass call difference to the callback."""
+
+    async def __call__(self, new_value):
+        """Set new value for the callback."""
+        old_value = self._value
+        if _significantly_changed(old_value, new_value):
+            self._value = new_value
+            if old_value is not None:
+                # Skip first call.
+                return await self._callback(_diffence_between(old_value, new_value))
+
+
+def delta(callback: SensorCallbackType) -> _Delta:
+    """Helper method for delta callback filter."""
+    return _Delta(callback)
 
 
 class _Aggregate(Filter):

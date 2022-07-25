@@ -180,11 +180,11 @@ async def main():
 asyncio.run(main())
 ````
 
-Callbacks can be further improved using built-in filters `aggregate(callback, seconds)`, `on_change(callback)`, `debounce(callback, min_calls)` and `throttle(callback, seconds)`. Below are some examples on how to use them.
+Callbacks can be further improved using built-in filters `aggregate(callback, seconds)`, `on_change(callback)`, `debounce(callback, min_calls)` `delta(callback)`, and `throttle(callback, seconds)`. Below are some examples on how to use them.
 
 ```python
 import pyplumio
-from pyplumio.helpers.filters import aggregate, debounce, on_change, throttle
+from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
@@ -210,10 +210,14 @@ async def main():
     # accumulated over the span of 5 seconds. Works with numeric values only.
     ecomax.register_callback("fuel_burned", aggregate(fifth_callback, seconds=5))
 
+    # Callback "sixth_callback" will be awaited with difference between
+    # values in the last and current calls.
+    ecomax.register_callback("heating_temp", delta(sixth_callback))
+
     # Throttle callback can be chained with others.
-    # Callback "sixth_callback" will be awaited on value change but no
+    # Callback "seventh_callback" will be awaited on value change but no
     # sooner that 5 seconds.
-    ecomax.register_callback("heating_temp", throttle(on_change(sixth_callback), seconds=5))
+    ecomax.register_callback("heating_temp", throttle(on_change(seventh_callback), seconds=5))
 
 ```
 
