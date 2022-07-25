@@ -101,8 +101,7 @@ class Connection(ABC):
     async def close(self) -> None:
         """Close the connection."""
         self._closing = True
-        if self.protocol is not None:
-            await self.protocol.shutdown()
+        await self.protocol.shutdown()
 
     @property
     def protocol(self) -> Protocol:
