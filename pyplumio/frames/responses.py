@@ -6,6 +6,7 @@ from typing import ClassVar
 from pyplumio.const import ATTR_PASSWORD
 from pyplumio.frames import Response, ResponseTypes
 from pyplumio.helpers.typing import DeviceDataType, MessageType
+from pyplumio.structures.alerts import AlertsStructure
 from pyplumio.structures.boiler_parameters import BoilerParametersStructure
 from pyplumio.structures.data_schema import DataSchemaStructure
 from pyplumio.structures.mixer_parameters import MixerParametersStructure
@@ -126,3 +127,13 @@ class BoilerControlResponse(Response):
     """
 
     frame_type: ClassVar[int] = ResponseTypes.BOILER_CONTROL
+
+
+class AlertsResponse(Response):
+    """Represents device alerts."""
+
+    frame_type: ClassVar[int] = ResponseTypes.ALERTS
+
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
+        return AlertsStructure(self).decode(message)[0]

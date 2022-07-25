@@ -231,6 +231,7 @@ class EcoMAX(Device):
         requests.BoilerParametersRequest,
         requests.MixerParametersRequest,
         requests.PasswordRequest,
+        requests.AlertsRequest,
     ]
 
     def __init__(self, queue: asyncio.Queue):
@@ -256,7 +257,7 @@ class EcoMAX(Device):
         self.mixers[mixer_number] = mixer
         return mixer
 
-    async def _add_boiler_sensors(self, sensors: DeviceDataType):
+    async def _add_boiler_sensors(self, sensors: DeviceDataType) -> None:
         """Add boiler sensors values to the device object."""
         for name, value in sensors.items():
             await self.async_set_attribute(name, value)
@@ -358,7 +359,7 @@ class EcoMAX(Device):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
-        for _, mixer in self.mixers.items():
+        for mixer in self.mixers.values():
             await mixer.shutdown()
 
         await super().shutdown()

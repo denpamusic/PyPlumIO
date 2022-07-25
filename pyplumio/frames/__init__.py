@@ -36,6 +36,7 @@ class RequestTypes(IntEnum):
     BOILER_CONTROL = 0x3B
     PROGRAM_VERSION = 0x40
     DATA_SCHEMA = 0x55
+    ALERTS = 0x3D
 
 
 REQUEST_TYPES = {
@@ -56,6 +57,7 @@ class ResponseTypes(IntEnum):
     BOILER_CONTROL = 0xBB
     PROGRAM_VERSION = 0xC0
     DATA_SCHEMA = 0xD5
+    ALERTS = 0xBD
 
 
 RESPONSE_TYPES = {

@@ -131,3 +131,16 @@ class StopMasterRequest(Request):
     """Represent stop master request."""
 
     frame_type: ClassVar[int] = RequestTypes.STOP_MASTER
+
+
+class AlertsRequest(Request):
+    """Represent alerts request."""
+
+    frame_type: ClassVar[int] = RequestTypes.ALERTS
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        message = bytearray()
+        message.append(0)  # Index of the first alarm.
+        message.append(100)  # Number of alarms.
+        return message
