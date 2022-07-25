@@ -3,12 +3,12 @@ from __future__ import annotations
 
 from typing import Optional, Tuple
 
-from pyplumio.const import ATTR_ALERTS
+from pyplumio.const import ATTR_PENDING_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import Structure
 
 
-class CurrentAlertsStructure(Structure):
+class PendingAlertsStructure(Structure):
     """Represents current alert data structure."""
 
     def encode(self, data: DeviceDataType) -> bytearray:
@@ -23,5 +23,5 @@ class CurrentAlertsStructure(Structure):
             data = {}
 
         alerts_number = message[offset]
-        data[ATTR_ALERTS] = [message[offset + i] for i in range(alerts_number)]
+        data[ATTR_PENDING_ALERTS] = [message[offset + i] for i in range(alerts_number)]
         return data, (offset + alerts_number + 1)

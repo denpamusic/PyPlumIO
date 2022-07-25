@@ -10,6 +10,7 @@ ECOSTER_ADDRESS: Final[int] = 0x51
 
 ATTR_BOILER_SENSORS: Final = "sensors"
 ATTR_BOILER_PARAMETERS: Final = "parameters"
+ATTR_PENDING_ALERTS: Final = "pending_alerts"
 ATTR_ALERTS: Final = "alerts"
 ATTR_FAN_POWER: Final = "fan_power"
 ATTR_FRAME_VERSIONS: Final = "frames"
