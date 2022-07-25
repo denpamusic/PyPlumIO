@@ -51,8 +51,8 @@ class BoilerParametersRequest(Request):
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
         message = bytearray()
-        message.append(0xFF)  # Number of parameters.
-        message.append(0x00)  # Index of parameters.
+        message.append(255)  # Number of parameters.
+        message.append(0)  # Index of the first parameter.
         return message
 
 

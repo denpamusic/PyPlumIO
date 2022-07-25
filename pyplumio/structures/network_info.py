@@ -42,6 +42,9 @@ class NetworkInfoStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
         network_info = NetworkInfo(
             eth=EthernetParameters(
                 ip=util.ip4_from_bytes(message[offset : offset + 4]),

@@ -44,7 +44,7 @@ class DeviceAvailableResponse(Response):
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
-        return NetworkInfoStructure(self).decode(message)[0]
+        return NetworkInfoStructure(self).decode(message, offset=1)[0]
 
 
 class UIDResponse(Response):

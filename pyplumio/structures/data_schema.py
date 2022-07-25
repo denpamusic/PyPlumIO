@@ -52,6 +52,9 @@ class DataSchemaStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
         schema: List[Tuple[str, DataType]] = []

@@ -33,6 +33,9 @@ class ProgramVersionStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
         version_info = VersionInfo()
         [
             version_info.struct_tag,

@@ -174,16 +174,17 @@ class Protocol(TaskManager):
     async def shutdown(self):
         """Shutdown protocol tasks."""
         await asyncio.wait([queue.join() for queue in self.queues])
-        tasks = [task for task in self.tasks if not task == asyncio.current_task()]
+        tasks = [task for task in self.tasks if task is not asyncio.current_task()]
         for task in tasks:
             task.cancel()
 
         await asyncio.gather(*tasks, return_exceptions=True)
-        if self.writer:
-            await self.writer.close()
 
         for device in self.devices.values():
             await device.shutdown()
+
+        if self.writer:
+            await self.writer.close()
 
     async def get_device(self, device: str) -> Device:
         """Wait for device and return it once it's available."""

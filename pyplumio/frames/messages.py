@@ -19,13 +19,13 @@ from pyplumio.const import (
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import Message, MessageTypes
 from pyplumio.helpers.typing import DeviceDataType, MessageType
-from pyplumio.structures.current_alerts import CurrentAlertsStructure
-from pyplumio.structures.frame_versions import FrameVersionStructure
+from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.lambda_sensor import LambaSensorStructure
 from pyplumio.structures.mixers import MixersStructure
 from pyplumio.structures.modules import ModulesStructure
 from pyplumio.structures.output_flags import OutputFlagsStructure
 from pyplumio.structures.outputs import OutputsStructure
+from pyplumio.structures.pending_alerts import PendingAlertsStructure
 from pyplumio.structures.statuses import StatusesStructure
 from pyplumio.structures.temperatures import TemperaturesStructure
 from pyplumio.structures.thermostats import ThermostatsStructure
@@ -45,7 +45,7 @@ class RegulatorDataMessage(Message):
         if frame_version != REGDATA_VERSION:
             raise VersionError(f"unknown regdata version {frame_version}")
 
-        data, offset = FrameVersionStructure(self).decode(message, offset + 2)
+        data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
         data[ATTR_REGDATA] = message[offset:]
 
         return data
@@ -60,13 +60,13 @@ class SensorDataMessage(Message):
         """Decode frame message."""
         sensors: DeviceDataType = {}
 
-        offset = FrameVersionStructure(self).decode(message, offset=0, data=sensors)[1]
+        offset = FrameVersionsStructure(self).decode(message, offset=0, data=sensors)[1]
         sensors[ATTR_MODE] = message[offset]
         offset = OutputsStructure(self).decode(message, offset + 1, sensors)[1]
         offset = OutputFlagsStructure(self).decode(message, offset, sensors)[1]
         offset = TemperaturesStructure(self).decode(message, offset, sensors)[1]
         offset = StatusesStructure(self).decode(message, offset, sensors)[1]
-        offset = CurrentAlertsStructure(self).decode(message, offset, sensors)[1]
+        offset = PendingAlertsStructure(self).decode(message, offset, sensors)[1]
         sensors[ATTR_FUEL_LEVEL] = message[offset]
         sensors[ATTR_TRANSMISSION] = message[offset + 1]
         sensors[ATTR_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]

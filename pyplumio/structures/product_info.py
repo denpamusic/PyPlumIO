@@ -22,6 +22,9 @@ class ProductInfoStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
+        if data is None:
+            data = {}
+
         product_info = ProductInfo()
         product_info.type, product_info.product = struct.unpack_from("<BH", message)
         product_info.uid = unpack_uid(message, offset)

@@ -9,7 +9,7 @@ from pyplumio.helpers.typing import DeviceDataType, VersionsInfoType
 from pyplumio.structures import Structure
 
 
-class FrameVersionStructure(Structure):
+class FrameVersionsStructure(Structure):
     """Represents frame version data structure."""
 
     def encode(self, data: DeviceDataType) -> bytearray:
