@@ -7,7 +7,12 @@ from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
 from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
-from pyplumio.exceptions import FrameError, UnknownDeviceError, UnknownFrameError
+from pyplumio.exceptions import (
+    FrameError,
+    ReadError,
+    UnknownDeviceError,
+    UnknownFrameError,
+)
 from pyplumio.frames import RequestTypes
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.factory import factory
@@ -85,9 +90,11 @@ class Protocol(TaskManager):
                 if frame is not None:
                     read_queue.put_nowait(frame)
             except UnknownFrameError as e:
-                _LOGGER.debug("UnknownFrameError: %s", e)
+                _LOGGER.debug("Unknown frame type: %s", e)
+            except ReadError as e:
+                _LOGGER.debug("Read error: %s", e)
             except FrameError as e:
-                _LOGGER.warning("FrameError: %s", e)
+                _LOGGER.warning("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
                 break
@@ -121,7 +128,7 @@ class Protocol(TaskManager):
             try:
                 handler, name = _get_device_handler_and_name(frame.sender)
             except UnknownDeviceError as e:
-                _LOGGER.debug("UnknownDeviceError: %s", e)
+                _LOGGER.debug("Unknown device: %s", e)
                 read_queue.task_done()
                 continue
 

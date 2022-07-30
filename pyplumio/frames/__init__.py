@@ -86,7 +86,7 @@ def get_frame_handler(frame_type: int) -> str:
     if frame_type in FRAME_TYPES:
         return f"frames.{FRAME_TYPES[frame_type]}"
 
-    raise UnknownFrameError(f"unknown frame type {frame_type}")
+    raise UnknownFrameError(f"Unknown frame type ({frame_type})")
 
 
 @dataclass

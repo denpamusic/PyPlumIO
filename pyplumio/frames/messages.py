@@ -43,7 +43,7 @@ class RegulatorDataMessage(Message):
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
         if frame_version != REGDATA_VERSION:
-            raise VersionError(f"unknown regdata version {frame_version}")
+            raise VersionError(f"Unknown regdata version ({frame_version})")
 
         data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
         data[ATTR_REGDATA] = message[offset:]

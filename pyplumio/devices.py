@@ -63,7 +63,7 @@ def get_device_handler(address: int) -> str:
     if address in DEVICE_TYPES:
         return "devices." + DEVICE_TYPES[address]
 
-    raise UnknownDeviceError(f"Unknown device: {address}")
+    raise UnknownDeviceError(f"Unknown device ({address})")
 
 
 class FrameVersions:
@@ -132,7 +132,7 @@ class AsyncDevice(ABC, TaskManager):
             parameter.set(value)
             return
 
-        raise ParameterNotFoundError(f"parameter {name} not found")
+        raise ParameterNotFoundError(f"Parameter not found ({name})")
 
     @timeout(VALUE_TIMEOUT)
     async def get_parameter(self, name: str) -> Parameter:
@@ -144,7 +144,7 @@ class AsyncDevice(ABC, TaskManager):
         if isinstance(parameter, Parameter):
             return parameter
 
-        raise ParameterNotFoundError(f"parameter {name} not found")
+        raise ParameterNotFoundError(f"Parameter not found ({name})")
 
     def set_attribute(self, *args, **kwargs) -> None:
         """Call registered callbacks on value change."""

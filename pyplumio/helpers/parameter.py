@@ -110,7 +110,7 @@ class Parameter(ABC):
             self._changed = True
         else:
             raise ValueError(
-                f"parameter value must be between {self.min_value} and {self.max_value}"
+                f"Parameter value must be between {self.min_value} and {self.max_value}"
             )
 
     @property

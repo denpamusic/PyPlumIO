@@ -126,9 +126,13 @@ async def test_frame_producer(
         (
             "pyplumio.protocol",
             logging.DEBUG,
-            "UnknownFrameError: test unknown frame error",
+            "Unknown frame type: test unknown frame error",
         ),
-        ("pyplumio.protocol", logging.WARNING, "FrameError: test frame error"),
+        (
+            "pyplumio.protocol",
+            logging.WARNING,
+            "Can't process received frame: test frame error",
+        ),
     ]
 
     mock_read_queue.put_nowait.assert_called_once_with("test")
@@ -217,7 +221,7 @@ async def test_frame_consumer(
 
     # Check that unknown device exception was raised for device
     # with address 99.
-    assert "Unknown device: 99" in caplog.text
+    assert "Unknown device (99)" in caplog.text
     calls = [
         call(mock_device_available_response()),
         call(mock_program_version_response()),

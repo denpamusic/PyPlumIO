@@ -93,7 +93,7 @@ async def test_reconnect(
     ) as mock_connect:
         await tcp_connection.connect()
 
-    assert "ConnectionError" in caplog.text
+    assert "Can't connect to the device" in caplog.text
     assert mock_connect.call_count == 2
 
 

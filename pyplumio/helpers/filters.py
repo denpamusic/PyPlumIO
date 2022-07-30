@@ -169,7 +169,7 @@ class _Aggregate(Filter):
     async def __call__(self, new_value):
         """Set new value for the callback."""
         if not isinstance(new_value, (int, float)):
-            raise ValueError("Aggregate filter can not be used with non-numeric values")
+            raise ValueError("Aggregate filter can't be used for non-numeric values")
 
         current_timestamp = time.time()
         self._sum += new_value

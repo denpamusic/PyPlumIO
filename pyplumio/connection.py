@@ -62,7 +62,7 @@ class Connection(ABC):
     async def _connection_lost_callback(self) -> None:
         """Callback to resume the connection on connection lost."""
         if self._reconnect_on_failure and not self._closing:
-            _LOGGER.error("Connection to device lost. Trying to reconnect")
+            _LOGGER.error("Connection to the device lost. Trying to reconnect")
             await self._reconnect()
 
     async def _connect(self) -> None:
@@ -85,7 +85,7 @@ class Connection(ABC):
                 return
             except ConnectionFailedError:
                 _LOGGER.error(
-                    "ConnectionError: connection to device failed, retrying in %.1f seconds",
+                    "Can't connect to the device, retrying in %.1f seconds",
                     RECONNECT_TIMEOUT,
                 )
                 await asyncio.sleep(RECONNECT_TIMEOUT)

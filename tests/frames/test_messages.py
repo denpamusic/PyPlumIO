@@ -39,7 +39,7 @@ def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
 def test_regdata_decode_message_with_unknown_version() -> None:
     """Test parsing of regdata message with unknown message version."""
     frame = RegulatorDataMessage()
-    with pytest.raises(VersionError, match=r".*version 2\.0.*"):
+    with pytest.raises(VersionError, match=r".*version \(2\.0\).*"):
         frame.decode_message(message=bytearray.fromhex("62640002"))
 
 

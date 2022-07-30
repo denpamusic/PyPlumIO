@@ -20,7 +20,7 @@ def timeout(seconds: int, raise_exception: bool = True):
                     raise
 
                 _LOGGER.warning(
-                    "TimeoutError: Function '%s' timed out after %i seconds",
+                    "Function '%s' timed out after %i seconds",
                     func.__name__,
                     seconds,
                 )

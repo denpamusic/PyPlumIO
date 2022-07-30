@@ -16,5 +16,5 @@ def factory(class_path: str, **kwargs):
         )
         return cls(**kwargs)
     except Exception as e:
-        _LOGGER.error("ImportError: failed to load '%s' module", class_path)
-        raise ImportError(f"failed to load {class_path}") from e
+        _LOGGER.error("Failed to load module (%s)", class_path)
+        raise ImportError(f"Failed to load module ({class_path})") from e
