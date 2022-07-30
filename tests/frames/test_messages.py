@@ -8,6 +8,7 @@ from pyplumio.const import (
     ATTR_BOILER_SENSORS,
     ATTR_FRAME_VERSIONS,
     ATTR_FUEL_LEVEL,
+    ATTR_LAMBDA_SENSOR,
     ATTR_MIXER_SENSORS,
     ATTR_MODE,
     ATTR_MODULES,
@@ -57,6 +58,7 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data["heating_status"] == 0
     assert data[ATTR_MODULES].module_a == "18.11.58.K1"
     assert data[ATTR_MODULES].module_panel == "18.10.72"
+    assert data[ATTR_LAMBDA_SENSOR]["lambda_level"] == 40
     assert ATTR_MIXER_SENSORS in data
     assert len(data[ATTR_MIXER_SENSORS]) == 5
     assert data[ATTR_MIXER_SENSORS][0]["target_temp"] == 40
