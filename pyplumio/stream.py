@@ -6,7 +6,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
-from pyplumio.exceptions import ChecksumError
+from pyplumio.exceptions import ChecksumError, ReadError
 from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.timeout import timeout
@@ -50,12 +50,16 @@ class FrameReader:
     async def _read_header(self) -> Tuple[bytes, int, int, int, int, int]:
         """Locate and read frame header."""
         while True:
-            buffer = await self._reader.read(1)
-            if buffer and buffer[0] == FRAME_START:
+            header = await self._reader.read(1)
+            if header and header[0] == FRAME_START:
                 break
 
-        buffer += await self._reader.read(HEADER_SIZE - 1)
-        header = buffer[0:HEADER_SIZE]
+        header += await self._reader.read(HEADER_SIZE - 1)
+        if len(header) < HEADER_SIZE:
+            raise ReadError(
+                f"Expected at least {HEADER_SIZE} bytes, got {len(header)} bytes"
+            )
+
         [
             _,
             length,
@@ -64,15 +68,14 @@ class FrameReader:
             sender_type,
             econet_version,
         ] = util.unpack_header(header)
-        buffer += await self._reader.read(length - HEADER_SIZE)
 
-        return buffer, length, recipient, sender, sender_type, econet_version
+        return header, length, recipient, sender, sender_type, econet_version
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Optional[Frame]:
         """Read the frame and return corresponding handler object."""
         (
-            frame,
+            header,
             length,
             recipient,
             sender,
@@ -82,10 +85,10 @@ class FrameReader:
 
         if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
             # Destination address is econet or broadcast.
-            payload = frame[HEADER_SIZE:length]
+            payload = await self._reader.read(length - HEADER_SIZE)
 
-            if payload[-2] != util.crc(frame[:-2]):
-                raise ChecksumError("incorrect frame checksum")
+            if len(payload) <= 2 or (payload[-2] != util.crc(header + payload[:-2])):
+                raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
             return factory(
                 get_frame_handler(frame_type=payload[0]),
