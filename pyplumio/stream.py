@@ -2,16 +2,15 @@
 from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
-from typing import Final, Optional
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
-from pyplumio.exceptions import ChecksumError, LengthError, ReadError
-from pyplumio.frames import HEADER_SIZE, Frame, get_frame_handler
+from pyplumio.exceptions import ChecksumError
+from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.timeout import timeout
 
-READER_BUFFER_SIZE: Final = 1000
 READER_TIMEOUT: Final = 10
 WRITER_TIMEOUT: Final = 10
 
@@ -48,44 +47,53 @@ class FrameReader:
         """Initialize new Frame Reader object."""
         self._reader = reader
 
+    async def _read_header(self) -> Tuple[bytes, int, int, int, int, int]:
+        """Locate and read frame header."""
+        while True:
+            buffer = await self._reader.read(1)
+            if buffer and buffer[0] == FRAME_START:
+                break
+
+        buffer += await self._reader.read(HEADER_SIZE - 1)
+        header = buffer[0:HEADER_SIZE]
+        [
+            _,
+            length,
+            recipient,
+            sender,
+            sender_type,
+            econet_version,
+        ] = util.unpack_header(header)
+        buffer += await self._reader.read(length - HEADER_SIZE)
+
+        return buffer, length, recipient, sender, sender_type, econet_version
+
     @timeout(READER_TIMEOUT)
     async def read(self) -> Optional[Frame]:
-        """Attempt to read READER_BUFFER_SIZE bytes, find
-        valid frame in it and return corresponding frame handler object.
-        """
-        buffer = await self._reader.read(READER_BUFFER_SIZE)
+        """Read the frame and return corresponding handler object."""
+        (
+            frame,
+            length,
+            recipient,
+            sender,
+            sender_type,
+            econet_version,
+        ) = await self._read_header()
 
-        if len(buffer) >= HEADER_SIZE:
-            header = buffer[0:HEADER_SIZE]
-            [
-                _,
-                length,
-                recipient,
-                sender,
-                sender_type,
-                econet_version,
-            ] = util.unpack_header(header)
+        if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
+            # Destination address is econet or broadcast.
+            payload = frame[HEADER_SIZE:length]
 
-            if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
-                # Destination address is econet or broadcast.
-                payload = buffer[HEADER_SIZE:length]
-                frame_length = HEADER_SIZE + len(payload)
-                if frame_length != length:
-                    raise LengthError(
-                        "incorrect frame length. "
-                        + f"Expected {length} bytes, got {frame_length} bytes"
-                    )
+            if payload[-2] != util.crc(frame[:-2]):
+                raise ChecksumError("incorrect frame checksum")
 
-                if payload[-2] != util.crc(header + payload[:-2]):
-                    raise ChecksumError("incorrect frame checksum")
+            return factory(
+                get_frame_handler(frame_type=payload[0]),
+                recipient=recipient,
+                message=payload[1:-2],
+                sender=sender,
+                sender_type=sender_type,
+                econet_version=econet_version,
+            )
 
-                return factory(
-                    get_frame_handler(frame_type=payload[0]),
-                    recipient=recipient,
-                    message=payload[1:-2],
-                    sender=sender,
-                    sender_type=sender_type,
-                    econet_version=econet_version,
-                )
-
-        raise ReadError("unexpected frame length or unknown recipient")
+        return None

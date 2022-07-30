@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Optional
 
+from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request, RequestTypes, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
@@ -77,8 +78,8 @@ class SetBoilerParameterRequest(Request):
         """Create frame message."""
         try:
             message = bytearray()
-            name = data["name"]
-            value = data["value"]
+            name = data[ATTR_NAME]
+            value = data[ATTR_VALUE]
             message.append(BOILER_PARAMETERS.index(name))
             message.append(value)
             return message
@@ -94,9 +95,9 @@ class SetMixerParameterRequest(Request):
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
         try:
-            name = data["name"]
-            value = data["value"]
-            index = data["extra"]
+            name = data[ATTR_NAME]
+            value = data[ATTR_VALUE]
+            index = data[ATTR_EXTRA]
             message = bytearray()
             message.append(index)
             message.append(MIXER_PARAMETERS.index(name))
@@ -115,7 +116,7 @@ class BoilerControlRequest(Request):
         """Creates frame message."""
         try:
             message = bytearray()
-            message.append(data["value"])
+            message.append(data[ATTR_VALUE])
             return message
         except KeyError as e:
             raise FrameDataError from e

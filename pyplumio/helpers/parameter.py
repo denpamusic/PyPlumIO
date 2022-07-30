@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import Any, Final
 
+from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
@@ -165,7 +166,7 @@ class BoilerParameter(Parameter):
         return factory(
             handler,
             recipient=self.recipient,
-            data={"name": self.name, "value": self.value},
+            data={ATTR_NAME: self.name, ATTR_VALUE: self.value},
         )
 
 
@@ -182,7 +183,7 @@ class MixerParameter(Parameter):
         return factory(
             "frames.requests.SetMixerParameterRequest",
             recipient=self.recipient,
-            data={"name": self.name, "value": self.value, "extra": self.extra},
+            data={ATTR_NAME: self.name, ATTR_VALUE: self.value, ATTR_EXTRA: self.extra},
         )
 
 

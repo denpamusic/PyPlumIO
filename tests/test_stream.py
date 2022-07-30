@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.exceptions import ChecksumError, LengthError, ReadError
+from pyplumio.exceptions import ChecksumError
 from pyplumio.frames.requests import BoilerParametersRequest, ProgramVersionRequest
 from pyplumio.stream import FrameReader, FrameWriter
 
@@ -45,37 +45,7 @@ async def test_frame_reader(mock_read, frame_reader: FrameReader) -> None:
     assert frame.recipient == 0x0
     assert frame.message == b"\xff\x00"
     assert frame.econet_version == 0x5
-    mock_read.assert_awaited_once()
-
-
-@patch(
-    "asyncio.StreamReader.read",
-    return_value=b"\x68\x03\x00\x00",
-    new_callable=AsyncMock,
-)
-async def test_frame_reader_with_incomplete_data(
-    mock_read, frame_reader: FrameReader
-) -> None:
-    """Test reader with not data of less than header size in length."""
-    with pytest.raises(ReadError):
-        await frame_reader.read()
-
-    mock_read.assert_awaited_once()
-
-
-@patch(
-    "asyncio.StreamReader.read",
-    return_value=b"\x68\x03\x00\x00\x56\x30\x05\x31\xff\x00\xc9\x16",
-    new_callable=AsyncMock,
-)
-async def test_frame_reader_with_incorrect_length(
-    mock_read, frame_reader: FrameReader
-) -> None:
-    """Test reader on frame with incorrect length."""
-    with pytest.raises(LengthError):
-        await frame_reader.read()
-
-    mock_read.assert_awaited_once()
+    assert mock_read.call_count == 3
 
 
 @patch(
@@ -90,4 +60,4 @@ async def test_frame_reader_with_incorrect_crc(
     with pytest.raises(ChecksumError):
         await frame_reader.read()
 
-    mock_read.assert_awaited_once()
+    mock_read.call_count == 3

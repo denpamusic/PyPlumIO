@@ -39,7 +39,7 @@ class DeviceAvailableResponse(Response):
     frame_type: ClassVar[int] = ResponseTypes.DEVICE_AVAILABLE
 
     def create_message(self, data: DeviceDataType) -> MessageType:
-        """Creates frame message."""
+        """Create frame message."""
         return NetworkInfoStructure(self).encode(data)
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
@@ -51,6 +51,10 @@ class UIDResponse(Response):
     """Represents UID response. Contains product and model info."""
 
     frame_type: ClassVar[int] = ResponseTypes.UID
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        return ProductInfoStructure(self).encode(data)
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -74,6 +78,10 @@ class BoilerParametersResponse(Response):
     """
 
     frame_type: ClassVar[int] = ResponseTypes.BOILER_PARAMETERS
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        return BoilerParametersStructure(self).encode(data)
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""

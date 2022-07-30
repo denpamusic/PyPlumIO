@@ -62,6 +62,7 @@ class Connection(ABC):
     async def _connection_lost_callback(self) -> None:
         """Callback to resume the connection on connection lost."""
         if self._reconnect_on_failure and not self._closing:
+            _LOGGER.error("Connection to device lost. Trying to reconnect")
             await self._reconnect()
 
     async def _connect(self) -> None:

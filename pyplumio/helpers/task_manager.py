@@ -33,8 +33,8 @@ class TaskManager:
 
     def create_event(self, name: str) -> asyncio.Event:
         """Create the event."""
-        if name in self._events:
-            return self._events[name]
+        if name in self.events:
+            return self.events[name]
 
         event = asyncio.Event()
         self._events[name] = event
@@ -42,8 +42,8 @@ class TaskManager:
 
     def set_event(self, name: str) -> None:
         """Set the event."""
-        if name in self._events:
-            event = self._events[name]
+        if name in self.events:
+            event = self.events[name]
             if not event.is_set():
                 event.set()
 

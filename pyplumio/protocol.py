@@ -7,13 +7,8 @@ from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
 from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
-from pyplumio.exceptions import (
-    FrameError,
-    ReadError,
-    UnknownDeviceError,
-    UnknownFrameError,
-)
-from pyplumio.frames import RequestTypes
+from pyplumio.exceptions import FrameError, UnknownDeviceError, UnknownFrameError
+from pyplumio.frames import RequestTypes, ResponseTypes
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
@@ -36,23 +31,16 @@ def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
     return handler, class_name.lower()
 
 
-def _empty_queue(queue: asyncio.Queue) -> None:
-    """Empty asyncio queue."""
-    for _ in range(queue.qsize()):
-        queue.get_nowait()
-        queue.task_done()
-
-
 class Protocol(TaskManager):
     """Represents protocol."""
 
     writer: Optional[FrameWriter]
     reader: Optional[FrameReader]
     devices: Dict[str, Device]
+    connected: asyncio.Event
     _network: NetworkInfo
     _queues: Tuple[asyncio.Queue, asyncio.Queue]
     _connection_lost_callback: Optional[Callable[[], Awaitable[None]]]
-    _closing: bool = False
 
     def __init__(
         self,
@@ -65,6 +53,7 @@ class Protocol(TaskManager):
         self.writer = None
         self.reader = None
         self.devices = {}
+        self.connected = asyncio.Event()
         read_queue: asyncio.Queue = asyncio.Queue()
         write_queue: asyncio.Queue = asyncio.Queue()
         self._queues = (read_queue, write_queue)
@@ -88,63 +77,73 @@ class Protocol(TaskManager):
         self, read_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame reads."""
-        while self.reader:
+        await self.connected.wait()
+        while self.connected.is_set():
+            await lock.acquire()
             try:
-                async with lock:
-                    read_queue.put_nowait(await self.reader.read())
+                frame = await self.reader.read()
+                if frame is not None:
+                    read_queue.put_nowait(frame)
             except UnknownFrameError as e:
                 _LOGGER.debug("UnknownFrameError: %s", e)
-            except ReadError as e:
-                _LOGGER.debug("ReadError: %s", e)
             except FrameError as e:
                 _LOGGER.warning("FrameError: %s", e)
-            except (ConnectionError, asyncio.TimeoutError):
+            except (OSError, asyncio.TimeoutError):
+                self.create_task(self.connection_lost())
                 break
-
-        self.create_task(self.connection_lost())
-
-    async def frame_consumer(
-        self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
-    ) -> None:
-        """Handle frame processing."""
-        while True:
-            frame = await read_queue.get()
-            try:
-                handler, name = _get_device_handler_and_name(frame.sender)
-
-                if name not in self.devices:
-                    device = factory(handler, queue=write_queue)
-                    self.devices[name] = device
-                    self.set_event(name)
-
-                self.devices[name].handle_frame(frame)
-
-                if frame.is_type(
-                    RequestTypes.CHECK_DEVICE, RequestTypes.PROGRAM_VERSION
-                ):
-                    response = frame.response(data={ATTR_NETWORK: self._network})
-                    write_queue.put_nowait(response)
-
-            except UnknownDeviceError as e:
-                _LOGGER.debug("UnknownDeviceError: %s", e)
-
-            read_queue.task_done()
+            finally:
+                lock.release()
 
     async def write_consumer(
         self, write_queue: asyncio.Queue, lock: asyncio.Lock
     ) -> None:
         """Handle frame writes."""
-        while self.writer:
+        await self.connected.wait()
+        while self.connected.is_set():
             frame = await write_queue.get()
+            await lock.acquire()
             try:
-                async with lock:
-                    await self.writer.write(frame)
-            except (ConnectionError, asyncio.TimeoutError):
+                await self.writer.write(frame)
+            except (OSError, asyncio.TimeoutError):
+                self.create_task(self.connection_lost())
                 break
+            finally:
+                write_queue.task_done()
+                lock.release()
 
-            write_queue.task_done()
+    async def frame_consumer(
+        self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
+    ) -> None:
+        """Handle frame processing."""
+        await self.connected.wait()
+        while self.connected.is_set():
+            frame = await read_queue.get()
+            try:
+                handler, name = _get_device_handler_and_name(frame.sender)
+            except UnknownDeviceError as e:
+                _LOGGER.debug("UnknownDeviceError: %s", e)
+                read_queue.task_done()
+                continue
 
-        self.create_task(self.connection_lost())
+            if name not in self.devices:
+                device = factory(handler, queue=write_queue)
+                self.devices[name] = device
+                self.set_event(name)
+
+            self.devices[name].handle_frame(frame)
+
+            if frame.frame_type in (
+                RequestTypes.CHECK_DEVICE,
+                RequestTypes.PROGRAM_VERSION,
+            ):
+                write_queue.put_nowait(
+                    frame.response(data={ATTR_NETWORK: self._network})
+                )
+
+            if frame.frame_type == ResponseTypes.ALERTS:
+                print(frame.hex)
+
+            read_queue.task_done()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -160,25 +159,19 @@ class Protocol(TaskManager):
         for _ in range(CONSUMERS_NUMBER):
             self.create_task(self.frame_consumer(*self.queues))
 
+        self.connected.set()
+
     async def connection_lost(self):
         """Shutdown consumers and call connection lost callback."""
-        for queue in self.queues:
-            _empty_queue(queue)
-
-        self.writer = None
-        self.reader = None
-        await self.shutdown()
+        self.connected.clear()
         if self._connection_lost_callback is not None:
             await self._connection_lost_callback()
 
     async def shutdown(self):
         """Shutdown protocol tasks."""
         await asyncio.wait([queue.join() for queue in self.queues])
-        tasks = [task for task in self.tasks if task is not asyncio.current_task()]
-        for task in tasks:
-            task.cancel()
-
-        await asyncio.gather(*tasks, return_exceptions=True)
+        self.cancel_tasks()
+        await self.wait_until_done()
 
         for device in self.devices.values():
             await device.shutdown()

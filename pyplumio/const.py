@@ -8,6 +8,9 @@ ECONET_ADDRESS: Final[int] = 0x56
 ECOMAX_ADDRESS: Final[int] = 0x45
 ECOSTER_ADDRESS: Final[int] = 0x51
 
+ATTR_NAME: Final = "name"
+ATTR_VALUE: Final = "value"
+ATTR_EXTRA: Final = "extra"
 ATTR_BOILER_SENSORS: Final = "sensors"
 ATTR_BOILER_PARAMETERS: Final = "parameters"
 ATTR_PENDING_ALERTS: Final = "pending_alerts"

@@ -1,6 +1,7 @@
 """Contains tests for devices."""
 
 import asyncio
+from typing import Dict
 from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
@@ -18,9 +19,10 @@ from pyplumio.const import (
 )
 from pyplumio.devices import EcoMAX, FrameVersions, Mixer, get_device_handler
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Response
+from pyplumio.frames import MessageTypes, Response, ResponseTypes
 from pyplumio.frames.messages import RegulatorDataMessage
 from pyplumio.frames.requests import (
+    AlertsRequest,
     BoilerParametersRequest,
     DataSchemaRequest,
     MixerParametersRequest,
@@ -70,9 +72,18 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         call(BoilerParametersRequest(recipient=ECOMAX_ADDRESS)),
         call(MixerParametersRequest(recipient=ECOMAX_ADDRESS)),
         call(PasswordRequest(recipient=ECOMAX_ADDRESS)),
+        call(AlertsRequest(recipient=ECOMAX_ADDRESS)),
     ]
     mock_put_nowait.assert_has_calls(calls)
-    assert versions.versions == {0x19: 0, 0x39: 0, 0x3A: 0, 0x55: 0, 0x31: 0, 0x32: 0}
+    assert versions.versions == {
+        0x19: 0,
+        0x39: 0,
+        0x3A: 0,
+        0x55: 0,
+        0x31: 0,
+        0x32: 0,
+        0x3D: 0,
+    }
 
 
 async def test_boiler_data_callbacks(ecomax: EcoMAX) -> None:
@@ -125,24 +136,26 @@ async def test_fuel_consumption_callbacks() -> None:
 
 
 async def test_regdata_callbacks(
-    ecomax: EcoMAX,
-    data_schema: DataSchemaResponse,
-    regulator_data: RegulatorDataMessage,
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on received regdata."""
     # Test exception handling on data schema timeout.
     with patch(
         "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
     ):
-        ecomax.handle_frame(regulator_data)
+        ecomax.handle_frame(
+            RegulatorDataMessage(message=messages[MessageTypes.REGULATOR_DATA])
+        )
         await ecomax.wait_until_done()
 
     # Regulator data should be empty on schema timeout.
     assert not await ecomax.get_value(ATTR_REGDATA)
 
     # Set data schema and decode the regdata.
-    ecomax.handle_frame(data_schema)
-    ecomax.handle_frame(regulator_data)
+    ecomax.handle_frame(DataSchemaResponse(message=messages[ResponseTypes.DATA_SCHEMA]))
+    ecomax.handle_frame(
+        RegulatorDataMessage(message=messages[MessageTypes.REGULATOR_DATA])
+    )
     await ecomax.wait_until_done()
 
     regdata = await ecomax.get_value(ATTR_REGDATA)

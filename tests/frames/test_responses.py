@@ -1,19 +1,11 @@
 """Test PyPlumIO response frames."""
 
-from pyplumio.const import (
-    ATTR_BOILER_PARAMETERS,
-    ATTR_MIXER_PARAMETERS,
-    ATTR_MODE,
-    ATTR_NETWORK,
-    ATTR_PASSWORD,
-    ATTR_PRODUCT,
-    ATTR_SCHEMA,
-    ATTR_VERSION,
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
-)
+from typing import Dict
+
+from pyplumio.const import ATTR_MODE, ATTR_SCHEMA, BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.frames import ResponseTypes
 from pyplumio.frames.responses import (
-    REGDATA_SCHEMA,
+    AlertsResponse,
     BoilerParametersResponse,
     DataSchemaResponse,
     DeviceAvailableResponse,
@@ -23,14 +15,8 @@ from pyplumio.frames.responses import (
     UIDResponse,
 )
 from pyplumio.helpers.data_types import Byte
-from pyplumio.helpers.network_info import (
-    EthernetParameters,
-    NetworkInfo,
-    WirelessParameters,
-)
-from pyplumio.helpers.product_info import ProductInfo
-from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
+from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures.data_schema import REGDATA_SCHEMA
 
 
 def test_responses_type() -> None:
@@ -44,145 +30,101 @@ def test_responses_type() -> None:
         BoilerParametersResponse,
         MixerParametersResponse,
         DataSchemaResponse,
+        AlertsResponse,
     ):
         frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
         assert isinstance(frame, response)
 
 
-_program_version_data = {ATTR_VERSION: VersionInfo(software="1.0.0")}
-_program_version_bytes = bytearray.fromhex("FFFF057A0000000001000000000056")
-
-
-def test_program_version_create_message() -> None:
+def test_program_version_response(
+    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+) -> None:
     """Test creating program version message."""
-    frame = ProgramVersionResponse(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    assert frame.create_message(data=_program_version_data) == _program_version_bytes
+    frame1 = ProgramVersionResponse(data=data[ResponseTypes.PROGRAM_VERSION])
+    frame2 = ProgramVersionResponse(message=messages[ResponseTypes.PROGRAM_VERSION])
+    assert frame1.message == messages[ResponseTypes.PROGRAM_VERSION]
+    assert frame2.data == data[ResponseTypes.PROGRAM_VERSION]
 
 
-def test_program_version_decode_message() -> None:
-    """Test parsing program version message."""
-    frame = ProgramVersionResponse(
-        recipient=BROADCAST_ADDRESS,
-        sender=ECONET_ADDRESS,
-        message=_program_version_bytes,
-    )
-    assert frame.data == _program_version_data
-
-
-_device_available_data = {
-    ATTR_NETWORK: NetworkInfo(
-        eth=EthernetParameters(
-            ip="192.168.1.2",
-            netmask="255.255.255.0",
-            gateway="192.168.1.1",
-            status=True,
-        ),
-        wlan=WirelessParameters(
-            ip="192.168.2.2",
-            netmask="255.255.255.0",
-            gateway="192.168.2.1",
-            status=True,
-            ssid="tests",
-        ),
-    )
-}
-_device_available_bytes = bytearray.fromhex(
-    "01C0A80102FFFFFF00C0A8010101C0A80202FFFFFF00C0A802010101640100000000057465737473"
-)
-
-
-def test_device_available_create_message() -> None:
+def test_device_available_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
     """Test creating device available message."""
-    frame = DeviceAvailableResponse(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
-    assert frame.create_message(data=_device_available_data) == _device_available_bytes
+    frame1 = DeviceAvailableResponse(data=data[ResponseTypes.DEVICE_AVAILABLE])
+    frame2 = DeviceAvailableResponse(message=messages[ResponseTypes.DEVICE_AVAILABLE])
+    assert frame1.message == messages[ResponseTypes.DEVICE_AVAILABLE]
+    assert frame2.data == data[ResponseTypes.DEVICE_AVAILABLE]
 
 
-def test_device_available_decode_message() -> None:
-    """Test parsing device available message."""
-    frame = DeviceAvailableResponse(message=_device_available_bytes)
-    assert frame.data == _device_available_data
-
-
-_uid_data = {
-    ATTR_PRODUCT: ProductInfo(
-        type=0,
-        product=90,
-        uid="D251PAKR3GCPZ1K8G05G0",
-        logo=23040,
-        image=2816,
-        model="EM350P2-ZF",
-    )
-}
-_uid_bytes = bytearray.fromhex(
-    "005A000B001600110D3833383655395A0000000A454D33353050322D5A46"
-)
-
-
-def test_uid_decode_message() -> None:
+def test_uid_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
     """Test parsing UID message."""
-    frame = UIDResponse(message=_uid_bytes)
-    assert frame.data == _uid_data
+    frame1 = UIDResponse(message=messages[ResponseTypes.UID])
+    frame2 = UIDResponse(data=data[ResponseTypes.UID])
+    assert frame1.data == data[ResponseTypes.UID]
+    assert not frame2.message
 
 
-_password_bytes = bytearray.fromhex("0430303030")
-_password_data = {ATTR_PASSWORD: "0000"}
-
-
-def test_password_decode_message() -> None:
+def test_password_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
     """Test parsing password message."""
-    frame = PasswordResponse(message=_password_bytes)
-    assert frame.data == _password_data
+    frame1 = PasswordResponse(message=messages[ResponseTypes.PASSWORD])
+    frame2 = PasswordResponse(data=data[ResponseTypes.PASSWORD])
+    assert frame1.data == data[ResponseTypes.PASSWORD]
+    assert not frame2.message
 
 
-_boiler_parameters_bytes = bytearray.fromhex("000005503D643C294C28143BFFFFFF1401FA")
-_boiler_parameters_data = {
-    BOILER_PARAMETERS[0]: (80, 61, 100),
-    BOILER_PARAMETERS[1]: (60, 41, 76),
-    BOILER_PARAMETERS[2]: (40, 20, 59),
-    BOILER_PARAMETERS[4]: (20, 1, 250),
-}
-
-
-def test_boiler_parameters_decode_message() -> None:
+def test_boiler_parameters_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
     """Test parsing boiler parameters message."""
-    frame = BoilerParametersResponse(message=_boiler_parameters_bytes)
-    assert frame.data == {ATTR_BOILER_PARAMETERS: _boiler_parameters_data}
+    frame1 = BoilerParametersResponse(message=messages[ResponseTypes.BOILER_PARAMETERS])
+    frame2 = BoilerParametersResponse(data=data[ResponseTypes.BOILER_PARAMETERS])
+    assert frame1.data == data[ResponseTypes.BOILER_PARAMETERS]
+    assert not frame2.message
 
 
-_mixer_parameters_bytes = bytearray.fromhex("000002011E283C141E28")
-_mixer_parameters_data = [
-    {
-        "mix_target_temp": (30, 40, 60),
-        "min_mix_target_temp": (20, 30, 40),
-    }
-]
-
-
-def test_mixer_parameters_decode_message() -> None:
+def test_mixer_parameters_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
     """Test parsing message for mixer parameters response."""
-    frame = MixerParametersResponse(message=_mixer_parameters_bytes)
-    print(frame.data)
-    print({ATTR_MIXER_PARAMETERS: _mixer_parameters_data})
-    assert frame.data == {ATTR_MIXER_PARAMETERS: _mixer_parameters_data}
+    frame1 = MixerParametersResponse(message=messages[ResponseTypes.MIXER_PARAMETERS])
+    frame2 = MixerParametersResponse(data=data[ResponseTypes.MIXER_PARAMETERS])
+    assert frame1.data == data[ResponseTypes.MIXER_PARAMETERS]
+    assert not frame2.message
 
 
-_data_schema_bytes_empty = bytearray.fromhex("0000")
-
-
-def test_data_schema_decode_message(data_schema: DataSchemaResponse) -> None:
+def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
     """Test parsing message for data schema response."""
-    assert ATTR_SCHEMA in data_schema.data
-    assert len(data_schema.data[ATTR_SCHEMA]) == 257
+    frame = DataSchemaResponse(message=messages[ResponseTypes.DATA_SCHEMA])
+    assert ATTR_SCHEMA in frame.data
+    assert len(frame.data[ATTR_SCHEMA]) == 257
     matches = {
-        x[0]: x[1]
-        for x in data_schema.data[ATTR_SCHEMA]
-        if x[0] in REGDATA_SCHEMA.values()
+        x[0]: x[1] for x in frame.data[ATTR_SCHEMA] if x[0] in REGDATA_SCHEMA.values()
     }
     assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
     assert isinstance(matches[ATTR_MODE], Byte)
 
 
-def test_data_schema_decode_message_with_no_parameters() -> None:
+def test_data_schema_response_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
-    frame = DataSchemaResponse(message=_data_schema_bytes_empty)
+    frame = DataSchemaResponse(message=bytearray.fromhex("0000"))
     assert frame.data == {ATTR_SCHEMA: []}
+
+
+def test_alerts_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
+    """Test alert response."""
+    frame1 = AlertsResponse(message=messages[ResponseTypes.ALERTS])
+    frame2 = AlertsResponse(data=data[ResponseTypes.ALERTS])
+    assert frame1.data == data[ResponseTypes.ALERTS]
+    assert not frame2.message
