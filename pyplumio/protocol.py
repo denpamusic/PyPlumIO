@@ -8,7 +8,7 @@ from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import FrameError, UnknownDeviceError, UnknownFrameError
-from pyplumio.frames import RequestTypes, ResponseTypes
+from pyplumio.frames import RequestTypes
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
@@ -139,9 +139,6 @@ class Protocol(TaskManager):
                 write_queue.put_nowait(
                     frame.response(data={ATTR_NETWORK: self._network})
                 )
-
-            if frame.frame_type == ResponseTypes.ALERTS:
-                print(frame.hex)
 
             read_queue.task_done()
 
