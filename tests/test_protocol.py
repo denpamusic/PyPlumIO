@@ -8,7 +8,7 @@ import pytest
 
 from pyplumio.const import ECOMAX_ADDRESS
 from pyplumio.devices import EcoMAX
-from pyplumio.exceptions import FrameError, UnknownFrameError
+from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
 from pyplumio.frames.requests import (
     CheckDeviceRequest,
     ProgramVersionRequest,
@@ -112,6 +112,7 @@ async def test_frame_producer(
         "test",
         UnknownFrameError("test unknown frame error"),
         FrameError("test frame error"),
+        ReadError("test read error"),
         ConnectionError,
     )
 
@@ -133,12 +134,17 @@ async def test_frame_producer(
             logging.WARNING,
             "Can't process received frame: test frame error",
         ),
+        (
+            "pyplumio.protocol",
+            logging.DEBUG,
+            "Read error: test read error",
+        ),
     ]
 
     mock_read_queue.put_nowait.assert_called_once_with("test")
-    assert protocol.reader.read.await_count == 4
-    assert mock_lock.acquire.await_count == 4
-    assert mock_lock.release.call_count == 4
+    assert protocol.reader.read.await_count == 5
+    assert mock_lock.acquire.await_count == 5
+    assert mock_lock.release.call_count == 5
 
 
 @patch("pyplumio.protocol.Protocol.connection_lost", new_callable=Mock)

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Final, Optional, Tuple
 
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 HEATING_TARGET: Final = "heating_target"
 HEATING_STATUS: Final = "heating_status"
@@ -18,23 +18,15 @@ STATUSES: Tuple[str, ...] = (
 )
 
 
-class StatusesStructure(Structure):
+class StatusesStructure(StructureDecoder):
     """Represents statuses data structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        """Encode device data to bytearray message."""
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
+        data = make_device_data(data)
         for index, status in enumerate(STATUSES):
             data[status] = message[offset + index]
 
-        offset += 4
-
-        return data, offset
+        return data, offset + 4

@@ -11,7 +11,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import Structure, make_device_data
 
 
 class NetworkInfoStructure(Structure):
@@ -36,15 +36,13 @@ class NetworkInfoStructure(Structure):
         message += b"\x00" * 4
         message.append(len(network_info.wlan.ssid))
         message += network_info.wlan.ssid.encode("utf-8")
+
         return message
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         network_info = NetworkInfo(
             eth=EthernetParameters(
                 ip=util.ip4_from_bytes(message[offset : offset + 4]),
@@ -63,6 +61,5 @@ class NetworkInfoStructure(Structure):
             ),
             server_status=bool(message[offset + 25]),
         )
-        data[ATTR_NETWORK] = network_info
 
-        return data, offset
+        return make_device_data(data, {ATTR_NETWORK: network_info}), offset

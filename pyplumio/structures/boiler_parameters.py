@@ -6,7 +6,7 @@ from typing import Dict, Final, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_BOILER_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
 BOILER_PARAMETERS: List[str] = [
@@ -152,20 +152,13 @@ BOILER_PARAMETERS: List[str] = [
 ]
 
 
-class BoilerParametersStructure(Structure):
+class BoilerParametersStructure(StructureDecoder):
     """Represents boiler parameters data structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        """Encode device data to bytearray message."""
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
         offset += 3
@@ -178,6 +171,7 @@ class BoilerParametersStructure(Structure):
 
             offset += 3
 
-        data[ATTR_BOILER_PARAMETERS] = boiler_parameters
-
-        return data, offset
+        return (
+            make_device_data(data, {ATTR_BOILER_PARAMETERS: boiler_parameters}),
+            offset,
+        )

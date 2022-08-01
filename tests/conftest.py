@@ -185,6 +185,20 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
     }
 
 
+@pytest.fixture(name="sensor_data_without_thermostats")
+def fixture_sensor_data_without_thermostats() -> bytearray:
+    """Return device sensor data without thermostat data."""
+    return bytearray.fromhex(
+        """0755F7B15420BE5698FA3601003802003901003D18310000000000FF0300000900D012B34101F
+FFFFFFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D80002
+0000000000000000000000000000001120B3A4B01FFFFFFFF120A4801022800FF05FFFFFFFF28000800FFFFF
+FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF28000800
+    """.replace(
+            "\n", ""
+        )
+    )
+
+
 @pytest.fixture(name="bypass_asyncio_sleep")
 def fixture_bypass_asyncio_sleep():
     """Bypass asyncio sleep."""

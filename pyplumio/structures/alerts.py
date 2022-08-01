@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 
 def _convert_to_datetime(seconds: int) -> datetime:
@@ -48,20 +48,13 @@ class Alert:
     to_dt: Optional[datetime]
 
 
-class AlertsStructure(Structure):
+class AlertsStructure(StructureDecoder):
     """Represents alerts data structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        """Encode device data to bytearray message."""
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         first_alert = message[offset + 1]
         alerts_number = message[offset + 2]
         offset += 3
@@ -78,6 +71,4 @@ class AlertsStructure(Structure):
             alerts.append(Alert(code, from_dt, to_dt))
             offset += 9
 
-        data[ATTR_ALERTS] = alerts
-
-        return data, offset
+        return make_device_data(data, {ATTR_ALERTS: alerts}), offset

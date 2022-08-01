@@ -7,7 +7,7 @@ from pyplumio import util
 from pyplumio.const import ATTR_MODE, ATTR_SCHEMA
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 from pyplumio.structures.outputs import (
     FAN_OUTPUT,
     FEEDER_OUTPUT,
@@ -41,20 +41,13 @@ REGDATA_SCHEMA: Dict[int, str] = {
 }
 
 
-class DataSchemaStructure(Structure):
+class DataSchemaStructure(StructureDecoder):
     """Represent data schema structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        """Encode data and return bytearray."""
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         blocks_number = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
         schema: List[Tuple[str, DataType]] = []
@@ -66,6 +59,4 @@ class DataSchemaStructure(Structure):
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
-        data[ATTR_SCHEMA] = schema
-
-        return data, offset
+        return make_device_data(data, {ATTR_SCHEMA: schema}), offset

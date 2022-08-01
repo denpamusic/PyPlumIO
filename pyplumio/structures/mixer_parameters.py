@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_MIXER_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 MIXER_PARAMETERS: List[str] = [
     "mix_target_temp",
@@ -26,20 +26,13 @@ MIXER_PARAMETERS: List[str] = [
 ]
 
 
-class MixerParametersStructure(Structure):
+class MixerParametersStructure(StructureDecoder):
     """Represent mixer parameters data structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        """Encode device data to bytearray message."""
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
         mixers_number = message[offset + 3]
@@ -57,6 +50,7 @@ class MixerParametersStructure(Structure):
 
             mixer_parameters.append(parameters)
 
-        data[ATTR_MIXER_PARAMETERS] = mixer_parameters
-
-        return data, offset
+        return (
+            make_device_data(data, {ATTR_MIXER_PARAMETERS: mixer_parameters}),
+            offset,
+        )

@@ -90,11 +90,15 @@ class Parameter(ABC):
         """Return result of the subtraction."""
         return self._call_relational_method("__sub__", other)
 
-    def __truediv__(self, other) -> int:
+    def __truediv__(self, other):
         """Return result of true division."""
         return self._call_relational_method("__truediv__", other)
 
-    def __mul__(self, other) -> int:
+    def __floordiv__(self, other):
+        """Return result of floored division."""
+        return self._call_relational_method("__floordiv__", other)
+
+    def __mul__(self, other):
         """Return result of the multiplication."""
         return self._call_relational_method("__mul__", other)
 

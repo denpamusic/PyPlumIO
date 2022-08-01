@@ -55,6 +55,7 @@ def test_parameter_relational(parameter: BoilerBinaryParameter):
     assert (parameter + 1) == 2
     assert (parameter * 5) == 5
     assert (parameter / 1) == 1
+    assert (parameter // 1) == 1
 
 
 def test_parameter_compare(parameter: BoilerBinaryParameter) -> None:

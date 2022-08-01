@@ -6,7 +6,7 @@ from typing import Final, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_THERMOSTATS
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 ECOSTER_CONTACTS: Final = "contacts"
 ECOSTER_SCHEDULE: Final = "schedule"
@@ -15,22 +15,15 @@ ECOSTER_TEMP: Final = "temp"
 ECOSTER_TARGET: Final = "target"
 
 
-class ThermostatsStructure(Structure):
+class ThermostatsStructure(StructureDecoder):
     """Represents thermostats data structure."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         if message[offset] == 0xFF:
-            offset += 1
-            return data, offset
+            return make_device_data(data), offset + 1
 
         therm_contacts = message[offset]
         offset += 1
@@ -53,6 +46,4 @@ class ThermostatsStructure(Structure):
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1
 
-        data[ATTR_THERMOSTATS] = thermostats
-
-        return data, offset
+        return make_device_data(data, {ATTR_THERMOSTATS: thermostats}), offset

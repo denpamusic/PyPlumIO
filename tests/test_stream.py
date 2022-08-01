@@ -65,6 +65,19 @@ async def test_frame_reader_with_incomplete_data(
 
 @patch(
     "asyncio.StreamReader.read",
+    side_effect=(b"\x68", b"\x03\x00\x00\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    new_callable=AsyncMock,
+)
+async def test_frame_reader_with_incorrect_length(
+    mock_read, frame_reader: FrameReader
+) -> None:
+    """Test reader on frame with incorrect length."""
+    with pytest.raises(ReadError):
+        await frame_reader.read()
+
+
+@patch(
+    "asyncio.StreamReader.read",
     side_effect=(b"\x68", b"\x0c\x00\x00\x56\x30\x05", b"\x31\xfe\x00\xc9\x16"),
     new_callable=AsyncMock,
 )
@@ -75,4 +88,15 @@ async def test_frame_reader_with_incorrect_crc(
     with pytest.raises(ChecksumError):
         await frame_reader.read()
 
-    assert mock_read.call_count == 3
+
+@patch(
+    "asyncio.StreamReader.read",
+    side_effect=(b"\x68", b"\x0c\x00\x10\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    new_callable=AsyncMock,
+)
+async def test_frame_reader_with_unknown_address(
+    mock_read, frame_reader: FrameReader
+) -> None:
+    """Test reader on frame with unknown device address."""
+    result = await frame_reader.read()
+    assert result is None

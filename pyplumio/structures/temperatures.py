@@ -6,7 +6,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure
+from pyplumio.structures import StructureDecoder, make_device_data
 
 HEATING_TEMP: Final = "heating_temp"
 FEEDER_TEMP: Final = "feeder_temp"
@@ -46,21 +46,16 @@ TEMPERATURES: Tuple[str, ...] = (
 )
 
 
-class TemperaturesStructure(Structure):
+class TemperaturesStructure(StructureDecoder):
     """Represents temperatures data structures."""
-
-    def encode(self, data: DeviceDataType) -> bytearray:
-        return bytearray()
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         temp_number = message[offset]
         offset += 1
+        data = make_device_data(data)
         for _ in range(temp_number):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]

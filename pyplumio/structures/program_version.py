@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from pyplumio.const import ATTR_VERSION
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures import Structure
+from pyplumio.structures import Structure, make_device_data
 
 
 class ProgramVersionStructure(Structure):
@@ -33,9 +33,6 @@ class ProgramVersionStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if data is None:
-            data = {}
-
         version_info = VersionInfo()
         [
             version_info.struct_tag,
@@ -50,7 +47,5 @@ class ProgramVersionStructure(Structure):
         version_info.software = ".".join(
             map(str, [software_version1, software_version2, software_version3])
         )
-        offset += 15
-        data[ATTR_VERSION] = version_info
 
-        return data, offset
+        return make_device_data(data, {ATTR_VERSION: version_info}), offset + 15

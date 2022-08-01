@@ -68,3 +68,13 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_THERMOSTATS][0]["contacts"]
     assert not data[ATTR_THERMOSTATS][0]["schedule"]
     assert data[ATTR_THERMOSTATS][0]["target"] == 50
+
+
+def test_current_data_without_thermostats(
+    sensor_data_without_thermostats: bytearray,
+) -> None:
+    """Test that thermostats key is not present in the device data
+    if thermostats data is not present in the frame message.
+    """
+    frame = SensorDataMessage(message=sensor_data_without_thermostats)
+    assert ATTR_THERMOSTATS not in frame.data
