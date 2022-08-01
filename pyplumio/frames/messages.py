@@ -58,15 +58,13 @@ class SensorDataMessage(Message):
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
-        sensors: DeviceDataType = {}
-
-        offset = FrameVersionsStructure(self).decode(message, offset=0, data=sensors)[1]
+        sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         sensors[ATTR_MODE] = message[offset]
-        offset = OutputsStructure(self).decode(message, offset + 1, sensors)[1]
-        offset = OutputFlagsStructure(self).decode(message, offset, sensors)[1]
-        offset = TemperaturesStructure(self).decode(message, offset, sensors)[1]
-        offset = StatusesStructure(self).decode(message, offset, sensors)[1]
-        offset = PendingAlertsStructure(self).decode(message, offset, sensors)[1]
+        sensors, offset = OutputsStructure(self).decode(message, offset + 1, sensors)
+        sensors, offset = OutputFlagsStructure(self).decode(message, offset, sensors)
+        sensors, offset = TemperaturesStructure(self).decode(message, offset, sensors)
+        sensors, offset = StatusesStructure(self).decode(message, offset, sensors)
+        sensors, offset = PendingAlertsStructure(self).decode(message, offset, sensors)
         sensors[ATTR_FUEL_LEVEL] = message[offset]
         sensors[ATTR_TRANSMISSION] = message[offset + 1]
         sensors[ATTR_FAN_POWER] = util.unpack_float(message[offset + 2 : offset + 6])[0]
@@ -76,9 +74,9 @@ class SensorDataMessage(Message):
             message[offset + 11 : offset + 15]
         )[0]
         sensors[ATTR_THERMOSTAT] = message[offset + 15]
-        offset = ModulesStructure(self).decode(message, offset + 16, sensors)[1]
-        offset = LambaSensorStructure(self).decode(message, offset, sensors)[1]
-        offset = ThermostatsStructure(self).decode(message, offset, sensors)[1]
-        offset = MixersStructure(self).decode(message, offset, sensors)[1]
+        sensors, offset = ModulesStructure(self).decode(message, offset + 16, sensors)
+        sensors, offset = LambaSensorStructure(self).decode(message, offset, sensors)
+        sensors, offset = ThermostatsStructure(self).decode(message, offset, sensors)
+        sensors, offset = MixersStructure(self).decode(message, offset, sensors)
 
         return {ATTR_BOILER_SENSORS: sensors}
