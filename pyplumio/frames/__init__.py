@@ -122,10 +122,6 @@ class Frame(ABC, FrameDataClass):
         """Return frame length."""
         return self.length
 
-    def is_type(self, *args) -> bool:
-        """Check if frame is instance of type."""
-        return any(self.frame_type == x for x in args)
-
     @abstractmethod
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
