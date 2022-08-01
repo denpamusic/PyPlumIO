@@ -81,12 +81,18 @@ async def test_delta() -> None:
     test_callback.assert_awaited_once_with(-2)
     test_callback.reset_mock()
 
+    # Test with list.
     wrapped_callback = delta(test_callback)
     await wrapped_callback(["foo"])
-    test_callback.assert_not_awaited()
-
     await wrapped_callback(["foo", "bar"])
     test_callback.assert_awaited_once_with(["bar"])
+    test_callback.reset_mock()
+
+    # Test with unknown.
+    wrapped_callback = delta(test_callback)
+    await wrapped_callback("foo")
+    await wrapped_callback("bar")
+    test_callback.assert_not_awaited()
 
 
 @patch("time.time", side_effect=(0, 0, 1, 5, 6))

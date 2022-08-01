@@ -49,11 +49,20 @@ def test_parameter_set_out_of_range(parameter: BoilerBinaryParameter) -> None:
         parameter.set(39)
 
 
+def test_parameter_relational(parameter: BoilerBinaryParameter):
+    """Test parameter subtraction."""
+    assert (parameter - 1) == 0
+    assert (parameter + 1) == 2
+    assert (parameter * 5) == 5
+    assert (parameter / 1) == 1
+
+
 def test_parameter_compare(parameter: BoilerBinaryParameter) -> None:
     """Test parameter comparison."""
     assert parameter == 1
     parameter_tuple: ParameterDataType = (1, 0, 1)
     assert parameter == parameter_tuple
+    assert not parameter != parameter_tuple
     assert parameter < 2
     assert parameter > 0
     assert 0 <= parameter <= 1

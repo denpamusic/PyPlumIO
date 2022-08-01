@@ -141,9 +141,8 @@ class _Delta(Filter):
         old_value = self._value
         if _significantly_changed(old_value, new_value):
             self._value = new_value
-            if old_value is not None:
-                # Skip first call.
-                return await self._callback(_diffence_between(old_value, new_value))
+            if (difference := _diffence_between(old_value, new_value)) is not None:
+                return await self._callback(difference)
 
 
 def delta(callback: SensorCallbackType) -> _Delta:
