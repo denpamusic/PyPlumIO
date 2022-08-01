@@ -14,6 +14,9 @@ from pyplumio.helpers.timeout import timeout
 READER_TIMEOUT: Final = 10
 WRITER_TIMEOUT: Final = 10
 
+MIN_FRAME_LENGTH: Final = 10
+MAX_FRAME_LENGTH: Final = 1000
+
 
 class FrameWriter:
     """Represents frame writer."""
@@ -56,9 +59,7 @@ class FrameReader:
 
         header += await self._reader.read(HEADER_SIZE - 1)
         if len(header) < HEADER_SIZE:
-            raise ReadError(
-                f"Expected at least {HEADER_SIZE} bytes, got {len(header)} bytes"
-            )
+            raise ReadError(f"Header can't be less than {HEADER_SIZE} bytes")
 
         [
             _,
@@ -86,8 +87,16 @@ class FrameReader:
         if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
             # Destination address is econet or broadcast.
             payload = await self._reader.read(length - HEADER_SIZE)
+            payload_size = len(payload)
 
-            if len(payload) <= 2 or (payload[-2] != util.crc(header + payload[:-2])):
+            if (
+                length > MAX_FRAME_LENGTH
+                or length < MIN_FRAME_LENGTH
+                or (payload_size + HEADER_SIZE) != length
+            ):
+                raise ReadError(f"Unexpected frame size ({payload_size})")
+
+            if payload[-2] != util.crc(header + payload[:-2]):
                 raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
             return factory(
