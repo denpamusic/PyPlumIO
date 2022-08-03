@@ -127,12 +127,9 @@ class TcpConnection(Connection):
 
     def __repr__(self):
         """Return string representation of the class."""
-        return f"""TcpConnection(
-    host={self.host},
-    port={self.port},
-    kwargs={self._kwargs},
-)
-"""
+        return (
+            f"TcpConnection(host={self.host}, port={self.port}, kwargs={self._kwargs})"
+        )
 
     @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
@@ -155,12 +152,10 @@ class SerialConnection(Connection):
 
     def __repr__(self):
         """Return string representation of the class."""
-        return f"""SerialConnection(
-    device={self.device},
-    baudrate={self.baudrate},
-    kwargs={self._kwargs},
-)
-"""
+        return (
+            f"SerialConnection(device={self.device}, baudrate={self.baudrate}, "
+            + f"kwargs={self._kwargs})"
+        )
 
     @timeout(CONNECT_TIMEOUT)
     async def _open_connection(

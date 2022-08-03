@@ -74,19 +74,12 @@ def test_parameter_int(parameter: BoilerBinaryParameter) -> None:
     assert int(parameter) == 1
 
 
-def test_parameter__repr__(parameter: BoilerBinaryParameter) -> None:
+def test_parameter_repr(parameter: BoilerBinaryParameter) -> None:
     """Test parameter serilizable representation."""
-    output = f"""BoilerBinaryParameter(
-    queue = asyncio.Queue(),
-    recipient = {BROADCAST_ADDRESS},
-    name = summer_mode,
-    value = 1,
-    min_value = 0,
-    max_value = 1,
-    extra = None
-)""".strip()
-
-    assert repr(parameter) == output
+    assert repr(parameter) == (
+        f"BoilerBinaryParameter(queue=asyncio.Queue(), recipient={BROADCAST_ADDRESS}, "
+        + "name=summer_mode, value=1, min_value=0, max_value=1, extra=None)"
+    )
 
 
 def test_parameter_request(parameter: BoilerBinaryParameter) -> None:

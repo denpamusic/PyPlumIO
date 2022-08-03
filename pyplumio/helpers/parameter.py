@@ -64,15 +64,12 @@ class Parameter(ABC):
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
-        return f"""{self.__class__.__name__}(
-    queue = asyncio.Queue(),
-    recipient = {self.recipient},
-    name = {self.name},
-    value = {self._value},
-    min_value = {self._min_value},
-    max_value = {self._max_value},
-    extra = {self.extra}
-)"""
+        return (
+            self.__class__.__name__
+            + f"(queue=asyncio.Queue(), recipient={self.recipient}, name={self.name}, "
+            + f"value={self._value}, min_value={self._min_value}, "
+            + f"max_value={self._max_value}, extra={self.extra})"
+        )
 
     def _call_relational_method(self, method_to_call, other):
         func = getattr(self.value, method_to_call)

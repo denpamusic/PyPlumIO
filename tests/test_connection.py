@@ -167,11 +167,11 @@ async def test_repr(
     serial_connection: SerialConnection,
 ) -> None:
     """Test serializable representation."""
-    tcp_repr = repr(tcp_connection)
-    assert "TcpConnection" in tcp_repr
-    assert "host=localhost" in tcp_repr
-    assert "port=8899" in tcp_repr
-    serial_repr = repr(serial_connection)
-    assert "SerialConnection" in serial_repr
-    assert "device=/dev/ttyUSB0" in serial_repr
-    assert "baudrate=115200" in serial_repr
+    assert (
+        repr(tcp_connection)
+        == "TcpConnection(host=localhost, port=8899, kwargs={'test': 'test'})"
+    )
+    assert (
+        repr(serial_connection)
+        == "SerialConnection(device=/dev/ttyUSB0, baudrate=115200, kwargs={'test': 'test'})"
+    )

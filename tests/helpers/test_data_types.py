@@ -5,10 +5,10 @@ from pyplumio.helpers import data_types
 
 def test_type_repr():
     """Test serializable type representation."""
-    data_type_repr = repr(data_types.SignedChar(bytearray([0x16])))
-    assert "SignedChar" in data_type_repr
-    assert "data=bytearray(b'\\x16')" in data_type_repr
-    assert "size=1" in data_type_repr
+    assert (
+        repr(data_types.SignedChar(bytearray([0x16])))
+        == "SignedChar(data=bytearray(b'\\x16'), size=1)"
+    )
 
 
 def test_equality():
@@ -102,13 +102,13 @@ def test_boolean() -> None:
     """Test boolean data_type."""
     data_type = data_types.Boolean(bytearray([0x55]))
     for index, value in enumerate([1, 0, 1, 0, 1, 0, 1, 0]):
-        next = data_type.index(index)
+        next_bit = data_type.index(index)
         assert data_type.value == bool(value)
         if index < 7:
-            assert next == index + 1
+            assert next_bit == index + 1
             assert data_type.size == 0
         else:
-            assert next == 0
+            assert next_bit == 0
             assert data_type.size == 1
 
 
