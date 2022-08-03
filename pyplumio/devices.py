@@ -221,7 +221,6 @@ class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
     address: int = ECOMAX_ADDRESS
-    _mixers: Dict[int, Mixer]
     _fuel_burned_timestamp: float = 0.0
     _required_frames: List[Type[Request]] = [
         requests.UIDRequest,
@@ -235,7 +234,6 @@ class EcoMAX(Device):
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
-        self._mixers = {}
         self._fuel_burned_timestamp = time.time()
         self.register_callback(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
         self.register_callback(ATTR_MODE, on_change(self._add_boiler_control_parameter))
@@ -247,14 +245,12 @@ class EcoMAX(Device):
 
     def _get_mixer(self, mixer_number: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
-        mixer = (
-            self._mixers[mixer_number]
-            if mixer_number in self._mixers
-            else Mixer(mixer_number)
-        )
-        self._mixers[mixer_number] = mixer
-        self.set_attribute(ATTR_MIXERS, self._mixers)
-        return mixer
+        mixers = getattr(self, ATTR_MIXERS, {})
+        if mixer_number not in mixers:
+            mixers[mixer_number] = Mixer(mixer_number)
+            self.set_attribute(ATTR_MIXERS, mixers)
+
+        return mixers[mixer_number]
 
     async def _add_boiler_sensors(self, sensors: DeviceDataType) -> None:
         """Add boiler sensors values to the device object."""
@@ -358,7 +354,8 @@ class EcoMAX(Device):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
-        for mixer in self._mixers.values():
+        mixers = getattr(self, ATTR_MIXERS, {})
+        for mixer in mixers.values():
             await mixer.shutdown()
 
         await super().shutdown()
