@@ -287,6 +287,7 @@ async def test_shutdown(
 ) -> None:
     """Test device tasks shutdown."""
     ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [{"test_sensor": 42}]}))
+    await ecomax.get_value("mixers")
     await ecomax.shutdown()
     mock_wait_until_done.assert_awaited_once()
     mock_cancel_tasks.assert_called_once()

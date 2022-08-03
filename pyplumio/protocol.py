@@ -183,10 +183,10 @@ class Protocol(TaskManager):
         if self.writer:
             await self.writer.close()
 
-    async def get_device(self, device: str) -> Device:
+    async def get_device(self, device: str, timeout: Optional[float] = None) -> Device:
         """Wait for device and return it once it's available."""
         if device not in self.devices:
-            await self.create_event(device).wait()
+            await asyncio.wait_for(self.create_event(device).wait(), timeout=timeout)
 
         return self.devices[device]
 

@@ -5,7 +5,7 @@ from abc import ABC
 import asyncio
 from collections.abc import Sequence
 import time
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 from pyplumio.const import (
     ATTR_BOILER_PARAMETERS,
@@ -15,6 +15,7 @@ from pyplumio.const import (
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
     ATTR_MIXER_SENSORS,
+    ATTR_MIXERS,
     ATTR_MODE,
     ATTR_REGDATA,
     ATTR_SCHEMA,
@@ -40,7 +41,6 @@ from pyplumio.helpers.parameter import (
     is_binary_parameter,
 )
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.timeout import timeout
 from pyplumio.helpers.typing import (
     DeviceDataType,
     NumericType,
@@ -53,9 +53,6 @@ DEVICE_TYPES: Dict[int, str] = {
     ECOMAX_ADDRESS: "EcoMAX",
     ECOSTER_ADDRESS: "EcoSTER",
 }
-
-
-VALUE_TIMEOUT: int = 10
 
 
 def get_device_handler(address: int) -> str:
@@ -109,23 +106,23 @@ class AsyncDevice(ABC, TaskManager):
         self._callbacks = {}
         super().__init__()
 
-    @timeout(VALUE_TIMEOUT)
-    async def get_value(self, name: str):
+    async def get_value(self, name: str, timeout: Optional[float] = None):
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
         get_parameter(name: str) method."""
         if not hasattr(self, name):
-            await self.create_event(name).wait()
+            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
         value = getattr(self, name)
         return int(value) if isinstance(value, Parameter) else value
 
-    @timeout(VALUE_TIMEOUT)
-    async def set_value(self, name: str, value: NumericType) -> None:
+    async def set_value(
+        self, name: str, value: NumericType, timeout: Optional[float] = None
+    ) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
         if not hasattr(self, name):
-            await self.create_event(name).wait()
+            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
         parameter = getattr(self, name)
         if isinstance(parameter, Parameter):
@@ -134,11 +131,12 @@ class AsyncDevice(ABC, TaskManager):
 
         raise ParameterNotFoundError(f"Parameter not found ({name})")
 
-    @timeout(VALUE_TIMEOUT)
-    async def get_parameter(self, name: str) -> Parameter:
+    async def get_parameter(
+        self, name: str, timeout: Optional[float] = None
+    ) -> Parameter:
         """Return a parameter."""
         if not hasattr(self, name):
-            await self.create_event(name).wait()
+            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
         parameter = getattr(self, name)
         if isinstance(parameter, Parameter):
@@ -223,7 +221,7 @@ class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
     address: int = ECOMAX_ADDRESS
-    mixers: Dict[int, Mixer] = {}
+    _mixers: Dict[int, Mixer]
     _fuel_burned_timestamp: float = 0.0
     _required_frames: List[Type[Request]] = [
         requests.UIDRequest,
@@ -237,7 +235,7 @@ class EcoMAX(Device):
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
-        self._mixers: Dict[int, Mixer] = {}
+        self._mixers = {}
         self._fuel_burned_timestamp = time.time()
         self.register_callback(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
         self.register_callback(ATTR_MODE, on_change(self._add_boiler_control_parameter))
@@ -250,11 +248,12 @@ class EcoMAX(Device):
     def _get_mixer(self, mixer_number: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
         mixer = (
-            self.mixers[mixer_number]
-            if mixer_number in self.mixers
+            self._mixers[mixer_number]
+            if mixer_number in self._mixers
             else Mixer(mixer_number)
         )
-        self.mixers[mixer_number] = mixer
+        self._mixers[mixer_number] = mixer
+        self.set_attribute(ATTR_MIXERS, self._mixers)
         return mixer
 
     async def _add_boiler_sensors(self, sensors: DeviceDataType) -> None:
@@ -359,7 +358,7 @@ class EcoMAX(Device):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
-        for mixer in self.mixers.values():
+        for mixer in self._mixers.values():
             await mixer.shutdown()
 
         await super().shutdown()
