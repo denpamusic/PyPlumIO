@@ -62,11 +62,18 @@ This is intended to be used with RS-485 to USB adapters, that are connected dire
 ```python
 import asyncio
 import pyplumio
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 async def main():
   async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
-    ecomax = await connection.get_device("ecomax")
-    # Do something.
+    # You can also use optional timeout parameter of get_device method.
+    try:
+      ecomax = await connection.get_device("ecomax", timeout=10)
+      # Do something.
+    except asyncio.TimeoutError:
+      _LOGGER.error("Failed to get device within 10 seconds")
 	
 asyncio.run(main())
 ```
@@ -87,7 +94,7 @@ asyncio.run(main())
 ```
 
 ### Data and Parameters
-Data can be mutable (Parameters) or immutable (Values). They can be accessed via `await ecomax.get_value(name: str)` and `await ecomax.get_parameter(name: str)` methods.
+Data can be mutable (Parameters) or immutable (Values). They can be accessed via `await ecomax.get_value(name: str, timeout: float | None = None)` and `await ecomax.get_parameter(name: str, timeout: float | None = None)` methods.
 
 Each Plum device supports different attributes and parameters.
 
@@ -109,7 +116,7 @@ asyncio.run(main())
 ```
 
 ### Writing
-You can easily change controller parameters by awaiting `Device.set_value(name: str, value: int)` or by getting parameter via `Device.get_parameter(name: str)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
+You can easily change controller parameters by awaiting `Device.set_value(name: str, value: int, timeout: float | None = None)` or by getting parameter via `Device.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`. In examples below, we will set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
 
