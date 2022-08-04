@@ -99,21 +99,23 @@ class FrameVersions:
 class AsyncDevice(ABC, TaskManager):
     """Represents a device with awaitable properties."""
 
+    data: DeviceDataType
     _callbacks: Dict[str, List[SensorCallbackType]]
 
     def __init__(self):
         """Initializes Async Device object."""
-        self._callbacks = {}
         super().__init__()
+        self.data = {}
+        self._callbacks = {}
 
     async def get_value(self, name: str, timeout: Optional[float] = None):
         """Return a value. When encountering a parameter, only it's
         value will be returned. To return the Parameter object use
-        get_parameter(name: str) method."""
-        if not hasattr(self, name):
+        get_parameter method."""
+        if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-        value = getattr(self, name)
+        value = self.data[name]
         return int(value) if isinstance(value, Parameter) else value
 
     async def set_value(
@@ -121,10 +123,10 @@ class AsyncDevice(ABC, TaskManager):
     ) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
-        if not hasattr(self, name):
+        if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-        parameter = getattr(self, name)
+        parameter = self.data[name]
         if isinstance(parameter, Parameter):
             parameter.set(value)
             return
@@ -135,27 +137,27 @@ class AsyncDevice(ABC, TaskManager):
         self, name: str, timeout: Optional[float] = None
     ) -> Parameter:
         """Return a parameter."""
-        if not hasattr(self, name):
+        if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-        parameter = getattr(self, name)
+        parameter = self.data[name]
         if isinstance(parameter, Parameter):
             return parameter
 
         raise ParameterNotFoundError(f"Parameter not found ({name})")
 
-    def set_attribute(self, *args, **kwargs) -> None:
+    def set_device_data(self, *args, **kwargs) -> None:
         """Call registered callbacks on value change."""
-        self.create_task(self.async_set_attribute(*args, **kwargs))
+        self.create_task(self.async_set_device_data(*args, **kwargs))
 
-    async def async_set_attribute(self, name: str, value) -> None:
+    async def async_set_device_data(self, name: str, value) -> None:
         """Asynchronously call registered callbacks on value change."""
         if name in self._callbacks:
             for callback in self._callbacks[name]:
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
 
-        setattr(self, name, value)
+        self.data[name] = value
         self.set_event(name)
 
     async def shutdown(self) -> None:
@@ -204,7 +206,7 @@ class Device(AsyncDevice):
         """Handle received frame."""
         if frame.data is not None:
             for name, value in frame.data.items():
-                self.set_attribute(name, value)
+                self.set_device_data(name, value)
 
     @property
     def required_frames(self) -> List[Type[Request]]:
@@ -245,17 +247,17 @@ class EcoMAX(Device):
 
     def _get_mixer(self, mixer_number: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
-        mixers = getattr(self, ATTR_MIXERS, {})
+        mixers = self.data.get(ATTR_MIXERS, {})
         if mixer_number not in mixers:
             mixers[mixer_number] = Mixer(mixer_number)
-            self.set_attribute(ATTR_MIXERS, mixers)
+            self.set_device_data(ATTR_MIXERS, mixers)
 
         return mixers[mixer_number]
 
     async def _add_boiler_sensors(self, sensors: DeviceDataType) -> None:
         """Add boiler sensors values to the device object."""
         for name, value in sensors.items():
-            await self.async_set_attribute(name, value)
+            await self.async_set_device_data(name, value)
 
     async def _add_boiler_parameters(
         self, parameters: DeviceDataType
@@ -274,7 +276,7 @@ class EcoMAX(Device):
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_set_attribute(name, parameter)
+            await self.async_set_device_data(name, parameter)
             parameter_objects[name] = parameter
 
         return parameter_objects
@@ -284,7 +286,7 @@ class EcoMAX(Device):
         for mixer_number, mixer_data in enumerate(sensors):
             mixer = self._get_mixer(mixer_number)
             for name, value in mixer_data.items():
-                await mixer.async_set_attribute(name, value)
+                await mixer.async_set_device_data(name, value)
 
     async def _set_mixer_parameters(self, parameters: Sequence[DeviceDataType]) -> None:
         """Set mixer parameters."""
@@ -305,7 +307,7 @@ class EcoMAX(Device):
                     max_value=value[2],
                     extra=mixer_number,
                 )
-                await mixer.async_set_attribute(name, parameter)
+                await mixer.async_set_device_data(name, parameter)
 
     async def _add_boiler_control_parameter(self, mode: int) -> None:
         """Add BoilerControl parameter to the device instance."""
@@ -317,7 +319,7 @@ class EcoMAX(Device):
             min_value=0,
             max_value=1,
         )
-        await self.async_set_attribute(PARAMETER_BOILER_CONTROL, parameter)
+        await self.async_set_device_data(PARAMETER_BOILER_CONTROL, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: int) -> None:
         """Add burned fuel counter."""
@@ -325,36 +327,32 @@ class EcoMAX(Device):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         fuel_burned = (fuel_consumption / 3600) * seconds_passed
         self._fuel_burned_timestamp = current_timestamp
-        await self.async_set_attribute(ATTR_FUEL_BURNED, fuel_burned)
+        await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
 
     async def _decode_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
         """Add sensor values from the regulator data."""
         offset = 0
         boolean_index = 0
-        data = {}
-        try:
-            schema = await self.get_value(ATTR_SCHEMA)
-            for parameter in schema:
-                parameter_id, parameter_type = parameter
-                if not isinstance(parameter_type, Boolean) and boolean_index > 0:
-                    offset += 1
-                    boolean_index = 0
+        regdata: DeviceDataType = {}
+        schema = self.data.get(ATTR_SCHEMA, [])
+        for parameter in schema:
+            parameter_id, parameter_type = parameter
+            if not isinstance(parameter_type, Boolean) and boolean_index > 0:
+                offset += 1
+                boolean_index = 0
 
-                parameter_type.unpack(regulator_data[offset:])
-                if isinstance(parameter_type, Boolean):
-                    boolean_index = parameter_type.index(boolean_index)
+            parameter_type.unpack(regulator_data[offset:])
+            if isinstance(parameter_type, Boolean):
+                boolean_index = parameter_type.index(boolean_index)
 
-                data[parameter_id] = parameter_type.value
-                offset += parameter_type.size
-        except asyncio.TimeoutError:
-            # Return empty dictionary on exception.
-            pass
+            regdata[parameter_id] = parameter_type.value
+            offset += parameter_type.size
 
-        return data
+        return regdata
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
-        mixers = getattr(self, ATTR_MIXERS, {})
+        mixers = self.data.get(ATTR_MIXERS, {})
         for mixer in mixers.values():
             await mixer.shutdown()
 

@@ -226,57 +226,54 @@ async def test_register_callback(ecomax: EcoMAX) -> None:
 async def test_get_value(ecomax: EcoMAX) -> None:
     """Test wait for device method."""
     mock_event = Mock(spec=asyncio.Event)
-    with pytest.raises(AttributeError), patch(
+    with pytest.raises(KeyError), patch(
         "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
-        await ecomax.get_value("valid_value")
+        await ecomax.get_value("foo")
 
-    mock_create_event.assert_called_once_with("valid_value")
+    mock_create_event.assert_called_once_with("foo")
     mock_event.wait.assert_awaited_once()
 
 
 async def test_set_value(ecomax: EcoMAX) -> None:
     """Test setting parameter value via set_value helper."""
     # Test with valid parameter.
-    mock_valid = Mock(spec=Parameter)
     mock_event = Mock(spec=asyncio.Event)
-    with pytest.raises(AttributeError), patch(
+    with pytest.raises(KeyError), patch(
         "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
-        await ecomax.set_value("valid_parameter", 1)
+        await ecomax.set_value("foo", 1)
 
-    mock_create_event.assert_called_once_with("valid_parameter")
+    mock_create_event.assert_called_once_with("foo")
     mock_event.wait.assert_awaited_once()
-    ecomax.__dict__["valid_parameter"] = mock_valid
-    await ecomax.set_value("valid_parameter", 2)
-    mock_valid.set.assert_called_once_with(2)
+    ecomax.data["foo"] = Mock(spec=Parameter)
+    await ecomax.set_value("foo", 2)
+    ecomax.data["foo"].set.assert_called_once_with(2)
 
     # Test with invalid parameter.
-    mock_invalid = Mock()
-    ecomax.__dict__["invalid_parameter"] = mock_invalid
+    ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
-        await ecomax.set_value("invalid_parameter", 1)
+        await ecomax.set_value("bar", 1)
 
 
 async def test_get_parameter(ecomax: EcoMAX) -> None:
     """Test getting parameter from device."""
     mock_event = Mock(spec=asyncio.Event)
-    with pytest.raises(AttributeError), patch(
+    with pytest.raises(KeyError), patch(
         "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
-        await ecomax.get_parameter("test_parameter")
+        await ecomax.get_parameter("foo")
 
-    mock_create_event.assert_called_once_with("test_parameter")
+    mock_create_event.assert_called_once_with("foo")
     mock_event.wait.assert_awaited_once()
 
     # Test with invalid parameter.
-    invalid = Mock()
-    ecomax.__dict__["invalid_parameter"] = invalid
+    ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
-        await ecomax.get_parameter("invalid_parameter")
+        await ecomax.get_parameter("bar")
 
 
 @patch("pyplumio.devices.Mixer.shutdown")
