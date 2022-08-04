@@ -253,10 +253,9 @@ class EcoMAX(Device):
         except IndexError:
             mixer = Mixer(mixer_number)
             mixers.append(mixer)
-
-        if (mixer_number + 1) == total_mixers:
-            # All mixers were processed, notify callbacks and getters.
-            self.set_device_data(ATTR_MIXERS, mixers)
+            if len(mixers) == total_mixers:
+                # All mixers were processed, notify callbacks and getters.
+                self.set_device_data(ATTR_MIXERS, mixers)
 
         return mixer
 
