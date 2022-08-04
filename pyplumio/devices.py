@@ -245,25 +245,30 @@ class EcoMAX(Device):
         self.register_callback(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
         self.register_callback(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
 
-    def _get_mixer(self, mixer_number: int) -> Mixer:
+    def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
-        mixers = self.data.get(ATTR_MIXERS, {})
-        if mixer_number not in mixers:
-            mixers[mixer_number] = Mixer(mixer_number)
+        mixers = self.data.setdefault(ATTR_MIXERS, [])
+        try:
+            mixer = mixers[mixer_number]
+        except IndexError:
+            mixer = Mixer(mixer_number)
+            mixers.append(mixer)
+
+        if (mixer_number + 1) == total_mixers:
+            # All mixers were processed, notify callbacks and getters.
             self.set_device_data(ATTR_MIXERS, mixers)
 
-        return mixers[mixer_number]
+        return mixer
 
-    async def _add_boiler_sensors(self, sensors: DeviceDataType) -> None:
-        """Add boiler sensors values to the device object."""
+    async def _add_boiler_sensors(self, sensors: DeviceDataType) -> bool:
+        """Add boiler sensors values to the device data."""
         for name, value in sensors.items():
             await self.async_set_device_data(name, value)
 
-    async def _add_boiler_parameters(
-        self, parameters: DeviceDataType
-    ) -> DeviceDataType:
-        """Add Parameter objects to the device object."""
-        parameter_objects: Dict[str, Parameter] = {}
+        return True
+
+    async def _add_boiler_parameters(self, parameters: DeviceDataType) -> bool:
+        """Add Parameter objects to the device data."""
         for name, value in parameters.items():
             cls = (
                 BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
@@ -277,21 +282,22 @@ class EcoMAX(Device):
                 max_value=value[2],
             )
             await self.async_set_device_data(name, parameter)
-            parameter_objects[name] = parameter
 
-        return parameter_objects
+        return True
 
-    async def _set_mixer_sensors(self, sensors: Sequence[DeviceDataType]) -> None:
+    async def _set_mixer_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
         """Set sensor values for the mixer."""
         for mixer_number, mixer_data in enumerate(sensors):
-            mixer = self._get_mixer(mixer_number)
+            mixer = self._get_mixer(mixer_number, len(sensors))
             for name, value in mixer_data.items():
                 await mixer.async_set_device_data(name, value)
 
-    async def _set_mixer_parameters(self, parameters: Sequence[DeviceDataType]) -> None:
+        return True
+
+    async def _set_mixer_parameters(self, parameters: Sequence[DeviceDataType]) -> bool:
         """Set mixer parameters."""
         for mixer_number, mixer_data in enumerate(parameters):
-            mixer = self._get_mixer(mixer_number)
+            mixer = self._get_mixer(mixer_number, len(parameters))
             for name, value in mixer_data.items():
                 cls = (
                     MixerBinaryParameter
@@ -308,6 +314,8 @@ class EcoMAX(Device):
                     extra=mixer_number,
                 )
                 await mixer.async_set_device_data(name, parameter)
+
+        return True
 
     async def _add_boiler_control_parameter(self, mode: int) -> None:
         """Add BoilerControl parameter to the device instance."""
@@ -352,8 +360,8 @@ class EcoMAX(Device):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
-        mixers = self.data.get(ATTR_MIXERS, {})
-        for mixer in mixers.values():
+        mixers = self.data.get(ATTR_MIXERS, [])
+        for mixer in mixers:
             await mixer.shutdown()
 
         await super().shutdown()
