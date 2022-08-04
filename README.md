@@ -336,7 +336,7 @@ frame_versions: Dict[int, int] = {
 ## Home Assistant Integration
 There is companion Home Assistant integration that is being co-developed with this package and depends on it. Click button below to check it out.
 
-[![hass integration](https://img.shields.io/badge/hass%20integration-v0.2.8-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
+[![hass integration](https://img.shields.io/badge/hass%20integration-v0.2.9-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
 
 ## Attribution
 Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
