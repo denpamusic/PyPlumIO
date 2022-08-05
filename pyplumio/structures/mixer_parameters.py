@@ -1,7 +1,7 @@
 """Contains mixer parameter structure decoder."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_MIXER_PARAMETERS
@@ -26,6 +26,22 @@ MIXER_PARAMETERS: List[str] = [
 ]
 
 
+def _decode_mixer_parameters(
+    message: bytearray, offset: int, parameter_name_indexes: Iterable
+) -> Tuple[Dict[str, ParameterDataType], int]:
+    """Decode parameters for a single mixer."""
+    mixer_parameters: Dict[str, ParameterDataType] = {}
+    for index in parameter_name_indexes:
+        parameter = util.unpack_parameter(message, offset)
+        if parameter is not None:
+            parameter_name = MIXER_PARAMETERS[index]
+            mixer_parameters[parameter_name] = parameter
+
+        offset += 3
+
+    return mixer_parameters, offset
+
+
 class MixerParametersStructure(StructureDecoder):
     """Represent mixer parameters data structure."""
 
@@ -37,17 +53,13 @@ class MixerParametersStructure(StructureDecoder):
         parameters_number = message[offset + 2]
         mixers_number = message[offset + 3]
         offset += 4
-        mixer_parameters = []
+        mixer_parameters: List[Dict[str, ParameterDataType]] = []
         for _ in range(mixers_number):
-            parameters: Dict[str, ParameterDataType] = {}
-            for index in range(first_parameter, parameters_number + first_parameter):
-                parameter = util.unpack_parameter(message, offset)
-                if parameter is not None:
-                    parameter_name = MIXER_PARAMETERS[index]
-                    parameters[parameter_name] = parameter
-
-                offset += 3
-
+            parameters, offset = _decode_mixer_parameters(
+                message,
+                offset,
+                range(first_parameter, parameters_number + first_parameter),
+            )
             mixer_parameters.append(parameters)
 
         return (
