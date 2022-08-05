@@ -30,10 +30,6 @@ class ChecksumError(FrameError):
     """Raised on checksum error while parsing frame content."""
 
 
-class LengthError(FrameError):
-    """Raised on unexpected frame length while parsing frame content."""
-
-
 class VersionError(FrameError):
     """Raised on unknown frame version."""
 
