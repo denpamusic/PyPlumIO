@@ -282,24 +282,24 @@ Frames can be split into requests, responses and messages. See [requests.py](htt
 For example we can request list of editable parameters from the controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
 
 ### Communication
-ecoMAX controller constantly sends `ProgramVersion[type=0x40]` and `CheckDevice[type=0x30]` requests to every known device on the network and broadcasts `RegData[type=0x08]` message, that contains basic controller data.
+ecoMAX controller constantly sends `ProgramVersionRequest[type=0x40]` and `CheckDeviceRequest[type=0x30]` requests to every known device on the network and broadcasts `RegulatorDataMessage[type=0x08]` message, that contains basic controller data.
 
 Initial exchange between ecoMAX controller and PyPlumIO library can be illustrated with following diagram:
 
 _NOTE: device network address is listed in square brackets._
 
 ```
-ecoMAX[0x45] -> Broadcast[0x00]: RegData[type=0x08] Contains basic ecoMAX data.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersion[type=0x40] Program version request.
-ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersion[type=0xC0] Contains program version.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDevice[type=0x30] Check device request.
-ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailable[type=0xB0] Contains network information.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  CurrentData[type=0x35] Contains current ecoMAX data.
+ecoMAX[0x45] -> Broadcast[0x00]: RegulatorDataMessage[type=0x08] Contains basic ecoMAX data.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersionRequest[type=0x40] Program version request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersionResponse[type=0xC0] Contains program version.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDeviceRequest[type=0x30] Check device request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailableResponse[type=0xB0] Contains network information.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  SensorDataMessage[type=0x35] Contains ecoMAX sensor data.
 ```
 
 ### Versioning
 Protocol has built-in way to track frame versions. This is used to synchronize changes between devices.
-Both broadcast `RegData[type=0x08]` and unicast `CurrentData[type=0x35]` frames sent by ecoMAX controller contain versioning data.
+Both broadcast `RegulatorDataMessage[type=0x08]` and unicast `SensorDataMessage[type=0x35]` frames sent by ecoMAX controller contain versioning data.
 
 This data can be represented with following dictionary:
 ```python
@@ -316,7 +316,7 @@ frame_versions: Dict[int, int] = {
   0x53: 1,
 }
 ```
-In this dictionary keys are frame types and values are version numbers. In example above, frame `Parameters[type=0x31]` has version 37.
+In this dictionary keys are frame types and values are version numbers. In example above, frame `ParametersRequest[type=0x31]` has version 37.
 If we change any parameters either remotely or on ecoMAX itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
 ```python
 frame_versions: Dict[int, int] = {
