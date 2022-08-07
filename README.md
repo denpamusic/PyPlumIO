@@ -27,6 +27,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Writing](#writing)
   - [Callbacks](#callbacks)
   - [Filters](#filters)
+  - [Working with Mixers](#working-with-mixers)
   - [Network Information](#network-information)
 - [Protocol](#protocol)
   - [Frame Structure](#frame-structure)
@@ -96,13 +97,13 @@ asyncio.run(main())
 ```
 
 ### Values and Parameters
-Data can be immutable (Values) or mutable (Parameters). They can be accessed via `ecomax.get_value(name: str, timeout: float | None = None)` and `ecomax.get_parameter(name: str, timeout: float | None = None)` methods.
+Data can be immutable (Values) or mutable (Parameters). They can be accessed via `AsyncDevice.get_value(name: str, timeout: float | None = None)` and `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` methods.
 
-Each device supports different attributes and parameters, you can check all available values and parameters by looking at `Device.data` attribute.
+Each device supports different attributes and parameters, you can check all available values and parameters by looking at `AsyncDevice.data` attribute.
 
 ### Reading
 Interaction with the device is mainly done through async getter methods.
-For example you can read current feed water temperature by awaiting for `Device.get_value("heating_temp")`.
+For example you can read current feed water temperature by awaiting for `AsyncDevice.get_value("heating_temp")`.
 
 The following example will print out current feed water temperature and close the connection.
 ```python
@@ -118,7 +119,7 @@ asyncio.run(main())
 ```
 
 ### Writing
-You can change controller parameters by awaiting `Device.set_value(name: str, value: int, timeout: float | None = None)` or by getting parameter via `Device.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`. In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
+You can change controller parameters by awaiting `AsyncDevice.set_value(name: str, value: int, timeout: float | None = None)` or by getting parameter via `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`. In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
 
@@ -183,11 +184,11 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     ecomax.register_callback("heating_temp", my_callback)
-    # Wait until disconnected.
+    # Wait until disconnected (forever)
     connection.wait_until_done()
 
 asyncio.run(main())
-````
+```
 
 ### Filters
 Callbacks can be improved by using built-in filters `aggregate(callback, seconds)`, `on_change(callback)`, `debounce(callback, min_calls)` `delta(callback)`, and `throttle(callback, seconds)`.
@@ -230,6 +231,43 @@ async def main():
     # sooner that 5 seconds.
     ecomax.register_callback("heating_temp", throttle(on_change(seventh_callback), seconds=5))
 
+```
+
+### Working with Mixers
+If your ecoMAX controller support mixers, you can access them via `mixers` property through `AsyncDevice.get_value("mixers")` call.
+
+Result of this call will be a list of `Mixer` instances.
+`Mixer` class inherits `AsyncDevice` and provides access to getter/setter functions and callback support.
+
+Each device supports different attributes and parameters for mixers, you can check all available values and parameters by looking at `Mixer.data` attribute.
+
+```python
+import asyncio
+import pyplumio
+
+from pyplumio.helpers.filters import on_change
+
+async def my_callback(mixer_pump_status: bool) -> None:
+  print(f"Mixer Pump Working: {mixer_pump_status}")
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    mixers = await ecomax.get_value("mixers")
+
+    # Get single mixer from the list.
+    mixer = mixers[0]
+    mixer = await mixer.get_value("temp")
+    await mixer.set_value("mix_target_temp", 50)
+    mixer.register_callback("mixer_pump", on_change(my_callback))
+
+    # Print all available mixer data.
+    print(mixer.data)
+
+    # Wait until disconnected (forever)
+    connection.wait_until_done()
+
+asyncio.run(main())
 ```
 
 ### Network Information
