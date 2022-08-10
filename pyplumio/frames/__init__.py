@@ -73,17 +73,23 @@ class FrameTypes(Enum):
     MESSAGES = MessageTypes
 
 
+def _handler_class_path(module: str, type_name: str) -> str:
+    """Return handler class path from module and frame type name."""
+
+    return f"{module.lower()}.{util.to_camelcase(type_name)}{module.capitalize()[:-1]}"
+
+
 # Dictionary of frame handler classes indexed by frame types.
 # example: "24: requests.StopMasterRequest"
 FRAME_TYPES: Dict[int, str] = {
-    x.value: f"{y.name.lower()}.{util.to_camelcase(x.name)}{y.name.capitalize()[:-1]}"
-    for y in FrameTypes
-    for x in y.value
+    frame_type.value: _handler_class_path(module.name, frame_type.name)
+    for module in FrameTypes
+    for frame_type in module.value
 }
 
 
 def get_frame_handler(frame_type: int) -> str:
-    """Return class path for the frame type."""
+    """Return handler class path for the frame type."""
     if frame_type in FRAME_TYPES:
         return f"frames.{FRAME_TYPES[frame_type]}"
 
