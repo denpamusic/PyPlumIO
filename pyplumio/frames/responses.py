@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from pyplumio.const import ATTR_PASSWORD
-from pyplumio.frames import Response, ResponseTypes
+from pyplumio.frames import FrameTypes, Response
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.alerts import AlertsStructure
 from pyplumio.structures.boiler_parameters import BoilerParametersStructure
@@ -20,7 +20,7 @@ class ProgramVersionResponse(Response):
     version info.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PROGRAM_VERSION
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -36,7 +36,7 @@ class DeviceAvailableResponse(Response):
     information and status.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.DEVICE_AVAILABLE
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_DEVICE_AVAILABLE
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -50,7 +50,7 @@ class DeviceAvailableResponse(Response):
 class UIDResponse(Response):
     """Represents UID response. Contains product and model info."""
 
-    frame_type: ClassVar[int] = ResponseTypes.UID
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_UID
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -64,7 +64,7 @@ class UIDResponse(Response):
 class PasswordResponse(Response):
     """Represent password response. Contains device service password."""
 
-    frame_type: ClassVar[int] = ResponseTypes.PASSWORD
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PASSWORD
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -77,7 +77,7 @@ class BoilerParametersResponse(Response):
     parameters.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.BOILER_PARAMETERS
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_BOILER_PARAMETERS
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -93,7 +93,7 @@ class MixerParametersResponse(Response):
     parameters.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.MIXER_PARAMETERS
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_MIXER_PARAMETERS
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -105,7 +105,7 @@ class DataSchemaResponse(Response):
     regdata message structure.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.DATA_SCHEMA
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_DATA_SCHEMA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -117,7 +117,7 @@ class SetBoilerParameterResponse(Response):
     that aknowledges, that boiler parameter was successfully changed.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.SET_BOILER_PARAMETER
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SET_BOILER_PARAMETER
 
 
 class SetMixerParameterResponse(Response):
@@ -125,7 +125,7 @@ class SetMixerParameterResponse(Response):
     that aknowledges, that mixer parameter was successfully changed.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.SET_MIXER_PARAMETER
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SET_MIXER_PARAMETER
 
 
 class BoilerControlResponse(Response):
@@ -134,13 +134,13 @@ class BoilerControlResponse(Response):
     processed.
     """
 
-    frame_type: ClassVar[int] = ResponseTypes.BOILER_CONTROL
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_BOILER_CONTROL
 
 
 class AlertsResponse(Response):
     """Represents device alerts."""
 
-    frame_type: ClassVar[int] = ResponseTypes.ALERTS
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_ALERTS
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""

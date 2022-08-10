@@ -19,7 +19,7 @@ from pyplumio.const import (
 )
 from pyplumio.devices import EcoMAX, FrameVersions, Mixer, get_device_handler
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import MessageTypes, Response, ResponseTypes
+from pyplumio.frames import FrameTypes, Response
 from pyplumio.frames.messages import RegulatorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
@@ -144,7 +144,7 @@ async def test_regdata_callbacks(
         "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
     ):
         ecomax.handle_frame(
-            RegulatorDataMessage(message=messages[MessageTypes.REGULATOR_DATA])
+            RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
         )
         await ecomax.wait_until_done()
 
@@ -152,9 +152,11 @@ async def test_regdata_callbacks(
     assert not await ecomax.get_value(ATTR_REGDATA)
 
     # Set data schema and decode the regdata.
-    ecomax.handle_frame(DataSchemaResponse(message=messages[ResponseTypes.DATA_SCHEMA]))
     ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[MessageTypes.REGULATOR_DATA])
+        DataSchemaResponse(message=messages[FrameTypes.RESPONSE_DATA_SCHEMA])
+    )
+    ecomax.handle_frame(
+        RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
     )
     await ecomax.wait_until_done()
 

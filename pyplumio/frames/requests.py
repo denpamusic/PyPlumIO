@@ -5,7 +5,7 @@ from typing import ClassVar, Optional
 
 from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, RequestTypes, Response
+from pyplumio.frames import FrameTypes, Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
@@ -15,7 +15,7 @@ from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 class ProgramVersionRequest(Request):
     """Represents program version request."""
 
-    frame_type: ClassVar[int] = RequestTypes.PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_PROGRAM_VERSION
 
     def response(self, **kwargs) -> Optional[Response]:
         """Return response frame object."""
@@ -25,7 +25,7 @@ class ProgramVersionRequest(Request):
 class CheckDeviceRequest(Request):
     """Represents check device request."""
 
-    frame_type: ClassVar[int] = RequestTypes.CHECK_DEVICE
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_CHECK_DEVICE
 
     def response(self, **kwargs) -> Optional[Response]:
         """Return response frame object."""
@@ -35,19 +35,19 @@ class CheckDeviceRequest(Request):
 class UIDRequest(Request):
     """Represents uid request."""
 
-    frame_type: ClassVar[int] = RequestTypes.UID
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_UID
 
 
 class PasswordRequest(Request):
     """Represents password request."""
 
-    frame_type: ClassVar[int] = RequestTypes.PASSWORD
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_PASSWORD
 
 
 class BoilerParametersRequest(Request):
     """Represents boiler parameters request."""
 
-    frame_type: ClassVar[int] = RequestTypes.BOILER_PARAMETERS
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_BOILER_PARAMETERS
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -60,19 +60,19 @@ class BoilerParametersRequest(Request):
 class MixerParametersRequest(Request):
     """Represents mixer parameters request."""
 
-    frame_type: ClassVar[int] = RequestTypes.MIXER_PARAMETERS
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_MIXER_PARAMETERS
 
 
 class DataSchemaRequest(Request):
     """Represents data schema request."""
 
-    frame_type: ClassVar[int] = RequestTypes.DATA_SCHEMA
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_DATA_SCHEMA
 
 
 class SetBoilerParameterRequest(Request):
     """Represents set boiler parameter request."""
 
-    frame_type: ClassVar[int] = RequestTypes.SET_BOILER_PARAMETER
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_SET_BOILER_PARAMETER
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -90,7 +90,7 @@ class SetBoilerParameterRequest(Request):
 class SetMixerParameterRequest(Request):
     """Represents set mixer parameter request."""
 
-    frame_type: ClassVar[int] = RequestTypes.SET_MIXER_PARAMETER
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_SET_MIXER_PARAMETER
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -110,7 +110,7 @@ class SetMixerParameterRequest(Request):
 class BoilerControlRequest(Request):
     """Represent boiler control request."""
 
-    frame_type: ClassVar[int] = RequestTypes.BOILER_CONTROL
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_BOILER_CONTROL
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Creates frame message."""
@@ -125,19 +125,19 @@ class BoilerControlRequest(Request):
 class StartMasterRequest(Request):
     """Represent start master request."""
 
-    frame_type: ClassVar[int] = RequestTypes.START_MASTER
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_START_MASTER
 
 
 class StopMasterRequest(Request):
     """Represent stop master request."""
 
-    frame_type: ClassVar[int] = RequestTypes.STOP_MASTER
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_STOP_MASTER
 
 
 class AlertsRequest(Request):
     """Represent alerts request."""
 
-    frame_type: ClassVar[int] = RequestTypes.ALERTS
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_ALERTS
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""

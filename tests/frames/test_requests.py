@@ -6,7 +6,7 @@ import pytest
 
 from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, RequestTypes
+from pyplumio.frames import FrameTypes, Request
 from pyplumio.frames.requests import (
     AlertsRequest,
     BoilerControlRequest,
@@ -66,15 +66,17 @@ def test_check_device_response_recipient_and_type() -> None:
 def test_parameters(messages: Dict[int, bytearray]) -> None:
     """Test parameters request bytes."""
     frame = BoilerParametersRequest()
-    assert frame.message == messages[RequestTypes.BOILER_PARAMETERS]
+    assert frame.message == messages[FrameTypes.REQUEST_BOILER_PARAMETERS]
 
 
 def test_set_parameter(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set parameter request bytes."""
-    frame = SetBoilerParameterRequest(data=data[RequestTypes.SET_BOILER_PARAMETER])
-    assert frame.message == messages[RequestTypes.SET_BOILER_PARAMETER]
+    frame = SetBoilerParameterRequest(
+        data=data[FrameTypes.REQUEST_SET_BOILER_PARAMETER]
+    )
+    assert frame.message == messages[FrameTypes.REQUEST_SET_BOILER_PARAMETER]
 
 
 def test_set_parameter_with_no_data() -> None:
@@ -87,8 +89,8 @@ def test_set_mixer_parameter(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set mixer parameter request bytes."""
-    frame = SetMixerParameterRequest(data=data[RequestTypes.SET_MIXER_PARAMETER])
-    assert frame.message == messages[RequestTypes.SET_MIXER_PARAMETER]
+    frame = SetMixerParameterRequest(data=data[FrameTypes.REQUEST_SET_MIXER_PARAMETER])
+    assert frame.message == messages[FrameTypes.REQUEST_SET_MIXER_PARAMETER]
 
 
 def test_set_mixer_parameter_with_no_data() -> None:
@@ -101,8 +103,8 @@ def test_boiler_control(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test boiler control parameter request bytes."""
-    frame = BoilerControlRequest(data=data[RequestTypes.BOILER_CONTROL])
-    assert frame.message == messages[RequestTypes.BOILER_CONTROL]
+    frame = BoilerControlRequest(data=data[FrameTypes.REQUEST_BOILER_CONTROL])
+    assert frame.message == messages[FrameTypes.REQUEST_BOILER_CONTROL]
 
 
 def test_boiler_control_with_no_data() -> None:

@@ -17,7 +17,7 @@ from pyplumio.const import (
     ATTR_TRANSMISSION,
 )
 from pyplumio.exceptions import VersionError
-from pyplumio.frames import Message, MessageTypes
+from pyplumio.frames import FrameTypes, Message
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.lambda_sensor import LambaSensorStructure
@@ -36,7 +36,7 @@ REGDATA_VERSION: Final = "1.0"
 class RegulatorDataMessage(Message):
     """Represents current regulator data."""
 
-    frame_type: ClassVar[int] = MessageTypes.REGULATOR_DATA
+    frame_type: ClassVar[int] = FrameTypes.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -54,7 +54,7 @@ class RegulatorDataMessage(Message):
 class SensorDataMessage(Message):
     """Represents current device state."""
 
-    frame_type: ClassVar[int] = MessageTypes.SENSOR_DATA
+    frame_type: ClassVar[int] = FrameTypes.MESSAGE_SENSOR_DATA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""

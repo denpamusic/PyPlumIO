@@ -18,7 +18,7 @@ from pyplumio.const import (
     ECONET_ADDRESS,
 )
 from pyplumio.exceptions import VersionError
-from pyplumio.frames import MessageTypes
+from pyplumio.frames import FrameTypes
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 
 
@@ -34,7 +34,7 @@ def test_messages_type() -> None:
 
 def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing of regdata message."""
-    frame = RegulatorDataMessage(message=messages[MessageTypes.REGULATOR_DATA])
+    frame = RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
     assert ATTR_FRAME_VERSIONS in frame.data
 
 
@@ -47,7 +47,7 @@ def test_regdata_decode_message_with_unknown_version() -> None:
 
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing current data message."""
-    frame = SensorDataMessage(message=messages[MessageTypes.SENSOR_DATA])
+    frame = SensorDataMessage(message=messages[FrameTypes.MESSAGE_SENSOR_DATA])
     data = frame.data[ATTR_BOILER_SENSORS]
     assert ATTR_FRAME_VERSIONS in data
     assert data[ATTR_FRAME_VERSIONS][85] == 45559

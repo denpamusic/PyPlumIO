@@ -13,7 +13,7 @@ from pyplumio.exceptions import (
     UnknownDeviceError,
     UnknownFrameError,
 )
-from pyplumio.frames import RequestTypes
+from pyplumio.frames import FrameTypes
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
@@ -140,8 +140,8 @@ class Protocol(TaskManager):
             self.devices[name].handle_frame(frame)
 
             if frame.frame_type in (
-                RequestTypes.CHECK_DEVICE,
-                RequestTypes.PROGRAM_VERSION,
+                FrameTypes.REQUEST_CHECK_DEVICE,
+                FrameTypes.REQUEST_PROGRAM_VERSION,
             ):
                 write_queue.put_nowait(
                     frame.response(data={ATTR_NETWORK: self._network})

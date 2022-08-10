@@ -3,7 +3,7 @@
 from typing import Dict
 
 from pyplumio.const import ATTR_MODE, ATTR_SCHEMA, BROADCAST_ADDRESS, ECONET_ADDRESS
-from pyplumio.frames import ResponseTypes
+from pyplumio.frames import FrameTypes
 from pyplumio.frames.responses import (
     AlertsResponse,
     BoilerParametersResponse,
@@ -40,10 +40,12 @@ def test_program_version_response(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test creating program version message."""
-    frame1 = ProgramVersionResponse(data=data[ResponseTypes.PROGRAM_VERSION])
-    frame2 = ProgramVersionResponse(message=messages[ResponseTypes.PROGRAM_VERSION])
-    assert frame1.message == messages[ResponseTypes.PROGRAM_VERSION]
-    assert frame2.data == data[ResponseTypes.PROGRAM_VERSION]
+    frame1 = ProgramVersionResponse(data=data[FrameTypes.RESPONSE_PROGRAM_VERSION])
+    frame2 = ProgramVersionResponse(
+        message=messages[FrameTypes.RESPONSE_PROGRAM_VERSION]
+    )
+    assert frame1.message == messages[FrameTypes.RESPONSE_PROGRAM_VERSION]
+    assert frame2.data == data[FrameTypes.RESPONSE_PROGRAM_VERSION]
 
 
 def test_device_available_response(
@@ -51,10 +53,12 @@ def test_device_available_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test creating device available message."""
-    frame1 = DeviceAvailableResponse(data=data[ResponseTypes.DEVICE_AVAILABLE])
-    frame2 = DeviceAvailableResponse(message=messages[ResponseTypes.DEVICE_AVAILABLE])
-    assert frame1.message == messages[ResponseTypes.DEVICE_AVAILABLE]
-    assert frame2.data == data[ResponseTypes.DEVICE_AVAILABLE]
+    frame1 = DeviceAvailableResponse(data=data[FrameTypes.RESPONSE_DEVICE_AVAILABLE])
+    frame2 = DeviceAvailableResponse(
+        message=messages[FrameTypes.RESPONSE_DEVICE_AVAILABLE]
+    )
+    assert frame1.message == messages[FrameTypes.RESPONSE_DEVICE_AVAILABLE]
+    assert frame2.data == data[FrameTypes.RESPONSE_DEVICE_AVAILABLE]
 
 
 def test_uid_response(
@@ -62,9 +66,9 @@ def test_uid_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test parsing UID message."""
-    frame1 = UIDResponse(message=messages[ResponseTypes.UID])
-    frame2 = UIDResponse(data=data[ResponseTypes.UID])
-    assert frame1.data == data[ResponseTypes.UID]
+    frame1 = UIDResponse(message=messages[FrameTypes.RESPONSE_UID])
+    frame2 = UIDResponse(data=data[FrameTypes.RESPONSE_UID])
+    assert frame1.data == data[FrameTypes.RESPONSE_UID]
     assert not frame2.message
 
 
@@ -73,9 +77,9 @@ def test_password_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test parsing password message."""
-    frame1 = PasswordResponse(message=messages[ResponseTypes.PASSWORD])
-    frame2 = PasswordResponse(data=data[ResponseTypes.PASSWORD])
-    assert frame1.data == data[ResponseTypes.PASSWORD]
+    frame1 = PasswordResponse(message=messages[FrameTypes.RESPONSE_PASSWORD])
+    frame2 = PasswordResponse(data=data[FrameTypes.RESPONSE_PASSWORD])
+    assert frame1.data == data[FrameTypes.RESPONSE_PASSWORD]
     assert not frame2.message
 
 
@@ -84,9 +88,11 @@ def test_boiler_parameters_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test parsing boiler parameters message."""
-    frame1 = BoilerParametersResponse(message=messages[ResponseTypes.BOILER_PARAMETERS])
-    frame2 = BoilerParametersResponse(data=data[ResponseTypes.BOILER_PARAMETERS])
-    assert frame1.data == data[ResponseTypes.BOILER_PARAMETERS]
+    frame1 = BoilerParametersResponse(
+        message=messages[FrameTypes.RESPONSE_BOILER_PARAMETERS]
+    )
+    frame2 = BoilerParametersResponse(data=data[FrameTypes.RESPONSE_BOILER_PARAMETERS])
+    assert frame1.data == data[FrameTypes.RESPONSE_BOILER_PARAMETERS]
     assert not frame2.message
 
 
@@ -95,15 +101,17 @@ def test_mixer_parameters_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test parsing message for mixer parameters response."""
-    frame1 = MixerParametersResponse(message=messages[ResponseTypes.MIXER_PARAMETERS])
-    frame2 = MixerParametersResponse(data=data[ResponseTypes.MIXER_PARAMETERS])
-    assert frame1.data == data[ResponseTypes.MIXER_PARAMETERS]
+    frame1 = MixerParametersResponse(
+        message=messages[FrameTypes.RESPONSE_MIXER_PARAMETERS]
+    )
+    frame2 = MixerParametersResponse(data=data[FrameTypes.RESPONSE_MIXER_PARAMETERS])
+    assert frame1.data == data[FrameTypes.RESPONSE_MIXER_PARAMETERS]
     assert not frame2.message
 
 
 def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
     """Test parsing message for data schema response."""
-    frame = DataSchemaResponse(message=messages[ResponseTypes.DATA_SCHEMA])
+    frame = DataSchemaResponse(message=messages[FrameTypes.RESPONSE_DATA_SCHEMA])
     assert ATTR_SCHEMA in frame.data
     assert len(frame.data[ATTR_SCHEMA]) == 257
     matches = {
@@ -124,7 +132,7 @@ def test_alerts_response(
     messages: Dict[int, bytearray],
 ) -> None:
     """Test alert response."""
-    frame1 = AlertsResponse(message=messages[ResponseTypes.ALERTS])
-    frame2 = AlertsResponse(data=data[ResponseTypes.ALERTS])
-    assert frame1.data == data[ResponseTypes.ALERTS]
+    frame1 = AlertsResponse(message=messages[FrameTypes.RESPONSE_ALERTS])
+    frame2 = AlertsResponse(data=data[FrameTypes.RESPONSE_ALERTS])
+    assert frame1.data == data[FrameTypes.RESPONSE_ALERTS]
     assert not frame2.message

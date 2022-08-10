@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import Enum, IntEnum, unique
+from enum import IntEnum, unique
 from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
@@ -22,69 +22,49 @@ ECONET_VERSION: Final = 5
 
 
 @unique
-class RequestTypes(IntEnum):
-    """Contains request frame types."""
+class FrameTypes(IntEnum):
+    """Contains frame types."""
 
-    STOP_MASTER = 24
-    START_MASTER = 25
-    CHECK_DEVICE = 48
-    BOILER_PARAMETERS = 49
-    MIXER_PARAMETERS = 50
-    SET_BOILER_PARAMETER = 51
-    SET_MIXER_PARAMETER = 52
-    UID = 57
-    PASSWORD = 58
-    BOILER_CONTROL = 59
-    ALERTS = 61
-    PROGRAM_VERSION = 64
-    DATA_SCHEMA = 85
-
-
-@unique
-class ResponseTypes(IntEnum):
-    """Contains response frame types."""
-
-    DEVICE_AVAILABLE = 176
-    BOILER_PARAMETERS = 177
-    MIXER_PARAMETERS = 178
-    SET_BOILER_PARAMETER = 179
-    SET_MIXER_PARAMETER = 180
-    UID = 185
-    PASSWORD = 186
-    BOILER_CONTROL = 187
-    ALERTS = 189
-    PROGRAM_VERSION = 192
-    DATA_SCHEMA = 213
+    REQUEST_STOP_MASTER = 24
+    REQUEST_START_MASTER = 25
+    REQUEST_CHECK_DEVICE = 48
+    REQUEST_BOILER_PARAMETERS = 49
+    REQUEST_MIXER_PARAMETERS = 50
+    REQUEST_SET_BOILER_PARAMETER = 51
+    REQUEST_SET_MIXER_PARAMETER = 52
+    REQUEST_UID = 57
+    REQUEST_PASSWORD = 58
+    REQUEST_BOILER_CONTROL = 59
+    REQUEST_ALERTS = 61
+    REQUEST_PROGRAM_VERSION = 64
+    REQUEST_DATA_SCHEMA = 85
+    RESPONSE_DEVICE_AVAILABLE = 176
+    RESPONSE_BOILER_PARAMETERS = 177
+    RESPONSE_MIXER_PARAMETERS = 178
+    RESPONSE_SET_BOILER_PARAMETER = 179
+    RESPONSE_SET_MIXER_PARAMETER = 180
+    RESPONSE_UID = 185
+    RESPONSE_PASSWORD = 186
+    RESPONSE_BOILER_CONTROL = 187
+    RESPONSE_ALERTS = 189
+    RESPONSE_PROGRAM_VERSION = 192
+    RESPONSE_DATA_SCHEMA = 213
+    MESSAGE_REGULATOR_DATA = 8
+    MESSAGE_SENSOR_DATA = 53
 
 
-@unique
-class MessageTypes(IntEnum):
-    """Contains message frame types."""
-
-    REGULATOR_DATA = 8
-    SENSOR_DATA = 53
-
-
-class FrameTypes(Enum):
-    """Contains frame type enums."""
-
-    REQUESTS = RequestTypes
-    RESPONSES = ResponseTypes
-    MESSAGES = MessageTypes
-
-
-def _handler_class_path(module: str, type_name: str) -> str:
+def _handler_class_path(frame_type_name: str) -> str:
     """Return handler class path from module and frame type name."""
 
-    return f"{module.lower()}.{util.to_camelcase(type_name)}{module.capitalize()[:-1]}"
+    module, type_name = frame_type_name.split("_", 1)
+
+    return f"{module.lower()}s.{util.to_camelcase(type_name)}{module.capitalize()}"
 
 
 # Dictionary of frame handler classes indexed by frame types.
 # example: "24: requests.StopMasterRequest"
 FRAME_TYPES: Dict[int, str] = {
-    frame_type.value: _handler_class_path(module.name, frame_type.name)
-    for module in FrameTypes
-    for frame_type in module.value
+    frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameTypes
 }
 
 

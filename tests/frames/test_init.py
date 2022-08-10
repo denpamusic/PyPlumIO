@@ -10,10 +10,9 @@ from pyplumio.frames import (
     ECONET_TYPE,
     ECONET_VERSION,
     HEADER_SIZE,
+    FrameTypes,
     Request,
-    RequestTypes,
     Response,
-    ResponseTypes,
     get_frame_handler,
 )
 from pyplumio.frames.responses import ProgramVersionResponse
@@ -22,13 +21,13 @@ from pyplumio.frames.responses import ProgramVersionResponse
 class RequestFrame(Request):
     """Test request class."""
 
-    frame_type: ClassVar[int] = RequestTypes.PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_PROGRAM_VERSION
 
 
 class ResponseFrame(Response):
     """Test response class."""
 
-    frame_type: ClassVar[int] = ResponseTypes.PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PROGRAM_VERSION
 
 
 @pytest.fixture(name="request_frame")
@@ -54,7 +53,7 @@ def fixture_frames(
 @pytest.fixture(name="types")
 def fixture_types() -> Tuple[int, int]:
     """Return request and response types as a tuple."""
-    return (RequestTypes.PROGRAM_VERSION, ResponseTypes.PROGRAM_VERSION)
+    return (FrameTypes.REQUEST_PROGRAM_VERSION, FrameTypes.RESPONSE_PROGRAM_VERSION)
 
 
 def test_decode_create_message(frames: Tuple[Request, Response]) -> None:
