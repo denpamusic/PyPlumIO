@@ -310,8 +310,8 @@ Protocol supports unicast and broadcast frames. Broadcast frames will always hav
   - [Unsigned Short] Byte size of the frame. Includes CRC and frame end delimiter. 
   - [Byte] Recipient address.
   - [Byte] Sender address.
-  - [Byte] Sender type. PyPlumIO uses EcoNET type `0x30`.
-  - [Byte] ecoNET version. PyPlumIO uses version `0x05`.
+  - [Byte] Sender type. PyPlumIO uses EcoNET type `48`.
+  - [Byte] ecoNET version. PyPlumIO uses version `5`.
 - Body:
   - [Byte] Frame type.
   - [Byte*] Message data (optional).
@@ -321,57 +321,57 @@ Protocol supports unicast and broadcast frames. Broadcast frames will always hav
 ### Requests and Responses
 PyPlumIO splits frames into requests, responses and messages. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frame types.
 
-For example, we can request list of editable parameters from the ecoMAX controller by sending frame with frame type `0x31` and receive response with frame type `0xB1` that contains requested parameters.
+For example, we can request list of editable parameters from the ecoMAX controller by sending frame with frame type `49` and receive response with frame type `177` that contains requested parameters.
 
 ### Communication
-The controller constantly sends `ProgramVersionRequest[type=0x40]` and `CheckDeviceRequest[type=0x30]` requests to every known device on the network and broadcasts `RegulatorDataMessage[type=0x08]` message, that contains basic controller data.
+The controller constantly sends `ProgramVersionRequest[type=64]` and `CheckDeviceRequest[type=48]` requests to every known device on the network and broadcasts `RegulatorDataMessage[type=8]` message, that contains basic controller data.
 
 Initial exchange between ecoMAX controller and PyPlumIO library can be illustrated with following diagram:
 
 > NB: device network address is listed in square brackets.
 
 ```
-ecoMAX[0x45] -> Broadcast[0x00]: RegulatorDataMessage[type=0x08] Contains basic ecoMAX data.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersionRequest[type=0x40] Program version request.
-ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersionResponse[type=0xC0] Contains program version.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDeviceRequest[type=0x30] Check device request.
-ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailableResponse[type=0xB0] Contains network information.
-ecoMAX[0x45] -> PyPlumIO[0x56]:  SensorDataMessage[type=0x35] Contains ecoMAX sensor data.
+ecoMAX[0x45] -> Broadcast[0x00]: RegulatorDataMessage[type=8] Contains basic ecoMAX data.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  ProgramVersionRequest[type=64] Program version request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  ProgramVersionResponse[type=192] Contains program version.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  CheckDeviceRequest[type=48] Check device request.
+ecoMAX[0x45] <- PyPlumIO[0x56]:  DeviceAvailableResponse[type=176] Contains network information.
+ecoMAX[0x45] -> PyPlumIO[0x56]:  SensorDataMessage[type=53] Contains ecoMAX sensor data.
 ```
 
 ### Versioning
 Protocol has built-in way to track frame versions. This is used to synchronize changes between devices.
-Both broadcast `RegulatorDataMessage[type=0x08]` and unicast `SensorDataMessage[type=0x35]` frames sent by ecoMAX controller contain versioning data.
+Both broadcast `RegulatorDataMessage[type=8]` and unicast `SensorDataMessage[type=53]` frames sent by ecoMAX controller contain versioning data.
 
 This data can be represented with following dictionary:
 ```python
 frame_versions: Dict[int, int] = {
-  0x31: 37,
-  0x32: 37,
-  0x36: 1,
-  0x38: 5,
-  0x39: 1,
-  0x3D: 40767,
-  0x50: 1,
-  0x51: 1,
-  0x52: 1,
-  0x53: 1,
+  49: 37,
+  50: 37,
+  54: 1,
+  56: 5,
+  57: 1,
+  61: 40767,
+  80: 1,
+  81: 1,
+  82: 1,
+  83: 1,
 }
 ```
-In this dictionary, keys are frame types and values are version numbers. In example above, frame `ParametersRequest[type=0x31]` has version 37.
+In this dictionary, keys are frame types and values are version numbers. In example above, frame `ParametersRequest[type=49]` has version 37.
 If we change any parameters either remotely or on the controller itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
 ```python
 frame_versions: Dict[int, int] = {
-  0x31: 38,  # Note the version number change.
-  0x32: 37,
-  0x36: 1,
-  0x38: 5,
-  0x39: 1,
-  0x3D: 40767,
-  0x50: 1,
-  0x51: 1,
-  0x52: 1,
-  0x53: 1,
+  49: 38,  # Note the version number change.
+  50: 37,
+  54: 1,
+  56: 5,
+  57: 1,
+  61: 40767,
+  80: 1,
+  81: 1,
+  82: 1,
+  83: 1,
 }
 ```
 
