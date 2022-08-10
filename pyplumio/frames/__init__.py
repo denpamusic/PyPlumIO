@@ -13,6 +13,7 @@ from pyplumio.helpers.typing import DeviceDataType, MessageType
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
+HEADER_OFFSET: Final = 0
 HEADER_SIZE: Final = 7
 FRAME_TYPE_SIZE: Final = 1
 CRC_SIZE: Final = 1
@@ -133,9 +134,9 @@ class Frame(ABC, FrameDataClass):
         buffer = bytearray(HEADER_SIZE)
         util.pack_header(
             buffer,
-            0,
+            HEADER_OFFSET,
             FRAME_START,
-            len(self),
+            self.length,
             self.recipient,
             self.sender,
             self.sender_type,
