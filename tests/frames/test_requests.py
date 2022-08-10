@@ -4,7 +4,7 @@ from typing import Dict
 
 import pytest
 
-from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import FrameTypes, Request
 from pyplumio.frames.requests import (
@@ -45,22 +45,22 @@ def test_request_type() -> None:
         StopMasterRequest,
         AlertsRequest,
     ):
-        frame = request(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+        frame = request(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
         assert isinstance(frame, request)
 
 
 def test_program_version_response_recipient_and_type() -> None:
     """Test if program version response recipient and type is set."""
-    frame = ProgramVersionRequest(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+    frame = ProgramVersionRequest(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
     assert isinstance(frame.response(), ProgramVersionResponse)
-    assert frame.response().recipient == ECONET_ADDRESS
+    assert frame.response().recipient == ADDR_ECONET
 
 
 def test_check_device_response_recipient_and_type() -> None:
     """Test if check device response recipient and type is set."""
-    frame = CheckDeviceRequest(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+    frame = CheckDeviceRequest(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
     assert isinstance(frame.response(), DeviceAvailableResponse)
-    assert frame.response().recipient == ECONET_ADDRESS
+    assert frame.response().recipient == ADDR_ECONET
 
 
 def test_parameters(messages: Dict[int, bytearray]) -> None:

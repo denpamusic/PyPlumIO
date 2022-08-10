@@ -5,6 +5,8 @@ from typing import Dict
 import pytest
 
 from pyplumio.const import (
+    ADDR_BROADCAST,
+    ADDR_ECONET,
     ATTR_BOILER_SENSORS,
     ATTR_FRAME_VERSIONS,
     ATTR_FUEL_LEVEL,
@@ -14,8 +16,6 @@ from pyplumio.const import (
     ATTR_MODULES,
     ATTR_PENDING_ALERTS,
     ATTR_THERMOSTATS,
-    BROADCAST_ADDRESS,
-    ECONET_ADDRESS,
 )
 from pyplumio.exceptions import VersionError
 from pyplumio.frames import FrameTypes
@@ -28,7 +28,7 @@ def test_messages_type() -> None:
         RegulatorDataMessage,
         SensorDataMessage,
     ):
-        frame = response(recipient=BROADCAST_ADDRESS, sender=ECONET_ADDRESS)
+        frame = response(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
         assert isinstance(frame, response)
 
 

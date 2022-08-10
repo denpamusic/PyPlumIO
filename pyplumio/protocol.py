@@ -5,8 +5,8 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
-from pyplumio.const import ATTR_NETWORK, ECOMAX_ADDRESS
-from pyplumio.devices import Device, get_device_handler
+from pyplumio.const import ATTR_NETWORK
+from pyplumio.devices import Device, DeviceTypes, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
     ReadError,
@@ -156,7 +156,7 @@ class Protocol(TaskManager):
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         read_queue, write_queue = self.queues
-        write_queue.put_nowait(StartMasterRequest(recipient=ECOMAX_ADDRESS))
+        write_queue.put_nowait(StartMasterRequest(recipient=DeviceTypes.ECOMAX))
         lock: asyncio.Lock = asyncio.Lock()
         self.create_task(self.write_consumer(write_queue, lock))
         self.create_task(self.frame_producer(read_queue, lock))

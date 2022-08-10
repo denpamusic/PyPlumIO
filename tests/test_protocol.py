@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from pyplumio.const import ECOMAX_ADDRESS
-from pyplumio.devices import EcoMAX
+from pyplumio.devices import DeviceTypes
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
 from pyplumio.frames.requests import (
     CheckDeviceRequest,
@@ -192,8 +192,8 @@ async def test_frame_consumer(
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
     mock_read_queue.get.side_effect = (
-        CheckDeviceRequest(sender=ECOMAX_ADDRESS),
-        ProgramVersionRequest(sender=ECOMAX_ADDRESS),
+        CheckDeviceRequest(sender=DeviceTypes.ECOMAX),
+        ProgramVersionRequest(sender=DeviceTypes.ECOMAX),
         CheckDeviceRequest(sender=UNKNOWN_DEVICE),
         RuntimeError("break loop"),
     )
@@ -260,7 +260,7 @@ async def test_connection_lost() -> None:
 @patch("asyncio.wait")
 @patch("asyncio.gather", new_callable=AsyncMock)
 @patch("pyplumio.protocol.Protocol.cancel_tasks")
-@patch("pyplumio.devices.EcoMAX.shutdown")
+@patch("pyplumio.devices.ecomax.EcoMAX.shutdown")
 async def test_shutdown(
     mock_shutdown,
     mock_cancel_tasks,

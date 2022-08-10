@@ -4,7 +4,7 @@ from typing import ClassVar, Tuple
 
 import pytest
 
-from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
@@ -81,9 +81,9 @@ def test_passing_frame_type(
 def test_default_params(frames: Tuple[Request, Response]) -> None:
     """Test frame attributes."""
     for frame in frames:
-        assert frame.recipient == BROADCAST_ADDRESS
+        assert frame.recipient == ADDR_BROADCAST
         assert frame.message == b""
-        assert frame.sender == ECONET_ADDRESS
+        assert frame.sender == ADDR_ECONET
         assert frame.sender_type == ECONET_TYPE
         assert frame.econet_version == ECONET_VERSION
 

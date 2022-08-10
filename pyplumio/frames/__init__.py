@@ -7,7 +7,7 @@ from enum import IntEnum, unique
 from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
-from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 
@@ -80,8 +80,8 @@ def get_frame_handler(frame_type: int) -> str:
 class FrameDataClass:
     """Data class mixin for the frame."""
 
-    recipient: int = BROADCAST_ADDRESS
-    sender: int = ECONET_ADDRESS
+    recipient: int = ADDR_BROADCAST
+    sender: int = ADDR_ECONET
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
     message: MessageType = field(default_factory=bytearray)

@@ -15,9 +15,9 @@ from pyplumio.const import (
     ATTR_MIXER_SENSORS,
     ATTR_MODE,
     ATTR_REGDATA,
-    ECOMAX_ADDRESS,
 )
-from pyplumio.devices import EcoMAX, FrameVersions, Mixer, get_device_handler
+from pyplumio.devices import DeviceTypes, FrameVersions, Mixer, get_device_handler
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import FrameTypes, Response
 from pyplumio.frames.messages import RegulatorDataMessage
@@ -49,8 +49,8 @@ def fixture_ecomax() -> EcoMAX:
 
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
-    cls = get_device_handler(ECOMAX_ADDRESS)
-    assert cls == "devices.EcoMAX"
+    cls = get_device_handler(DeviceTypes.ECOMAX)
+    assert cls == "devices.ecomax.EcoMAX"
     with pytest.raises(UnknownDeviceError):
         cls = get_device_handler(UNKNOWN_DEVICE)
 
@@ -66,13 +66,13 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         await versions.async_update({x.frame_type: 0 for x in ecomax.required_frames})
 
     calls = [
-        call(StartMasterRequest(recipient=ECOMAX_ADDRESS)),
-        call(UIDRequest(recipient=ECOMAX_ADDRESS)),
-        call(DataSchemaRequest(recipient=ECOMAX_ADDRESS)),
-        call(BoilerParametersRequest(recipient=ECOMAX_ADDRESS)),
-        call(MixerParametersRequest(recipient=ECOMAX_ADDRESS)),
-        call(PasswordRequest(recipient=ECOMAX_ADDRESS)),
-        call(AlertsRequest(recipient=ECOMAX_ADDRESS)),
+        call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
+        call(UIDRequest(recipient=DeviceTypes.ECOMAX)),
+        call(DataSchemaRequest(recipient=DeviceTypes.ECOMAX)),
+        call(BoilerParametersRequest(recipient=DeviceTypes.ECOMAX)),
+        call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
+        call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
+        call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {

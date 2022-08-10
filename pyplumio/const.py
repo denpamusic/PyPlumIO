@@ -3,10 +3,8 @@ from __future__ import annotations
 
 from typing import Final
 
-BROADCAST_ADDRESS: Final[int] = 0x00
-ECONET_ADDRESS: Final[int] = 0x56
-ECOMAX_ADDRESS: Final[int] = 0x45
-ECOSTER_ADDRESS: Final[int] = 0x51
+ADDR_BROADCAST: Final = 0
+ADDR_ECONET: Final = 86
 
 ATTR_NAME: Final = "name"
 ATTR_VALUE: Final = "value"

@@ -5,7 +5,7 @@ from asyncio import StreamReader, StreamWriter
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import BROADCAST_ADDRESS, ECONET_ADDRESS
+from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
 from pyplumio.exceptions import ChecksumError, ReadError
 from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
@@ -84,7 +84,7 @@ class FrameReader:
             econet_version,
         ) = await self._read_header()
 
-        if recipient in (ECONET_ADDRESS, BROADCAST_ADDRESS):
+        if recipient in (ADDR_ECONET, ADDR_BROADCAST):
             # Destination address is econet or broadcast.
             payload = await self._reader.read(length - HEADER_SIZE)
             payload_size = len(payload)

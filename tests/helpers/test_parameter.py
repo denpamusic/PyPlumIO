@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.const import BROADCAST_ADDRESS
+from pyplumio.const import ADDR_BROADCAST
 from pyplumio.frames.requests import (
     BoilerControlRequest,
     SetBoilerParameterRequest,
@@ -26,7 +26,7 @@ def fixture_parameter() -> BoilerBinaryParameter:
     """Returns instance of summer_mode parameter."""
     return BoilerBinaryParameter(
         queue=asyncio.Queue(),
-        recipient=BROADCAST_ADDRESS,
+        recipient=ADDR_BROADCAST,
         name="summer_mode",
         value=1,
         min_value=0,
@@ -77,7 +77,7 @@ def test_parameter_int(parameter: BoilerBinaryParameter) -> None:
 def test_parameter_repr(parameter: BoilerBinaryParameter) -> None:
     """Test parameter serilizable representation."""
     assert repr(parameter) == (
-        f"BoilerBinaryParameter(queue=asyncio.Queue(), recipient={BROADCAST_ADDRESS}, "
+        f"BoilerBinaryParameter(queue=asyncio.Queue(), recipient={ADDR_BROADCAST}, "
         + "name=summer_mode, value=1, min_value=0, max_value=1, extra=None)"
     )
 
@@ -91,7 +91,7 @@ def test_parameter_request_mixer() -> None:
     """Test set mixer parameter request instance."""
     parameter = MixerParameter(
         queue=asyncio.Queue(),
-        recipient=BROADCAST_ADDRESS,
+        recipient=ADDR_BROADCAST,
         name="mix_target_temp",
         value=50,
         min_value=50,
@@ -105,7 +105,7 @@ def test_parameter_request_control() -> None:
     """Test boiler control parameter request instance."""
     parameter = BoilerParameter(
         queue=asyncio.Queue(),
-        recipient=BROADCAST_ADDRESS,
+        recipient=ADDR_BROADCAST,
         name="boiler_control",
         value=1,
         min_value=0,

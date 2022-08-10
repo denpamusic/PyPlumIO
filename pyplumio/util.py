@@ -83,8 +83,13 @@ def ip6_from_bytes(data: bytes) -> str:
 
 def to_camelcase(text: str) -> str:
     """Convert snake_case to CamelCase."""
-    ignores = ("UID",)
+    replace = {
+        "uid": "UID",
+        "ecomax": "EcoMAX",
+        "ecoster": "EcoSTER",
+    }
 
     return "".join(
-        (x.capitalize() or "_") if x not in ignores else x for x in text.split("_")
+        (x.capitalize() or "_") if x.lower() not in replace else replace[x.lower()]
+        for x in text.split("_")
     )
