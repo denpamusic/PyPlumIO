@@ -12,9 +12,9 @@ def test_get_object() -> None:
     assert isinstance(cls, StopMasterRequest)
 
     # Check with nonexistent class.
-    with pytest.raises(ImportError):
+    with pytest.raises(AttributeError):
         factory("frames.requests.NonExistent")
 
     # Check with nonexistent module.
-    with pytest.raises(ImportError):
+    with pytest.raises(ModuleNotFoundError):
         factory("frames.request.StopMasterRequest")

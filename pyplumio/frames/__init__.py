@@ -55,7 +55,6 @@ class FrameTypes(IntEnum):
 
 def _handler_class_path(frame_type_name: str) -> str:
     """Return handler class path from module and frame type name."""
-
     module, type_name = frame_type_name.split("_", 1)
 
     return f"{module.lower()}s.{util.to_camelcase(type_name)}{module.capitalize()}"
