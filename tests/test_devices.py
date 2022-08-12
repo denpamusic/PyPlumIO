@@ -18,6 +18,7 @@ from pyplumio.const import (
 )
 from pyplumio.devices import DeviceTypes, FrameVersions, Mixer, get_device_handler
 from pyplumio.devices.ecomax import EcoMAX
+from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import FrameTypes, Response
 from pyplumio.frames.messages import RegulatorDataMessage
@@ -39,12 +40,7 @@ from pyplumio.helpers.parameter import (
 )
 
 UNKNOWN_DEVICE: int = 99
-
-
-@pytest.fixture(name="ecomax")
-def fixture_ecomax() -> EcoMAX:
-    """Return ecomax device instance."""
-    return EcoMAX(asyncio.Queue())
+UNKNOWN_FRAME: int = 99
 
 
 def test_device_handler() -> None:
@@ -55,7 +51,9 @@ def test_device_handler() -> None:
         cls = get_device_handler(UNKNOWN_DEVICE)
 
 
-UNKNOWN_FRAME: int = 99
+def test_ecoster(ecoster: EcoSTER) -> None:
+    """Test ecoster instance."""
+    assert isinstance(ecoster, EcoSTER)
 
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:

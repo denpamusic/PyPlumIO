@@ -1,11 +1,11 @@
 """Contains tests for parameter."""
 
-import asyncio
+
 from unittest.mock import patch
 
 import pytest
 
-from pyplumio.const import ADDR_BROADCAST
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.requests import (
     BoilerControlRequest,
     SetBoilerParameterRequest,
@@ -22,11 +22,10 @@ from pyplumio.helpers.typing import ParameterDataType
 
 
 @pytest.fixture(name="parameter")
-def fixture_parameter() -> BoilerBinaryParameter:
-    """Returns instance of summer_mode parameter."""
+def fixture_parameter(ecomax: EcoMAX) -> BoilerBinaryParameter:
+    """Return instance of summer_mode parameter."""
     return BoilerBinaryParameter(
-        queue=asyncio.Queue(),
-        recipient=ADDR_BROADCAST,
+        device=ecomax,
         name="summer_mode",
         value=1,
         min_value=0,
@@ -77,8 +76,8 @@ def test_parameter_int(parameter: BoilerBinaryParameter) -> None:
 def test_parameter_repr(parameter: BoilerBinaryParameter) -> None:
     """Test parameter serilizable representation."""
     assert repr(parameter) == (
-        f"BoilerBinaryParameter(queue=asyncio.Queue(), recipient={ADDR_BROADCAST}, "
-        + "name=summer_mode, value=1, min_value=0, max_value=1, extra=None)"
+        "BoilerBinaryParameter(device=EcoMAX, name=summer_mode, value=1, "
+        + "min_value=0, max_value=1, extra=None)"
     )
 
 
@@ -87,11 +86,10 @@ def test_parameter_request(parameter: BoilerBinaryParameter) -> None:
     assert isinstance(parameter.request, SetBoilerParameterRequest)
 
 
-def test_parameter_request_mixer() -> None:
+def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
     """Test set mixer parameter request instance."""
     parameter = MixerParameter(
-        queue=asyncio.Queue(),
-        recipient=ADDR_BROADCAST,
+        device=ecomax,
         name="mix_target_temp",
         value=50,
         min_value=50,
@@ -101,11 +99,10 @@ def test_parameter_request_mixer() -> None:
     assert isinstance(parameter.request, SetMixerParameterRequest)
 
 
-def test_parameter_request_control() -> None:
+def test_parameter_request_control(ecomax: EcoMAX) -> None:
     """Test boiler control parameter request instance."""
     parameter = BoilerParameter(
-        queue=asyncio.Queue(),
-        recipient=ADDR_BROADCAST,
+        device=ecomax,
         name="boiler_control",
         value=1,
         min_value=0,

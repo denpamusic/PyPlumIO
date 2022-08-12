@@ -1,5 +1,6 @@
 """Fixtures for PyPlumIO test suite."""
 
+import asyncio
 from asyncio import StreamReader, StreamWriter
 from datetime import datetime
 from typing import Dict, Generator
@@ -19,6 +20,8 @@ from pyplumio.const import (
     ATTR_VALUE,
     ATTR_VERSION,
 )
+from pyplumio.devices.ecomax import EcoMAX
+from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.frames import FrameTypes
 from pyplumio.helpers.network_info import (
     EthernetParameters,
@@ -199,6 +202,18 @@ FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF28000800
             "\n", ""
         )
     )
+
+
+@pytest.fixture(name="ecomax")
+def fixture_ecomax() -> EcoMAX:
+    """Return instance of ecomax."""
+    return EcoMAX(asyncio.Queue())
+
+
+@pytest.fixture(name="ecoster")
+def fixture_ecoster() -> EcoSTER:
+    """Return instance of ecoster."""
+    return EcoSTER(asyncio.Queue())
 
 
 @pytest.fixture(name="bypass_asyncio_sleep")

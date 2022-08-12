@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import asyncio
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
+
+if TYPE_CHECKING:
+    from pyplumio.devices import Device
 
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
@@ -35,6 +37,7 @@ def is_binary_parameter(parameter: ParameterDataType) -> bool:
 class Parameter(ABC):
     """Represents device parameter."""
 
+    device: Device
     name: str
     extra: Any
     _value: int
@@ -44,8 +47,7 @@ class Parameter(ABC):
 
     def __init__(
         self,
-        queue: asyncio.Queue,
-        recipient: int,
+        device: Device,
         name: str,
         value: ParameterValueType,
         min_value: ParameterValueType,
@@ -53,10 +55,9 @@ class Parameter(ABC):
         extra: Any = None,
     ):
         """Initialize Parameter object."""
-        self.recipient = recipient
+        self.device = device
         self.name = name
         self.extra = extra
-        self._queue = queue
         self._value = _normalize_parameter_value(value)
         self._min_value = _normalize_parameter_value(min_value)
         self._max_value = _normalize_parameter_value(max_value)
@@ -66,7 +67,7 @@ class Parameter(ABC):
         """Returns serializable string representation."""
         return (
             self.__class__.__name__
-            + f"(queue=asyncio.Queue(), recipient={self.recipient}, name={self.name}, "
+            + f"(device={self.device.__class__.__name__}, name={self.name}, "
             + f"value={self._value}, min_value={self._min_value}, "
             + f"max_value={self._max_value}, extra={self.extra})"
         )
@@ -127,12 +128,13 @@ class Parameter(ABC):
 
         if self.min_value <= value <= self.max_value:
             self._value = value
-            self._queue.put_nowait(self.request)
             self._changed = True
-        else:
-            raise ValueError(
-                f"Parameter value must be between {self.min_value} and {self.max_value}"
-            )
+            self.device.queue.put_nowait(self.request)
+            return
+
+        raise ValueError(
+            f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
+        )
 
     @property
     def value(self) -> int:
@@ -186,7 +188,7 @@ class BoilerParameter(Parameter):
 
         return factory(
             handler,
-            recipient=self.recipient,
+            recipient=self.device.address,
             data={ATTR_NAME: self.name, ATTR_VALUE: self.value},
         )
 
@@ -203,7 +205,7 @@ class MixerParameter(Parameter):
         """Return request to change the parameter."""
         return factory(
             "frames.requests.SetMixerParameterRequest",
-            recipient=self.recipient,
+            recipient=self.device.address,
             data={ATTR_NAME: self.name, ATTR_VALUE: self.value, ATTR_EXTRA: self.extra},
         )
 

@@ -87,9 +87,8 @@ class EcoMAX(Device):
                 BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
             )
             parameter = cls(
-                self._queue,
-                self.address,
-                name,
+                device=self,
+                name=name,
                 value=value[0],
                 min_value=value[1],
                 max_value=value[2],
@@ -118,8 +117,7 @@ class EcoMAX(Device):
                     else MixerParameter
                 )
                 parameter = cls(
-                    queue=self._queue,
-                    recipient=self.address,
+                    device=self,
                     name=name,
                     value=value[0],
                     min_value=value[1],
@@ -133,8 +131,7 @@ class EcoMAX(Device):
     async def _add_boiler_control_parameter(self, mode: int) -> None:
         """Add BoilerControl parameter to the device instance."""
         parameter = BoilerBinaryParameter(
-            queue=self._queue,
-            recipient=self.address,
+            device=self,
             name=PARAMETER_BOILER_CONTROL,
             value=(mode != 0),
             min_value=0,
