@@ -1,7 +1,6 @@
 """Contains frame versions storage helper."""
 from __future__ import annotations
 
-import asyncio
 from typing import TYPE_CHECKING
 
 from pyplumio.exceptions import UnknownFrameError
@@ -17,26 +16,24 @@ class FrameVersions:
     """Represents frame versions storage."""
 
     versions: VersionsInfoType
-    _queue: asyncio.Queue
-    _device: Device
+    device: Device
 
-    def __init__(self, queue: asyncio.Queue, device: Device):
+    def __init__(self, device: Device):
         """Initialize Frame Versions object."""
         self.versions = {}
-        self._queue = queue
-        self._device = device
+        self.device = device
 
     def _make_request(self, frame_type: int, version: int) -> None:
         """Make update request and put it into write queue."""
         try:
             request = factory(
-                get_frame_handler(frame_type), recipient=self._device.address
+                get_frame_handler(frame_type), recipient=self.device.address
             )
         except UnknownFrameError:
             # Ignore unknown frames in version list.
             return
 
-        self._queue.put_nowait(request)
+        self.device.queue.put_nowait(request)
         self.versions[frame_type] = version
 
     def update(self, frame_versions: VersionsInfoType) -> None:

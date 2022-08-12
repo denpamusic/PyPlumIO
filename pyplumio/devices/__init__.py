@@ -148,7 +148,7 @@ class Device(AsyncDevice):
         """Initialize new Device object."""
         super().__init__()
         self.queue = queue
-        versions = FrameVersions(queue, device=self)
+        versions = FrameVersions(device=self)
         versions.update({x.frame_type: 0 for x in self.required_frames})
         self.register_callback(ATTR_FRAME_VERSIONS, on_change(versions.async_update))
 

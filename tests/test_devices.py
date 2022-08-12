@@ -58,7 +58,7 @@ def test_ecoster(ecoster: EcoSTER) -> None:
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
-    versions = FrameVersions(ecomax.queue, ecomax)
+    versions = FrameVersions(ecomax)
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
         await versions.async_update({0x19: 0, UNKNOWN_FRAME: 0})
         await versions.async_update({x.frame_type: 0 for x in ecomax.required_frames})
