@@ -141,13 +141,13 @@ class Device(AsyncDevice):
     """Represents base device."""
 
     address: ClassVar[int]
-    _queue: asyncio.Queue
+    queue: asyncio.Queue
     _required_frames: List[Type[Request]] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
         super().__init__()
-        self._queue = queue
+        self.queue = queue
         versions = FrameVersions(queue, device=self)
         versions.update({x.frame_type: 0 for x in self.required_frames})
         self.register_callback(ATTR_FRAME_VERSIONS, on_change(versions.async_update))
@@ -162,8 +162,3 @@ class Device(AsyncDevice):
     def required_frames(self) -> List[Type[Request]]:
         """Return list of required frames."""
         return self._required_frames
-
-    @property
-    def queue(self) -> asyncio.Queue:
-        """Return device write queue."""
-        return self._queue
