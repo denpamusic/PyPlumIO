@@ -12,6 +12,7 @@ from pyplumio.frames.responses import (
     MixerParametersResponse,
     PasswordResponse,
     ProgramVersionResponse,
+    SchedulesResponse,
     UIDResponse,
 )
 from pyplumio.helpers.data_types import Byte
@@ -135,4 +136,14 @@ def test_alerts_response(
     frame1 = AlertsResponse(message=messages[FrameTypes.RESPONSE_ALERTS])
     frame2 = AlertsResponse(data=data[FrameTypes.RESPONSE_ALERTS])
     assert frame1.data == data[FrameTypes.RESPONSE_ALERTS]
+    assert not frame2.message
+
+
+def test_schedule_response(
+    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+) -> None:
+    """Test schedule response."""
+    frame1 = SchedulesResponse(message=messages[FrameTypes.RESPONSE_SCHEDULES])
+    frame2 = SchedulesResponse(data=data[FrameTypes.RESPONSE_SCHEDULES])
+    assert frame1.data == data[FrameTypes.RESPONSE_SCHEDULES]
     assert not frame2.message

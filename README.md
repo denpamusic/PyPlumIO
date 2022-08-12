@@ -28,6 +28,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Callbacks](#callbacks)
   - [Filters](#filters)
   - [Working with Mixers](#working-with-mixers)
+  - [Working with Schedules](#working-with-schedules)
   - [Network Information](#network-information)
 - [Protocol](#protocol)
   - [Frame Structure](#frame-structure)
@@ -277,6 +278,92 @@ async def main():
 
     # Wait until disconnected (forever)
     connection.wait_until_done()
+
+asyncio.run(main())
+```
+
+### Working with Schedules
+You can set device schedule, enable/disable it and change associated parameter.
+
+To disable the schedule, turn off "schedule_{schedule_name}_switch" parameter, by using
+`AsyncDevice.set_value` method, to enable it turn in on.
+
+```python
+  await ecomax.set_value("schedule_heating_switch", "off")
+  await ecomax.set_value("schedule_heating_switch", "on")
+```
+
+To change associated parameter value, use `AsyncDevice.set_value`
+function with "schedule_{schedule_name}_parameter".
+
+```python
+  await ecomax.set_value("schedule_heating_parameter", 10)
+```
+
+To set the schedule, you can use `set_state`, `set_on` or `set_off` functions and call
+`commit` to send changes to device.
+
+This example sets nighttime mode for Monday from 00:00 to 07:00 and switches back to daytime
+mode from 07:00 to 00:00.
+
+```python
+heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+heating_schedule.monday.set_off(start="00:00", end="07:00")
+heating_schedule.monday.set_on(start="07:00", end="00:00")
+heating_schedule.commit()
+```
+
+For clarity sake, you might want to use `STATE_NIGHT` and `STATE_DAY`
+constants from `pyplumio.helpers.schedule` with set state.
+```python
+heating_schedule.monday.set_state(STATE_NIGHT, "00:00", "07:00")
+```
+
+You may also omit one of the boundaries.
+The other boundary is then set to the end or start of the day.
+`heating_schedule.monday.set_on(start="07:00")` is equivalent to
+`heating_schedule.monday.set_on(start="07:00", end="00:00")` and `heating_schedule.monday.set_off(end="07:00")` is
+equivalent to `heating_schedule.monday.set_off(start="00:00", end="07:00")`.
+
+This can be used to set state for a whole day: `heating_schedule.monday.set_on()`
+
+To set schedule for all days you can iterate through Schedule object:
+```python
+heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+
+for weekday in heating_schedule:
+  weekday.set_on("00:00", "07:00")
+  weekday.set_off("07:00", "00:00")
+
+heating_schedule.commit()
+```
+
+Following example showcases most of the methods described above:
+```python
+import pyplumio
+
+from pyplumio.helpers.schedule import STATE_DAY, STATE_NIGHT
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+
+    # Turn heating schedule on.
+    await ecomax.set_value("schedule_heating_switch", "on")
+
+    # Drop heating temperature by 10 degrees during nighttime.
+    await ecomax.set_value("schedule_heating_parameter", 10)
+
+    for weekday in heating_schedule:
+      weekday.set_state(STATE_DAY, "00:00", "00:30")
+      weekday.set_state(STATE_NIGHT, "00:30", "09:00")
+      weekday.set_state(STATE_DAY, "09:00", "00:00")
+
+    # There will be no nighttime on sunday.
+    heating_schedule.sunday.set_state(STATE_DAY)
+    
+    heating_schedule.commit()
 
 asyncio.run(main())
 ```

@@ -2,18 +2,16 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any
 
-from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
+from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.schedule import _collect_schedule_data
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
-
-STATE_ON: Final = "on"
-STATE_OFF: Final = "off"
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
@@ -212,3 +210,20 @@ class MixerParameter(Parameter):
 
 class MixerBinaryParameter(MixerParameter, BinaryParameter):
     """Represents mixer binary parameter."""
+
+
+class ScheduleParameter(Parameter):
+    """Represents schedule parameter."""
+
+    @property
+    def request(self) -> Request:
+        """Return request to change the parameter."""
+        return factory(
+            "frames.requests.SetScheduleRequest",
+            recipient=self.device.address,
+            data=_collect_schedule_data(self.extra, self.device),
+        )
+
+
+class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
+    """Represents schedule binary parameter."""

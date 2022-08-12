@@ -18,6 +18,7 @@ from pyplumio.frames.requests import (
     ProgramVersionRequest,
     SetBoilerParameterRequest,
     SetMixerParameterRequest,
+    SetScheduleRequest,
     StartMasterRequest,
     StopMasterRequest,
     UIDRequest,
@@ -111,3 +112,17 @@ def test_boiler_control_with_no_data() -> None:
     """Test boiler control request with no data."""
     with pytest.raises(FrameDataError):
         BoilerControlRequest()
+
+
+def test_set_schedule(
+    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+) -> None:
+    """Test set schedule request bytes."""
+    frame = SetScheduleRequest(data=data[FrameTypes.REQUEST_SET_SCHEDULE])
+    assert frame.message == messages[FrameTypes.REQUEST_SET_SCHEDULE]
+
+
+def test_set_schedule_with_no_data() -> None:
+    """Test set schedule request with no data."""
+    with pytest.raises(FrameDataError):
+        SetScheduleRequest()

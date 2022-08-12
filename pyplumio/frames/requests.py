@@ -10,6 +10,7 @@ from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionRes
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
+from pyplumio.structures.schedules import SchedulesStructure
 
 
 class ProgramVersionRequest(Request):
@@ -145,3 +146,18 @@ class AlertsRequest(Request):
         message.append(0)  # Index of the first alarm.
         message.append(100)  # Number of alarms.
         return message
+
+
+class SchedulesRequest(Request):
+    """Represents schedule request."""
+
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_SCHEDULES
+
+
+class SetScheduleRequest(Request):
+    """Represents set schedule request."""
+
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_SET_SCHEDULE
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        return SchedulesStructure(self).encode(data)

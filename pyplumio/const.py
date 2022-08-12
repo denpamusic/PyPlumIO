@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from typing import Final
 
+STATE_ON: Final = "on"
+STATE_OFF: Final = "off"
+
 ADDR_BROADCAST: Final = 0
 ADDR_ECONET: Final = 86
 
@@ -35,3 +38,8 @@ ATTR_PASSWORD: Final = "password"
 ATTR_SCHEMA: Final = "schema"
 ATTR_REGDATA: Final = "regdata"
 ATTR_LAMBDA_SENSOR: Final = "lambda"
+ATTR_SCHEDULES: Final = "schedules"
+ATTR_TYPE: Final = "type"
+ATTR_SWITCH: Final = "switch"
+ATTR_PARAMETER: Final = "parameter"
+ATTR_SCHEDULE: Final = "schedule"

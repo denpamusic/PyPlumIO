@@ -13,6 +13,7 @@ from pyplumio.structures.mixer_parameters import MixerParametersStructure
 from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
 from pyplumio.structures.program_version import ProgramVersionStructure
+from pyplumio.structures.schedules import SchedulesStructure
 
 
 class ProgramVersionResponse(Response):
@@ -145,3 +146,13 @@ class AlertsResponse(Response):
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
         return AlertsStructure(self).decode(message)[0]
+
+
+class SchedulesResponse(Response):
+    """Represents device schedule."""
+
+    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SCHEDULES
+
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
+        return SchedulesStructure(self).decode(message)[0]

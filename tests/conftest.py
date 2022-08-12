@@ -3,7 +3,7 @@
 import asyncio
 from asyncio import StreamReader, StreamWriter
 from datetime import datetime
-from typing import Dict, Generator
+from typing import Dict, Generator, List
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -15,8 +15,13 @@ from pyplumio.const import (
     ATTR_MIXER_PARAMETERS,
     ATTR_NAME,
     ATTR_NETWORK,
+    ATTR_PARAMETER,
     ATTR_PASSWORD,
     ATTR_PRODUCT,
+    ATTR_SCHEDULE,
+    ATTR_SCHEDULES,
+    ATTR_SWITCH,
+    ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VERSION,
 )
@@ -33,6 +38,57 @@ from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import Alert
 from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
+
+TEST_SCHEDULE: List[bool] = [
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    False,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    True,
+    False,
+]
 
 
 @pytest.fixture(name="data")
@@ -100,6 +156,15 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 ),
             ]
         },
+        FrameTypes.RESPONSE_SCHEDULES: {
+            ATTR_SCHEDULES: {
+                "heating": {
+                    ATTR_SWITCH: (0, 0, 1),
+                    ATTR_PARAMETER: (5, 0, 30),
+                    ATTR_SCHEDULE: [TEST_SCHEDULE] * 7,
+                }
+            }
+        },
         FrameTypes.REQUEST_SET_BOILER_PARAMETER: {
             ATTR_NAME: "airflow_power_100",
             ATTR_VALUE: 80,
@@ -110,6 +175,12 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ATTR_EXTRA: 0,
         },
         FrameTypes.REQUEST_BOILER_CONTROL: {ATTR_VALUE: 1},
+        FrameTypes.REQUEST_SET_SCHEDULE: {
+            ATTR_TYPE: "heating",
+            ATTR_SWITCH: 0,
+            ATTR_PARAMETER: 5,
+            ATTR_SCHEDULE: [TEST_SCHEDULE] * 7,
+        },
     }
 
 
@@ -161,6 +232,13 @@ A7A000A7B000A7C000A7D000A7E000A7F00048000048300048400049100049200049300049400049
         FrameTypes.RESPONSE_ALERTS: bytearray.fromhex(
             "640002005493382B9B94382B009C97372BD398372B"
         ),
+        FrameTypes.RESPONSE_SCHEDULES: bytearray.fromhex(
+            """100101000005001E0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFF
+FFE0000FFFFFFFE0000FFFFFFFE
+""".replace(
+                "\n", ""
+            )
+        ),
         FrameTypes.MESSAGE_REGULATOR_DATA: bytearray.fromhex(
             """626400010855F7B15420BE6101003D183136010064010040041C5698FA0000000000FF0FF
 F0FFF0FFF0FFF0FFF0F9F04080FFF0FFF0F0000000000000000000000000000000000000000000000000000C
@@ -187,6 +265,13 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
         FrameTypes.REQUEST_SET_BOILER_PARAMETER: bytearray.fromhex("0050"),
         FrameTypes.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
         FrameTypes.REQUEST_BOILER_CONTROL: bytearray.fromhex("01"),
+        FrameTypes.REQUEST_SET_SCHEDULE: bytearray.fromhex(
+            """010000050000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000F
+FFFFFFE0000FFFFFFFE
+""".replace(
+                "\n", ""
+            )
+        ),
     }
 
 

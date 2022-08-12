@@ -17,6 +17,7 @@ from pyplumio.helpers.parameter import (
     BoilerBinaryParameter,
     BoilerParameter,
     MixerParameter,
+    ScheduleParameter,
 )
 from pyplumio.helpers.typing import ParameterDataType
 
@@ -97,6 +98,31 @@ def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
         extra=0,
     )
     assert isinstance(parameter.request, SetMixerParameterRequest)
+
+
+@patch("asyncio.Queue.put_nowait")
+@patch("pyplumio.helpers.parameter._collect_schedule_data")
+@patch("pyplumio.helpers.parameter.factory")
+def test_parameter_request_schedule(
+    mock_factory, mock_collect_schedule_data, mock_put_nowait, ecomax: EcoMAX
+) -> None:
+    """Terst request schedule."""
+    parameter = ScheduleParameter(
+        device=ecomax,
+        name="schedule_test_parameter",
+        value=5,
+        min_value=0,
+        max_value=30,
+        extra="test",
+    )
+    request = parameter.request
+    mock_collect_schedule_data.assert_called_once_with("test", ecomax)
+    mock_factory.assert_called_once_with(
+        "frames.requests.SetScheduleRequest",
+        recipient=ecomax.address,
+        data=mock_collect_schedule_data.return_value,
+    )
+    assert request == mock_factory.return_value
 
 
 def test_parameter_request_control(ecomax: EcoMAX) -> None:

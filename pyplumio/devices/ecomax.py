@@ -15,8 +15,12 @@ from pyplumio.const import (
     ATTR_MIXER_SENSORS,
     ATTR_MIXERS,
     ATTR_MODE,
+    ATTR_PARAMETER,
     ATTR_REGDATA,
+    ATTR_SCHEDULE,
+    ATTR_SCHEDULES,
     ATTR_SCHEMA,
+    ATTR_SWITCH,
 )
 from pyplumio.devices import Device, DeviceTypes, Mixer
 from pyplumio.frames import FrameTypes
@@ -27,8 +31,11 @@ from pyplumio.helpers.parameter import (
     BoilerParameter,
     MixerBinaryParameter,
     MixerParameter,
+    ScheduleBinaryParameter,
+    ScheduleParameter,
     is_binary_parameter,
 )
+from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
 
@@ -45,6 +52,7 @@ class EcoMAX(Device):
         FrameTypes.REQUEST_MIXER_PARAMETERS,
         FrameTypes.REQUEST_PASSWORD,
         FrameTypes.REQUEST_ALERTS,
+        FrameTypes.REQUEST_SCHEDULES,
     ]
 
     def __init__(self, queue: asyncio.Queue):
@@ -58,6 +66,7 @@ class EcoMAX(Device):
         self.subscribe(ATTR_REGDATA, self._decode_regulator_data)
         self.subscribe(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
+        self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
 
     def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
@@ -167,6 +176,44 @@ class EcoMAX(Device):
             offset += parameter_type.size
 
         return regdata
+
+    async def _add_schedules_and_schedule_parameters(
+        self, schedules: DeviceDataType
+    ) -> DeviceDataType:
+        """Add schedules and schedule parameters."""
+        data: DeviceDataType = {}
+        for name, schedule in schedules.items():
+            for field in (ATTR_SWITCH, ATTR_PARAMETER):
+                key = f"{ATTR_SCHEDULE}_{name}_{field}"
+                value = schedule[field]
+                cls = (
+                    ScheduleBinaryParameter
+                    if is_binary_parameter(value)
+                    else ScheduleParameter
+                )
+                parameter = cls(
+                    device=self,
+                    name=key,
+                    value=value[0],
+                    min_value=value[1],
+                    max_value=value[2],
+                    extra=name,
+                )
+                await self.async_set_device_data(key, parameter)
+
+            data[name] = Schedule(
+                name=name,
+                device=self,
+                monday=ScheduleDay(schedule[ATTR_SCHEDULE][1]),
+                tuesday=ScheduleDay(schedule[ATTR_SCHEDULE][2]),
+                wednesday=ScheduleDay(schedule[ATTR_SCHEDULE][3]),
+                thursday=ScheduleDay(schedule[ATTR_SCHEDULE][4]),
+                friday=ScheduleDay(schedule[ATTR_SCHEDULE][5]),
+                saturday=ScheduleDay(schedule[ATTR_SCHEDULE][6]),
+                sunday=ScheduleDay(schedule[ATTR_SCHEDULE][0]),
+            )
+
+        return data
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""

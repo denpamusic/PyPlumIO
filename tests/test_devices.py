@@ -16,6 +16,8 @@ from pyplumio.const import (
     ATTR_MIXER_SENSORS,
     ATTR_MODE,
     ATTR_REGDATA,
+    ATTR_SCHEDULE,
+    ATTR_SCHEDULES,
 )
 from pyplumio.devices import DeviceTypes, FrameVersions, Mixer, get_device_handler
 from pyplumio.devices.ecomax import EcoMAX
@@ -29,6 +31,7 @@ from pyplumio.frames.requests import (
     DataSchemaRequest,
     MixerParametersRequest,
     PasswordRequest,
+    SchedulesRequest,
     StartMasterRequest,
     UIDRequest,
 )
@@ -39,7 +42,11 @@ from pyplumio.helpers.parameter import (
     MixerBinaryParameter,
     MixerParameter,
     Parameter,
+    ScheduleBinaryParameter,
+    ScheduleParameter,
 )
+from pyplumio.helpers.schedule import Schedule
+from pyplumio.helpers.typing import DeviceDataType
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -80,6 +87,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
         call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
         call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
+        call(SchedulesRequest(recipient=DeviceTypes.ECOMAX)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {
@@ -90,6 +98,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         0x31: 0,
         0x32: 0,
         0x3D: 0,
+        0x36: 0,
     }
 
 
@@ -208,6 +217,25 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert test_parameter.value == 10
     assert test_parameter.min_value == 5
     assert test_parameter.max_value == 20
+
+
+async def test_schedule_callback(
+    ecomax: EcoMAX, data: Dict[int, DeviceDataType]
+) -> None:
+    """Test callback that is fired on receiving schedule data."""
+    ecomax.handle_frame(Response(data=data[FrameTypes.RESPONSE_SCHEDULES]))
+    schedule = (await ecomax.get_value("schedules"))["heating"]
+    schedule_switch = await ecomax.get_parameter("schedule_heating_switch")
+    schedule_parameter = await ecomax.get_parameter("schedule_heating_parameter")
+    assert isinstance(schedule, Schedule)
+    assert schedule_switch.value == 0
+    assert isinstance(schedule_switch, ScheduleBinaryParameter)
+    assert schedule_parameter.value == 5
+    assert schedule_parameter.min_value == 0
+    assert schedule_parameter.max_value == 30
+    assert isinstance(schedule_parameter, ScheduleParameter)
+    schedule_data = data[FrameTypes.RESPONSE_SCHEDULES][ATTR_SCHEDULES]["heating"]
+    assert schedule.sunday.intervals == schedule_data[ATTR_SCHEDULE][0]
 
 
 async def test_deprecated(ecomax: EcoMAX) -> None:
