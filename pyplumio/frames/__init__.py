@@ -68,6 +68,16 @@ FRAME_TYPES: Dict[int, str] = {
 }
 
 
+def is_known_frame_type(frame_type: int) -> bool:
+    """Check if frame type is known."""
+    try:
+        FrameTypes(frame_type)
+    except ValueError:
+        return False
+
+    return True
+
+
 def get_frame_handler(frame_type: int) -> str:
     """Return handler class path for the frame type."""
     if frame_type in FRAME_TYPES:

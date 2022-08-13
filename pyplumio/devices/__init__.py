@@ -10,11 +10,15 @@ from pyplumio import util
 from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame, Request
-from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import FrameVersions
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
+from pyplumio.helpers.typing import (
+    DeviceDataType,
+    NumericType,
+    SensorCallbackType,
+    VersionsInfoType,
+)
 
 
 @unique
@@ -103,7 +107,8 @@ class AsyncDevice(ABC, TaskManager):
     async def async_set_device_data(self, name: str, value) -> None:
         """Asynchronously call registered callbacks on value change."""
         if name in self._callbacks:
-            for callback in self._callbacks[name]:
+            callbacks = self._callbacks[name].copy()
+            for callback in callbacks:
                 return_value = await callback(value)
                 value = return_value if return_value is not None else value
 
@@ -121,6 +126,18 @@ class AsyncDevice(ABC, TaskManager):
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
+
+    def register_callback_once(self, name: str, callback: SensorCallbackType) -> None:
+        """Register callback for a single call."""
+
+        async def _callback(value):
+            """Unregister original callback it's called."""
+            try:
+                return await callback(value)
+            finally:
+                self.remove_callback(name, _callback)
+
+        self.register_callback(name, _callback)
 
     def remove_callback(self, name: str, callback: SensorCallbackType) -> None:
         """Remove value change callback."""
@@ -149,8 +166,15 @@ class Device(AsyncDevice):
         super().__init__()
         self.queue = queue
         versions = FrameVersions(device=self)
-        versions.update({x.frame_type: 0 for x in self.required_frames})
-        self.register_callback(ATTR_FRAME_VERSIONS, on_change(versions.async_update))
+        self.register_callback_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
+        self.register_callback(ATTR_FRAME_VERSIONS, versions.async_update)
+
+    async def _merge_required_frames(
+        self, frame_versions: VersionsInfoType
+    ) -> VersionsInfoType:
+        """Merge required frames into version list."""
+        requirements = {x.frame_type: 0 for x in self.required_frames}
+        return {**requirements, **frame_versions}
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
