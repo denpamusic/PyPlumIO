@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Final
 
-from pyplumio.frames import FrameTypes, get_frame_handler, is_known_frame_type
+from pyplumio.frames import get_frame_handler, is_known_frame_type
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import VersionsInfoType
 
@@ -31,7 +31,6 @@ class FrameVersions:
                 frame_type not in self.versions or self.versions[frame_type] != version
             ):
                 # We don't have this frame or it's version has changed.
-                frame_type = FrameTypes(frame_type)
                 request = factory(
                     get_frame_handler(frame_type), recipient=self.device.address
                 )

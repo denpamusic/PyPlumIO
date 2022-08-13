@@ -184,7 +184,7 @@ class Device(AsyncDevice):
     ) -> VersionsInfoType:
         """Merge required frames into version list."""
         requirements = {
-            frame.frame_type: DEFAULT_FRAME_VERSION for frame in self.required_frames
+            int(x.frame_type): DEFAULT_FRAME_VERSION for x in self.required_frames
         }
         return {**requirements, **frame_versions}
 
