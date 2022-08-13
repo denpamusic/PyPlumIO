@@ -121,17 +121,17 @@ class AsyncDevice(ABC, TaskManager):
         await self.wait_until_done()
 
     def register_callback(self, name: str, callback: SensorCallbackType) -> None:
-        """Register callback for a value change."""
+        """Register a callback for a value change."""
         if name not in self._callbacks:
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
 
     def register_callback_once(self, name: str, callback: SensorCallbackType) -> None:
-        """Register callback for a single call."""
+        """Register a callback for a single call."""
 
         async def _callback(value):
-            """Unregister original callback it's called."""
+            """Unregister the callback once it was called."""
             try:
                 return await callback(value)
             finally:
@@ -140,7 +140,7 @@ class AsyncDevice(ABC, TaskManager):
         self.register_callback(name, _callback)
 
     def remove_callback(self, name: str, callback: SensorCallbackType) -> None:
-        """Remove value change callback."""
+        """Remove the callback."""
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
