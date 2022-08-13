@@ -5,6 +5,7 @@ from abc import ABC
 import asyncio
 from enum import IntEnum, unique
 from typing import ClassVar, Dict, List, Optional, Type
+from warnings import warn
 
 from pyplumio import util
 from pyplumio.const import ATTR_FRAME_VERSIONS
@@ -119,6 +120,24 @@ class AsyncDevice(ABC, TaskManager):
         """Cancel scheduled tasks."""
         self.cancel_tasks()
         await self.wait_until_done()
+
+    def register_callback(self, name: str, callback: SensorCallbackType) -> None:
+        """Register a callback for a value change."""
+        warn(
+            "Function 'register_callback' is deprecated. Use 'subscribe' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.subscribe(name, callback)
+
+    def remove_callback(self, name: str, callback: SensorCallbackType) -> None:
+        """Remove the callback."""
+        warn(
+            "Function 'remove_callback' is deprecated. Use 'unsubscribe' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.unsubscribe(name, callback)
 
     def subscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Register a callback for a value change."""

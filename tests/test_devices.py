@@ -3,6 +3,7 @@
 import asyncio
 from typing import Dict
 from unittest.mock import AsyncMock, Mock, call, patch
+import warnings
 
 import pytest
 
@@ -199,6 +200,24 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert test_parameter.value == 10
     assert test_parameter.min_value == 5
     assert test_parameter.max_value == 20
+
+
+async def test_deprecated(ecomax: EcoMAX) -> None:
+    """Test deprecated function warnings."""
+    mock_callback = AsyncMock(return_value=None)
+    deprecated = (
+        "register_callback",
+        "remove_callback",
+    )
+
+    for func_name in deprecated:
+        with warnings.catch_warnings(record=True) as warn:
+            func = getattr(ecomax, func_name)
+            warnings.simplefilter("always")
+            func("test_sensor", mock_callback)
+            assert len(warn) == 1
+            assert issubclass(warn[-1].category, DeprecationWarning)
+            assert "deprecated" in str(warn[-1].message)
 
 
 async def test_subscribe(ecomax: EcoMAX) -> None:
