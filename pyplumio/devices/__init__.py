@@ -10,7 +10,7 @@ from pyplumio import util
 from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame, Request
-from pyplumio.helpers.frame_versions import FrameVersions
+from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import (
@@ -145,15 +145,6 @@ class AsyncDevice(ABC, TaskManager):
             self._callbacks[name].remove(callback)
 
 
-class Mixer(AsyncDevice):
-    """Represents mixer device."""
-
-    def __init__(self, index: int = 0):
-        """Initialize new Mixer object."""
-        super().__init__()
-        self.index = index
-
-
 class Device(AsyncDevice):
     """Represents base device."""
 
@@ -173,7 +164,9 @@ class Device(AsyncDevice):
         self, frame_versions: VersionsInfoType
     ) -> VersionsInfoType:
         """Merge required frames into version list."""
-        requirements = {x.frame_type: 0 for x in self.required_frames}
+        requirements = {
+            frame.frame_type: DEFAULT_FRAME_VERSION for frame in self.required_frames
+        }
         return {**requirements, **frame_versions}
 
     def handle_frame(self, frame: Frame) -> None:
@@ -186,3 +179,12 @@ class Device(AsyncDevice):
     def required_frames(self) -> List[Type[Request]]:
         """Return list of required frames."""
         return self._required_frames
+
+
+class Mixer(AsyncDevice):
+    """Represents mixer device."""
+
+    def __init__(self, index: int = 0):
+        """Initialize new Mixer object."""
+        super().__init__()
+        self.index = index

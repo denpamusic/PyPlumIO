@@ -1,7 +1,7 @@
 """Contains frame versions storage helper."""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Final
 
 from pyplumio.frames import FrameTypes, get_frame_handler, is_known_frame_type
 from pyplumio.helpers.factory import factory
@@ -9,6 +9,8 @@ from pyplumio.helpers.typing import VersionsInfoType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
+
+DEFAULT_FRAME_VERSION: Final = 0
 
 
 class FrameVersions:
