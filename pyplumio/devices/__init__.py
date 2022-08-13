@@ -4,13 +4,13 @@ from __future__ import annotations
 from abc import ABC
 import asyncio
 from enum import IntEnum, unique
-from typing import ClassVar, Dict, List, Optional, Type
+from typing import ClassVar, Dict, List, Optional
 from warnings import warn
 
 from pyplumio import util
 from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Frame, Request
+from pyplumio.frames import Frame
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
@@ -169,7 +169,7 @@ class Device(AsyncDevice):
 
     address: ClassVar[int]
     queue: asyncio.Queue
-    _required_frames: List[Type[Request]] = []
+    _required_frames: List[int] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
@@ -183,9 +183,7 @@ class Device(AsyncDevice):
         self, frame_versions: VersionsInfoType
     ) -> VersionsInfoType:
         """Merge required frames into version list."""
-        requirements = {
-            int(x.frame_type): DEFAULT_FRAME_VERSION for x in self.required_frames
-        }
+        requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
         return {**requirements, **frame_versions}
 
     def handle_frame(self, frame: Frame) -> None:
@@ -195,8 +193,8 @@ class Device(AsyncDevice):
                 self.set_device_data(name, value)
 
     @property
-    def required_frames(self) -> List[Type[Request]]:
-        """Return list of required frames."""
+    def required_frames(self) -> List[int]:
+        """Return list of required frame types."""
         return self._required_frames
 
 

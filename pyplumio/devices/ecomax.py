@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Sequence
 import time
-from typing import ClassVar, List, Type
+from typing import ClassVar, List
 
 from pyplumio.const import (
     ATTR_BOILER_PARAMETERS,
@@ -19,7 +19,7 @@ from pyplumio.const import (
     ATTR_SCHEMA,
 )
 from pyplumio.devices import Device, DeviceTypes, Mixer
-from pyplumio.frames import Request, requests
+from pyplumio.frames import FrameTypes
 from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.parameter import (
@@ -38,13 +38,13 @@ class EcoMAX(Device):
 
     address: ClassVar[int] = DeviceTypes.ECOMAX
     _fuel_burned_timestamp: float = 0.0
-    _required_frames: List[Type[Request]] = [
-        requests.UIDRequest,
-        requests.DataSchemaRequest,
-        requests.BoilerParametersRequest,
-        requests.MixerParametersRequest,
-        requests.PasswordRequest,
-        requests.AlertsRequest,
+    _required_frames: List[int] = [
+        FrameTypes.REQUEST_UID,
+        FrameTypes.REQUEST_DATA_SCHEMA,
+        FrameTypes.REQUEST_BOILER_PARAMETERS,
+        FrameTypes.REQUEST_MIXER_PARAMETERS,
+        FrameTypes.REQUEST_PASSWORD,
+        FrameTypes.REQUEST_ALERTS,
     ]
 
     def __init__(self, queue: asyncio.Queue):

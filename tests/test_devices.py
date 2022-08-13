@@ -33,6 +33,7 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import DataSchemaResponse
+from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION
 from pyplumio.helpers.parameter import (
     BoilerBinaryParameter,
     MixerBinaryParameter,
@@ -61,8 +62,15 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
     versions = FrameVersions(ecomax)
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
-        await versions.async_update({0x19: 0, UNKNOWN_FRAME: 0})
-        await versions.async_update({x.frame_type: 0 for x in ecomax.required_frames})
+        await versions.async_update(
+            {
+                FrameTypes.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
+                UNKNOWN_FRAME: DEFAULT_FRAME_VERSION,
+            }
+        )
+        await versions.async_update(
+            {int(x): DEFAULT_FRAME_VERSION for x in ecomax.required_frames}
+        )
 
     calls = [
         call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
