@@ -51,13 +51,13 @@ class EcoMAX(Device):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
         self._fuel_burned_timestamp = time.time()
-        self.register_callback(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
-        self.register_callback(ATTR_MODE, on_change(self._add_boiler_control_parameter))
-        self.register_callback(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
-        self.register_callback(ATTR_BOILER_PARAMETERS, self._add_boiler_parameters)
-        self.register_callback(ATTR_REGDATA, self._decode_regulator_data)
-        self.register_callback(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
-        self.register_callback(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
+        self.subscribe(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
+        self.subscribe(ATTR_MODE, on_change(self._add_boiler_control_parameter))
+        self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
+        self.subscribe(ATTR_BOILER_PARAMETERS, self._add_boiler_parameters)
+        self.subscribe(ATTR_REGDATA, self._decode_regulator_data)
+        self.subscribe(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
+        self.subscribe(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
 
     def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""

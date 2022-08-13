@@ -120,14 +120,14 @@ class AsyncDevice(ABC, TaskManager):
         self.cancel_tasks()
         await self.wait_until_done()
 
-    def register_callback(self, name: str, callback: SensorCallbackType) -> None:
+    def subscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Register a callback for a value change."""
         if name not in self._callbacks:
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
 
-    def register_callback_once(self, name: str, callback: SensorCallbackType) -> None:
+    def subscribe_once(self, name: str, callback: SensorCallbackType) -> None:
         """Register a callback for a single call."""
 
         async def _callback(value):
@@ -135,11 +135,11 @@ class AsyncDevice(ABC, TaskManager):
             try:
                 return await callback(value)
             finally:
-                self.remove_callback(name, _callback)
+                self.unsubscribe(name, _callback)
 
-        self.register_callback(name, _callback)
+        self.subscribe(name, _callback)
 
-    def remove_callback(self, name: str, callback: SensorCallbackType) -> None:
+    def unsubscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Remove the callback."""
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
@@ -157,8 +157,8 @@ class Device(AsyncDevice):
         super().__init__()
         self.queue = queue
         versions = FrameVersions(device=self)
-        self.register_callback_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
-        self.register_callback(ATTR_FRAME_VERSIONS, versions.async_update)
+        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
+        self.subscribe(ATTR_FRAME_VERSIONS, versions.async_update)
 
     async def _merge_required_frames(
         self, frame_versions: VersionsInfoType

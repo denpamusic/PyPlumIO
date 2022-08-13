@@ -179,7 +179,7 @@ async def main():
 
 ### Callbacks
 It's possible to register a callback, that will be called every time a data with
-the certain name is received (e. g. heating_temp), using `AsyncDevice.register_callback(name, callback)` function, register callback that will be called only once using `AsyncDevice.register_callback_once(name, callback)` function or remove existing callback by calling `AsyncDevice.remove_callback(name, callback).`
+the certain name is received (e. g. heating_temp), using `AsyncDevice.subscribe(name, callback)` function, register callback that will be called only once using `AsyncDevice.subscribe_once(name, callback)` function or remove existing callback by calling `AsyncDevice.unsubscribe(name, callback).`
 ```python
 import asyncio
 import pyplumio
@@ -190,7 +190,7 @@ async def my_callback(value) -> None:
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    ecomax.register_callback("heating_temp", my_callback)
+    ecomax.subscribe("heating_temp", my_callback)
     # Wait until disconnected (forever)
     connection.wait_until_done()
 
@@ -213,31 +213,31 @@ async def main():
     # Callback "first_callback" will be awaited on every received frame
     # that contains "heating_temp" regardless of whether value is
     # changed or not.
-    ecomax.register_callback("heating_temp", first_callback)
+    ecomax.subscribe("heating_temp", first_callback)
     
     # Callback "second_callback" will be awaited only if the
     # "heating_temp" value is changed since last call.
-    ecomax.register_callback("heating_temp", on_change(second_callback))
+    ecomax.subscribe("heating_temp", on_change(second_callback))
     
     # Callback "third_callback" will be awaited once the "heating_temp"
     # value is stabilized across three received frames.
-    ecomax.register_callback("heating_temp", debounce(third_callback, min_calls=3))
+    ecomax.subscribe("heating_temp", debounce(third_callback, min_calls=3))
 
     # Callback "fourth_callback" will be awaited once in 5 seconds.
-    ecomax.register_callback("heating_temp", throttle(fourth_callback, seconds=5))
+    ecomax.subscribe("heating_temp", throttle(fourth_callback, seconds=5))
 
     # Callback "fifth_callback" will be awaited with the sum of values
     # accumulated over the span of 5 seconds. Works with numeric values only.
-    ecomax.register_callback("fuel_burned", aggregate(fifth_callback, seconds=5))
+    ecomax.subscribe("fuel_burned", aggregate(fifth_callback, seconds=5))
 
     # Callback "sixth_callback" will be awaited with difference between
     # values in the last and current calls.
-    ecomax.register_callback("heating_temp", delta(sixth_callback))
+    ecomax.subscribe("heating_temp", delta(sixth_callback))
 
     # Throttle callback can be chained with others.
     # Callback "seventh_callback" will be awaited on value change but no
     # sooner that 5 seconds.
-    ecomax.register_callback("heating_temp", throttle(on_change(seventh_callback), seconds=5))
+    ecomax.subscribe("heating_temp", throttle(on_change(seventh_callback), seconds=5))
 
 ```
 
@@ -270,7 +270,7 @@ async def main():
     mixer = mixers[0]
     mixer = await mixer.get_value("temp")
     await mixer.set_value("mix_target_temp", 50)
-    mixer.register_callback("mixer_pump", on_change(my_callback))
+    mixer.subscribe("mixer_pump", on_change(my_callback))
 
     # Print all available mixer data.
     print(mixer.data)
