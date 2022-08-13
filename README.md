@@ -44,7 +44,8 @@ To interact with devices, you must first initialize connection by utilizing `pyp
 You can find examples for each supported connection type below.
 
 ### TCP
-This is intended to be used with RS-485 to Ethernet/WiFi converters, which are readily available online or can be custom built using RS-485 to USB converter and ser2net software.
+This is intended to be used with RS-485 to Ethernet/WiFi converters, which are readily
+available online or can be custom built using RS-485 to USB converter and ser2net software.
 
 ```python
 import asyncio
@@ -97,7 +98,8 @@ asyncio.run(main())
 ```
 
 ### Values and Parameters
-Data can be immutable (Values) or mutable (Parameters). They can be accessed via `AsyncDevice.get_value(name: str, timeout: float | None = None)` and `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` methods.
+Data can be immutable (Values) or mutable (Parameters). They can be accessed via 
+`AsyncDevice.get_value(name: str, timeout: float | None = None)` and `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` methods.
 
 Each device supports different attributes and parameters, you can check all available values and parameters by looking at `AsyncDevice.data` attribute.
 
@@ -119,7 +121,9 @@ asyncio.run(main())
 ```
 
 ### Writing
-You can change controller parameters by awaiting `AsyncDevice.set_value(name: str, value: int, timeout: float | None = None)` or by getting parameter via `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`. In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
+You can change controller parameters by awaiting `AsyncDevice.set_value(name: str, value: int, timeout: float | None = None)` or
+by getting parameter via `AsyncDevice.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
+In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
 
@@ -139,7 +143,8 @@ async def main():
     target_temp.set(65)
 ```
 
-For a binary parameters, that can only have "0" or "1" value, you can also use string literals "on", "off" or use `turn_on()`, `turn_off()` methods of the parameter instance.
+For a binary parameters, that can only have "0" or "1" value, you can also use string
+literals "on", "off" or use `turn_on()`, `turn_off()` methods of the parameter instance.
 ```python
 import pyplumio
 
@@ -159,7 +164,8 @@ async def main():
     boiler.turn_on()  # or boiler.turn_off()
 ```
 
-Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range. You can check allowed range by reading `min_value` and `max_value` attributes of parameter object. Both `min_value` and `max_value` are inclusive.
+Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range.
+You can check allowed range by reading `min_value` and `max_value` attributes of parameter object. Both `min_value` and `max_value` are inclusive.
 ```python
 import pyplumio
 
@@ -172,7 +178,8 @@ async def main():
 ```
 
 ### Callbacks
-It's possible to register a callback function that will be called every time a data is received.
+It's possible to register a callback, that will be called every time a data with
+the certain name is received (e. g. heating_temp), using `AsyncDevice.register_callback(name, callback)` function, register callback that will be called only once using `AsyncDevice.register_callback_once(name, callback)` function or remove existing callback by calling `AsyncDevice.remove_callback(name, callback).`
 ```python
 import asyncio
 import pyplumio
@@ -191,7 +198,8 @@ asyncio.run(main())
 ```
 
 ### Filters
-Callbacks can be improved by using built-in filters `aggregate(callback, seconds)`, `on_change(callback)`, `debounce(callback, min_calls)` `delta(callback)`, and `throttle(callback, seconds)`.
+Callbacks can be improved by using built-in filters `aggregate(callback, seconds)`, `on_change(callback)`,
+`debounce(callback, min_calls)` `delta(callback)`, and `throttle(callback, seconds)`.
 
 You can find examples on how to use them below:
 ```python
@@ -234,12 +242,15 @@ async def main():
 ```
 
 ### Working with Mixers
-If your ecoMAX controller support mixers, you can access them via `mixers` property through `AsyncDevice.get_value("mixers")` call.
+If your ecoMAX controller support mixers, you can access them via `mixers` property
+through `AsyncDevice.get_value("mixers")` call.
 
 Result of this call will be a list of `Mixer` instances.
-`Mixer` class inherits `AsyncDevice` and provides access to getter/setter functions and callback support.
+`Mixer` class inherits `AsyncDevice` and provides access to getter/setter functions and
+callback support.
 
-Each device supports different attributes and parameters for mixers, you can check all available values and parameters by looking at `Mixer.data` attribute.
+Each device supports different attributes and parameters for mixers, you can check all
+available values and parameters by looking at `Mixer.data` attribute.
 
 ```python
 import asyncio
@@ -300,9 +311,13 @@ async def main():
 ```
 
 ## Protocol
-Plum devices use RS-485 standard for communication. Each frame consists of header (7 bytes), message type (1 byte), message data (optional), CRC (1 byte) and frame end delimiter (1 byte). The minimum frame size therefore is 10 bytes.
+Plum devices use RS-485 standard for communication. Each frame consists of header (7 bytes),
+message type (1 byte), message data (optional), CRC (1 byte) and frame end delimiter (1 byte).
+The minimum frame size therefore is 10 bytes.
 
-Protocol supports unicast and broadcast frames. Broadcast frames will always have their recipient address set to `0x00`, while unicast messages will have specific device address. ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
+Protocol supports unicast and broadcast frames. Broadcast frames will always have their
+recipient address set to `0x00`, while unicast messages will have specific device address.
+ecoMAX controller address is `0x45`, ecoSTER panel address is `0x51`.
 
 ### Frame Structure
 - Header:
@@ -319,12 +334,18 @@ Protocol supports unicast and broadcast frames. Broadcast frames will always hav
   - [Byte] Frame end delimiter. Always `0x16`.
 
 ### Requests and Responses
-PyPlumIO splits frames into requests, responses and messages. See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py), [responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and [messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py) for a list of supported frame types.
+PyPlumIO splits frames into requests, responses and messages.
+See [requests.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/requests.py),
+[responses.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/responses.py) and
+[messages.py](https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/frames/messages.py)
+for a list of supported frame types.
 
-For example, we can request list of editable parameters from the ecoMAX controller by sending frame with frame type `49` and receive response with frame type `177` that contains requested parameters.
+For example, we can request list of editable parameters from the ecoMAX controller by sending
+frame with frame type `49` and receive response with frame type `177` that contains requested parameters.
 
 ### Communication
-The controller constantly sends `ProgramVersionRequest[type=64]` and `CheckDeviceRequest[type=48]` requests to every known device on the network and broadcasts `RegulatorDataMessage[type=8]` message, that contains basic controller data.
+The controller constantly sends `ProgramVersionRequest[type=64]` and `CheckDeviceRequest[type=48]`
+requests to every known device on the network and broadcasts `RegulatorDataMessage[type=8]` message, that contains basic controller data.
 
 Initial exchange between ecoMAX controller and PyPlumIO library can be illustrated with following diagram:
 
@@ -358,8 +379,10 @@ frame_versions: Dict[int, int] = {
   83: 1,
 }
 ```
-In this dictionary, keys are frame types and values are version numbers. In example above, frame `ParametersRequest[type=49]` has version 37.
-If we change any parameters either remotely or on the controller itself, version number will increase, so PyPlumIO will be able to tell that it's need to request list of parameters again to obtain changes.
+In this dictionary, keys are frame types and values are version numbers. In example above,
+frame `ParametersRequest[type=49]` has version 37. If we change any parameters either remotely or
+on the controller itself, version number will increase, so PyPlumIO will be able to tell that it's
+need to request list of parameters again to obtain changes.
 ```python
 frame_versions: Dict[int, int] = {
   49: 38,  # Note the version number change.
