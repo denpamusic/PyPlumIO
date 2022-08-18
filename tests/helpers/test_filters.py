@@ -1,10 +1,12 @@
 """Contains tests for callback filters."""
 
+from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
+from pyplumio.structures.alerts import Alert
 
 
 async def test_on_change() -> None:
@@ -81,11 +83,13 @@ async def test_delta() -> None:
     test_callback.assert_awaited_once_with(-2)
     test_callback.reset_mock()
 
-    # Test with list.
+    # Test with list of alerts.
+    alert1 = Alert(code=0, from_dt=datetime.now(), to_dt=None)
+    alert2 = Alert(code=1, from_dt=datetime.now(), to_dt=None)
     wrapped_callback = delta(test_callback)
-    await wrapped_callback(["foo"])
-    await wrapped_callback(["foo", "bar"])
-    test_callback.assert_awaited_once_with(["bar"])
+    await wrapped_callback([alert1])
+    await wrapped_callback([alert1, alert2])
+    test_callback.assert_awaited_once_with([alert2])
     test_callback.reset_mock()
 
     # Test with unknown.

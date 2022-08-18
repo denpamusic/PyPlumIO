@@ -26,7 +26,7 @@ def _significantly_changed(old_value, new_value) -> bool:
 def _diffence_between(old_value, new_value):
     """Return the difference between values."""
     if isinstance(old_value, list) and isinstance(new_value, list):
-        return list(set(new_value) - set(old_value))
+        return [x for x in new_value if x not in old_value]
 
     if hasattr(old_value, "__sub__") and hasattr(new_value, "__sub__"):
         return new_value - old_value
