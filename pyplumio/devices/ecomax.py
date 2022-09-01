@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Sequence
 import time
-from typing import ClassVar, List
+from typing import ClassVar, Final, List
 
 from pyplumio.const import (
     ATTR_BOILER_PARAMETERS,
@@ -38,6 +38,8 @@ from pyplumio.helpers.parameter import (
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
+
+MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
 
 
 class EcoMAX(Device):
@@ -152,9 +154,10 @@ class EcoMAX(Device):
         """Add burned fuel counter."""
         current_timestamp = time.time()
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
-        fuel_burned = (fuel_consumption / 3600) * seconds_passed
-        self._fuel_burned_timestamp = current_timestamp
-        await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
+        if 0 <= seconds_passed < MAX_TIME_SINCE_LAST_FUEL_DATA:
+            fuel_burned = (fuel_consumption / 3600) * seconds_passed
+            self._fuel_burned_timestamp = current_timestamp
+            await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
 
     async def _decode_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
         """Add sensor values from the regulator data."""
