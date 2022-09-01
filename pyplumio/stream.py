@@ -98,7 +98,10 @@ class FrameReader:
         try:
             payload = await self._reader.readexactly(length - HEADER_SIZE)
         except asyncio.IncompleteReadError as e:
-            raise ReadError("Incomplete frame") from e
+            raise ReadError(
+                "Got an incomplete frame while trying to read "
+                + f"'{length - HEADER_SIZE}' bytes"
+            ) from e
 
         if payload[-2] != util.crc(header + payload[:-2]):
             raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
