@@ -1,7 +1,9 @@
 """Contains reader and writer classes."""
 from __future__ import annotations
 
+import asyncio
 from asyncio import StreamReader, StreamWriter
+import logging
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
@@ -16,6 +18,8 @@ WRITER_TIMEOUT: Final = 10
 
 MIN_FRAME_LENGTH: Final = 10
 MAX_FRAME_LENGTH: Final = 1000
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class FrameWriter:
@@ -32,6 +36,7 @@ class FrameWriter:
         """Write frame to the connection and
         wait for buffer to drain."""
         self._writer.write(frame.bytes)
+        _LOGGER.debug("Sent frame: %s", frame)
         await self._writer.drain()
 
     @timeout(WRITER_TIMEOUT)
@@ -84,28 +89,28 @@ class FrameReader:
             econet_version,
         ) = await self._read_header()
 
-        if recipient in (ADDR_ECONET, ADDR_BROADCAST):
-            # Destination address is econet or broadcast.
-            payload = await self._reader.read(length - HEADER_SIZE)
-            payload_size = len(payload)
+        if recipient not in (ADDR_ECONET, ADDR_BROADCAST):
+            return None
 
-            if (
-                length > MAX_FRAME_LENGTH
-                or length < MIN_FRAME_LENGTH
-                or (payload_size + HEADER_SIZE) != length
-            ):
-                raise ReadError(f"Unexpected frame size ({payload_size})")
+        if length > MAX_FRAME_LENGTH or length < MIN_FRAME_LENGTH:
+            raise ReadError(f"Unexpected frame length ({length})")
 
-            if payload[-2] != util.crc(header + payload[:-2]):
-                raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
+        try:
+            payload = await self._reader.readexactly(length - HEADER_SIZE)
+        except asyncio.IncompleteReadError as e:
+            raise ReadError("Incomplete frame") from e
 
-            return factory(
-                get_frame_handler(frame_type=payload[0]),
-                recipient=recipient,
-                message=payload[1:-2],
-                sender=sender,
-                sender_type=sender_type,
-                econet_version=econet_version,
-            )
+        if payload[-2] != util.crc(header + payload[:-2]):
+            raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
-        return None
+        frame = factory(
+            get_frame_handler(frame_type=payload[0]),
+            recipient=recipient,
+            message=payload[1:-2],
+            sender=sender,
+            sender_type=sender_type,
+            econet_version=econet_version,
+        )
+        _LOGGER.debug("Received frame: %s", frame)
+
+        return frame
