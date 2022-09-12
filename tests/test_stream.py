@@ -1,5 +1,6 @@
 """Contains tests for frame reader and writer."""
 
+import asyncio
 from typing import Generator
 from unittest.mock import AsyncMock, patch
 
@@ -32,10 +33,17 @@ async def test_frame_writer(mock_stream_writer) -> None:
 
 @patch(
     "asyncio.StreamReader.read",
-    side_effect=(b"\x68", b"\x0c\x00\x00\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    side_effect=(b"\x00", b"\x68", b"\x0c\x00\x00\x56\x30\x05"),
     new_callable=AsyncMock,
 )
-async def test_frame_reader(mock_read, frame_reader: FrameReader) -> None:
+@patch(
+    "asyncio.StreamReader.readexactly",
+    return_value=b"\x31\xff\x00\xc9\x16",
+    new_callable=AsyncMock,
+)
+async def test_frame_reader(
+    mock_readexactly, mock_read, frame_reader: FrameReader
+) -> None:
     """Test frame reader."""
     frame = await frame_reader.read()
     assert isinstance(frame, BoilerParametersRequest)
@@ -46,6 +54,22 @@ async def test_frame_reader(mock_read, frame_reader: FrameReader) -> None:
     assert frame.message == b"\xff\x00"
     assert frame.econet_version == 0x5
     assert mock_read.call_count == 3
+    assert mock_readexactly.call_count == 1
+
+
+@patch(
+    "asyncio.StreamReader.read",
+    return_value=False,
+    new_callable=AsyncMock,
+)
+async def test_frame_reader_with_empty_buffer(
+    mock_read, frame_reader: FrameReader
+) -> None:
+    """Test reader with empty read buffer."""
+    with pytest.raises(OSError):
+        await frame_reader.read()
+
+    mock_read.assert_awaited_once()
 
 
 @patch(
@@ -53,10 +77,10 @@ async def test_frame_reader(mock_read, frame_reader: FrameReader) -> None:
     side_effect=(b"\x68", b"\x03\x00\x00"),
     new_callable=AsyncMock,
 )
-async def test_frame_reader_with_incomplete_data(
+async def test_frame_reader_with_short_header(
     mock_read, frame_reader: FrameReader
 ) -> None:
-    """Test reader with not data of less than header size in length."""
+    """Test reader when data is less than header size."""
     with pytest.raises(ReadError):
         await frame_reader.read()
 
@@ -65,11 +89,16 @@ async def test_frame_reader_with_incomplete_data(
 
 @patch(
     "asyncio.StreamReader.read",
-    side_effect=(b"\x68", b"\x03\x00\x00\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    side_effect=(b"\x68", b"\x03\x00\x00\x56\x30\x05"),
+    new_callable=AsyncMock,
+)
+@patch(
+    "asyncio.StreamReader.readexactly",
+    return_value=b"\x31\xff\x00\xc9\x16",
     new_callable=AsyncMock,
 )
 async def test_frame_reader_with_incorrect_length(
-    mock_read, frame_reader: FrameReader
+    mock_readexactly, mock_read, frame_reader: FrameReader
 ) -> None:
     """Test reader on frame with incorrect length."""
     with pytest.raises(ReadError):
@@ -78,11 +107,34 @@ async def test_frame_reader_with_incorrect_length(
 
 @patch(
     "asyncio.StreamReader.read",
-    side_effect=(b"\x68", b"\x0c\x00\x00\x56\x30\x05", b"\x31\xfe\x00\xc9\x16"),
+    side_effect=(b"\x68", b"\x0c\x00\x00\x56\x30\x05"),
+    new_callable=AsyncMock,
+)
+@patch(
+    "asyncio.StreamReader.readexactly",
+    side_effect=asyncio.IncompleteReadError(bytearray(), None),
+    new_callable=AsyncMock,
+)
+async def test_frame_reader_with_incomplete_read(
+    mock_readexactly, mock_read, frame_reader: FrameReader
+) -> None:
+    """Test reader with incomplete data."""
+    with pytest.raises(ReadError):
+        await frame_reader.read()
+
+
+@patch(
+    "asyncio.StreamReader.read",
+    side_effect=(b"\x68", b"\x0c\x00\x00\x56\x30\x05"),
+    new_callable=AsyncMock,
+)
+@patch(
+    "asyncio.StreamReader.readexactly",
+    return_value=b"\x31\xfe\x00\xc9\x16",
     new_callable=AsyncMock,
 )
 async def test_frame_reader_with_incorrect_crc(
-    mock_read, frame_reader: FrameReader
+    mock_readexactly, mock_read, frame_reader: FrameReader
 ) -> None:
     """Test reader on frame with incorrect checksum."""
     with pytest.raises(ChecksumError):
@@ -91,11 +143,16 @@ async def test_frame_reader_with_incorrect_crc(
 
 @patch(
     "asyncio.StreamReader.read",
-    side_effect=(b"\x68", b"\x0c\x00\x10\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    side_effect=(b"\x68", b"\x0c\x00\x10\x56\x30\x05"),
+    new_callable=AsyncMock,
+)
+@patch(
+    "asyncio.StreamReader.readexactly",
+    return_value=b"\x31\xff\x00\xc9\x16",
     new_callable=AsyncMock,
 )
 async def test_frame_reader_with_unknown_address(
-    mock_read, frame_reader: FrameReader
+    mock_readexactly, mock_read, frame_reader: FrameReader
 ) -> None:
     """Test reader on frame with unknown device address."""
     result = await frame_reader.read()
