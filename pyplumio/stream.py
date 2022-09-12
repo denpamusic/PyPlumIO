@@ -57,25 +57,26 @@ class FrameReader:
 
     async def _read_header(self) -> Tuple[bytes, int, int, int, int, int]:
         """Locate and read frame header."""
-        while True:
-            header = await self._reader.read(1)
-            if header and header[0] == FRAME_START:
-                break
+        while buffer := await self._reader.read(1):
+            if FRAME_START not in buffer:
+                continue
 
-        header += await self._reader.read(HEADER_SIZE - 1)
-        if len(header) < HEADER_SIZE:
-            raise ReadError(f"Header can't be less than {HEADER_SIZE} bytes")
+            buffer += await self._reader.read(HEADER_SIZE - 1)
+            if len(buffer) < HEADER_SIZE:
+                raise ReadError(f"Header can't be less than {HEADER_SIZE} bytes")
 
-        [
-            _,
-            length,
-            recipient,
-            sender,
-            sender_type,
-            econet_version,
-        ] = util.unpack_header(header)
+            [
+                _,
+                length,
+                recipient,
+                sender,
+                sender_type,
+                econet_version,
+            ] = util.unpack_header(buffer)
 
-        return header, length, recipient, sender, sender_type, econet_version
+            return buffer, length, recipient, sender, sender_type, econet_version
+
+        raise OSError
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Optional[Frame]:
