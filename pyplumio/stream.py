@@ -1,8 +1,7 @@
 """Contains reader and writer classes."""
 from __future__ import annotations
 
-import asyncio
-from asyncio import StreamReader, StreamWriter
+from asyncio import IncompleteReadError, StreamReader, StreamWriter
 import logging
 from typing import Final, Optional, Tuple
 
@@ -36,8 +35,8 @@ class FrameWriter:
         """Write frame to the connection and
         wait for buffer to drain."""
         self._writer.write(frame.bytes)
-        _LOGGER.debug("Sent frame: %s", frame)
         await self._writer.drain()
+        _LOGGER.debug("Sent frame: %s", frame)
 
     @timeout(WRITER_TIMEOUT)
     async def close(self) -> None:
@@ -76,7 +75,7 @@ class FrameReader:
 
             return buffer, length, recipient, sender, sender_type, econet_version
 
-        raise OSError
+        raise OSError("No data can be read, RS485 connection broken")
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Optional[Frame]:
@@ -98,7 +97,7 @@ class FrameReader:
 
         try:
             payload = await self._reader.readexactly(length - HEADER_SIZE)
-        except asyncio.IncompleteReadError as e:
+        except IncompleteReadError as e:
             raise ReadError(
                 "Got an incomplete frame while trying to read "
                 + f"'{length - HEADER_SIZE}' bytes"
