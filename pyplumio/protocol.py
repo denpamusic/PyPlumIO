@@ -98,6 +98,8 @@ class Protocol(TaskManager):
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
                 break
+            except Exception as e:  # pylint: disable=broad-except
+                _LOGGER.exception(e)
             finally:
                 lock.release()
 
