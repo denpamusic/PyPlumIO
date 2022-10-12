@@ -40,7 +40,7 @@ class Connection(ABC):
         self._kwargs = kwargs
         self._closing = False
         self._protocol = Protocol(
-            self._connection_lost_callback,
+            self._connection_lost,
             ethernet_parameters,
             wireless_parameters,
         )
@@ -59,12 +59,6 @@ class Connection(ABC):
         """Return attributes from the underlying protocol object."""
         return getattr(self.protocol, name)
 
-    async def _connection_lost_callback(self) -> None:
-        """Callback to resume the connection on connection lost."""
-        if self._reconnect_on_failure and not self._closing:
-            _LOGGER.error("Connection to the device lost. Trying to reconnect")
-            await self._reconnect()
-
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
         try:
@@ -79,16 +73,21 @@ class Connection(ABC):
 
     async def _reconnect(self) -> None:
         """Establish connection and reconnect on failure."""
-        while True:
-            try:
-                await self._connect()
-                return
-            except ConnectionFailedError:
-                _LOGGER.error(
-                    "Can't connect to the device, retrying in %.1f seconds",
-                    RECONNECT_TIMEOUT,
-                )
-                await asyncio.sleep(RECONNECT_TIMEOUT)
+        try:
+            await self._connect()
+            return
+        except ConnectionFailedError:
+            await self._connection_lost()
+
+    async def _connection_lost(self) -> None:
+        """Callback to resume the connection on connection lost."""
+        if self._reconnect_on_failure and not self._closing:
+            _LOGGER.error(
+                "Can't connect to the device, retrying in %.1f seconds",
+                RECONNECT_TIMEOUT,
+            )
+            await asyncio.sleep(RECONNECT_TIMEOUT)
+            await self._reconnect()
 
     async def connect(self) -> None:
         """Initialize the connection. This method initializes

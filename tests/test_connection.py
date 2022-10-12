@@ -31,9 +31,9 @@ def fixture_mock_protocol():
         yield mock_protocol
 
 
-@patch("pyplumio.connection.Connection._connection_lost_callback")
+@patch("pyplumio.connection.Connection._connection_lost")
 async def test_tcp_connect(
-    mock_connection_lost_callback,
+    mock_connection_lost,
     mock_protocol,
     open_tcp_connection,
 ) -> None:
@@ -46,7 +46,7 @@ async def test_tcp_connect(
     open_tcp_connection.assert_called_once_with(
         host="localhost", port=8899, test="test"
     )
-    mock_protocol.assert_called_once_with(mock_connection_lost_callback, None, None)
+    mock_protocol.assert_called_once_with(mock_connection_lost, None, None)
     await tcp_connection.close()
 
     # Raise custom exception on connection failure.
@@ -97,9 +97,10 @@ async def test_reconnect(
     assert mock_connect.call_count == 2
 
 
-async def test_connection_lost_callback(
+async def test_connection_lost(
     mock_protocol,
     open_tcp_connection,
+    bypass_asyncio_sleep,
     tcp_connection: TcpConnection,
 ) -> None:
     """Test that connection lost callback calls reconnect."""
