@@ -156,8 +156,9 @@ class EcoMAX(Device):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         if 0 <= seconds_passed < MAX_TIME_SINCE_LAST_FUEL_DATA:
             fuel_burned = (fuel_consumption / 3600) * seconds_passed
-            self._fuel_burned_timestamp = current_timestamp
             await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
+
+        self._fuel_burned_timestamp = current_timestamp
 
     async def _decode_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
         """Add sensor values from the regulator data."""
