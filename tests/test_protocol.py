@@ -113,6 +113,7 @@ async def test_frame_producer(
         UnknownFrameError("test unknown frame error"),
         FrameError("test frame error"),
         ReadError("test read error"),
+        Exception("test generic error"),
         ConnectionError,
     )
 
@@ -139,12 +140,17 @@ async def test_frame_producer(
             logging.DEBUG,
             "Read error: test read error",
         ),
+        (
+            "pyplumio.protocol",
+            logging.ERROR,
+            "test generic error",
+        ),
     ]
 
     mock_read_queue.put_nowait.assert_called_once_with("test")
-    assert protocol.reader.read.await_count == 5
-    assert mock_lock.acquire.await_count == 5
-    assert mock_lock.release.call_count == 5
+    assert protocol.reader.read.await_count == 6
+    assert mock_lock.acquire.await_count == 6
+    assert mock_lock.release.call_count == 6
 
 
 @patch("pyplumio.protocol.Protocol.connection_lost", new_callable=Mock)
