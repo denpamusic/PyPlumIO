@@ -243,7 +243,7 @@ async def test_frame_consumer(
     assert mock_read_queue.task_done.call_count == 3
 
 
-async def test_connection_lost() -> None:
+async def test_connection_lost(bypass_asyncio_events) -> None:
     """Test connection lost callback."""
     # Create mock queues.
     mock_read_queue = Mock(spec=asyncio.Queue)

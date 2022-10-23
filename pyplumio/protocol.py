@@ -169,9 +169,10 @@ class Protocol(TaskManager):
 
     async def connection_lost(self):
         """Shutdown consumers and call connection lost callback."""
-        self.connected.clear()
-        if self._connection_lost_callback is not None:
-            await self._connection_lost_callback()
+        if self.connected.is_set():
+            self.connected.clear()
+            if self._connection_lost_callback is not None:
+                await self._connection_lost_callback()
 
     async def shutdown(self):
         """Shutdown protocol tasks."""
