@@ -141,7 +141,7 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
-    target_temp.set(65)
+    await target_temp.set(65)
 ```
 
 For a binary parameters, that can only have "0" or "1" value, you can also use string
@@ -162,7 +162,7 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     boiler = await ecomax.get_parameter("boiler_control")
-    boiler.turn_on()  # or boiler.turn_off()
+    await boiler.turn_on()  # or await boiler.turn_off()
 ```
 
 Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range.

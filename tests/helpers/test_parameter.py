@@ -25,28 +25,37 @@ from pyplumio.helpers.typing import ParameterDataType
 @pytest.fixture(name="parameter")
 def fixture_parameter(ecomax: EcoMAX) -> BoilerBinaryParameter:
     """Return instance of summer_mode parameter."""
-    return BoilerBinaryParameter(
+    parameter = BoilerBinaryParameter(
         device=ecomax,
         name="summer_mode",
         value=1,
         min_value=0,
         max_value=1,
     )
+    ecomax.data["summer_mode"] = parameter
+    return parameter
 
 
-def test_parameter_set(parameter: BoilerBinaryParameter) -> None:
+@patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once")
+async def test_parameter_set(
+    mock_subscribe_once, parameter: BoilerBinaryParameter, bypass_asyncio_sleep
+) -> None:
     """Test setting parameter."""
-    parameter.set(0)
+    await parameter.set(0)
     assert parameter == STATE_OFF
-
-    parameter.set("on")
+    mock_subscribe_once.assert_called_once()
+    callback = mock_subscribe_once.call_args.args[1]
+    assert parameter.change_pending
+    await callback(parameter)
+    assert not parameter.change_pending
+    await parameter.set("on")
     assert parameter == 1
 
 
-def test_parameter_set_out_of_range(parameter: BoilerBinaryParameter) -> None:
+async def test_parameter_set_out_of_range(parameter: BoilerBinaryParameter) -> None:
     """Test setting parameter with value out of allowed range."""
     with pytest.raises(ValueError):
-        parameter.set(39)
+        await parameter.set(39)
 
 
 def test_parameter_relational(parameter: BoilerBinaryParameter):
@@ -100,11 +109,11 @@ def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
     assert isinstance(parameter.request, SetMixerParameterRequest)
 
 
-@patch("asyncio.Queue.put_nowait")
+@patch("asyncio.Queue.put")
 @patch("pyplumio.helpers.parameter._collect_schedule_data")
 @patch("pyplumio.helpers.parameter.factory")
 def test_parameter_request_schedule(
-    mock_factory, mock_collect_schedule_data, mock_put_nowait, ecomax: EcoMAX
+    mock_factory, mock_collect_schedule_data, mock_put, ecomax: EcoMAX
 ) -> None:
     """Terst request schedule."""
     parameter = ScheduleParameter(
@@ -137,26 +146,28 @@ def test_parameter_request_control(ecomax: EcoMAX) -> None:
     assert isinstance(parameter.request, BoilerControlRequest)
 
 
-@patch("asyncio.Queue.put_nowait")
-def test_parameter_request_with_unchanged_value(
-    mock_put_nowait, parameter: BoilerParameter
+@patch("asyncio.Queue.put")
+async def test_parameter_request_with_unchanged_value(
+    mock_put, parameter: BoilerParameter, bypass_asyncio_sleep, caplog
 ) -> None:
     """Test that frame doesn't get dispatched if value is unchanged."""
-    assert not parameter.changed
-    parameter.set("off")
-    assert parameter.changed
-    mock_put_nowait.assert_called_once()
-    parameter.set("off")
-    mock_put_nowait.not_called()
+    assert not parameter.change_pending
+
+    await parameter.set("off", retries=3)
+    assert parameter.change_pending
+    assert mock_put.await_count == 3
+    assert "Timed out while trying to set 'summer_mode' parameter" in caplog.text
+    await parameter.set("off")
+    mock_put.not_awaited()
 
 
 @patch("pyplumio.helpers.parameter.Parameter.set")
-def test_binary_parameter_turn_on_off(
+async def test_binary_parameter_turn_on_off(
     mock_set, parameter: BoilerBinaryParameter
 ) -> None:
     """Test that binary parameter can be turned on and off."""
-    parameter.turn_on()
+    await parameter.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
     mock_set.reset_mock()
-    parameter.turn_off()
+    await parameter.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)

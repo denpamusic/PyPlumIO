@@ -83,7 +83,7 @@ class AsyncDevice(ABC, TaskManager):
 
         parameter = self.data[name]
         if isinstance(parameter, Parameter):
-            parameter.set(value)
+            await parameter.set(value)
             return
 
         raise ParameterNotFoundError(f"Parameter not found ({name})")

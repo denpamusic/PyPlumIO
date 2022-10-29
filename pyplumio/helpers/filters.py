@@ -14,7 +14,9 @@ TOLERANCE: Final = 0.1
 
 def _significantly_changed(old_value, new_value) -> bool:
     """Check if value is significantly changed."""
-    if old_value is None or (isinstance(old_value, Parameter) and old_value.changed):
+    if old_value is None or (
+        isinstance(old_value, Parameter) and old_value.change_pending
+    ):
         return True
 
     if isinstance(old_value, (int, float)) and isinstance(new_value, (int, float)):

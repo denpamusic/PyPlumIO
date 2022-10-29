@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+import asyncio
+import logging
+from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
@@ -12,6 +14,10 @@ from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
+
+_LOGGER = logging.getLogger(__name__)
+
+SET_TIMEOUT: Final = 5
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
@@ -41,7 +47,7 @@ class Parameter(ABC):
     _value: int
     _min_value: int
     _max_value: int
-    _changed: bool = False
+    _change_pending: bool = False
 
     def __init__(
         self,
@@ -59,7 +65,7 @@ class Parameter(ABC):
         self._value = _normalize_parameter_value(value)
         self._min_value = _normalize_parameter_value(min_value)
         self._max_value = _normalize_parameter_value(max_value)
-        self._changed = False
+        self._change_pending = False
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
@@ -118,21 +124,33 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
-    def set(self, value: ParameterValueType) -> None:
+    async def _confirm_parameter_change(self, parameter: Parameter):
+        """Callback for when parameter change is confirmed on the device."""
+        self._change_pending = False
+
+    async def set(self, value: ParameterValueType, retries: int = 5) -> None:
         """Set parameter value."""
         value = _normalize_parameter_value(value)
         if value == self._value:
             return
 
-        if self.min_value <= value <= self.max_value:
-            self._value = value
-            self._changed = True
-            self.device.queue.put_nowait(self.request)
-            return
+        if value < self.min_value or value > self.max_value:
+            raise ValueError(
+                f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
+            )
 
-        raise ValueError(
-            f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
-        )
+        self._value = value
+        self._change_pending = True
+        self.device.subscribe_once(self.name, self._confirm_parameter_change)
+        while self.change_pending:
+            if retries <= 0:
+                _LOGGER.error("Timed out while trying to set '%s' parameter", self.name)
+                self.device.unsubscribe(self.name, self._confirm_parameter_change)
+                break
+
+            await self.device.queue.put(self.request)
+            await asyncio.sleep(SET_TIMEOUT)
+            retries -= 1
 
     @property
     def value(self) -> int:
@@ -150,9 +168,9 @@ class Parameter(ABC):
         return self._max_value
 
     @property
-    def changed(self) -> bool:
-        """Has parameter been changed recently."""
-        return self._changed
+    def change_pending(self) -> bool:
+        """Parameter change has not yet confirmed on the device."""
+        return self._change_pending
 
     @property
     @abstractmethod
@@ -163,13 +181,13 @@ class Parameter(ABC):
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
-    def turn_on(self) -> None:
+    async def turn_on(self) -> None:
         """Turn parameter on."""
-        self.set(STATE_ON)
+        await self.set(STATE_ON)
 
-    def turn_off(self) -> None:
+    async def turn_off(self) -> None:
         """Turn parameter off"""
-        self.set(STATE_OFF)
+        await self.set(STATE_OFF)
 
 
 class BoilerParameter(Parameter):
