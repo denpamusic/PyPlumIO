@@ -124,7 +124,7 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
-    async def _confirm_parameter_change(self, parameter: Parameter):
+    async def _confirm_parameter_change(self, parameter: Parameter) -> None:
         """Callback for when parameter change is confirmed on the device."""
         self._change_pending = False
 

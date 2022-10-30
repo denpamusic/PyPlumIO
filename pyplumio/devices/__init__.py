@@ -74,7 +74,11 @@ class AsyncDevice(ABC, TaskManager):
         return int(value) if isinstance(value, Parameter) else value
 
     async def set_value(
-        self, name: str, value: NumericType, timeout: Optional[float] = None
+        self,
+        name: str,
+        value: NumericType,
+        timeout: Optional[float] = None,
+        block: bool = True,
     ) -> None:
         """Set parameter value. Name should point
         to a valid parameter object."""
@@ -82,11 +86,13 @@ class AsyncDevice(ABC, TaskManager):
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
         parameter = self.data[name]
-        if isinstance(parameter, Parameter):
-            await parameter.set(value)
-            return
+        if not isinstance(parameter, Parameter):
+            raise ParameterNotFoundError(f"Parameter not found ({name})")
 
-        raise ParameterNotFoundError(f"Parameter not found ({name})")
+        if block:
+            await parameter.set(value)
+        else:
+            self.create_task(parameter.set(value))
 
     async def get_parameter(
         self, name: str, timeout: Optional[float] = None

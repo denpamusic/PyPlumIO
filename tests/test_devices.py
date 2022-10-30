@@ -307,6 +307,13 @@ async def test_set_value(ecomax: EcoMAX) -> None:
     await ecomax.set_value("foo", 2)
     ecomax.data["foo"].set.assert_called_once_with(2)
 
+    # Test without blocking.
+    with patch(
+        "pyplumio.helpers.task_manager.TaskManager.create_task"
+    ) as mock_create_task:
+        await ecomax.set_value("foo", 2, block=False)
+        mock_create_task.assert_called_once()
+
     # Test with invalid parameter.
     ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
