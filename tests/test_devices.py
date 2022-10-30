@@ -311,7 +311,7 @@ async def test_set_value(ecomax: EcoMAX) -> None:
     with patch(
         "pyplumio.helpers.task_manager.TaskManager.create_task"
     ) as mock_create_task:
-        await ecomax.set_value("foo", 2, block=False)
+        await ecomax.set_value("foo", 2, await_confirmation=False)
         mock_create_task.assert_called_once()
 
     # Test with invalid parameter.
