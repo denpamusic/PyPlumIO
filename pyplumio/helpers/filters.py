@@ -6,7 +6,6 @@ import math
 import time
 from typing import Any, Final, Optional
 
-from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import NumericType, SensorCallbackType
 
 TOLERANCE: Final = 0.1
