@@ -128,11 +128,11 @@ class Parameter(ABC):
         """Callback for when parameter change is confirmed on the device."""
         self._change_pending = False
 
-    async def set(self, value: ParameterValueType, retries: int = 5) -> None:
+    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set parameter value."""
         value = _normalize_parameter_value(value)
         if value == self._value:
-            return
+            return True
 
         if value < self.min_value or value > self.max_value:
             raise ValueError(
@@ -146,11 +146,13 @@ class Parameter(ABC):
             if retries <= 0:
                 _LOGGER.error("Timed out while trying to set '%s' parameter", self.name)
                 self.device.unsubscribe(self.name, self._confirm_parameter_change)
-                break
+                return False
 
             await self.device.queue.put(self.request)
             await asyncio.sleep(SET_TIMEOUT)
             retries -= 1
+
+        return True
 
     @property
     def value(self) -> int:
@@ -181,13 +183,13 @@ class Parameter(ABC):
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
-    async def turn_on(self) -> None:
+    async def turn_on(self) -> bool:
         """Turn parameter on."""
-        await self.set(STATE_ON)
+        return await self.set(STATE_ON)
 
-    async def turn_off(self) -> None:
+    async def turn_off(self) -> bool:
         """Turn parameter off"""
-        await self.set(STATE_OFF)
+        return await self.set(STATE_OFF)
 
 
 class BoilerParameter(Parameter):

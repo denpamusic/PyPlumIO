@@ -79,7 +79,7 @@ class AsyncDevice(ABC, TaskManager):
         value: NumericType,
         timeout: Optional[float] = None,
         await_confirmation: bool = True,
-    ) -> None:
+    ) -> bool:
         """Set parameter value. Name should point
         to a valid parameter object."""
         if name not in self.data:
@@ -90,9 +90,10 @@ class AsyncDevice(ABC, TaskManager):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
 
         if await_confirmation:
-            await parameter.set(value)
-        else:
-            self.create_task(parameter.set(value))
+            return await parameter.set(value)
+
+        self.create_task(parameter.set(value))
+        return True
 
     async def get_parameter(
         self, name: str, timeout: Optional[float] = None

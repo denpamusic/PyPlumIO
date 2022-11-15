@@ -131,7 +131,7 @@ import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    await ecomax.set_value("heating_target_temp", 65)
+    result = await ecomax.set_value("heating_target_temp", 65)
 ```
 
 ```python
@@ -141,7 +141,11 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     target_temp = await ecomax.get_parameter("heating_target_temp")
-    await target_temp.set(65)
+    result = await target_temp.set(65)
+    if result:
+      print("Parameter value was successfully set.")
+    else:
+      print("Error while trying to set parameter value.")
 ```
 
 For a binary parameters, that can only have "0" or "1" value, you can also use string
@@ -152,7 +156,7 @@ import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    await ecomax.set_value("boiler_control", "on")
+    result = await ecomax.set_value("boiler_control", "on")
 ```
 
 ```python
@@ -162,7 +166,7 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     boiler = await ecomax.get_parameter("boiler_control")
-    await boiler.turn_on()  # or await boiler.turn_off()
+    result = await boiler.turn_on()  # or await boiler.turn_off()
 ```
 
 Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range.

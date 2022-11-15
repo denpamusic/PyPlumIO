@@ -48,7 +48,9 @@ async def test_parameter_set(
     assert parameter.change_pending
     await callback(parameter)
     assert not parameter.change_pending
-    await parameter.set("on")
+    with patch("pyplumio.helpers.parameter.Parameter.change_pending", False):
+        assert await parameter.set("on")
+
     assert parameter == 1
 
 
@@ -153,7 +155,7 @@ async def test_parameter_request_with_unchanged_value(
     """Test that frame doesn't get dispatched if value is unchanged."""
     assert not parameter.change_pending
 
-    await parameter.set("off", retries=3)
+    assert not await parameter.set("off", retries=3)
     assert parameter.change_pending
     assert mock_put.await_count == 3
     assert "Timed out while trying to set 'summer_mode' parameter" in caplog.text
