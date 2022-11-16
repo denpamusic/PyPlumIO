@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_THERMOSTATS
+from pyplumio.const import ATTR_THERMOSTATS, BYTE_UNDEFINED
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
@@ -22,7 +22,7 @@ class ThermostatsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if not util.check_value(message[offset]):
+        if message[offset] == BYTE_UNDEFINED:
             return make_device_data(data), offset + 1
 
         therm_contacts = message[offset]

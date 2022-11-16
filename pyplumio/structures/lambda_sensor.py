@@ -5,7 +5,7 @@ import math
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_LAMBDA_SENSOR
+from pyplumio.const import ATTR_LAMBDA_SENSOR, BYTE_UNDEFINED
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
@@ -27,7 +27,7 @@ class LambaSensorStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         lambda_sensor: DeviceDataType = {}
-        if util.check_value(message[offset]):
+        if message[offset] != BYTE_UNDEFINED:
             lambda_sensor[LAMBDA_STATUS] = message[offset]
             lambda_sensor[LAMBDA_TARGET] = message[offset + 1]
             lambda_level = util.unpack_ushort(message[offset + 2 : offset + 4])
