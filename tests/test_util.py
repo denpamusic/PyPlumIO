@@ -1,6 +1,7 @@
 """Contains tests for utility functions."""
 
 from pyplumio import util
+from pyplumio.const import BYTE_UNDEFINED
 
 
 def test_crc() -> None:
@@ -48,9 +49,13 @@ def test_ip6_to_bytes() -> None:
 
 def test_check_parameter_valid() -> None:
     """Test checking if parameter is valid."""
-    assert util.check_parameter(bytearray([0xFF, 0xFE, 0xFF, 0xFF]))
+    assert util.check_parameter(
+        bytearray([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED])
+    )
 
 
 def test_check_parameter_invalid() -> None:
     """Test checking if parameter is invalid."""
-    assert not util.check_parameter(bytearray([0xFF, 0xFF, 0xFF, 0xFF]))
+    assert not util.check_parameter(
+        bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED])
+    )

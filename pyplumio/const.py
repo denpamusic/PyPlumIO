@@ -43,3 +43,5 @@ ATTR_TYPE: Final = "type"
 ATTR_SWITCH: Final = "switch"
 ATTR_PARAMETER: Final = "parameter"
 ATTR_SCHEDULE: Final = "schedule"
+
+BYTE_UNDEFINED: Final = 0xFF

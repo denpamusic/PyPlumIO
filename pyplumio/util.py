@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 import functools
+import math
 import socket
 import struct
 from typing import List, Optional
 
+from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.typing import ParameterDataType
 
 unpack_float = struct.Struct("<f").unpack
@@ -58,7 +60,12 @@ def unpack_parameter(
 
 def check_parameter(data: bytearray) -> bool:
     """Check if parameter contains any bytes besides 0xFF."""
-    return any(x for x in data if x != 0xFF)
+    return any(x for x in data if x != BYTE_UNDEFINED)
+
+
+def check_value(value: int) -> bool:
+    """Check if single byte value is valid number."""
+    return value != BYTE_UNDEFINED and not math.isnan(value)
 
 
 def ip4_to_bytes(address: str) -> bytes:

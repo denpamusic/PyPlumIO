@@ -27,7 +27,7 @@ class LambaSensorStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         lambda_sensor: DeviceDataType = {}
-        if message[offset] != 0xFF:
+        if util.check_value(message[offset]):
             lambda_sensor[LAMBDA_STATUS] = message[offset]
             lambda_sensor[LAMBDA_TARGET] = message[offset + 1]
             lambda_level = util.unpack_ushort(message[offset + 2 : offset + 4])

@@ -4,6 +4,7 @@ from __future__ import annotations
 import struct
 from typing import Final, Optional, Tuple
 
+from pyplumio import util
 from pyplumio.const import ATTR_MODULES
 from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import DeviceDataType
@@ -29,7 +30,7 @@ def _get_module_version(
     module_name: str, message: bytearray, offset: int = 0
 ) -> Tuple[Optional[str], int]:
     """Get module version from a message."""
-    if message[offset] == 0xFF:
+    if not util.check_value(message[offset]):
         return None, (offset + 1)
 
     version_data = struct.unpack("<BBB", message[offset : offset + 3])

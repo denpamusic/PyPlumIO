@@ -22,7 +22,7 @@ class ThermostatsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        if message[offset] == 0xFF:
+        if not util.check_value(message[offset]):
             return make_device_data(data), offset + 1
 
         therm_contacts = message[offset]
