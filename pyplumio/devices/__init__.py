@@ -208,6 +208,8 @@ class Device(AsyncDevice):
 class Mixer(AsyncDevice):
     """Represents mixer device."""
 
+    index: int
+
     def __init__(self, index: int = 0):
         """Initialize new Mixer object."""
         super().__init__()

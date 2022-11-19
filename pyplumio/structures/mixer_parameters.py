@@ -60,7 +60,12 @@ class MixerParametersStructure(StructureDecoder):
                 offset,
                 range(first_parameter, parameters_number + first_parameter),
             )
-            mixer_parameters.append(parameters)
+            if parameters:
+                mixer_parameters.append(parameters)
+
+        if not mixer_parameters:
+            # No mixer parameters detected.
+            return data, offset
 
         return (
             make_device_data(data, {ATTR_MIXER_PARAMETERS: mixer_parameters}),

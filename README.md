@@ -269,7 +269,9 @@ async def my_callback(mixer_pump_status: bool) -> None:
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    mixers = await ecomax.get_value("mixers")
+    mixers = await ecomax.get_value("mixers", timeout=10)
+    # If this fails with timeout, check that you have temperature probe
+    # connected for at least one mixer.
 
     # Get single mixer from the list.
     mixer = mixers[0]

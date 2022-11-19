@@ -61,7 +61,8 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_MODULES].module_panel == "18.10.72"
     assert data[ATTR_LAMBDA_SENSOR]["lambda_level"] == 40
     assert ATTR_MIXER_SENSORS in data
-    assert len(data[ATTR_MIXER_SENSORS]) == 5
+    assert len(data[ATTR_MIXER_SENSORS]) == 1
+    assert data[ATTR_MIXER_SENSORS][0]["temp"] == 20.0
     assert data[ATTR_MIXER_SENSORS][0]["target_temp"] == 40
     assert data[ATTR_PENDING_ALERTS] == []
     assert data[ATTR_FUEL_LEVEL] == 32

@@ -1,6 +1,7 @@
 """Contains mixers structure decoder."""
 from __future__ import annotations
 
+import math
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
@@ -29,14 +30,19 @@ class MixersStructure(StructureDecoder):
         offset += 1
         mixer_sensors: List[DeviceDataType] = []
         for _ in range(mixers_number):
-            mixer_sensor: DeviceDataType = {}
-            mixer_sensor[MIXER_TEMP] = util.unpack_float(message[offset : offset + 4])[
-                0
-            ]
-            mixer_sensor[MIXER_TARGET_TEMP] = message[offset + 4]
-            mixer_outputs = message[offset + 6]
-            mixer_sensor[MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
-            mixer_sensors.append(mixer_sensor)
+            mixer_temp = util.unpack_float(message[offset : offset + 4])[0]
+            if not math.isnan(mixer_temp):
+                mixer_sensor: DeviceDataType = {}
+                mixer_sensor[MIXER_TEMP] = mixer_temp
+                mixer_sensor[MIXER_TARGET_TEMP] = message[offset + 4]
+                mixer_outputs = message[offset + 6]
+                mixer_sensor[MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
+                mixer_sensors.append(mixer_sensor)
+
             offset += 8
+
+        if not mixer_sensors:
+            # No mixer sensors detected.
+            return data, offset
 
         return make_device_data(data, {ATTR_MIXER_SENSORS: mixer_sensors}), offset

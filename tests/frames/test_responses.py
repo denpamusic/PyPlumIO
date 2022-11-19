@@ -109,6 +109,10 @@ def test_mixer_parameters_response(
     assert frame1.data == data[FrameTypes.RESPONSE_MIXER_PARAMETERS]
     assert not frame2.message
 
+    # Test with empty parameters.
+    frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
+    assert frame1.data is None
+
 
 def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
     """Test parsing message for data schema response."""
