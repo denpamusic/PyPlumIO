@@ -1,7 +1,7 @@
 """Contains reader and writer classes."""
 from __future__ import annotations
 
-from asyncio import IncompleteReadError, StreamReader, StreamWriter
+import asyncio
 import logging
 from typing import Final, Optional, Tuple
 
@@ -24,9 +24,9 @@ _LOGGER = logging.getLogger(__name__)
 class FrameWriter:
     """Represents frame writer."""
 
-    _writer: StreamWriter
+    _writer: asyncio.StreamWriter
 
-    def __init__(self, writer: StreamWriter):
+    def __init__(self, writer: asyncio.StreamWriter):
         """Initialize new Frame Writer object."""
         self._writer = writer
 
@@ -37,6 +37,7 @@ class FrameWriter:
         self._writer.write(frame.bytes)
         await self._writer.drain()
         _LOGGER.debug("Sent frame: %s", frame)
+        await asyncio.sleep(0.1)
 
     @timeout(WRITER_TIMEOUT)
     async def close(self) -> None:
@@ -48,9 +49,9 @@ class FrameWriter:
 class FrameReader:
     """Represents frame reader."""
 
-    _reader: StreamReader
+    _reader: asyncio.StreamReader
 
-    def __init__(self, reader: StreamReader):
+    def __init__(self, reader: asyncio.StreamReader):
         """Initialize new Frame Reader object."""
         self._reader = reader
 
@@ -97,7 +98,7 @@ class FrameReader:
 
         try:
             payload = await self._reader.readexactly(length - HEADER_SIZE)
-        except IncompleteReadError as e:
+        except asyncio.IncompleteReadError as e:
             raise ReadError(
                 "Got an incomplete frame while trying to read "
                 + f"'{length - HEADER_SIZE}' bytes"
