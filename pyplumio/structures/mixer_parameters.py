@@ -9,20 +9,20 @@ from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
 MIXER_PARAMETERS: List[str] = [
-    "mix_target_temp",
-    "min_mix_target_temp",
-    "max_mix_target_temp",
-    "low_mix_target_temp",
-    "ctrl_weather_mix",
-    "mix_heat_curve",
+    "mixer_target_temp",
+    "min_mixer_target_temp",
+    "max_mixer_target_temp",
+    "low_mixer_target_temp",
+    "mixer_weather_control",
+    "mixer_heat_curve",
     "parallel_offset_heat_curve",
     "weather_temp_factor",
-    "mix_operation",
-    "mix_insensitivity",
-    "mix_therm_operation",
-    "mix_therm_mode",
-    "mix_off_therm_pump",
-    "mix_summer_work",
+    "mixer_operation",
+    "mixer_insensitivity",
+    "mixer_therm_operation",
+    "mixer_therm_mode",
+    "mixer_off_therm_pump",
+    "mixer_summer_work",
 ]
 
 

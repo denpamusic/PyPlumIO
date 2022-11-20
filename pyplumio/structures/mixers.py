@@ -9,8 +9,8 @@ from pyplumio.const import ATTR_MIXER_SENSORS
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
-MIXER_TEMP: Final = "temp"
-MIXER_TARGET_TEMP: Final = "target_temp"
+MIXER_TEMP: Final = "mixer_temp"
+MIXER_TARGET_TEMP: Final = "mixer_target"
 MIXER_PUMP_OUTPUT: Final = "mixer_pump"
 MIXER_DATA: Tuple[str, ...] = (
     MIXER_TEMP,

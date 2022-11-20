@@ -102,7 +102,7 @@ def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
     """Test set mixer parameter request instance."""
     parameter = MixerParameter(
         device=ecomax,
-        name="mix_target_temp",
+        name="mixer_target_temp",
         value=50,
         min_value=50,
         max_value=80,

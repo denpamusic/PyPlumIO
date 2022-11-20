@@ -276,7 +276,7 @@ async def main():
     # Get single mixer from the list.
     mixer = mixers[0]
     mixer_temp = await mixer.get_value("temp")
-    await mixer.set_value("mix_target_temp", 50)
+    await mixer.set_value("mixer_target_temp", 50)
     mixer.subscribe("mixer_pump", on_change(my_callback))
 
     # Print all available mixer data.

@@ -137,8 +137,8 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         FrameTypes.RESPONSE_MIXER_PARAMETERS: {
             ATTR_MIXER_PARAMETERS: [
                 {
-                    "mix_target_temp": (30, 40, 60),
-                    "min_mix_target_temp": (20, 30, 40),
+                    "mixer_target_temp": (30, 40, 60),
+                    "min_mixer_target_temp": (20, 30, 40),
                 }
             ]
         },
@@ -170,7 +170,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ATTR_VALUE: 80,
         },
         FrameTypes.REQUEST_SET_MIXER_PARAMETER: {
-            ATTR_NAME: "mix_target_temp",
+            ATTR_NAME: "mixer_target_temp",
             ATTR_VALUE: 40,
             ATTR_EXTRA: 0,
         },
