@@ -59,3 +59,12 @@ def test_check_parameter_invalid() -> None:
     assert not util.check_parameter(
         bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED])
     )
+
+
+def test_to_camelcase() -> None:
+    """Test string to camelcase converter."""
+    assert util.to_camelcase("make_love_not_war") == "MakeLoveNotWar"
+    assert (
+        util.to_camelcase("make_love_not_war", overrides={"love": "LOVE", "not": "not"})
+        == "MakeLOVEnotWar"
+    )

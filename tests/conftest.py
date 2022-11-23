@@ -10,7 +10,7 @@ import pytest
 
 from pyplumio.const import (
     ATTR_ALERTS,
-    ATTR_BOILER_PARAMETERS,
+    ATTR_ECOMAX_PARAMETERS,
     ATTR_EXTRA,
     ATTR_MIXER_PARAMETERS,
     ATTR_NAME,
@@ -33,11 +33,10 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.product_info import ProductInfo
+from pyplumio.helpers.product_info import ProductInfo, ProductTypes
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import Alert
-from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
 
 TEST_SCHEDULE: List[bool] = [
     False,
@@ -117,7 +116,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         },
         FrameTypes.RESPONSE_UID: {
             ATTR_PRODUCT: ProductInfo(
-                type=0,
+                type=ProductTypes.ECOMAX_P,
                 product=90,
                 uid="D251PAKR3GCPZ1K8G05G0",
                 logo=23040,
@@ -126,20 +125,20 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             )
         },
         FrameTypes.RESPONSE_PASSWORD: {ATTR_PASSWORD: "0000"},
-        FrameTypes.RESPONSE_BOILER_PARAMETERS: {
-            ATTR_BOILER_PARAMETERS: {
-                BOILER_PARAMETERS[0]: (80, 61, 100),
-                BOILER_PARAMETERS[1]: (60, 41, 76),
-                BOILER_PARAMETERS[2]: (40, 20, 59),
-                BOILER_PARAMETERS[4]: (20, 1, 250),
-            }
+        FrameTypes.RESPONSE_ECOMAX_PARAMETERS: {
+            ATTR_ECOMAX_PARAMETERS: [
+                (0, (80, 61, 100)),
+                (1, (60, 41, 76)),
+                (2, (40, 20, 59)),
+                (4, (20, 1, 250)),
+            ]
         },
         FrameTypes.RESPONSE_MIXER_PARAMETERS: {
             ATTR_MIXER_PARAMETERS: [
-                {
-                    "mixer_target_temp": (30, 40, 60),
-                    "min_mixer_target_temp": (20, 30, 40),
-                }
+                [
+                    (0, (30, 40, 60)),
+                    (1, (20, 30, 40)),
+                ]
             ]
         },
         FrameTypes.RESPONSE_ALERTS: {
@@ -165,16 +164,16 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 }
             }
         },
-        FrameTypes.REQUEST_SET_BOILER_PARAMETER: {
-            ATTR_NAME: "airflow_power_100",
+        FrameTypes.REQUEST_SET_ECOMAX_PARAMETER: {
+            ATTR_NAME: 0,
             ATTR_VALUE: 80,
         },
         FrameTypes.REQUEST_SET_MIXER_PARAMETER: {
-            ATTR_NAME: "mixer_target_temp",
+            ATTR_NAME: 0,
             ATTR_VALUE: 40,
             ATTR_EXTRA: 0,
         },
-        FrameTypes.REQUEST_BOILER_CONTROL: {ATTR_VALUE: 1},
+        FrameTypes.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
         FrameTypes.REQUEST_SET_SCHEDULE: {
             ATTR_TYPE: "heating",
             ATTR_SWITCH: 0,
@@ -201,7 +200,7 @@ def fixture_messages() -> Dict[int, bytearray]:
             "005A000B001600110D3833383655395A0000000A454D33353050322D5A46"
         ),
         FrameTypes.RESPONSE_PASSWORD: bytearray.fromhex("0430303030"),
-        FrameTypes.RESPONSE_BOILER_PARAMETERS: bytearray.fromhex(
+        FrameTypes.RESPONSE_ECOMAX_PARAMETERS: bytearray.fromhex(
             "000005503D643C294C28143BFFFFFF1401FA"
         ),
         FrameTypes.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
@@ -261,10 +260,10 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
                 "\n", ""
             )
         ),
-        FrameTypes.REQUEST_BOILER_PARAMETERS: bytearray.fromhex("FF00"),
-        FrameTypes.REQUEST_SET_BOILER_PARAMETER: bytearray.fromhex("0050"),
+        FrameTypes.REQUEST_ECOMAX_PARAMETERS: bytearray.fromhex("FF00"),
+        FrameTypes.REQUEST_SET_ECOMAX_PARAMETER: bytearray.fromhex("0050"),
         FrameTypes.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
-        FrameTypes.REQUEST_BOILER_CONTROL: bytearray.fromhex("01"),
+        FrameTypes.REQUEST_ECOMAX_CONTROL: bytearray.fromhex("01"),
         FrameTypes.REQUEST_SET_SCHEDULE: bytearray.fromhex(
             """010000050000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000F
 FFFFFFE0000FFFFFFFE
@@ -292,7 +291,16 @@ FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF28000800
 @pytest.fixture(name="ecomax")
 def fixture_ecomax() -> EcoMAX:
     """Return instance of ecomax."""
-    return EcoMAX(asyncio.Queue())
+    ecomax = EcoMAX(asyncio.Queue())
+    ecomax.data[ATTR_PRODUCT] = ProductInfo(
+        type=ProductTypes.ECOMAX_P,
+        product=90,
+        uid="D251PAKR3GCPZ1K8G05G0",
+        logo=23040,
+        image=2816,
+        model="EM350P2-ZF",
+    )
+    return ecomax
 
 
 @pytest.fixture(name="ecoster")

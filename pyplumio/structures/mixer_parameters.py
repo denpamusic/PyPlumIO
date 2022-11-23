@@ -1,41 +1,64 @@
 """Contains mixer parameter structure decoder."""
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_MIXER_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
-MIXER_PARAMETERS: List[str] = [
+ECOMAX_P_MIXER_PARAMETERS: Tuple[str, ...] = (
     "mixer_target_temp",
     "min_mixer_target_temp",
     "max_mixer_target_temp",
     "low_mixer_target_temp",
     "mixer_weather_control",
     "mixer_heat_curve",
-    "parallel_offset_heat_curve",
-    "weather_temp_factor",
-    "mixer_operation",
+    "mixer_parallel_offset_heat_curve",
+    "mixer_weather_temp_factor",
+    "mixer_work_mode",
     "mixer_insensitivity",
     "mixer_therm_operation",
     "mixer_therm_mode",
     "mixer_off_therm_pump",
     "mixer_summer_work",
-]
+)
+
+ECOMAX_I_MIXER_PARAMETERS: Tuple[str, ...] = (
+    "mixer_work_mode",
+    "mixer_target_temp",
+    "day_mixer_temp",
+    "night_mixer_temp",
+    "min_mixer_temp",
+    "max_mixer_temp",
+    "mixer_summer_work",
+    "mixer_regulation",
+    "mixer_handling",
+    "mixer_therm_choice",
+    "mixer_decrease_therm_temp",
+    "mixer_correction_therm",
+    "mixer_lock_therm",
+    "mixer_open_time",
+    "mixer_threshold",
+    "mixer_pid_k",
+    "mixer_pid_ti",
+    "mixer_heat_curve",
+    "mixer_parallel_heat_curve_h",
+    "mixer_function_tr",
+    "mixer_night_lower_water",
+)
 
 
 def _decode_mixer_parameters(
     message: bytearray, offset: int, parameter_name_indexes: Iterable
-) -> Tuple[Dict[str, ParameterDataType], int]:
+) -> Tuple[List[Tuple[int, ParameterDataType]], int]:
     """Decode parameters for a single mixer."""
-    mixer_parameters: Dict[str, ParameterDataType] = {}
+    mixer_parameters: List[Tuple[int, ParameterDataType]] = []
     for index in parameter_name_indexes:
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
-            parameter_name = MIXER_PARAMETERS[index]
-            mixer_parameters[parameter_name] = parameter
+            mixer_parameters.append((index, parameter))
 
         offset += 3
 
@@ -53,7 +76,7 @@ class MixerParametersStructure(StructureDecoder):
         parameters_number = message[offset + 2]
         mixers_number = message[offset + 3]
         offset += 4
-        mixer_parameters: List[Dict[str, ParameterDataType]] = []
+        mixer_parameters: List[List[Tuple[int, ParameterDataType]]] = []
         for _ in range(mixers_number):
             parameters, offset = _decode_mixer_parameters(
                 message,

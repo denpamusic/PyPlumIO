@@ -4,11 +4,11 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Sequence
 import time
-from typing import ClassVar, Final, List
+from typing import ClassVar, Final, List, Tuple
 
 from pyplumio.const import (
-    ATTR_BOILER_PARAMETERS,
-    ATTR_BOILER_SENSORS,
+    ATTR_ECOMAX_PARAMETERS,
+    ATTR_ECOMAX_SENSORS,
     ATTR_FUEL_BURNED,
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
@@ -16,6 +16,7 @@ from pyplumio.const import (
     ATTR_MIXERS,
     ATTR_MODE,
     ATTR_PARAMETER,
+    ATTR_PRODUCT,
     ATTR_REGDATA,
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
@@ -27,17 +28,27 @@ from pyplumio.frames import FrameTypes
 from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.parameter import (
-    BoilerBinaryParameter,
-    BoilerParameter,
+    EcomaxBinaryParameter,
+    EcomaxParameter,
     MixerBinaryParameter,
     MixerParameter,
     ScheduleBinaryParameter,
     ScheduleParameter,
     is_binary_parameter,
 )
+from pyplumio.helpers.product_info import ProductTypes
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures.boiler_parameters import PARAMETER_BOILER_CONTROL
+from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
+from pyplumio.structures.ecomax_parameters import (
+    ECOMAX_I_PARAMETERS,
+    ECOMAX_P_PARAMETERS,
+    PARAMETER_BOILER_CONTROL,
+    PARAMETER_ECOMAX_CONTROL,
+)
+from pyplumio.structures.mixer_parameters import (
+    ECOMAX_I_MIXER_PARAMETERS,
+    ECOMAX_P_MIXER_PARAMETERS,
+)
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
 
@@ -50,7 +61,7 @@ class EcoMAX(Device):
     _required_frames: List[int] = [
         FrameTypes.REQUEST_UID,
         FrameTypes.REQUEST_DATA_SCHEMA,
-        FrameTypes.REQUEST_BOILER_PARAMETERS,
+        FrameTypes.REQUEST_ECOMAX_PARAMETERS,
         FrameTypes.REQUEST_MIXER_PARAMETERS,
         FrameTypes.REQUEST_PASSWORD,
         FrameTypes.REQUEST_ALERTS,
@@ -61,13 +72,13 @@ class EcoMAX(Device):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
         self._fuel_burned_timestamp = time.time()
-        self.subscribe(ATTR_BOILER_SENSORS, self._add_boiler_sensors)
-        self.subscribe(ATTR_MODE, on_change(self._add_boiler_control_parameter))
+        self.subscribe(ATTR_ECOMAX_SENSORS, self._add_ecomax_sensors)
+        self.subscribe(ATTR_MODE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
-        self.subscribe(ATTR_BOILER_PARAMETERS, self._add_boiler_parameters)
+        self.subscribe(ATTR_ECOMAX_PARAMETERS, self._add_ecomax_parameters)
         self.subscribe(ATTR_REGDATA, self._decode_regulator_data)
-        self.subscribe(ATTR_MIXER_SENSORS, self._set_mixer_sensors)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._set_mixer_parameters)
+        self.subscribe(ATTR_MIXER_SENSORS, self._add_mixer_sensors)
+        self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
 
     def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
@@ -84,31 +95,38 @@ class EcoMAX(Device):
 
         return mixer
 
-    async def _add_boiler_sensors(self, sensors: DeviceDataType) -> bool:
-        """Add boiler sensors values to the device data."""
+    async def _add_ecomax_sensors(self, sensors: DeviceDataType) -> bool:
+        """Add ecomax sensor values to the device data."""
         for name, value in sensors.items():
             await self.async_set_device_data(name, value)
 
         return True
 
-    async def _add_boiler_parameters(self, parameters: DeviceDataType) -> bool:
-        """Add Parameter objects to the device data."""
-        for name, value in parameters.items():
+    async def _add_ecomax_parameters(
+        self, parameters: Sequence[Tuple[int, ParameterDataType]]
+    ) -> bool:
+        """Add ecomax parameters to the device data."""
+        for ecomax_parameter in parameters:
+            key, value = ecomax_parameter
             cls = (
-                BoilerBinaryParameter if is_binary_parameter(value) else BoilerParameter
+                EcomaxBinaryParameter if is_binary_parameter(value) else EcomaxParameter
             )
             parameter = cls(
                 device=self,
-                name=name,
+                name=(
+                    ECOMAX_P_PARAMETERS[key]
+                    if self.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    else ECOMAX_I_PARAMETERS[key]
+                ),
                 value=value[0],
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_set_device_data(name, parameter)
+            await self.async_set_device_data(parameter.name, parameter)
 
         return True
 
-    async def _set_mixer_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
+    async def _add_mixer_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
         """Set sensor values for the mixer."""
         for mixer_number, mixer_data in enumerate(sensors):
             mixer = self._get_mixer(mixer_number, len(sensors))
@@ -117,11 +135,14 @@ class EcoMAX(Device):
 
         return True
 
-    async def _set_mixer_parameters(self, parameters: Sequence[DeviceDataType]) -> bool:
+    async def _add_mixer_parameters(
+        self, parameters: Sequence[Sequence[Tuple[int, ParameterDataType]]]
+    ) -> bool:
         """Set mixer parameters."""
-        for mixer_number, mixer_data in enumerate(parameters):
+        for mixer_number, mixer_parameters in enumerate(parameters):
             mixer = self._get_mixer(mixer_number, len(parameters))
-            for name, value in mixer_data.items():
+            for mixer_parameter in mixer_parameters:
+                index, value = mixer_parameter
                 cls = (
                     MixerBinaryParameter
                     if is_binary_parameter(value)
@@ -129,25 +150,30 @@ class EcoMAX(Device):
                 )
                 parameter = cls(
                     device=self,
-                    name=name,
+                    name=(
+                        ECOMAX_P_MIXER_PARAMETERS[index]
+                        if self.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                        else ECOMAX_I_MIXER_PARAMETERS[index]
+                    ),
                     value=value[0],
                     min_value=value[1],
                     max_value=value[2],
                     extra=mixer_number,
                 )
-                await mixer.async_set_device_data(name, parameter)
+                await mixer.async_set_device_data(parameter.name, parameter)
 
         return True
 
-    async def _add_boiler_control_parameter(self, mode: int) -> None:
-        """Add BoilerControl parameter to the device instance."""
-        parameter = BoilerBinaryParameter(
+    async def _add_ecomax_control_parameter(self, mode: int) -> None:
+        """Add ecoMAX control parameter to the device instance."""
+        parameter = EcomaxBinaryParameter(
             device=self,
-            name=PARAMETER_BOILER_CONTROL,
+            name=PARAMETER_ECOMAX_CONTROL,
             value=(mode != 0),
             min_value=0,
             max_value=1,
         )
+        await self.async_set_device_data(PARAMETER_ECOMAX_CONTROL, parameter)
         await self.async_set_device_data(PARAMETER_BOILER_CONTROL, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: int) -> None:

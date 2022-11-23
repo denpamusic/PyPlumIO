@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import ClassVar, Final
 
 from pyplumio.const import (
-    ATTR_BOILER_SENSORS,
+    ATTR_ECOMAX_SENSORS,
     ATTR_MODE,
     ATTR_REGDATA,
     ATTR_THERMOSTAT,
@@ -78,4 +78,4 @@ class SensorDataMessage(Message):
         sensors, offset = ThermostatsStructure(self).decode(message, offset, sensors)
         sensors, offset = MixersStructure(self).decode(message, offset, sensors)
 
-        return {ATTR_BOILER_SENSORS: sensors}
+        return {ATTR_ECOMAX_SENSORS: sensors}

@@ -6,9 +6,9 @@ from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET, ATTR_MODE, ATTR_SCHEMA
 from pyplumio.frames import FrameTypes
 from pyplumio.frames.responses import (
     AlertsResponse,
-    BoilerParametersResponse,
     DataSchemaResponse,
     DeviceAvailableResponse,
+    EcomaxParametersResponse,
     MixerParametersResponse,
     PasswordResponse,
     ProgramVersionResponse,
@@ -28,7 +28,7 @@ def test_responses_type() -> None:
         DeviceAvailableResponse,
         UIDResponse,
         PasswordResponse,
-        BoilerParametersResponse,
+        EcomaxParametersResponse,
         MixerParametersResponse,
         DataSchemaResponse,
         AlertsResponse,
@@ -84,16 +84,16 @@ def test_password_response(
     assert not frame2.message
 
 
-def test_boiler_parameters_response(
+def test_ecomax_parameters_response(
     data: Dict[int, DeviceDataType],
     messages: Dict[int, bytearray],
 ) -> None:
-    """Test parsing boiler parameters message."""
-    frame1 = BoilerParametersResponse(
-        message=messages[FrameTypes.RESPONSE_BOILER_PARAMETERS]
+    """Test parsing ecoMAX parameters message."""
+    frame1 = EcomaxParametersResponse(
+        message=messages[FrameTypes.RESPONSE_ECOMAX_PARAMETERS]
     )
-    frame2 = BoilerParametersResponse(data=data[FrameTypes.RESPONSE_BOILER_PARAMETERS])
-    assert frame1.data == data[FrameTypes.RESPONSE_BOILER_PARAMETERS]
+    frame2 = EcomaxParametersResponse(data=data[FrameTypes.RESPONSE_ECOMAX_PARAMETERS])
+    assert frame1.data == data[FrameTypes.RESPONSE_ECOMAX_PARAMETERS]
     assert not frame2.message
 
 

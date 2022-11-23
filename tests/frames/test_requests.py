@@ -9,14 +9,14 @@ from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import FrameTypes, Request
 from pyplumio.frames.requests import (
     AlertsRequest,
-    BoilerControlRequest,
-    BoilerParametersRequest,
     CheckDeviceRequest,
     DataSchemaRequest,
+    EcomaxControlRequest,
+    EcomaxParametersRequest,
     MixerParametersRequest,
     PasswordRequest,
     ProgramVersionRequest,
-    SetBoilerParameterRequest,
+    SetEcomaxParameterRequest,
     SetMixerParameterRequest,
     SetScheduleRequest,
     StartMasterRequest,
@@ -39,7 +39,7 @@ def test_request_type() -> None:
         CheckDeviceRequest,
         UIDRequest,
         PasswordRequest,
-        BoilerParametersRequest,
+        EcomaxParametersRequest,
         MixerParametersRequest,
         DataSchemaRequest,
         StartMasterRequest,
@@ -66,24 +66,24 @@ def test_check_device_response_recipient_and_type() -> None:
 
 def test_parameters(messages: Dict[int, bytearray]) -> None:
     """Test parameters request bytes."""
-    frame = BoilerParametersRequest()
-    assert frame.message == messages[FrameTypes.REQUEST_BOILER_PARAMETERS]
+    frame = EcomaxParametersRequest()
+    assert frame.message == messages[FrameTypes.REQUEST_ECOMAX_PARAMETERS]
 
 
 def test_set_parameter(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set parameter request bytes."""
-    frame = SetBoilerParameterRequest(
-        data=data[FrameTypes.REQUEST_SET_BOILER_PARAMETER]
+    frame = SetEcomaxParameterRequest(
+        data=data[FrameTypes.REQUEST_SET_ECOMAX_PARAMETER]
     )
-    assert frame.message == messages[FrameTypes.REQUEST_SET_BOILER_PARAMETER]
+    assert frame.message == messages[FrameTypes.REQUEST_SET_ECOMAX_PARAMETER]
 
 
 def test_set_parameter_with_no_data() -> None:
     """Test set parameter request with no data."""
     with pytest.raises(FrameDataError):
-        SetBoilerParameterRequest()
+        SetEcomaxParameterRequest()
 
 
 def test_set_mixer_parameter(
@@ -100,18 +100,18 @@ def test_set_mixer_parameter_with_no_data() -> None:
         SetMixerParameterRequest()
 
 
-def test_boiler_control(
+def test_ecomax_control(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
-    """Test boiler control parameter request bytes."""
-    frame = BoilerControlRequest(data=data[FrameTypes.REQUEST_BOILER_CONTROL])
-    assert frame.message == messages[FrameTypes.REQUEST_BOILER_CONTROL]
+    """Test ecoMAX control parameter request bytes."""
+    frame = EcomaxControlRequest(data=data[FrameTypes.REQUEST_ECOMAX_CONTROL])
+    assert frame.message == messages[FrameTypes.REQUEST_ECOMAX_CONTROL]
 
 
-def test_boiler_control_with_no_data() -> None:
-    """Test boiler control request with no data."""
+def test_ecomax_control_with_no_data() -> None:
+    """Test ecoMAX control request with no data."""
     with pytest.raises(FrameDataError):
-        BoilerControlRequest()
+        EcomaxControlRequest()
 
 
 def test_set_schedule(

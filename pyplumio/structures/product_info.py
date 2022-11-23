@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_PRODUCT
-from pyplumio.helpers.product_info import ProductInfo
+from pyplumio.helpers.product_info import ProductInfo, ProductTypes
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, make_device_data
@@ -18,10 +18,24 @@ class ProductInfoStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        product_info = ProductInfo()
-        product_info.type, product_info.product = struct.unpack_from("<BH", message)
-        product_info.uid = unpack_uid(message, offset)
-        product_info.logo, product_info.image = struct.unpack_from("<HH", message)
-        product_info.model = util.unpack_string(message, offset + 16)
+        product_type, product_name = struct.unpack_from("<BH", message)
+        product_uid = unpack_uid(message, offset)
+        product_logo, product_image = struct.unpack_from("<HH", message)
+        product_model = util.unpack_string(message, offset + 16)
 
-        return make_device_data(data, {ATTR_PRODUCT: product_info}), offset
+        return (
+            make_device_data(
+                data,
+                {
+                    ATTR_PRODUCT: ProductInfo(
+                        type=ProductTypes(product_type),
+                        product=product_name,
+                        uid=product_uid,
+                        logo=product_logo,
+                        image=product_image,
+                        model=product_model,
+                    )
+                },
+            ),
+            offset,
+        )

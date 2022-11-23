@@ -7,7 +7,7 @@ import pytest
 from pyplumio.const import (
     ADDR_BROADCAST,
     ADDR_ECONET,
-    ATTR_BOILER_SENSORS,
+    ATTR_ECOMAX_SENSORS,
     ATTR_FRAME_VERSIONS,
     ATTR_FUEL_LEVEL,
     ATTR_LAMBDA_SENSOR,
@@ -48,7 +48,7 @@ def test_regdata_decode_message_with_unknown_version() -> None:
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing current data message."""
     frame = SensorDataMessage(message=messages[FrameTypes.MESSAGE_SENSOR_DATA])
-    data = frame.data[ATTR_BOILER_SENSORS]
+    data = frame.data[ATTR_ECOMAX_SENSORS]
     assert ATTR_FRAME_VERSIONS in data
     assert data[ATTR_FRAME_VERSIONS][85] == 45559
     assert len(data[ATTR_FRAME_VERSIONS]) == 7

@@ -1,15 +1,15 @@
 """Contains tests for devices."""
 
 import asyncio
-from typing import Dict
+from typing import Dict, Tuple
 from unittest.mock import AsyncMock, Mock, call, patch
 import warnings
 
 import pytest
 
 from pyplumio.const import (
-    ATTR_BOILER_PARAMETERS,
-    ATTR_BOILER_SENSORS,
+    ATTR_ECOMAX_PARAMETERS,
+    ATTR_ECOMAX_SENSORS,
     ATTR_FUEL_BURNED,
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
@@ -27,8 +27,8 @@ from pyplumio.frames import FrameTypes, Response
 from pyplumio.frames.messages import RegulatorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
-    BoilerParametersRequest,
     DataSchemaRequest,
+    EcomaxParametersRequest,
     MixerParametersRequest,
     PasswordRequest,
     SchedulesRequest,
@@ -38,7 +38,7 @@ from pyplumio.frames.requests import (
 from pyplumio.frames.responses import DataSchemaResponse
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION
 from pyplumio.helpers.parameter import (
-    BoilerBinaryParameter,
+    EcomaxBinaryParameter,
     MixerBinaryParameter,
     MixerParameter,
     Parameter,
@@ -83,7 +83,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
         call(UIDRequest(recipient=DeviceTypes.ECOMAX)),
         call(DataSchemaRequest(recipient=DeviceTypes.ECOMAX)),
-        call(BoilerParametersRequest(recipient=DeviceTypes.ECOMAX)),
+        call(EcomaxParametersRequest(recipient=DeviceTypes.ECOMAX)),
         call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
         call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
         call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
@@ -102,39 +102,39 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     }
 
 
-async def test_boiler_data_callbacks(ecomax: EcoMAX) -> None:
+async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on received data frames."""
     frames = (
-        Response(data={ATTR_BOILER_SENSORS: {"test_sensor": 42}}),
+        Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 42}}),
         Response(data={ATTR_MODE: 1}),
     )
     for frame in frames:
         ecomax.handle_frame(frame)
 
     assert await ecomax.get_value("test_sensor") == 42
-    boiler_control = await ecomax.get_parameter("boiler_control")
-    assert isinstance(boiler_control, BoilerBinaryParameter)
-    assert boiler_control.value == 1
+    ecomax_control = await ecomax.get_parameter("ecomax_control")
+    assert isinstance(ecomax_control, EcomaxBinaryParameter)
+    assert ecomax_control.value == 1
 
 
-async def test_boiler_parameters_callbacks(ecomax: EcoMAX) -> None:
+async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on received parameter frames."""
     ecomax.handle_frame(
         Response(
             data={
-                ATTR_BOILER_PARAMETERS: {
-                    "test_binary_parameter": [0, 0, 1],
-                    "test_parameter": [10, 5, 20],
-                }
+                ATTR_ECOMAX_PARAMETERS: [
+                    (0, [0, 0, 1]),
+                    (1, [10, 5, 20]),
+                ]
             }
         )
     )
 
-    assert await ecomax.get_value("test_binary_parameter") == 0
-    test_binary_parameter = await ecomax.get_parameter("test_binary_parameter")
-    assert isinstance(test_binary_parameter, BoilerBinaryParameter)
-    assert await ecomax.get_value("test_parameter") == 10
-    test_parameter = await ecomax.get_parameter("test_parameter")
+    assert await ecomax.get_value("airflow_power_100") == 0
+    test_binary_parameter = await ecomax.get_parameter("airflow_power_100")
+    assert isinstance(test_binary_parameter, EcomaxBinaryParameter)
+    assert await ecomax.get_value("airflow_power_50") == 10
+    test_parameter = await ecomax.get_parameter("airflow_power_50")
     assert test_parameter.value == 10
     assert test_parameter.min_value == 5
     assert test_parameter.max_value == 20
@@ -190,7 +190,7 @@ async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
     mixers = await ecomax.get_value("mixers")
     assert len(mixers) == 1
     assert isinstance(mixers[0], Mixer)
-    assert mixers[0].index == 0
+    assert mixers[0].mixer_number == 0
     assert await mixers[0].get_value("test_sensor") == 42
 
 
@@ -200,19 +200,19 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
         Response(
             data={
                 ATTR_MIXER_PARAMETERS: [
-                    {
-                        "test_binary_parameter": [0, 0, 1],
-                        "test_parameter": [10, 5, 20],
-                    }
+                    [
+                        (0, [0, 0, 1]),
+                        (1, [10, 5, 20]),
+                    ]
                 ]
             }
         )
     )
     mixers = await ecomax.get_value("mixers")
-    test_binary_parameter = await mixers[0].get_parameter("test_binary_parameter")
+    test_binary_parameter = await mixers[0].get_parameter("mixer_target_temp")
     assert test_binary_parameter.value == 0
     assert isinstance(test_binary_parameter, MixerBinaryParameter)
-    test_parameter = await mixers[0].get_parameter("test_parameter")
+    test_parameter = await mixers[0].get_parameter("min_mixer_target_temp")
     assert isinstance(test_parameter, MixerParameter)
     assert test_parameter.value == 10
     assert test_parameter.min_value == 5
@@ -241,10 +241,7 @@ async def test_schedule_callback(
 async def test_deprecated(ecomax: EcoMAX) -> None:
     """Test deprecated function warnings."""
     mock_callback = AsyncMock(return_value=None)
-    deprecated = (
-        "register_callback",
-        "remove_callback",
-    )
+    deprecated: Tuple[str, ...] = ()
 
     for func_name in deprecated:
         with warnings.catch_warnings(record=True) as warn:
@@ -260,20 +257,20 @@ async def test_subscribe(ecomax: EcoMAX) -> None:
     """Test callback registration."""
     mock_callback = AsyncMock(return_value=None)
     ecomax.subscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_BOILER_SENSORS: {"test_sensor": 42.1}}))
+    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 42.1}}))
     await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(42.1)
     mock_callback.reset_mock()
 
     # Test with change.
-    ecomax.handle_frame(Response(data={ATTR_BOILER_SENSORS: {"test_sensor": 45}}))
+    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 45}}))
     await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(45)
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
     ecomax.unsubscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_BOILER_SENSORS: {"test_sensor": 50}}))
+    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 50}}))
     await ecomax.wait_until_done()
     mock_callback.assert_not_awaited()
 

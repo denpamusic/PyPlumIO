@@ -32,7 +32,10 @@ class DeviceTypes(IntEnum):
 
 def _handler_class_path(device_type_name: str) -> str:
     """Return handler class path from device type name."""
-    return f"{device_type_name.lower()}.{util.to_camelcase(device_type_name)}"
+    device_type_name = util.to_camelcase(
+        device_type_name, overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"}
+    )
+    return f"{device_type_name.lower()}.{device_type_name}"
 
 
 # Dictionary of device handler classes indexed by device types.
@@ -208,9 +211,9 @@ class Device(AsyncDevice):
 class Mixer(AsyncDevice):
     """Represents mixer device."""
 
-    index: int
+    mixer_number: int
 
-    def __init__(self, index: int = 0):
+    def __init__(self, mixer_number: int = 0):
         """Initialize new Mixer object."""
         super().__init__()
-        self.index = index
+        self.mixer_number = mixer_number

@@ -4,7 +4,7 @@ from __future__ import annotations
 import functools
 import socket
 import struct
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.typing import ParameterDataType
@@ -82,15 +82,12 @@ def ip6_from_bytes(data: bytes) -> str:
     return socket.inet_ntop(socket.AF_INET6, data)
 
 
-def to_camelcase(text: str) -> str:
+def to_camelcase(text: str, overrides: Dict[str, str] = None) -> str:
     """Convert snake_case to CamelCase."""
-    replace = {
-        "uid": "UID",
-        "ecomax": "EcoMAX",
-        "ecoster": "EcoSTER",
-    }
+    if overrides is None:
+        return "".join((x.capitalize() or "_") for x in text.split("_"))
 
     return "".join(
-        (x.capitalize() or "_") if x.lower() not in replace else replace[x.lower()]
+        (x.capitalize() or "_") if x.lower() not in overrides else overrides[x.lower()]
         for x in text.split("_")
     )

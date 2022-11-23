@@ -7,15 +7,15 @@ import pytest
 
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.requests import (
-    BoilerControlRequest,
-    SetBoilerParameterRequest,
+    EcomaxControlRequest,
+    SetEcomaxParameterRequest,
     SetMixerParameterRequest,
 )
 from pyplumio.helpers.parameter import (
     STATE_OFF,
     STATE_ON,
-    BoilerBinaryParameter,
-    BoilerParameter,
+    EcomaxBinaryParameter,
+    EcomaxParameter,
     MixerParameter,
     ScheduleParameter,
 )
@@ -23,9 +23,9 @@ from pyplumio.helpers.typing import ParameterDataType
 
 
 @pytest.fixture(name="parameter")
-def fixture_parameter(ecomax: EcoMAX) -> BoilerBinaryParameter:
+def fixture_parameter(ecomax: EcoMAX) -> EcomaxBinaryParameter:
     """Return instance of summer_mode parameter."""
-    parameter = BoilerBinaryParameter(
+    parameter = EcomaxBinaryParameter(
         device=ecomax,
         name="summer_mode",
         value=1,
@@ -38,7 +38,7 @@ def fixture_parameter(ecomax: EcoMAX) -> BoilerBinaryParameter:
 
 @patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once")
 async def test_parameter_set(
-    mock_subscribe_once, parameter: BoilerBinaryParameter, bypass_asyncio_sleep
+    mock_subscribe_once, parameter: EcomaxBinaryParameter, bypass_asyncio_sleep
 ) -> None:
     """Test setting parameter."""
     await parameter.set(0)
@@ -54,13 +54,13 @@ async def test_parameter_set(
     assert parameter == 1
 
 
-async def test_parameter_set_out_of_range(parameter: BoilerBinaryParameter) -> None:
+async def test_parameter_set_out_of_range(parameter: EcomaxBinaryParameter) -> None:
     """Test setting parameter with value out of allowed range."""
     with pytest.raises(ValueError):
         await parameter.set(39)
 
 
-def test_parameter_relational(parameter: BoilerBinaryParameter):
+def test_parameter_relational(parameter: EcomaxBinaryParameter):
     """Test parameter subtraction."""
     assert (parameter - 1) == 0
     assert (parameter + 1) == 2
@@ -69,7 +69,7 @@ def test_parameter_relational(parameter: BoilerBinaryParameter):
     assert (parameter // 1) == 1
 
 
-def test_parameter_compare(parameter: BoilerBinaryParameter) -> None:
+def test_parameter_compare(parameter: EcomaxBinaryParameter) -> None:
     """Test parameter comparison."""
     assert parameter == 1
     parameter_tuple: ParameterDataType = (1, 0, 1)
@@ -80,22 +80,22 @@ def test_parameter_compare(parameter: BoilerBinaryParameter) -> None:
     assert 0 <= parameter <= 1
 
 
-def test_parameter_int(parameter: BoilerBinaryParameter) -> None:
+def test_parameter_int(parameter: EcomaxBinaryParameter) -> None:
     """Test conversion to integer."""
     assert int(parameter) == 1
 
 
-def test_parameter_repr(parameter: BoilerBinaryParameter) -> None:
+def test_parameter_repr(parameter: EcomaxBinaryParameter) -> None:
     """Test parameter serilizable representation."""
     assert repr(parameter) == (
-        "BoilerBinaryParameter(device=EcoMAX, name=summer_mode, value=1, "
+        "EcomaxBinaryParameter(device=EcoMAX, name=summer_mode, value=1, "
         + "min_value=0, max_value=1, extra=None)"
     )
 
 
-def test_parameter_request(parameter: BoilerBinaryParameter) -> None:
+def test_parameter_request(parameter: EcomaxBinaryParameter) -> None:
     """Test parameter set request instance."""
-    assert isinstance(parameter.request, SetBoilerParameterRequest)
+    assert isinstance(parameter.request, SetEcomaxParameterRequest)
 
 
 def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
@@ -137,20 +137,20 @@ def test_parameter_request_schedule(
 
 
 def test_parameter_request_control(ecomax: EcoMAX) -> None:
-    """Test boiler control parameter request instance."""
-    parameter = BoilerParameter(
+    """Test ecoMAX control parameter request instance."""
+    parameter = EcomaxParameter(
         device=ecomax,
-        name="boiler_control",
+        name="ecomax_control",
         value=1,
         min_value=0,
         max_value=1,
     )
-    assert isinstance(parameter.request, BoilerControlRequest)
+    assert isinstance(parameter.request, EcomaxControlRequest)
 
 
 @patch("asyncio.Queue.put")
 async def test_parameter_request_with_unchanged_value(
-    mock_put, parameter: BoilerParameter, bypass_asyncio_sleep, caplog
+    mock_put, parameter: EcomaxParameter, bypass_asyncio_sleep, caplog
 ) -> None:
     """Test that frame doesn't get dispatched if value is unchanged."""
     assert not parameter.change_pending
@@ -165,7 +165,7 @@ async def test_parameter_request_with_unchanged_value(
 
 @patch("pyplumio.helpers.parameter.Parameter.set")
 async def test_binary_parameter_turn_on_off(
-    mock_set, parameter: BoilerBinaryParameter
+    mock_set, parameter: EcomaxBinaryParameter
 ) -> None:
     """Test that binary parameter can be turned on and off."""
     await parameter.turn_on()

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.exceptions import ChecksumError, ReadError
-from pyplumio.frames.requests import BoilerParametersRequest, ProgramVersionRequest
+from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import FrameReader, FrameWriter
 
 
@@ -46,7 +46,7 @@ async def test_frame_reader(
 ) -> None:
     """Test frame reader."""
     frame = await frame_reader.read()
-    assert isinstance(frame, BoilerParametersRequest)
+    assert isinstance(frame, EcomaxParametersRequest)
     assert frame.frame_type == 0x31
     assert frame.sender == 0x56
     assert frame.sender_type == 0x30

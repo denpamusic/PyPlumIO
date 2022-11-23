@@ -11,7 +11,7 @@ from pyplumio.structures import StructureDecoder
 
 
 class PowerStructure(StructureDecoder):
-    """Represents boiler power sensor data structure."""
+    """Represents ecoMAX power sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None

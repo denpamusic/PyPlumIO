@@ -29,27 +29,27 @@ class FrameTypes(IntEnum):
     REQUEST_STOP_MASTER = 24
     REQUEST_START_MASTER = 25
     REQUEST_CHECK_DEVICE = 48
-    REQUEST_BOILER_PARAMETERS = 49
+    REQUEST_ECOMAX_PARAMETERS = 49
     REQUEST_MIXER_PARAMETERS = 50
-    REQUEST_SET_BOILER_PARAMETER = 51
+    REQUEST_SET_ECOMAX_PARAMETER = 51
     REQUEST_SET_MIXER_PARAMETER = 52
     REQUEST_SCHEDULES = 54
     REQUEST_SET_SCHEDULE = 55
     REQUEST_UID = 57
     REQUEST_PASSWORD = 58
-    REQUEST_BOILER_CONTROL = 59
+    REQUEST_ECOMAX_CONTROL = 59
     REQUEST_ALERTS = 61
     REQUEST_PROGRAM_VERSION = 64
     REQUEST_DATA_SCHEMA = 85
     RESPONSE_DEVICE_AVAILABLE = 176
-    RESPONSE_BOILER_PARAMETERS = 177
+    RESPONSE_ECOMAX_PARAMETERS = 177
     RESPONSE_MIXER_PARAMETERS = 178
-    RESPONSE_SET_BOILER_PARAMETER = 179
+    RESPONSE_SET_ECOMAX_PARAMETER = 179
     RESPONSE_SET_MIXER_PARAMETER = 180
     RESPONSE_SCHEDULES = 182
     RESPONSE_UID = 185
     RESPONSE_PASSWORD = 186
-    RESPONSE_BOILER_CONTROL = 187
+    RESPONSE_ECOMAX_CONTROL = 187
     RESPONSE_ALERTS = 189
     RESPONSE_PROGRAM_VERSION = 192
     RESPONSE_DATA_SCHEMA = 213
@@ -60,8 +60,8 @@ class FrameTypes(IntEnum):
 def _handler_class_path(frame_type_name: str) -> str:
     """Return handler class path from module and frame type name."""
     module, type_name = frame_type_name.split("_", 1)
-
-    return f"{module.lower()}s.{util.to_camelcase(type_name)}{module.capitalize()}"
+    type_name = util.to_camelcase(type_name, overrides={"uid": "UID"})
+    return f"{module.lower()}s.{type_name}{module.capitalize()}"
 
 
 # Dictionary of frame handler classes indexed by frame types.

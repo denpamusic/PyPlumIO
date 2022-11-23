@@ -8,8 +8,6 @@ from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import FrameTypes, Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 from pyplumio.helpers.typing import DeviceDataType, MessageType
-from pyplumio.structures.boiler_parameters import BOILER_PARAMETERS
-from pyplumio.structures.mixer_parameters import MIXER_PARAMETERS
 from pyplumio.structures.schedules import SchedulesStructure
 
 
@@ -45,10 +43,10 @@ class PasswordRequest(Request):
     frame_type: ClassVar[int] = FrameTypes.REQUEST_PASSWORD
 
 
-class BoilerParametersRequest(Request):
-    """Represents boiler parameters request."""
+class EcomaxParametersRequest(Request):
+    """Represents ecoMAX parameters request."""
 
-    frame_type: ClassVar[int] = FrameTypes.REQUEST_BOILER_PARAMETERS
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_ECOMAX_PARAMETERS
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -70,10 +68,10 @@ class DataSchemaRequest(Request):
     frame_type: ClassVar[int] = FrameTypes.REQUEST_DATA_SCHEMA
 
 
-class SetBoilerParameterRequest(Request):
-    """Represents set boiler parameter request."""
+class SetEcomaxParameterRequest(Request):
+    """Represents set ecoMAX parameter request."""
 
-    frame_type: ClassVar[int] = FrameTypes.REQUEST_SET_BOILER_PARAMETER
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_SET_ECOMAX_PARAMETER
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -81,7 +79,7 @@ class SetBoilerParameterRequest(Request):
             message = bytearray()
             name = data[ATTR_NAME]
             value = data[ATTR_VALUE]
-            message.append(BOILER_PARAMETERS.index(name))
+            message.append(name)
             message.append(value)
             return message
         except (KeyError, ValueError) as e:
@@ -98,20 +96,20 @@ class SetMixerParameterRequest(Request):
         try:
             name = data[ATTR_NAME]
             value = data[ATTR_VALUE]
-            index = data[ATTR_EXTRA]
+            mixer_number = data[ATTR_EXTRA]
             message = bytearray()
-            message.append(index)
-            message.append(MIXER_PARAMETERS.index(name))
+            message.append(mixer_number)
+            message.append(name)
             message.append(value)
             return message
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
 
-class BoilerControlRequest(Request):
-    """Represent boiler control request."""
+class EcomaxControlRequest(Request):
+    """Represent ecoMAX control request."""
 
-    frame_type: ClassVar[int] = FrameTypes.REQUEST_BOILER_CONTROL
+    frame_type: ClassVar[int] = FrameTypes.REQUEST_ECOMAX_CONTROL
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Creates frame message."""

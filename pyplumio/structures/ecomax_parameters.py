@@ -1,15 +1,17 @@
 """Contains regulator parameter structure decoder."""
 from __future__ import annotations
 
-from typing import Dict, Final, List, Optional, Tuple
+from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_BOILER_PARAMETERS
+from pyplumio.const import ATTR_ECOMAX_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, make_device_data
 
+PARAMETER_ECOMAX_CONTROL: Final = "ecomax_control"
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
-BOILER_PARAMETERS: List[str] = [
+
+ECOMAX_P_PARAMETERS: Tuple[str, ...] = (
     "airflow_power_100",
     "airflow_power_50",
     "airflow_power_30",
@@ -35,7 +37,7 @@ BOILER_PARAMETERS: List[str] = [
     "max_boiler_power",
     "min_fan_power",
     "max_fan_power",
-    "t_reduction_airflow",
+    "reduction_airflow_temp",
     "fan_power_gain",
     "fuel_flow_correction_fuzzy_logic",
     "fuel_flow_correction",
@@ -124,7 +126,7 @@ BOILER_PARAMETERS: List[str] = [
     "term_boiler_mode",
     "decrease_set_heating_term",
     "term_pump_off",
-    "al_boiler_temp",
+    "boiler_alert_temp",
     "max_feeder_temp",
     "external_boiler_temp",
     "alarm_notify",
@@ -149,11 +151,57 @@ BOILER_PARAMETERS: List[str] = [
     "buffer_hysteresis",
     "buffer_load_start",
     "buffer_load_stop",
-]
+)
+
+ECOMAX_I_PARAMETERS: Tuple[str, ...] = (
+    "water_heater_target_temp",
+    "water_heater_priority",
+    "water_heater_handling",
+    "min_water_heater_target_temp",
+    "max_water_heater_target_temp",
+    "water_heater_feeding_extension",
+    "water_heater_hysteresis",
+    "water_heater_disinfection",
+    "water_heater_work_mode",
+    "solar_handling",
+    "solar_delta_on_temp",
+    "solar_delta_off_temp",
+    "min_collector_temp",
+    "max_collector_temp",
+    "collector_off_temp",
+    "min_rot_solar",
+    "solar_antifreeze",
+    "circulation_control",
+    "circulation_pause_time",
+    "circulation_work_time",
+    "circulation_start_temp",
+    "main_heat_source",
+    "min_main_heat_source_temp",
+    "max_main_heat_source_temp",
+    "main_heat_source_hysteresis",
+    "main_heat_source_cooling",
+    "main_heat_source_increasing_st",
+    "main_heat_source_additional",
+    "main_heat_source_off_temp",
+    "alternative_heat_source_pump_startup_temp",
+    "schema_hydro",
+    "antifreeze",
+    "antifreeze_delay",
+    "circuit_lock_time",
+    "circuit_work_time",
+    "alarm_out_c",
+    "alarm_on_out_c",
+    "rt_hysteresis",
+    "cooling_ash_temp",
+    "lock_pump_annealing_temp",
+    "summer_mode",
+    "summer_mode_on_temp",
+    "summer_mode_off_temp",
+)
 
 
-class BoilerParametersStructure(StructureDecoder):
-    """Represents boiler parameters data structure."""
+class EcomaxParametersStructure(StructureDecoder):
+    """Represents ecoMAX parameters data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
@@ -162,16 +210,15 @@ class BoilerParametersStructure(StructureDecoder):
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
         offset += 3
-        boiler_parameters: Dict[str, ParameterDataType] = {}
+        ecomax_parameters: List[Tuple[int, ParameterDataType]] = []
         for index in range(first_parameter, parameters_number + first_parameter):
             parameter = util.unpack_parameter(message, offset)
             if parameter is not None:
-                parameter_name = BOILER_PARAMETERS[index]
-                boiler_parameters[parameter_name] = parameter
+                ecomax_parameters.append((index, parameter))
 
             offset += 3
 
         return (
-            make_device_data(data, {ATTR_BOILER_PARAMETERS: boiler_parameters}),
+            make_device_data(data, {ATTR_ECOMAX_PARAMETERS: ecomax_parameters}),
             offset,
         )

@@ -12,7 +12,7 @@ This package aims to provide complete and easy to use solution for communicating
 
 ![ecoMAX controllers](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/ecomax.png)
 
-Currently it supports reading and writing parameters of ecoMAX automatic pellet boiler controllers, getting service password and sending network information to show on controller's display.
+Currently it supports reading and writing parameters of ecoMAX controllers by Plum Sp. z o.o., getting service password and sending network information to show on controller's display.
 
 Devices can be connected directly via RS-485 to USB adapter or through network by using RS-485 to Ethernet/WiFi converter.
 
@@ -156,7 +156,7 @@ import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    result = await ecomax.set_value("boiler_control", "on")
+    result = await ecomax.set_value("ecomax_control", "on")
 ```
 
 ```python
@@ -165,8 +165,8 @@ import pyplumio
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
-    boiler = await ecomax.get_parameter("boiler_control")
-    result = await boiler.turn_on()  # or await boiler.turn_off()
+    ecomax_switch = await ecomax.get_parameter("ecomax_control")
+    result = await ecomax_switch.turn_on()  # or await ecomax_switch.turn_off()
 ```
 
 Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range.

@@ -6,11 +6,27 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Final
 
-from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE, STATE_OFF, STATE_ON
+from pyplumio.const import (
+    ATTR_EXTRA,
+    ATTR_NAME,
+    ATTR_PRODUCT,
+    ATTR_VALUE,
+    STATE_OFF,
+    STATE_ON,
+)
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.product_info import ProductTypes
 from pyplumio.helpers.schedule import _collect_schedule_data
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
+from pyplumio.structures.ecomax_parameters import (
+    ECOMAX_I_PARAMETERS,
+    ECOMAX_P_PARAMETERS,
+)
+from pyplumio.structures.mixer_parameters import (
+    ECOMAX_I_MIXER_PARAMETERS,
+    ECOMAX_P_MIXER_PARAMETERS,
+)
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -192,27 +208,38 @@ class BinaryParameter(Parameter):
         return await self.set(STATE_OFF)
 
 
-class BoilerParameter(Parameter):
-    """Represents boiler parameter."""
+class EcomaxParameter(Parameter):
+    """Represents ecoMAX parameter."""
 
     @property
     def request(self) -> Request:
         """Return request to change the parameter."""
-        handler = (
-            "frames.requests.BoilerControlRequest"
-            if self.name == "boiler_control"
-            else "frames.requests.SetBoilerParameterRequest"
-        )
+
+        if self.name == "ecomax_control":
+            return factory(
+                "frames.requests.EcomaxControlRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_VALUE: self.value,
+                },
+            )
 
         return factory(
-            handler,
+            "frames.requests.SetEcomaxParameterRequest",
             recipient=self.device.address,
-            data={ATTR_NAME: self.name, ATTR_VALUE: self.value},
+            data={
+                ATTR_NAME: (
+                    ECOMAX_P_PARAMETERS.index(self.name)
+                    if self.device.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    else ECOMAX_I_PARAMETERS.index(self.name)
+                ),
+                ATTR_VALUE: self.value,
+            },
         )
 
 
-class BoilerBinaryParameter(BoilerParameter, BinaryParameter):
-    """Represents boiler binary parameter."""
+class EcomaxBinaryParameter(EcomaxParameter, BinaryParameter):
+    """Represents ecoMAX binary parameter."""
 
 
 class MixerParameter(Parameter):
@@ -224,7 +251,15 @@ class MixerParameter(Parameter):
         return factory(
             "frames.requests.SetMixerParameterRequest",
             recipient=self.device.address,
-            data={ATTR_NAME: self.name, ATTR_VALUE: self.value, ATTR_EXTRA: self.extra},
+            data={
+                ATTR_NAME: (
+                    ECOMAX_P_MIXER_PARAMETERS.index(self.name)
+                    if self.device.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    else ECOMAX_I_MIXER_PARAMETERS.index(self.name)
+                ),
+                ATTR_VALUE: self.value,
+                ATTR_EXTRA: self.extra,
+            },
         )
 
 
