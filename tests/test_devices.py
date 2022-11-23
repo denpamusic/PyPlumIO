@@ -47,6 +47,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures.ecomax_parameters import PARAMETER_ECOMAX_CONTROL
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -333,6 +334,24 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
         await ecomax.get_parameter("bar")
+
+
+async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
+    """Test turning the controller on/off."""
+    # Test turning on.
+    assert not await ecomax.turn_on()
+    assert "ecoMAX control is not available" in caplog.text
+    ecomax.data[PARAMETER_ECOMAX_CONTROL] = AsyncMock()
+    assert await ecomax.turn_on()
+    ecomax.data[PARAMETER_ECOMAX_CONTROL].turn_on.assert_awaited_once()
+
+    # Test turning off.
+    del ecomax.data[PARAMETER_ECOMAX_CONTROL]
+    await ecomax.turn_off()
+    assert "ecoMAX control is not available" in caplog.text
+    ecomax.data[PARAMETER_ECOMAX_CONTROL] = AsyncMock()
+    await ecomax.turn_off()
+    ecomax.data[PARAMETER_ECOMAX_CONTROL].turn_off.assert_awaited_once()
 
 
 @patch("pyplumio.devices.Mixer.shutdown")

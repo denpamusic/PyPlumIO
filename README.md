@@ -169,6 +169,16 @@ async def main():
     result = await ecomax_switch.turn_on()  # or await ecomax_switch.turn_off()
 ```
 
+In addition to this, ecoMAX device class has a handy shortcut to turn the controller on or off.
+```python
+import pyplumio
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    await ecomax.turn_on()  # or await ecomax.turn_off()
+```
+
 Each parameter has a range of acceptable values. PyPlumIO will raise `ValueError` if value is not within the acceptable range.
 You can check allowed range by reading `min_value` and `max_value` attributes of parameter object. Both `min_value` and `max_value` are inclusive.
 ```python

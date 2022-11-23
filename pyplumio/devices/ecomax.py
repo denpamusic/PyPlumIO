@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
+import logging
 import time
 from typing import ClassVar, Final, List, Tuple
 
@@ -51,6 +52,8 @@ from pyplumio.structures.mixer_parameters import (
 )
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class EcoMAX(Device):
@@ -244,6 +247,22 @@ class EcoMAX(Device):
             )
 
         return data
+
+    async def turn_on(self) -> bool:
+        """Turn on the ecoMAX controller."""
+        try:
+            return await self.data[PARAMETER_ECOMAX_CONTROL].turn_on()
+        except KeyError:
+            _LOGGER.error("ecoMAX control is not available, please try later")
+            return False
+
+    async def turn_off(self) -> bool:
+        """Turn off the ecoMAX controller."""
+        try:
+            return await self.data[PARAMETER_ECOMAX_CONTROL].turn_off()
+        except KeyError:
+            _LOGGER.error("ecoMAX control is not available, please try later")
+            return False
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
