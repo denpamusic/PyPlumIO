@@ -109,6 +109,7 @@ class EcoMAX(Device):
         self, parameters: Sequence[Tuple[int, ParameterDataType]]
     ) -> bool:
         """Add ecomax parameters to the device data."""
+        product = await self.get_value(ATTR_PRODUCT)
         for ecomax_parameter in parameters:
             key, value = ecomax_parameter
             cls = (
@@ -118,7 +119,7 @@ class EcoMAX(Device):
                 device=self,
                 name=(
                     ECOMAX_P_PARAMETERS[key]
-                    if self.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    if product.type == ProductTypes.ECOMAX_P
                     else ECOMAX_I_PARAMETERS[key]
                 ),
                 value=value[0],
@@ -142,6 +143,7 @@ class EcoMAX(Device):
         self, parameters: Sequence[Sequence[Tuple[int, ParameterDataType]]]
     ) -> bool:
         """Set mixer parameters."""
+        product = await self.get_value(ATTR_PRODUCT)
         for mixer_number, mixer_parameters in enumerate(parameters):
             mixer = self._get_mixer(mixer_number, len(parameters))
             for mixer_parameter in mixer_parameters:
@@ -155,7 +157,7 @@ class EcoMAX(Device):
                     device=self,
                     name=(
                         ECOMAX_P_MIXER_PARAMETERS[index]
-                        if self.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                        if product.type == ProductTypes.ECOMAX_P
                         else ECOMAX_I_MIXER_PARAMETERS[index]
                     ),
                     value=value[0],
