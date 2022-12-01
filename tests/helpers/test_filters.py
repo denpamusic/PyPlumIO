@@ -86,10 +86,11 @@ async def test_delta() -> None:
     # Test with list of alerts.
     alert1 = Alert(code=0, from_dt=datetime.now(), to_dt=None)
     alert2 = Alert(code=1, from_dt=datetime.now(), to_dt=None)
+    alert3 = Alert(code=2, from_dt=datetime.now(), to_dt=None)
     wrapped_callback = delta(test_callback)
-    await wrapped_callback([alert1])
     await wrapped_callback([alert1, alert2])
-    test_callback.assert_awaited_once_with([alert2])
+    await wrapped_callback([alert3, alert2])
+    test_callback.assert_awaited_once_with([alert3])
     test_callback.reset_mock()
 
     # Test with unknown.
