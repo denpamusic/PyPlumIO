@@ -2,8 +2,6 @@
 
 from typing import Dict
 
-import pytest
-
 from pyplumio.const import (
     ADDR_BROADCAST,
     ADDR_ECONET,
@@ -17,7 +15,6 @@ from pyplumio.const import (
     ATTR_PENDING_ALERTS,
     ATTR_THERMOSTATS,
 )
-from pyplumio.exceptions import VersionError
 from pyplumio.frames import FrameTypes
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 
@@ -36,13 +33,6 @@ def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing of regdata message."""
     frame = RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
     assert ATTR_FRAME_VERSIONS in frame.data
-
-
-def test_regdata_decode_message_with_unknown_version() -> None:
-    """Test parsing of regdata message with unknown message version."""
-    frame = RegulatorDataMessage()
-    with pytest.raises(VersionError, match=r".*version \(2\.0\).*"):
-        frame.decode_message(message=bytearray.fromhex("62640002"))
 
 
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:

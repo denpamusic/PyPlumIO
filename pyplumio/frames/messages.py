@@ -10,7 +10,6 @@ from pyplumio.const import (
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
 )
-from pyplumio.exceptions import VersionError
 from pyplumio.frames import FrameTypes, Message
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.fan_power import FanPowerStructure
@@ -41,11 +40,9 @@ class RegulatorDataMessage(Message):
         """Decode frame message."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
-        if frame_version != REGDATA_VERSION:
-            raise VersionError(f"Unknown regdata version ({frame_version})")
-
-        data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
-        data[ATTR_REGDATA] = message[offset:]
+        if frame_version == REGDATA_VERSION:
+            data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
+            data[ATTR_REGDATA] = message[offset:]
 
         return data
 

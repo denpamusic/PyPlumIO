@@ -30,10 +30,6 @@ class ChecksumError(FrameError):
     """Raised on checksum error while parsing frame content."""
 
 
-class VersionError(FrameError):
-    """Raised on unknown frame version."""
-
-
 class UnknownFrameError(FrameError):
     """Raised on unknown frame type."""
 
