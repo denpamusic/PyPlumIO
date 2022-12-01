@@ -35,6 +35,13 @@ def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
     assert ATTR_FRAME_VERSIONS in frame.data
 
 
+def test_regdata_decode_message_with_unknown_version() -> None:
+    """Test parsing of regdata message with unknown message version."""
+    frame = RegulatorDataMessage()
+    frame.decode_message(message=bytearray.fromhex("62640002"))
+    assert not frame.data
+
+
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing current data message."""
     frame = SensorDataMessage(message=messages[FrameTypes.MESSAGE_SENSOR_DATA])

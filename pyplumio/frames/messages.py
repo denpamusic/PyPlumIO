@@ -40,10 +40,11 @@ class RegulatorDataMessage(Message):
         """Decode frame message."""
         offset = 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
-        if frame_version == REGDATA_VERSION:
-            data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
-            data[ATTR_REGDATA] = message[offset:]
+        if frame_version != REGDATA_VERSION:
+            return {}
 
+        data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
+        data[ATTR_REGDATA] = message[offset:]
         return data
 
 
