@@ -7,18 +7,11 @@ from enum import IntEnum, unique
 from typing import ClassVar, Dict, List, Optional
 
 from pyplumio import util
-from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame
-from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.typing import (
-    DeviceDataType,
-    NumericType,
-    SensorCallbackType,
-    VersionsInfoType,
-)
+from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
 
 
 @unique
@@ -53,14 +46,14 @@ def get_device_handler(device_type: int) -> str:
     raise UnknownDeviceError(f"Unknown device ({device_type})")
 
 
-class AsyncDevice(ABC, TaskManager):
-    """Represents a device with awaitable properties."""
+class BaseDevice(ABC, TaskManager):
+    """Represents base device with awaitable properties."""
 
     data: DeviceDataType
     _callbacks: Dict[str, List[SensorCallbackType]]
 
     def __init__(self):
-        """Initializes Async Device object."""
+        """Initializes Base Device object."""
         super().__init__()
         self.data = {}
         self._callbacks = {}
@@ -155,27 +148,16 @@ class AsyncDevice(ABC, TaskManager):
             self._callbacks[name].remove(callback)
 
 
-class Device(AsyncDevice):
-    """Represents base device."""
+class Device(BaseDevice):
+    """Represents the addressable device."""
 
     address: ClassVar[int]
     queue: asyncio.Queue
-    _required_frames: List[int] = []
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new Device object."""
         super().__init__()
         self.queue = queue
-        versions = FrameVersions(device=self)
-        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
-        self.subscribe(ATTR_FRAME_VERSIONS, versions.async_update)
-
-    async def _merge_required_frames(
-        self, frame_versions: VersionsInfoType
-    ) -> VersionsInfoType:
-        """Merge required frames into version list."""
-        requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
-        return {**requirements, **frame_versions}
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
@@ -183,14 +165,9 @@ class Device(AsyncDevice):
             for name, value in frame.data.items():
                 self.set_device_data(name, value)
 
-    @property
-    def required_frames(self) -> List[int]:
-        """Return list of required frame types."""
-        return self._required_frames
 
-
-class Mixer(AsyncDevice):
-    """Represents mixer device."""
+class Mixer(BaseDevice):
+    """Represents the mixer device."""
 
     mixer_number: int
 

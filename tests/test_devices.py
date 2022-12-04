@@ -19,7 +19,7 @@ from pyplumio.const import (
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
 )
-from pyplumio.devices import DeviceTypes, FrameVersions, Mixer, get_device_handler
+from pyplumio.devices import DeviceTypes, Mixer, get_device_handler
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
@@ -36,7 +36,7 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import DataSchemaResponse
-from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION
+from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import (
     EcomaxBinaryParameter,
     MixerBinaryParameter,
@@ -158,7 +158,7 @@ async def test_regdata_callbacks(
     """Test callbacks that are fired on received regdata."""
     # Test exception handling on data schema timeout.
     with patch(
-        "pyplumio.devices.AsyncDevice.get_value", side_effect=asyncio.TimeoutError
+        "pyplumio.devices.BaseDevice.get_value", side_effect=asyncio.TimeoutError
     ):
         ecomax.handle_frame(
             RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
@@ -280,7 +280,7 @@ async def test_get_value(ecomax: EcoMAX) -> None:
     """Test wait for device method."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
-        "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
+        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
         await ecomax.get_value("foo")
@@ -294,7 +294,7 @@ async def test_set_value(ecomax: EcoMAX) -> None:
     # Test with valid parameter.
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
-        "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
+        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
         await ecomax.set_value("foo", 1)
@@ -322,7 +322,7 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     """Test getting parameter from device."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
-        "pyplumio.devices.AsyncDevice.create_event", return_value=mock_event
+        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
         await ecomax.get_parameter("foo")
@@ -355,8 +355,8 @@ async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
 
 
 @patch("pyplumio.devices.Mixer.shutdown")
-@patch("pyplumio.devices.AsyncDevice.cancel_tasks")
-@patch("pyplumio.devices.AsyncDevice.wait_until_done")
+@patch("pyplumio.devices.BaseDevice.cancel_tasks")
+@patch("pyplumio.devices.BaseDevice.wait_until_done")
 async def test_shutdown(
     mock_wait_until_done, mock_cancel_tasks, mock_shutdown, ecomax: EcoMAX
 ) -> None:

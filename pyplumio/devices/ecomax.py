@@ -5,11 +5,12 @@ import asyncio
 from collections.abc import Sequence
 import logging
 import time
-from typing import ClassVar, Final, List, Tuple
+from typing import ClassVar, Final, Tuple
 
 from pyplumio.const import (
     ATTR_ECOMAX_PARAMETERS,
     ATTR_ECOMAX_SENSORS,
+    ATTR_FRAME_VERSIONS,
     ATTR_FUEL_BURNED,
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
@@ -28,6 +29,7 @@ from pyplumio.devices import Device, DeviceTypes, Mixer
 from pyplumio.frames import FrameTypes
 from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.filters import on_change
+from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import (
     EcomaxBinaryParameter,
     EcomaxParameter,
@@ -39,7 +41,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.product_info import ProductTypes
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
+from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures.ecomax_parameters import (
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
@@ -60,8 +62,9 @@ class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
     address: ClassVar[int] = DeviceTypes.ECOMAX
+    _frame_versions: FrameVersions
     _fuel_burned_timestamp: float = 0.0
-    _required_frames: List[int] = [
+    _required_frames: Sequence[int] = (
         FrameTypes.REQUEST_UID,
         FrameTypes.REQUEST_DATA_SCHEMA,
         FrameTypes.REQUEST_ECOMAX_PARAMETERS,
@@ -69,11 +72,12 @@ class EcoMAX(Device):
         FrameTypes.REQUEST_PASSWORD,
         FrameTypes.REQUEST_ALERTS,
         FrameTypes.REQUEST_SCHEDULES,
-    ]
+    )
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
+        self._frame_versions = FrameVersions(device=self)
         self._fuel_burned_timestamp = time.time()
         self.subscribe(ATTR_ECOMAX_SENSORS, self._add_ecomax_sensors)
         self.subscribe(ATTR_MODE, on_change(self._add_ecomax_control_parameter))
@@ -83,6 +87,15 @@ class EcoMAX(Device):
         self.subscribe(ATTR_MIXER_SENSORS, self._add_mixer_sensors)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
+        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
+        self.subscribe(ATTR_FRAME_VERSIONS, self._frame_versions.async_update)
+
+    async def _merge_required_frames(
+        self, frame_versions: VersionsInfoType
+    ) -> VersionsInfoType:
+        """Merge required frames into version list."""
+        requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
+        return {**requirements, **frame_versions}
 
     def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
@@ -273,3 +286,8 @@ class EcoMAX(Device):
             await mixer.shutdown()
 
         await super().shutdown()
+
+    @property
+    def required_frames(self) -> Sequence[int]:
+        """Return list of required frame types."""
+        return self._required_frames
