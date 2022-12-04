@@ -158,6 +158,7 @@ async def test_write_consumer(
     mock_connection_lost,
     bypass_asyncio_create_task,
     bypass_asyncio_events,
+    bypass_asyncio_sleep,
     protocol: Protocol,
 ) -> None:
     """Test write consumer task."""

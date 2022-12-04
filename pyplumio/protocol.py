@@ -27,6 +27,7 @@ from pyplumio.stream import FrameReader, FrameWriter
 _LOGGER = logging.getLogger(__name__)
 
 CONSUMERS_NUMBER: Final = 2
+WRITE_DELAY: Final = 0.1
 
 
 def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
@@ -119,6 +120,7 @@ class Protocol(TaskManager):
             finally:
                 write_queue.task_done()
                 lock.release()
+                await asyncio.sleep(WRITE_DELAY)
 
     async def frame_consumer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
