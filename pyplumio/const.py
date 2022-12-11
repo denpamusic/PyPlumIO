@@ -47,7 +47,7 @@ BYTE_UNDEFINED: Final = 0xFF
 
 @unique
 class AddressTypes(IntEnum):
-    """Contains device types."""
+    """Contains device addresses."""
 
     BROADCAST = 0
     ECOMAX = 69
