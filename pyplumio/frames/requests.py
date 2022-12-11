@@ -61,6 +61,13 @@ class MixerParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameTypes.REQUEST_MIXER_PARAMETERS
 
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        message = bytearray()
+        message.append(255)  # Number of parameters.
+        message.append(0)  # Index of the first parameter.
+        return message
+
 
 class DataSchemaRequest(Request):
     """Represents data schema request."""
