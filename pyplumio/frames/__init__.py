@@ -74,6 +74,12 @@ class Frame(ABC, FrameDataClass):
         """Process frame message and data."""
         super().__init__(*args, **kwargs)
 
+        try:
+            self.sender = AddressTypes(self.sender)
+            self.recipient = AddressTypes(self.recipient)
+        except ValueError:
+            pass
+
         if not self.message:
             # If message not set, create message bytes from data.
             self.message = self.create_message(self.data)

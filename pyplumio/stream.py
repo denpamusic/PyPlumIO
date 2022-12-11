@@ -115,9 +115,9 @@ class FrameReader:
 
         frame = factory(
             get_frame_handler(frame_type=payload[0]),
-            recipient=AddressTypes(recipient),
+            recipient=recipient,
             message=payload[1:-2],
-            sender=AddressTypes(sender),
+            sender=sender,
             sender_type=sender_type,
             econet_version=econet_version,
         )
