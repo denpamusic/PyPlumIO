@@ -3,11 +3,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import IntEnum, unique
 from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
-from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
+from pyplumio.const import AddressTypes, FrameTypes
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 
@@ -20,41 +19,6 @@ CRC_SIZE: Final = 1
 DELIMITER_SIZE: Final = 1
 ECONET_TYPE: Final = 48
 ECONET_VERSION: Final = 5
-
-
-@unique
-class FrameTypes(IntEnum):
-    """Contains frame types."""
-
-    REQUEST_STOP_MASTER = 24
-    REQUEST_START_MASTER = 25
-    REQUEST_CHECK_DEVICE = 48
-    REQUEST_ECOMAX_PARAMETERS = 49
-    REQUEST_MIXER_PARAMETERS = 50
-    REQUEST_SET_ECOMAX_PARAMETER = 51
-    REQUEST_SET_MIXER_PARAMETER = 52
-    REQUEST_SCHEDULES = 54
-    REQUEST_SET_SCHEDULE = 55
-    REQUEST_UID = 57
-    REQUEST_PASSWORD = 58
-    REQUEST_ECOMAX_CONTROL = 59
-    REQUEST_ALERTS = 61
-    REQUEST_PROGRAM_VERSION = 64
-    REQUEST_DATA_SCHEMA = 85
-    RESPONSE_DEVICE_AVAILABLE = 176
-    RESPONSE_ECOMAX_PARAMETERS = 177
-    RESPONSE_MIXER_PARAMETERS = 178
-    RESPONSE_SET_ECOMAX_PARAMETER = 179
-    RESPONSE_SET_MIXER_PARAMETER = 180
-    RESPONSE_SCHEDULES = 182
-    RESPONSE_UID = 185
-    RESPONSE_PASSWORD = 186
-    RESPONSE_ECOMAX_CONTROL = 187
-    RESPONSE_ALERTS = 189
-    RESPONSE_PROGRAM_VERSION = 192
-    RESPONSE_DATA_SCHEMA = 213
-    MESSAGE_REGULATOR_DATA = 8
-    MESSAGE_SENSOR_DATA = 53
 
 
 def _handler_class_path(frame_type_name: str) -> str:
@@ -93,8 +57,8 @@ def get_frame_handler(frame_type: int) -> str:
 class FrameDataClass:
     """Data class mixin for the frame."""
 
-    recipient: int = ADDR_BROADCAST
-    sender: int = ADDR_ECONET
+    recipient: int = AddressTypes.BROADCAST
+    sender: int = AddressTypes.ECONET
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
     message: MessageType = field(default_factory=bytearray)

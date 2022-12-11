@@ -2,8 +2,7 @@
 
 from typing import Dict
 
-from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET, ATTR_MODE, ATTR_SCHEMA
-from pyplumio.frames import FrameTypes
+from pyplumio.const import ATTR_MODE, ATTR_SCHEMA, AddressTypes, FrameTypes
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -33,7 +32,7 @@ def test_responses_type() -> None:
         DataSchemaResponse,
         AlertsResponse,
     ):
-        frame = response(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
+        frame = response(recipient=AddressTypes.BROADCAST, sender=AddressTypes.ECONET)
         assert isinstance(frame, response)
 
 

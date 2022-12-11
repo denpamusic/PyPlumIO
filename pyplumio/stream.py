@@ -6,7 +6,7 @@ import logging
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ADDR_BROADCAST, ADDR_ECONET
+from pyplumio.const import AddressTypes
 from pyplumio.exceptions import ChecksumError, ReadError
 from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
@@ -73,7 +73,14 @@ class FrameReader:
                 econet_version,
             ] = util.unpack_header(buffer)
 
-            return buffer, length, recipient, sender, sender_type, econet_version
+            return (
+                buffer,
+                length,
+                recipient,
+                sender,
+                sender_type,
+                econet_version,
+            )
 
         raise OSError("No data can be read, RS485 connection broken")
 
@@ -89,7 +96,7 @@ class FrameReader:
             econet_version,
         ) = await self._read_header()
 
-        if recipient not in (ADDR_ECONET, ADDR_BROADCAST):
+        if recipient not in (AddressTypes.ECONET, AddressTypes.BROADCAST):
             return None
 
         if length > MAX_FRAME_LENGTH or length < MIN_FRAME_LENGTH:
@@ -108,9 +115,9 @@ class FrameReader:
 
         frame = factory(
             get_frame_handler(frame_type=payload[0]),
-            recipient=recipient,
+            recipient=AddressTypes(recipient),
             message=payload[1:-2],
-            sender=sender,
+            sender=AddressTypes(sender),
             sender_type=sender_type,
             econet_version=econet_version,
         )

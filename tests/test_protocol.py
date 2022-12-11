@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from pyplumio.devices import DeviceTypes
+from pyplumio.const import AddressTypes
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
 from pyplumio.frames.requests import (
@@ -199,8 +199,8 @@ async def test_frame_consumer(
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
     mock_read_queue.get.side_effect = (
-        CheckDeviceRequest(sender=DeviceTypes.ECOMAX),
-        ProgramVersionRequest(sender=DeviceTypes.ECOMAX),
+        CheckDeviceRequest(sender=AddressTypes.ECOMAX),
+        ProgramVersionRequest(sender=AddressTypes.ECOMAX),
         CheckDeviceRequest(sender=UNKNOWN_DEVICE),
         RuntimeError("break loop"),
     )

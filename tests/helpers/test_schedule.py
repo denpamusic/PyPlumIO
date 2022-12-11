@@ -13,7 +13,7 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
 )
-from pyplumio.devices import Device, DeviceTypes
+from pyplumio.devices import AddressTypes, Device
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 
 
@@ -84,7 +84,7 @@ def test_schedule(schedule: Schedule) -> None:
 def test_schedule_commit(mock_factory, schedule: Schedule) -> None:
     """Test schedule commit."""
     schedule.device = Mock(spec=Device)
-    schedule.device.address = DeviceTypes.ECOMAX
+    schedule.device.address = AddressTypes.ECOMAX
     schedule.device.data = {
         f"schedule_test_{ATTR_SWITCH}": 1,
         f"schedule_test_{ATTR_PARAMETER}": 2,
@@ -95,7 +95,7 @@ def test_schedule_commit(mock_factory, schedule: Schedule) -> None:
     schedule.commit()
     mock_factory.assert_called_once_with(
         "frames.requests.SetScheduleRequest",
-        recipient=DeviceTypes.ECOMAX,
+        recipient=AddressTypes.ECOMAX,
         data={
             ATTR_TYPE: "test",
             ATTR_SWITCH: 1,

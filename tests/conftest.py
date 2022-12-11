@@ -24,10 +24,10 @@ from pyplumio.const import (
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VERSION,
+    FrameTypes,
 )
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.devices.ecoster import EcoSTER
-from pyplumio.frames import FrameTypes
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,

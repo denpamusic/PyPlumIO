@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pyplumio.const import ATTR_PASSWORD
-from pyplumio.frames import FrameTypes, Response
+from pyplumio.const import ATTR_PASSWORD, FrameTypes
+from pyplumio.frames import Response
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.alerts import AlertsStructure
 from pyplumio.structures.data_schema import DataSchemaStructure

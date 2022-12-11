@@ -24,9 +24,10 @@ from pyplumio.const import (
     ATTR_SCHEDULES,
     ATTR_SCHEMA,
     ATTR_SWITCH,
+    AddressTypes,
+    FrameTypes,
 )
-from pyplumio.devices import Device, DeviceTypes, Mixer
-from pyplumio.frames import FrameTypes
+from pyplumio.devices import Device, Mixer
 from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
@@ -61,7 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
-    address: ClassVar[int] = DeviceTypes.ECOMAX
+    address: ClassVar[int] = AddressTypes.ECOMAX
     _frame_versions: FrameVersions
     _fuel_burned_timestamp: float = 0.0
     _required_frames: Sequence[int] = (

@@ -3,8 +3,6 @@
 from typing import Dict
 
 from pyplumio.const import (
-    ADDR_BROADCAST,
-    ADDR_ECONET,
     ATTR_ECOMAX_SENSORS,
     ATTR_FRAME_VERSIONS,
     ATTR_FUEL_LEVEL,
@@ -14,8 +12,9 @@ from pyplumio.const import (
     ATTR_MODULES,
     ATTR_PENDING_ALERTS,
     ATTR_THERMOSTATS,
+    AddressTypes,
+    FrameTypes,
 )
-from pyplumio.frames import FrameTypes
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 
 
@@ -25,7 +24,7 @@ def test_messages_type() -> None:
         RegulatorDataMessage,
         SensorDataMessage,
     ):
-        frame = response(recipient=ADDR_BROADCAST, sender=ADDR_ECONET)
+        frame = response(recipient=AddressTypes.BROADCAST, sender=AddressTypes.ECONET)
         assert isinstance(frame, response)
 
 

@@ -3,23 +3,15 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
-from enum import IntEnum, unique
 from typing import ClassVar, Dict, List, Optional
 
 from pyplumio import util
+from pyplumio.const import AddressTypes
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
-
-
-@unique
-class DeviceTypes(IntEnum):
-    """Contains device types."""
-
-    ECOMAX = 69
-    ECOSTER = 81
 
 
 def _handler_class_path(device_type_name: str) -> str:
@@ -33,8 +25,8 @@ def _handler_class_path(device_type_name: str) -> str:
 # Dictionary of device handler classes indexed by device types.
 # example: "69: ecomax.EcoMAX"
 DEVICE_TYPES: Dict[int, str] = {
-    device_type.value: _handler_class_path(device_type.name)
-    for device_type in DeviceTypes
+    address_type.value: _handler_class_path(address_type.name)
+    for address_type in AddressTypes
 }
 
 

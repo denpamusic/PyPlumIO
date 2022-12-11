@@ -18,12 +18,14 @@ from pyplumio.const import (
     ATTR_REGDATA,
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
+    AddressTypes,
+    FrameTypes,
 )
-from pyplumio.devices import DeviceTypes, Mixer, get_device_handler
+from pyplumio.devices import Mixer, get_device_handler
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import FrameTypes, Response
+from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
@@ -55,7 +57,7 @@ UNKNOWN_FRAME: int = 99
 
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
-    cls = get_device_handler(DeviceTypes.ECOMAX)
+    cls = get_device_handler(AddressTypes.ECOMAX)
     assert cls == "devices.ecomax.EcoMAX"
     with pytest.raises(UnknownDeviceError):
         cls = get_device_handler(UNKNOWN_DEVICE)
@@ -81,14 +83,14 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         )
 
     calls = [
-        call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
-        call(UIDRequest(recipient=DeviceTypes.ECOMAX)),
-        call(DataSchemaRequest(recipient=DeviceTypes.ECOMAX)),
-        call(EcomaxParametersRequest(recipient=DeviceTypes.ECOMAX)),
-        call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
-        call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
-        call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
-        call(SchedulesRequest(recipient=DeviceTypes.ECOMAX)),
+        call(StartMasterRequest(recipient=AddressTypes.ECOMAX)),
+        call(UIDRequest(recipient=AddressTypes.ECOMAX)),
+        call(DataSchemaRequest(recipient=AddressTypes.ECOMAX)),
+        call(EcomaxParametersRequest(recipient=AddressTypes.ECOMAX)),
+        call(MixerParametersRequest(recipient=AddressTypes.ECOMAX)),
+        call(PasswordRequest(recipient=AddressTypes.ECOMAX)),
+        call(AlertsRequest(recipient=AddressTypes.ECOMAX)),
+        call(SchedulesRequest(recipient=AddressTypes.ECOMAX)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from typing import ClassVar, Optional
 
-from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE
+from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE, FrameTypes
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import FrameTypes, Request, Response
+from pyplumio.frames import Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.schedules import SchedulesStructure

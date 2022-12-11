@@ -9,8 +9,9 @@ from pyplumio.const import (
     ATTR_REGDATA,
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
+    FrameTypes,
 )
-from pyplumio.frames import FrameTypes, Message
+from pyplumio.frames import Message
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.fan_power import FanPowerStructure
 from pyplumio.structures.frame_versions import FrameVersionsStructure
