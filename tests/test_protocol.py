@@ -307,8 +307,12 @@ async def test_shutdown(
 
     mock_shutdown.assert_awaited_once()
     mock_cancel_tasks.assert_called_once()
-    mock_gather.assert_awaited_once_with(*protocol.tasks, return_exceptions=True)
-    mock_wait.assert_called_once_with([mock_read_queue.join(), mock_write_queue.join()])
+    assert mock_gather.call_count == 2
+    calls = [
+        call(mock_read_queue.join(), mock_write_queue.join()),
+        call(*protocol.tasks, return_exceptions=True),
+    ]
+    mock_gather.assert_has_awaits(calls)
     protocol.writer.close.assert_awaited_once()
 
 

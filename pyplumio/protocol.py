@@ -177,10 +177,9 @@ class Protocol(TaskManager):
 
     async def shutdown(self):
         """Shutdown protocol tasks."""
-        await asyncio.wait([queue.join() for queue in self.queues])
+        await asyncio.gather(*[queue.join() for queue in self.queues])
         self.cancel_tasks()
         await self.wait_until_done()
-
         for device in self.devices.values():
             await device.shutdown()
 
