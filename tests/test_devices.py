@@ -14,11 +14,11 @@ from pyplumio.const import (
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
     ATTR_MIXER_SENSORS,
-    ATTR_MODE,
     ATTR_REGDATA,
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
-    AddressTypes,
+    ATTR_STATE,
+    DeviceTypes,
     FrameTypes,
 )
 from pyplumio.devices import Mixer, get_device_handler
@@ -57,7 +57,7 @@ UNKNOWN_FRAME: int = 99
 
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
-    cls = get_device_handler(AddressTypes.ECOMAX)
+    cls = get_device_handler(DeviceTypes.ECOMAX)
     assert cls == "devices.ecomax.EcoMAX"
     with pytest.raises(UnknownDeviceError):
         cls = get_device_handler(UNKNOWN_DEVICE)
@@ -83,14 +83,14 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         )
 
     calls = [
-        call(StartMasterRequest(recipient=AddressTypes.ECOMAX)),
-        call(UIDRequest(recipient=AddressTypes.ECOMAX)),
-        call(DataSchemaRequest(recipient=AddressTypes.ECOMAX)),
-        call(EcomaxParametersRequest(recipient=AddressTypes.ECOMAX)),
-        call(MixerParametersRequest(recipient=AddressTypes.ECOMAX)),
-        call(PasswordRequest(recipient=AddressTypes.ECOMAX)),
-        call(AlertsRequest(recipient=AddressTypes.ECOMAX)),
-        call(SchedulesRequest(recipient=AddressTypes.ECOMAX)),
+        call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
+        call(UIDRequest(recipient=DeviceTypes.ECOMAX)),
+        call(DataSchemaRequest(recipient=DeviceTypes.ECOMAX)),
+        call(EcomaxParametersRequest(recipient=DeviceTypes.ECOMAX)),
+        call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
+        call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
+        call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
+        call(SchedulesRequest(recipient=DeviceTypes.ECOMAX)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {
@@ -109,7 +109,7 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on received data frames."""
     frames = (
         Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 42}}),
-        Response(data={ATTR_MODE: 1}),
+        Response(data={ATTR_STATE: 1}),
     )
     for frame in frames:
         ecomax.handle_frame(frame)

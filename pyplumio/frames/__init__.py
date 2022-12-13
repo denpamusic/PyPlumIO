@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
-from pyplumio.const import AddressTypes, FrameTypes
+from pyplumio.const import DeviceTypes, FrameTypes
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 
@@ -57,8 +57,8 @@ def get_frame_handler(frame_type: int) -> str:
 class FrameDataClass:
     """Data class mixin for the frame."""
 
-    recipient: int = AddressTypes.BROADCAST
-    sender: int = AddressTypes.ECONET
+    recipient: int = DeviceTypes.ALL
+    sender: int = DeviceTypes.ECONET
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
     message: MessageType = field(default_factory=bytearray)
@@ -75,8 +75,8 @@ class Frame(ABC, FrameDataClass):
         super().__init__(*args, **kwargs)
 
         try:
-            self.sender = AddressTypes(self.sender)
-            self.recipient = AddressTypes(self.recipient)
+            self.sender = DeviceTypes(self.sender)
+            self.recipient = DeviceTypes(self.recipient)
         except ValueError:
             pass
 

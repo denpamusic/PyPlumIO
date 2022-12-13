@@ -6,7 +6,7 @@ import logging
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import AddressTypes
+from pyplumio.const import DeviceTypes
 from pyplumio.exceptions import ChecksumError, ReadError
 from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
 from pyplumio.helpers.factory import factory
@@ -96,7 +96,7 @@ class FrameReader:
             econet_version,
         ) = await self._read_header()
 
-        if recipient not in (AddressTypes.ECONET, AddressTypes.BROADCAST):
+        if recipient not in (DeviceTypes.ECONET, DeviceTypes.ALL):
             return None
 
         if length > MAX_FRAME_LENGTH or length < MIN_FRAME_LENGTH:

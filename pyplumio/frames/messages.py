@@ -5,10 +5,11 @@ from typing import ClassVar, Final
 
 from pyplumio.const import (
     ATTR_ECOMAX_SENSORS,
-    ATTR_MODE,
     ATTR_REGDATA,
+    ATTR_STATE,
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
+    DeviceStates,
     FrameTypes,
 )
 from pyplumio.frames import Message
@@ -57,7 +58,11 @@ class SensorDataMessage(Message):
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
-        sensors[ATTR_MODE] = message[offset]
+        try:
+            sensors[ATTR_STATE] = DeviceStates(message[offset])
+        except ValueError:
+            sensors[ATTR_STATE] = message[offset]
+
         sensors, offset = OutputsStructure(self).decode(message, offset + 1, sensors)
         sensors, offset = OutputFlagsStructure(self).decode(message, offset, sensors)
         sensors, offset = TemperaturesStructure(self).decode(message, offset, sensors)

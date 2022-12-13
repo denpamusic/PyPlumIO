@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-from pyplumio.const import ATTR_MODE, ATTR_SCHEMA, AddressTypes, FrameTypes
+from pyplumio.const import ATTR_SCHEMA, ATTR_STATE, DeviceTypes, FrameTypes
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -32,7 +32,7 @@ def test_responses_type() -> None:
         DataSchemaResponse,
         AlertsResponse,
     ):
-        frame = response(recipient=AddressTypes.BROADCAST, sender=AddressTypes.ECONET)
+        frame = response(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
         assert isinstance(frame, response)
 
 
@@ -122,7 +122,7 @@ def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
         x[0]: x[1] for x in frame.data[ATTR_SCHEMA] if x[0] in REGDATA_SCHEMA.values()
     }
     assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
-    assert isinstance(matches[ATTR_MODE], Byte)
+    assert isinstance(matches[ATTR_STATE], Byte)
 
 
 def test_data_schema_response_with_no_parameters() -> None:

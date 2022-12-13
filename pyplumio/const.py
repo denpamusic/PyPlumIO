@@ -23,7 +23,7 @@ ATTR_LOAD: Final = "load"
 ATTR_MIXERS: Final = "mixers"
 ATTR_MIXER_SENSORS: Final = "mixer_sensors"
 ATTR_MIXER_PARAMETERS: Final = "mixer_parameters"
-ATTR_MODE: Final = "mode"
+ATTR_STATE: Final = "mode"
 ATTR_MODULES: Final = "modules"
 ATTR_POWER: Final = "power"
 ATTR_THERMOSTAT: Final = "thermostat"
@@ -46,10 +46,24 @@ BYTE_UNDEFINED: Final = 0xFF
 
 
 @unique
-class AddressTypes(IntEnum):
+class DeviceStates(IntEnum):
+    """Contains device states."""
+
+    OFF = 0
+    FANNING = 1
+    KINDLING = 2
+    WORKING = 3
+    SUPERVISION = 4
+    STOP = 5
+    STANDBY = 6
+    BURNING_OFF = 7
+
+
+@unique
+class DeviceTypes(IntEnum):
     """Contains device addresses."""
 
-    BROADCAST = 0
+    ALL = 0
     ECOMAX = 69
     ECOSTER = 81
     ECONET = 86

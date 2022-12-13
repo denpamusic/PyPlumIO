@@ -16,15 +16,15 @@ from pyplumio.const import (
     ATTR_MIXER_PARAMETERS,
     ATTR_MIXER_SENSORS,
     ATTR_MIXERS,
-    ATTR_MODE,
     ATTR_PARAMETER,
     ATTR_PRODUCT,
     ATTR_REGDATA,
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
     ATTR_SCHEMA,
+    ATTR_STATE,
     ATTR_SWITCH,
-    AddressTypes,
+    DeviceTypes,
     FrameTypes,
 )
 from pyplumio.devices import Device, Mixer
@@ -62,7 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 class EcoMAX(Device):
     """Represents ecoMAX controller."""
 
-    address: ClassVar[int] = AddressTypes.ECOMAX
+    address: ClassVar[int] = DeviceTypes.ECOMAX
     _frame_versions: FrameVersions
     _fuel_burned_timestamp: float = 0.0
     _required_frames: Sequence[int] = (
@@ -81,7 +81,7 @@ class EcoMAX(Device):
         self._frame_versions = FrameVersions(device=self)
         self._fuel_burned_timestamp = time.time()
         self.subscribe(ATTR_ECOMAX_SENSORS, self._add_ecomax_sensors)
-        self.subscribe(ATTR_MODE, on_change(self._add_ecomax_control_parameter))
+        self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.subscribe(ATTR_ECOMAX_PARAMETERS, self._add_ecomax_parameters)
         self.subscribe(ATTR_REGDATA, self._decode_regulator_data)

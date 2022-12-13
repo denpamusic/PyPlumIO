@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Dict, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_MODE, ATTR_SCHEMA
+from pyplumio.const import ATTR_SCHEMA, ATTR_STATE
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, make_device_data
@@ -25,7 +25,7 @@ from pyplumio.structures.temperatures import (
 )
 
 REGDATA_SCHEMA: Dict[int, str] = {
-    1792: ATTR_MODE,
+    1792: ATTR_STATE,
     1024: HEATING_TEMP,
     1026: FEEDER_TEMP,
     1025: WATER_HEATER_TEMP,

@@ -4,7 +4,7 @@ from typing import ClassVar, Tuple
 
 import pytest
 
-from pyplumio.const import AddressTypes, FrameTypes
+from pyplumio.const import DeviceTypes, FrameTypes
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
@@ -80,9 +80,9 @@ def test_passing_frame_type(
 def test_default_params(frames: Tuple[Request, Response]) -> None:
     """Test frame attributes."""
     for frame in frames:
-        assert frame.recipient == AddressTypes.BROADCAST
+        assert frame.recipient == DeviceTypes.ALL
         assert frame.message == b""
-        assert frame.sender == AddressTypes.ECONET
+        assert frame.sender == DeviceTypes.ECONET
         assert frame.sender_type == ECONET_TYPE
         assert frame.econet_version == ECONET_VERSION
 
@@ -127,8 +127,8 @@ def test_equality() -> None:
 def test_request_framerepr(request_frame: Request) -> None:
     """Test serialiazible request representation."""
     repr_string = (
-        "RequestFrame(recipient=<AddressTypes.BROADCAST: 0>, "
-        + "sender=<AddressTypes.ECONET: 86>, sender_type=48, econet_version=5, "
+        "RequestFrame(recipient=<DeviceTypes.ALL: 0>, "
+        + "sender=<DeviceTypes.ECONET: 86>, sender_type=48, econet_version=5, "
         + "message=bytearray(b''), data={})"
     )
     assert repr(request_frame) == repr_string
@@ -137,8 +137,8 @@ def test_request_framerepr(request_frame: Request) -> None:
 def test_response_repr(response_frame: Response) -> None:
     """Test serialiazible response representation."""
     repr_string = (
-        "ResponseFrame(recipient=<AddressTypes.BROADCAST: 0>, "
-        + "sender=<AddressTypes.ECONET: 86>, sender_type=48, econet_version=5, "
+        "ResponseFrame(recipient=<DeviceTypes.ALL: 0>, "
+        + "sender=<DeviceTypes.ECONET: 86>, sender_type=48, econet_version=5, "
         + "message=bytearray(b''), data={})"
     )
     assert repr(response_frame) == repr_string

@@ -8,11 +8,12 @@ from pyplumio.const import (
     ATTR_FUEL_LEVEL,
     ATTR_LAMBDA_SENSOR,
     ATTR_MIXER_SENSORS,
-    ATTR_MODE,
     ATTR_MODULES,
     ATTR_PENDING_ALERTS,
+    ATTR_STATE,
     ATTR_THERMOSTATS,
-    AddressTypes,
+    DeviceStates,
+    DeviceTypes,
     FrameTypes,
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
@@ -24,7 +25,7 @@ def test_messages_type() -> None:
         RegulatorDataMessage,
         SensorDataMessage,
     ):
-        frame = response(recipient=AddressTypes.BROADCAST, sender=AddressTypes.ECONET)
+        frame = response(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
         assert isinstance(frame, response)
 
 
@@ -43,12 +44,13 @@ def test_regdata_decode_message_with_unknown_version() -> None:
 
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing current data message."""
-    frame = SensorDataMessage(message=messages[FrameTypes.MESSAGE_SENSOR_DATA])
+    test_message = messages[FrameTypes.MESSAGE_SENSOR_DATA]
+    frame = SensorDataMessage(message=test_message)
     data = frame.data[ATTR_ECOMAX_SENSORS]
     assert ATTR_FRAME_VERSIONS in data
     assert data[ATTR_FRAME_VERSIONS][85] == 45559
     assert len(data[ATTR_FRAME_VERSIONS]) == 7
-    assert data[ATTR_MODE] == 0
+    assert data[ATTR_STATE] == DeviceStates.OFF
     assert round(data["heating_temp"], 2) == 22.38
     assert data["heating_target"] == 41
     assert not data["heating_pump"]
@@ -65,6 +67,11 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_THERMOSTATS][0]["contacts"]
     assert not data[ATTR_THERMOSTATS][0]["schedule"]
     assert data[ATTR_THERMOSTATS][0]["target"] == 50
+
+    # Test with the unknown state.
+    test_message[22] = 9
+    frame = SensorDataMessage(message=test_message)
+    assert frame.data[ATTR_ECOMAX_SENSORS][ATTR_STATE] == 9
 
 
 def test_current_data_without_thermostats(
