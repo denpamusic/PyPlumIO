@@ -4,7 +4,7 @@ from typing import Dict
 
 import pytest
 
-from pyplumio.const import DeviceTypes, FrameTypes
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.frames.requests import (
@@ -46,38 +46,36 @@ def test_request_type() -> None:
         StopMasterRequest,
         AlertsRequest,
     ):
-        frame = request(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
+        frame = request(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
         assert isinstance(frame, request)
 
 
 def test_program_version_response_recipient_and_type() -> None:
     """Test if program version response recipient and type is set."""
-    frame = ProgramVersionRequest(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
+    frame = ProgramVersionRequest(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
     assert isinstance(frame.response(), ProgramVersionResponse)
-    assert frame.response().recipient == DeviceTypes.ECONET
+    assert frame.response().recipient == DeviceType.ECONET
 
 
 def test_check_device_response_recipient_and_type() -> None:
     """Test if check device response recipient and type is set."""
-    frame = CheckDeviceRequest(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
+    frame = CheckDeviceRequest(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
     assert isinstance(frame.response(), DeviceAvailableResponse)
-    assert frame.response().recipient == DeviceTypes.ECONET
+    assert frame.response().recipient == DeviceType.ECONET
 
 
 def test_parameters(messages: Dict[int, bytearray]) -> None:
     """Test parameters request bytes."""
     frame = EcomaxParametersRequest()
-    assert frame.message == messages[FrameTypes.REQUEST_ECOMAX_PARAMETERS]
+    assert frame.message == messages[FrameType.REQUEST_ECOMAX_PARAMETERS]
 
 
 def test_set_parameter(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set parameter request bytes."""
-    frame = SetEcomaxParameterRequest(
-        data=data[FrameTypes.REQUEST_SET_ECOMAX_PARAMETER]
-    )
-    assert frame.message == messages[FrameTypes.REQUEST_SET_ECOMAX_PARAMETER]
+    frame = SetEcomaxParameterRequest(data=data[FrameType.REQUEST_SET_ECOMAX_PARAMETER])
+    assert frame.message == messages[FrameType.REQUEST_SET_ECOMAX_PARAMETER]
 
 
 def test_set_parameter_with_no_data() -> None:
@@ -90,8 +88,8 @@ def test_set_mixer_parameter(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set mixer parameter request bytes."""
-    frame = SetMixerParameterRequest(data=data[FrameTypes.REQUEST_SET_MIXER_PARAMETER])
-    assert frame.message == messages[FrameTypes.REQUEST_SET_MIXER_PARAMETER]
+    frame = SetMixerParameterRequest(data=data[FrameType.REQUEST_SET_MIXER_PARAMETER])
+    assert frame.message == messages[FrameType.REQUEST_SET_MIXER_PARAMETER]
 
 
 def test_set_mixer_parameter_with_no_data() -> None:
@@ -104,8 +102,8 @@ def test_ecomax_control(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test ecoMAX control parameter request bytes."""
-    frame = EcomaxControlRequest(data=data[FrameTypes.REQUEST_ECOMAX_CONTROL])
-    assert frame.message == messages[FrameTypes.REQUEST_ECOMAX_CONTROL]
+    frame = EcomaxControlRequest(data=data[FrameType.REQUEST_ECOMAX_CONTROL])
+    assert frame.message == messages[FrameType.REQUEST_ECOMAX_CONTROL]
 
 
 def test_ecomax_control_with_no_data() -> None:
@@ -118,8 +116,8 @@ def test_set_schedule(
     data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
 ) -> None:
     """Test set schedule request bytes."""
-    frame = SetScheduleRequest(data=data[FrameTypes.REQUEST_SET_SCHEDULE])
-    assert frame.message == messages[FrameTypes.REQUEST_SET_SCHEDULE]
+    frame = SetScheduleRequest(data=data[FrameType.REQUEST_SET_SCHEDULE])
+    assert frame.message == messages[FrameType.REQUEST_SET_SCHEDULE]
 
 
 def test_set_schedule_with_no_data() -> None:

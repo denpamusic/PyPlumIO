@@ -24,7 +24,7 @@ from pyplumio.const import (
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VERSION,
-    FrameTypes,
+    FrameType,
 )
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.devices.ecoster import EcoSTER
@@ -94,10 +94,10 @@ TEST_SCHEDULE: List[bool] = [
 def fixture_data() -> Dict[int, DeviceDataType]:
     """Return response data keyed by frame type."""
     return {
-        FrameTypes.RESPONSE_PROGRAM_VERSION: {
+        FrameType.RESPONSE_PROGRAM_VERSION: {
             ATTR_VERSION: VersionInfo(software="1.0.0")
         },
-        FrameTypes.RESPONSE_DEVICE_AVAILABLE: {
+        FrameType.RESPONSE_DEVICE_AVAILABLE: {
             ATTR_NETWORK: NetworkInfo(
                 eth=EthernetParameters(
                     ip="192.168.1.2",
@@ -114,7 +114,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 ),
             )
         },
-        FrameTypes.RESPONSE_UID: {
+        FrameType.RESPONSE_UID: {
             ATTR_PRODUCT: ProductInfo(
                 type=ProductTypes.ECOMAX_P,
                 product=90,
@@ -124,8 +124,8 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 model="EM350P2-ZF",
             )
         },
-        FrameTypes.RESPONSE_PASSWORD: {ATTR_PASSWORD: "0000"},
-        FrameTypes.RESPONSE_ECOMAX_PARAMETERS: {
+        FrameType.RESPONSE_PASSWORD: {ATTR_PASSWORD: "0000"},
+        FrameType.RESPONSE_ECOMAX_PARAMETERS: {
             ATTR_ECOMAX_PARAMETERS: [
                 (0, (80, 61, 100)),
                 (1, (60, 41, 76)),
@@ -133,7 +133,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 (4, (20, 1, 250)),
             ]
         },
-        FrameTypes.RESPONSE_MIXER_PARAMETERS: {
+        FrameType.RESPONSE_MIXER_PARAMETERS: {
             ATTR_MIXER_PARAMETERS: [
                 [
                     (0, (30, 40, 60)),
@@ -141,7 +141,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 ]
             ]
         },
-        FrameTypes.RESPONSE_ALERTS: {
+        FrameType.RESPONSE_ALERTS: {
             ATTR_ALERTS: [
                 Alert(
                     code=0,
@@ -155,7 +155,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 ),
             ]
         },
-        FrameTypes.RESPONSE_SCHEDULES: {
+        FrameType.RESPONSE_SCHEDULES: {
             ATTR_SCHEDULES: {
                 "heating": {
                     ATTR_SWITCH: (0, 0, 1),
@@ -164,17 +164,17 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 }
             }
         },
-        FrameTypes.REQUEST_SET_ECOMAX_PARAMETER: {
+        FrameType.REQUEST_SET_ECOMAX_PARAMETER: {
             ATTR_NAME: 0,
             ATTR_VALUE: 80,
         },
-        FrameTypes.REQUEST_SET_MIXER_PARAMETER: {
+        FrameType.REQUEST_SET_MIXER_PARAMETER: {
             ATTR_NAME: 0,
             ATTR_VALUE: 40,
             ATTR_EXTRA: 0,
         },
-        FrameTypes.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
-        FrameTypes.REQUEST_SET_SCHEDULE: {
+        FrameType.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
+        FrameType.REQUEST_SET_SCHEDULE: {
             ATTR_TYPE: "heating",
             ATTR_SWITCH: 0,
             ATTR_PARAMETER: 5,
@@ -187,24 +187,24 @@ def fixture_data() -> Dict[int, DeviceDataType]:
 def fixture_messages() -> Dict[int, bytearray]:
     """Return response messages keyed by frame type."""
     return {
-        FrameTypes.RESPONSE_PROGRAM_VERSION: bytearray.fromhex(
+        FrameType.RESPONSE_PROGRAM_VERSION: bytearray.fromhex(
             "FFFF057A0000000001000000000056"
         ),
-        FrameTypes.RESPONSE_DEVICE_AVAILABLE: bytearray.fromhex(
+        FrameType.RESPONSE_DEVICE_AVAILABLE: bytearray.fromhex(
             """01C0A80102FFFFFF00C0A8010101C0A80202FFFFFF00C0A80201010164010000000005746
 5737473""".replace(
                 "\n", ""
             )
         ),
-        FrameTypes.RESPONSE_UID: bytearray.fromhex(
+        FrameType.RESPONSE_UID: bytearray.fromhex(
             "005A000B001600110D3833383655395A0000000A454D33353050322D5A46"
         ),
-        FrameTypes.RESPONSE_PASSWORD: bytearray.fromhex("0430303030"),
-        FrameTypes.RESPONSE_ECOMAX_PARAMETERS: bytearray.fromhex(
+        FrameType.RESPONSE_PASSWORD: bytearray.fromhex("0430303030"),
+        FrameType.RESPONSE_ECOMAX_PARAMETERS: bytearray.fromhex(
             "000005503D643C294C28143BFFFFFF1401FA"
         ),
-        FrameTypes.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
-        FrameTypes.RESPONSE_DATA_SCHEMA: bytearray.fromhex(
+        FrameType.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
+        FrameType.RESPONSE_DATA_SCHEMA: bytearray.fromhex(
             """01010400070A02060A00060A01060A02000A01000A0
 3060A07060A05060A06060A08060A09060A0A060A03000A04060A0B060A0C060A0D060A0E060A0F060A10060
 A04000A11060A11060A12060A13060A14060A15060A16060A0500050800050B00050C00050D00050E00050A0
@@ -228,17 +228,17 @@ A7A000A7B000A7C000A7D000A7E000A7F00048000048300048400049100049200049300049400049
                 "\n", ""
             )
         ),
-        FrameTypes.RESPONSE_ALERTS: bytearray.fromhex(
+        FrameType.RESPONSE_ALERTS: bytearray.fromhex(
             "640002005493382B9B94382B009C97372BD398372B"
         ),
-        FrameTypes.RESPONSE_SCHEDULES: bytearray.fromhex(
+        FrameType.RESPONSE_SCHEDULES: bytearray.fromhex(
             """100101000005001E0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFF
 FFE0000FFFFFFFE0000FFFFFFFE
 """.replace(
                 "\n", ""
             )
         ),
-        FrameTypes.MESSAGE_REGULATOR_DATA: bytearray.fromhex(
+        FrameType.MESSAGE_REGULATOR_DATA: bytearray.fromhex(
             """626400010855F7B15420BE6101003D183136010064010040041C5698FA0000000000FF0FF
 F0FFF0FFF0FFF0FFF0F9F04080FFF0FFF0F0000000000000000000000000000000000000000000000000000C
 07F0000C07F0000C07F0000C07F0000C07F0000C07FD012B341000000000000C07F0000C07F0000C07F0000C
@@ -251,7 +251,7 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
                 "\n", ""
             )
         ),
-        FrameTypes.MESSAGE_SENSOR_DATA: bytearray.fromhex(
+        FrameType.MESSAGE_SENSOR_DATA: bytearray.fromhex(
             """0755F7B15420BE5698FA3601003802003901003D18310000000000FF0300000900D012B34
 101FFFFFFFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF29002D8
 00020000000000000000000000000000001120B3A4B01FFFFFFFF120A480102280005010300002E420000484
@@ -260,11 +260,11 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
                 "\n", ""
             )
         ),
-        FrameTypes.REQUEST_ECOMAX_PARAMETERS: bytearray.fromhex("FF00"),
-        FrameTypes.REQUEST_SET_ECOMAX_PARAMETER: bytearray.fromhex("0050"),
-        FrameTypes.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
-        FrameTypes.REQUEST_ECOMAX_CONTROL: bytearray.fromhex("01"),
-        FrameTypes.REQUEST_SET_SCHEDULE: bytearray.fromhex(
+        FrameType.REQUEST_ECOMAX_PARAMETERS: bytearray.fromhex("FF00"),
+        FrameType.REQUEST_SET_ECOMAX_PARAMETER: bytearray.fromhex("0050"),
+        FrameType.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
+        FrameType.REQUEST_ECOMAX_CONTROL: bytearray.fromhex("01"),
+        FrameType.REQUEST_SET_SCHEDULE: bytearray.fromhex(
             """010000050000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000F
 FFFFFFE0000FFFFFFFE
 """.replace(

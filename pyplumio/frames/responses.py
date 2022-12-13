@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pyplumio.const import ATTR_PASSWORD, FrameTypes
+from pyplumio.const import ATTR_PASSWORD, FrameType
 from pyplumio.frames import Response
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.alerts import AlertsStructure
@@ -21,7 +21,7 @@ class ProgramVersionResponse(Response):
     version info.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameType.RESPONSE_PROGRAM_VERSION
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -37,7 +37,7 @@ class DeviceAvailableResponse(Response):
     information and status.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_DEVICE_AVAILABLE
+    frame_type: ClassVar[int] = FrameType.RESPONSE_DEVICE_AVAILABLE
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -51,7 +51,7 @@ class DeviceAvailableResponse(Response):
 class UIDResponse(Response):
     """Represents UID response. Contains product and model info."""
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_UID
+    frame_type: ClassVar[int] = FrameType.RESPONSE_UID
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -65,7 +65,7 @@ class UIDResponse(Response):
 class PasswordResponse(Response):
     """Represent password response. Contains device service password."""
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PASSWORD
+    frame_type: ClassVar[int] = FrameType.RESPONSE_PASSWORD
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -78,7 +78,7 @@ class EcomaxParametersResponse(Response):
     parameters.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_ECOMAX_PARAMETERS
+    frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_PARAMETERS
 
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -94,7 +94,7 @@ class MixerParametersResponse(Response):
     parameters.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_MIXER_PARAMETERS
+    frame_type: ClassVar[int] = FrameType.RESPONSE_MIXER_PARAMETERS
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -106,7 +106,7 @@ class DataSchemaResponse(Response):
     regdata message structure.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_DATA_SCHEMA
+    frame_type: ClassVar[int] = FrameType.RESPONSE_DATA_SCHEMA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -118,7 +118,7 @@ class SetEcomaxParameterResponse(Response):
     that aknowledges, that ecoMAX parameter was successfully changed.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SET_ECOMAX_PARAMETER
+    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_ECOMAX_PARAMETER
 
 
 class SetMixerParameterResponse(Response):
@@ -126,7 +126,7 @@ class SetMixerParameterResponse(Response):
     that aknowledges, that mixer parameter was successfully changed.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SET_MIXER_PARAMETER
+    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
 
 
 class EcomaxControlResponse(Response):
@@ -135,13 +135,13 @@ class EcomaxControlResponse(Response):
     processed.
     """
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_ECOMAX_CONTROL
+    frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_CONTROL
 
 
 class AlertsResponse(Response):
     """Represents device alerts."""
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_ALERTS
+    frame_type: ClassVar[int] = FrameType.RESPONSE_ALERTS
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -151,7 +151,7 @@ class AlertsResponse(Response):
 class SchedulesResponse(Response):
     """Represents device schedule."""
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_SCHEDULES
+    frame_type: ClassVar[int] = FrameType.RESPONSE_SCHEDULES
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""

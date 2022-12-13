@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, Dict, Final, List, Optional
 
 from pyplumio import util
-from pyplumio.const import DeviceTypes, FrameTypes
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 
@@ -31,14 +31,14 @@ def _handler_class_path(frame_type_name: str) -> str:
 # Dictionary of frame handler classes indexed by frame types.
 # example: "24: requests.StopMasterRequest"
 FRAME_TYPES: Dict[int, str] = {
-    frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameTypes
+    frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
 }
 
 
 def is_known_frame_type(frame_type: int) -> bool:
     """Check if frame type is known."""
     try:
-        FrameTypes(frame_type)
+        FrameType(frame_type)
     except ValueError:
         return False
 
@@ -57,8 +57,8 @@ def get_frame_handler(frame_type: int) -> str:
 class FrameDataClass:
     """Data class mixin for the frame."""
 
-    recipient: int = DeviceTypes.ALL
-    sender: int = DeviceTypes.ECONET
+    recipient: int = DeviceType.ALL
+    sender: int = DeviceType.ECONET
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
     message: MessageType = field(default_factory=bytearray)
@@ -75,8 +75,8 @@ class Frame(ABC, FrameDataClass):
         super().__init__(*args, **kwargs)
 
         try:
-            self.sender = DeviceTypes(self.sender)
-            self.recipient = DeviceTypes(self.recipient)
+            self.sender = DeviceType(self.sender)
+            self.recipient = DeviceType(self.recipient)
         except ValueError:
             pass
 

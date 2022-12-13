@@ -4,7 +4,7 @@ from typing import ClassVar, Tuple
 
 import pytest
 
-from pyplumio.const import DeviceTypes, FrameTypes
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
@@ -20,13 +20,13 @@ from pyplumio.frames.responses import ProgramVersionResponse
 class RequestFrame(Request):
     """Test request class."""
 
-    frame_type: ClassVar[int] = FrameTypes.REQUEST_PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameType.REQUEST_PROGRAM_VERSION
 
 
 class ResponseFrame(Response):
     """Test response class."""
 
-    frame_type: ClassVar[int] = FrameTypes.RESPONSE_PROGRAM_VERSION
+    frame_type: ClassVar[int] = FrameType.RESPONSE_PROGRAM_VERSION
 
 
 @pytest.fixture(name="request_frame")
@@ -52,7 +52,7 @@ def fixture_frames(
 @pytest.fixture(name="types")
 def fixture_types() -> Tuple[int, int]:
     """Return request and response types as a tuple."""
-    return (FrameTypes.REQUEST_PROGRAM_VERSION, FrameTypes.RESPONSE_PROGRAM_VERSION)
+    return (FrameType.REQUEST_PROGRAM_VERSION, FrameType.RESPONSE_PROGRAM_VERSION)
 
 
 def test_decode_create_message(frames: Tuple[Request, Response]) -> None:
@@ -80,9 +80,9 @@ def test_passing_frame_type(
 def test_default_params(frames: Tuple[Request, Response]) -> None:
     """Test frame attributes."""
     for frame in frames:
-        assert frame.recipient == DeviceTypes.ALL
+        assert frame.recipient == DeviceType.ALL
         assert frame.message == b""
-        assert frame.sender == DeviceTypes.ECONET
+        assert frame.sender == DeviceType.ECONET
         assert frame.sender_type == ECONET_TYPE
         assert frame.econet_version == ECONET_VERSION
 
@@ -127,8 +127,8 @@ def test_equality() -> None:
 def test_request_framerepr(request_frame: Request) -> None:
     """Test serialiazible request representation."""
     repr_string = (
-        "RequestFrame(recipient=<DeviceTypes.ALL: 0>, "
-        + "sender=<DeviceTypes.ECONET: 86>, sender_type=48, econet_version=5, "
+        "RequestFrame(recipient=<DeviceType.ALL: 0>, "
+        + "sender=<DeviceType.ECONET: 86>, sender_type=48, econet_version=5, "
         + "message=bytearray(b''), data={})"
     )
     assert repr(request_frame) == repr_string
@@ -137,8 +137,8 @@ def test_request_framerepr(request_frame: Request) -> None:
 def test_response_repr(response_frame: Response) -> None:
     """Test serialiazible response representation."""
     repr_string = (
-        "ResponseFrame(recipient=<DeviceTypes.ALL: 0>, "
-        + "sender=<DeviceTypes.ECONET: 86>, sender_type=48, econet_version=5, "
+        "ResponseFrame(recipient=<DeviceType.ALL: 0>, "
+        + "sender=<DeviceType.ECONET: 86>, sender_type=48, econet_version=5, "
         + "message=bytearray(b''), data={})"
     )
     assert repr(response_frame) == repr_string

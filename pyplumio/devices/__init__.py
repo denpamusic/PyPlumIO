@@ -6,7 +6,7 @@ import asyncio
 from typing import ClassVar, Dict, List, Optional
 
 from pyplumio import util
-from pyplumio.const import DeviceTypes
+from pyplumio.const import DeviceType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame
 from pyplumio.helpers.parameter import Parameter
@@ -26,7 +26,7 @@ def _handler_class_path(device_type_name: str) -> str:
 # example: "69: ecomax.EcoMAX"
 DEVICE_TYPES: Dict[int, str] = {
     device_type.value: _handler_class_path(device_type.name)
-    for device_type in DeviceTypes
+    for device_type in DeviceType
 }
 
 

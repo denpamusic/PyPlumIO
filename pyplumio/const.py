@@ -46,7 +46,7 @@ BYTE_UNDEFINED: Final = 0xFF
 
 
 @unique
-class DeviceStates(IntEnum):
+class DeviceState(IntEnum):
     """Contains device states."""
 
     OFF = 0
@@ -60,7 +60,7 @@ class DeviceStates(IntEnum):
 
 
 @unique
-class DeviceTypes(IntEnum):
+class DeviceType(IntEnum):
     """Contains device addresses."""
 
     ALL = 0
@@ -70,7 +70,7 @@ class DeviceTypes(IntEnum):
 
 
 @unique
-class FrameTypes(IntEnum):
+class FrameType(IntEnum):
     """Contains frame types."""
 
     REQUEST_STOP_MASTER = 24

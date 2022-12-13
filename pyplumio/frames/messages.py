@@ -9,8 +9,8 @@ from pyplumio.const import (
     ATTR_STATE,
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
-    DeviceStates,
-    FrameTypes,
+    DeviceState,
+    FrameType,
 )
 from pyplumio.frames import Message
 from pyplumio.helpers.typing import DeviceDataType, MessageType
@@ -36,7 +36,7 @@ REGDATA_VERSION: Final = "1.0"
 class RegulatorDataMessage(Message):
     """Represents current regulator data."""
 
-    frame_type: ClassVar[int] = FrameTypes.MESSAGE_REGULATOR_DATA
+    frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
@@ -53,13 +53,13 @@ class RegulatorDataMessage(Message):
 class SensorDataMessage(Message):
     """Represents current device state."""
 
-    frame_type: ClassVar[int] = FrameTypes.MESSAGE_SENSOR_DATA
+    frame_type: ClassVar[int] = FrameType.MESSAGE_SENSOR_DATA
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         try:
-            sensors[ATTR_STATE] = DeviceStates(message[offset])
+            sensors[ATTR_STATE] = DeviceState(message[offset])
         except ValueError:
             sensors[ATTR_STATE] = message[offset]
 

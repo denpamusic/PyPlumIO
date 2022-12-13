@@ -18,8 +18,8 @@ from pyplumio.const import (
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
     ATTR_STATE,
-    DeviceTypes,
-    FrameTypes,
+    DeviceType,
+    FrameType,
 )
 from pyplumio.devices import Mixer, get_device_handler
 from pyplumio.devices.ecomax import EcoMAX
@@ -57,7 +57,7 @@ UNKNOWN_FRAME: int = 99
 
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
-    cls = get_device_handler(DeviceTypes.ECOMAX)
+    cls = get_device_handler(DeviceType.ECOMAX)
     assert cls == "devices.ecomax.EcoMAX"
     with pytest.raises(UnknownDeviceError):
         cls = get_device_handler(UNKNOWN_DEVICE)
@@ -74,7 +74,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
         await versions.async_update(
             {
-                FrameTypes.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
+                FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
                 UNKNOWN_FRAME: DEFAULT_FRAME_VERSION,
             }
         )
@@ -83,14 +83,14 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         )
 
     calls = [
-        call(StartMasterRequest(recipient=DeviceTypes.ECOMAX)),
-        call(UIDRequest(recipient=DeviceTypes.ECOMAX)),
-        call(DataSchemaRequest(recipient=DeviceTypes.ECOMAX)),
-        call(EcomaxParametersRequest(recipient=DeviceTypes.ECOMAX)),
-        call(MixerParametersRequest(recipient=DeviceTypes.ECOMAX)),
-        call(PasswordRequest(recipient=DeviceTypes.ECOMAX)),
-        call(AlertsRequest(recipient=DeviceTypes.ECOMAX)),
-        call(SchedulesRequest(recipient=DeviceTypes.ECOMAX)),
+        call(StartMasterRequest(recipient=DeviceType.ECOMAX)),
+        call(UIDRequest(recipient=DeviceType.ECOMAX)),
+        call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
+        call(EcomaxParametersRequest(recipient=DeviceType.ECOMAX)),
+        call(MixerParametersRequest(recipient=DeviceType.ECOMAX)),
+        call(PasswordRequest(recipient=DeviceType.ECOMAX)),
+        call(AlertsRequest(recipient=DeviceType.ECOMAX)),
+        call(SchedulesRequest(recipient=DeviceType.ECOMAX)),
     ]
     mock_put_nowait.assert_has_calls(calls)
     assert versions.versions == {
@@ -163,7 +163,7 @@ async def test_regdata_callbacks(
         "pyplumio.devices.BaseDevice.get_value", side_effect=asyncio.TimeoutError
     ):
         ecomax.handle_frame(
-            RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
+            RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
         )
         await ecomax.wait_until_done()
 
@@ -172,10 +172,10 @@ async def test_regdata_callbacks(
 
     # Set data schema and decode the regdata.
     ecomax.handle_frame(
-        DataSchemaResponse(message=messages[FrameTypes.RESPONSE_DATA_SCHEMA])
+        DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     )
     ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
+        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
     await ecomax.wait_until_done()
 
@@ -226,7 +226,7 @@ async def test_schedule_callback(
     ecomax: EcoMAX, data: Dict[int, DeviceDataType]
 ) -> None:
     """Test callback that is fired on receiving schedule data."""
-    ecomax.handle_frame(Response(data=data[FrameTypes.RESPONSE_SCHEDULES]))
+    ecomax.handle_frame(Response(data=data[FrameType.RESPONSE_SCHEDULES]))
     schedule = (await ecomax.get_value("schedules"))["heating"]
     schedule_switch = await ecomax.get_parameter("schedule_heating_switch")
     schedule_parameter = await ecomax.get_parameter("schedule_heating_parameter")
@@ -237,7 +237,7 @@ async def test_schedule_callback(
     assert schedule_parameter.min_value == 0
     assert schedule_parameter.max_value == 30
     assert isinstance(schedule_parameter, ScheduleParameter)
-    schedule_data = data[FrameTypes.RESPONSE_SCHEDULES][ATTR_SCHEDULES]["heating"]
+    schedule_data = data[FrameType.RESPONSE_SCHEDULES][ATTR_SCHEDULES]["heating"]
     assert schedule.sunday.intervals == schedule_data[ATTR_SCHEDULE][0]
 
 

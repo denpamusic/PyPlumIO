@@ -12,9 +12,9 @@ from pyplumio.const import (
     ATTR_PENDING_ALERTS,
     ATTR_STATE,
     ATTR_THERMOSTATS,
-    DeviceStates,
-    DeviceTypes,
-    FrameTypes,
+    DeviceState,
+    DeviceType,
+    FrameType,
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 
@@ -25,13 +25,13 @@ def test_messages_type() -> None:
         RegulatorDataMessage,
         SensorDataMessage,
     ):
-        frame = response(recipient=DeviceTypes.ALL, sender=DeviceTypes.ECONET)
+        frame = response(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
         assert isinstance(frame, response)
 
 
 def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing of regdata message."""
-    frame = RegulatorDataMessage(message=messages[FrameTypes.MESSAGE_REGULATOR_DATA])
+    frame = RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     assert ATTR_FRAME_VERSIONS in frame.data
 
 
@@ -44,13 +44,13 @@ def test_regdata_decode_message_with_unknown_version() -> None:
 
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing current data message."""
-    test_message = messages[FrameTypes.MESSAGE_SENSOR_DATA]
+    test_message = messages[FrameType.MESSAGE_SENSOR_DATA]
     frame = SensorDataMessage(message=test_message)
     data = frame.data[ATTR_ECOMAX_SENSORS]
     assert ATTR_FRAME_VERSIONS in data
     assert data[ATTR_FRAME_VERSIONS][85] == 45559
     assert len(data[ATTR_FRAME_VERSIONS]) == 7
-    assert data[ATTR_STATE] == DeviceStates.OFF
+    assert data[ATTR_STATE] == DeviceState.OFF
     assert round(data["heating_temp"], 2) == 22.38
     assert data["heating_target"] == 41
     assert not data["heating_pump"]
