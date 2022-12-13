@@ -16,7 +16,7 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.product_info import ProductTypes
+from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import _collect_schedule_data
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
 from pyplumio.structures.ecomax_parameters import (
@@ -230,7 +230,7 @@ class EcomaxParameter(Parameter):
             data={
                 ATTR_NAME: (
                     ECOMAX_P_PARAMETERS.index(self.name)
-                    if self.device.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_PARAMETERS.index(self.name)
                 ),
                 ATTR_VALUE: self.value,
@@ -254,7 +254,7 @@ class MixerParameter(Parameter):
             data={
                 ATTR_NAME: (
                     ECOMAX_P_MIXER_PARAMETERS.index(self.name)
-                    if self.device.data[ATTR_PRODUCT].type == ProductTypes.ECOMAX_P
+                    if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_MIXER_PARAMETERS.index(self.name)
                 ),
                 ATTR_VALUE: self.value,

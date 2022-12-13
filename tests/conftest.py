@@ -33,7 +33,7 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.product_info import ProductInfo, ProductTypes
+from pyplumio.helpers.product_info import ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import Alert
@@ -116,7 +116,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         },
         FrameType.RESPONSE_UID: {
             ATTR_PRODUCT: ProductInfo(
-                type=ProductTypes.ECOMAX_P,
+                type=ProductType.ECOMAX_P,
                 product=90,
                 uid="D251PAKR3GCPZ1K8G05G0",
                 logo=23040,
@@ -293,7 +293,7 @@ def fixture_ecomax() -> EcoMAX:
     """Return instance of ecomax."""
     ecomax = EcoMAX(asyncio.Queue())
     ecomax.data[ATTR_PRODUCT] = ProductInfo(
-        type=ProductTypes.ECOMAX_P,
+        type=ProductType.ECOMAX_P,
         product=90,
         uid="D251PAKR3GCPZ1K8G05G0",
         logo=23040,

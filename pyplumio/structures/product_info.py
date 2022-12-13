@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_PRODUCT
-from pyplumio.helpers.product_info import ProductInfo, ProductTypes
+from pyplumio.helpers.product_info import ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, make_device_data
@@ -28,7 +28,7 @@ class ProductInfoStructure(StructureDecoder):
                 data,
                 {
                     ATTR_PRODUCT: ProductInfo(
-                        type=ProductTypes(product_type),
+                        type=ProductType(product_type),
                         product=product_name,
                         uid=product_uid,
                         logo=product_logo,

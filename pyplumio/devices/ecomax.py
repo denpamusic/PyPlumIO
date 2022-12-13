@@ -40,7 +40,7 @@ from pyplumio.helpers.parameter import (
     ScheduleParameter,
     is_binary_parameter,
 )
-from pyplumio.helpers.product_info import ProductTypes
+from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures.ecomax_parameters import (
@@ -133,7 +133,7 @@ class EcoMAX(Device):
                 device=self,
                 name=(
                     ECOMAX_P_PARAMETERS[key]
-                    if product.type == ProductTypes.ECOMAX_P
+                    if product.type == ProductType.ECOMAX_P
                     else ECOMAX_I_PARAMETERS[key]
                 ),
                 value=value[0],
@@ -171,7 +171,7 @@ class EcoMAX(Device):
                     device=self,
                     name=(
                         ECOMAX_P_MIXER_PARAMETERS[index]
-                        if product.type == ProductTypes.ECOMAX_P
+                        if product.type == ProductType.ECOMAX_P
                         else ECOMAX_I_MIXER_PARAMETERS[index]
                     ),
                     value=value[0],

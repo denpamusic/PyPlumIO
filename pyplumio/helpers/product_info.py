@@ -7,7 +7,7 @@ from typing import Optional
 
 
 @unique
-class ProductTypes(IntEnum):
+class ProductType(IntEnum):
     """Contains product types."""
 
     ECOMAX_P = 0
