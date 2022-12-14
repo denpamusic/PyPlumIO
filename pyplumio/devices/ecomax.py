@@ -24,6 +24,7 @@ from pyplumio.const import (
     ATTR_SCHEMA,
     ATTR_STATE,
     ATTR_SWITCH,
+    DeviceState,
     DeviceType,
     FrameType,
 )
@@ -188,7 +189,7 @@ class EcoMAX(Device):
         parameter = EcomaxBinaryParameter(
             device=self,
             name=PARAMETER_ECOMAX_CONTROL,
-            value=(mode != 0),
+            value=(mode != DeviceState.OFF),
             min_value=0,
             max_value=1,
         )
