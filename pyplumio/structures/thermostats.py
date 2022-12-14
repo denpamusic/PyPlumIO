@@ -10,7 +10,7 @@ from pyplumio.structures import StructureDecoder, make_device_data
 
 ECOSTER_CONTACTS: Final = "contacts"
 ECOSTER_SCHEDULE: Final = "schedule"
-ECOSTER_MODE: Final = "mode"
+ECOSTER_STATE: Final = "state"
 ECOSTER_TEMP: Final = "temp"
 ECOSTER_TARGET: Final = "target"
 
@@ -36,7 +36,7 @@ class ThermostatsStructure(StructureDecoder):
             therm: DeviceDataType = {}
             therm[ECOSTER_CONTACTS] = bool(therm_contacts & contact_mask)
             therm[ECOSTER_SCHEDULE] = bool(therm_contacts & schedule_mask)
-            therm[ECOSTER_MODE] = message[offset]
+            therm[ECOSTER_STATE] = message[offset]
             therm[ECOSTER_TEMP] = util.unpack_float(message[offset + 1 : offset + 5])[0]
             therm[ECOSTER_TARGET] = util.unpack_float(message[offset + 5 : offset + 9])[
                 0

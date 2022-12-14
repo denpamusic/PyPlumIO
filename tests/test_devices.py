@@ -180,7 +180,7 @@ async def test_regdata_callbacks(
     await ecomax.wait_until_done()
 
     regdata = await ecomax.get_value(ATTR_REGDATA)
-    assert regdata["mode"] == 0
+    assert regdata[ATTR_STATE] == 0
     assert round(regdata["heating_temp"], 1) == 22.4
     assert regdata["heating_target"] == 41
     assert regdata["183"] == "0.0.0.0"
