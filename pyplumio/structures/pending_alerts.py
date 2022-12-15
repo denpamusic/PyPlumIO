@@ -16,7 +16,6 @@ class PendingAlertsStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         alerts_number = message[offset]
-        pending_alerts = [message[offset + i] for i in range(alerts_number)]
-        return make_device_data(data, {ATTR_PENDING_ALERTS: pending_alerts}), (
+        return make_device_data(data, {ATTR_PENDING_ALERTS: alerts_number}), (
             offset + alerts_number + 1
         )

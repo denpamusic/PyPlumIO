@@ -62,7 +62,7 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert len(data[ATTR_MIXER_SENSORS]) == 1
     assert data[ATTR_MIXER_SENSORS][0]["mixer_temp"] == 20.0
     assert data[ATTR_MIXER_SENSORS][0]["mixer_target"] == 40
-    assert data[ATTR_PENDING_ALERTS] == []
+    assert data[ATTR_PENDING_ALERTS] == 0
     assert data[ATTR_FUEL_LEVEL] == 32
     assert data[ATTR_THERMOSTATS][0]["contacts"]
     assert not data[ATTR_THERMOSTATS][0]["schedule"]
