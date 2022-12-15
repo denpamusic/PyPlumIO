@@ -57,6 +57,7 @@ class DeviceState(IntEnum):
     STOP = 5
     STANDBY = 6
     BURNING_OFF = 7
+    ALERT = 8
 
 
 @unique
