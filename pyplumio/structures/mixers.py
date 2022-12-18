@@ -12,11 +12,6 @@ from pyplumio.structures import StructureDecoder, make_device_data
 MIXER_TEMP: Final = "mixer_temp"
 MIXER_TARGET_TEMP: Final = "mixer_target"
 MIXER_PUMP_OUTPUT: Final = "mixer_pump"
-MIXER_DATA: Tuple[str, ...] = (
-    MIXER_TEMP,
-    MIXER_TARGET_TEMP,
-    MIXER_PUMP_OUTPUT,
-)
 
 
 class MixersStructure(StructureDecoder):
@@ -32,12 +27,12 @@ class MixersStructure(StructureDecoder):
         for _ in range(mixers_number):
             mixer_temp = util.unpack_float(message[offset : offset + 4])[0]
             if not math.isnan(mixer_temp):
-                mixer_sensor: DeviceDataType = {}
-                mixer_sensor[MIXER_TEMP] = mixer_temp
-                mixer_sensor[MIXER_TARGET_TEMP] = message[offset + 4]
+                mixer: DeviceDataType = {}
+                mixer[MIXER_TEMP] = mixer_temp
+                mixer[MIXER_TARGET_TEMP] = message[offset + 4]
                 mixer_outputs = message[offset + 6]
-                mixer_sensor[MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
-                mixer_sensors.append(mixer_sensor)
+                mixer[MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
+                mixer_sensors.append(mixer)
 
             offset += 8
 
