@@ -54,10 +54,13 @@ class DeviceState(IntEnum):
     KINDLING = 2
     WORKING = 3
     SUPERVISION = 4
-    STOP = 5
+    PAUSED = 5
     STANDBY = 6
     BURNING_OFF = 7
     ALERT = 8
+    MANUAL = 9
+    UNSEALING = 10
+    OTHER = 11
 
 
 @unique
