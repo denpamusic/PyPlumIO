@@ -143,15 +143,17 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert test_parameter.max_value == 20
 
 
-async def test_fuel_consumption_callbacks() -> None:
+async def test_fuel_consumption_callbacks(caplog) -> None:
     """Test callbacks that are fired on received fuel consumption."""
 
-    with patch("time.time", side_effect=(10, 20)):
+    with patch("time.time", side_effect=(10, 20, 600, 610)):
         ecomax = EcoMAX(asyncio.Queue())
         ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+        ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
         await ecomax.wait_until_done()
 
     assert await ecomax.get_value(ATTR_FUEL_BURNED) == 0.01
+    assert "Skipping outdated fuel consumption" in caplog.text
 
 
 async def test_regdata_callbacks(

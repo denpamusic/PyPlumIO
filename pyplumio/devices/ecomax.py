@@ -196,13 +196,18 @@ class EcoMAX(Device):
         await self.async_set_device_data(PARAMETER_ECOMAX_CONTROL, parameter)
         await self.async_set_device_data(PARAMETER_BOILER_CONTROL, parameter)
 
-    async def _add_burned_fuel_counter(self, fuel_consumption: int) -> None:
+    async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
         current_timestamp = time.time()
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         if 0 <= seconds_passed < MAX_TIME_SINCE_LAST_FUEL_DATA:
             fuel_burned = (fuel_consumption / 3600) * seconds_passed
             await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
+        else:
+            _LOGGER.warning(
+                "Skipping outdated fuel consumption data, was %i seconds old",
+                seconds_passed,
+            )
 
         self._fuel_burned_timestamp = current_timestamp
 
