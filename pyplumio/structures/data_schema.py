@@ -1,7 +1,7 @@
 """Contains data schema structure decoder."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import ATTR_SCHEMA, ATTR_STATE
@@ -24,7 +24,10 @@ from pyplumio.structures.temperatures import (
     WATER_HEATER_TEMP,
 )
 
+ATTR_TOTAL_FUEL_BURNED: Final = "total_fuel_burned"
+
 REGDATA_SCHEMA: Dict[int, str] = {
+    185: ATTR_TOTAL_FUEL_BURNED,
     1792: ATTR_STATE,
     1024: HEATING_TEMP,
     1026: FEEDER_TEMP,
