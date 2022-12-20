@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Final, List, Optional, Tuple
 
-from pyplumio.const import ATTR_REGDATA, ATTR_SCHEMA, ATTR_STATE, DeviceState
+from pyplumio.const import ATTR_REGDATA, ATTR_SCHEMA
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, make_device_data
@@ -56,10 +56,5 @@ class RegulatorDataStructure(StructureDecoder):
         regulator_data = _decode_regulator_data(message, offset, schema)
         if not regulator_data:
             return make_device_data(data), offset
-
-        try:
-            regulator_data[ATTR_STATE] = DeviceState(regulator_data[ATTR_STATE])
-        except (ValueError, KeyError):
-            pass
 
         return make_device_data(data, {ATTR_REGDATA: regulator_data}), offset
