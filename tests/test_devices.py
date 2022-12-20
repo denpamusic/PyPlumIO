@@ -10,6 +10,7 @@ import pytest
 from pyplumio.const import (
     ATTR_ECOMAX_PARAMETERS,
     ATTR_ECOMAX_SENSORS,
+    ATTR_FRAME_VERSIONS,
     ATTR_FUEL_BURNED,
     ATTR_FUEL_CONSUMPTION,
     ATTR_MIXER_PARAMETERS,
@@ -160,17 +161,12 @@ async def test_regdata_callbacks(
     ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on received regdata."""
-    # Test exception handling on data schema timeout.
-    with patch(
-        "pyplumio.devices.BaseDevice.get_value", side_effect=asyncio.TimeoutError
-    ):
-        ecomax.handle_frame(
-            RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-        )
-        await ecomax.wait_until_done()
-
-    # Regulator data should be empty on schema timeout.
-    assert not await ecomax.get_value(ATTR_REGDATA)
+    # Test handling regdata without data schema.
+    ecomax.handle_frame(
+        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
+    )
+    await ecomax.wait_until_done()
+    assert await ecomax.get_value(ATTR_FRAME_VERSIONS)
 
     # Set data schema and decode the regdata.
     ecomax.handle_frame(

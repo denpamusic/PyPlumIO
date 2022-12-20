@@ -1,11 +1,11 @@
 """Contains message frames."""
 from __future__ import annotations
 
-from typing import ClassVar, Final
+from typing import ClassVar
 
 from pyplumio.const import (
     ATTR_ECOMAX_SENSORS,
-    ATTR_REGDATA,
+    ATTR_REGDATA_DECODER,
     ATTR_STATE,
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
@@ -26,11 +26,10 @@ from pyplumio.structures.output_flags import OutputFlagsStructure
 from pyplumio.structures.outputs import OutputsStructure
 from pyplumio.structures.pending_alerts import PendingAlertsStructure
 from pyplumio.structures.power import PowerStructure
+from pyplumio.structures.regulator_data import RegulatorDataStructure
 from pyplumio.structures.statuses import StatusesStructure
 from pyplumio.structures.temperatures import TemperaturesStructure
 from pyplumio.structures.thermostats import ThermostatsStructure
-
-REGDATA_VERSION: Final = "1.0"
 
 
 class RegulatorDataMessage(Message):
@@ -40,14 +39,7 @@ class RegulatorDataMessage(Message):
 
     def decode_message(self, message: MessageType) -> DeviceDataType:
         """Decode frame message."""
-        offset = 2
-        frame_version = f"{message[offset+1]}.{message[offset]}"
-        if frame_version != REGDATA_VERSION:
-            return {}
-
-        data, offset = FrameVersionsStructure(self).decode(message, offset + 2)
-        data[ATTR_REGDATA] = message[offset:]
-        return data
+        return {ATTR_REGDATA_DECODER: RegulatorDataStructure(self)}
 
 
 class SensorDataMessage(Message):

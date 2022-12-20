@@ -19,9 +19,9 @@ from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_PRODUCT,
     ATTR_REGDATA,
+    ATTR_REGDATA_DECODER,
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
-    ATTR_SCHEMA,
     ATTR_STATE,
     ATTR_SWITCH,
     DeviceState,
@@ -29,7 +29,6 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.devices import Device, Mixer
-from pyplumio.helpers.data_types import Boolean
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import (
@@ -44,6 +43,7 @@ from pyplumio.helpers.parameter import (
 from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
+from pyplumio.structures import StructureDecoder
 from pyplumio.structures.ecomax_parameters import (
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
@@ -81,15 +81,15 @@ class EcoMAX(Device):
         super().__init__(queue)
         self._frame_versions = FrameVersions(device=self)
         self._fuel_burned_timestamp = time.time()
+        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
         self.subscribe(ATTR_ECOMAX_SENSORS, self._add_ecomax_sensors)
         self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.subscribe(ATTR_ECOMAX_PARAMETERS, self._add_ecomax_parameters)
-        self.subscribe(ATTR_REGDATA, self._decode_regulator_data)
+        self.subscribe(ATTR_REGDATA_DECODER, self._decode_regulator_data)
         self.subscribe(ATTR_MIXER_SENSORS, self._add_mixer_sensors)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
-        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
         self.subscribe(ATTR_FRAME_VERSIONS, self._frame_versions.async_update)
 
     async def _merge_required_frames(
@@ -211,26 +211,16 @@ class EcoMAX(Device):
 
         self._fuel_burned_timestamp = current_timestamp
 
-    async def _decode_regulator_data(self, regulator_data: bytes) -> DeviceDataType:
-        """Add sensor values from the regulator data."""
-        offset = 0
-        boolean_index = 0
-        regdata: DeviceDataType = {}
-        schema = self.data.get(ATTR_SCHEMA, [])
-        for parameter in schema:
-            parameter_id, parameter_type = parameter
-            if not isinstance(parameter_type, Boolean) and boolean_index > 0:
-                offset += 1
-                boolean_index = 0
+    async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
+        """Decode regulator data."""
+        data = decoder.decode(decoder.frame.message, data=self.data)[0]
+        for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
+            try:
+                await self.async_set_device_data(field, data[field])
+            except KeyError:
+                continue
 
-            parameter_type.unpack(regulator_data[offset:])
-            if isinstance(parameter_type, Boolean):
-                boolean_index = parameter_type.index(boolean_index)
-
-            regdata[parameter_id] = parameter_type.value
-            offset += parameter_type.size
-
-        return regdata
+        return True
 
     async def _add_schedules_and_schedule_parameters(
         self, schedules: DeviceDataType

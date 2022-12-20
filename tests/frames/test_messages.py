@@ -10,6 +10,8 @@ from pyplumio.const import (
     ATTR_MIXER_SENSORS,
     ATTR_MODULES,
     ATTR_PENDING_ALERTS,
+    ATTR_REGDATA,
+    ATTR_REGDATA_DECODER,
     ATTR_STATE,
     ATTR_THERMOSTATS,
     DeviceState,
@@ -17,6 +19,7 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
+from pyplumio.frames.responses import DataSchemaResponse
 
 
 def test_messages_type() -> None:
@@ -32,14 +35,34 @@ def test_messages_type() -> None:
 def test_regdata_decode_message(messages: Dict[int, bytearray]) -> None:
     """Test parsing of regdata message."""
     frame = RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-    assert ATTR_FRAME_VERSIONS in frame.data
+    decoder = frame.data[ATTR_REGDATA_DECODER]
+    data = decoder.decode(frame.message)[0]
+    assert ATTR_FRAME_VERSIONS in data
 
 
-def test_regdata_decode_message_with_unknown_version() -> None:
+def test_regdata_decode_message_with_unknown_version(
+    messages: Dict[int, bytearray]
+) -> None:
     """Test parsing of regdata message with unknown message version."""
-    frame = RegulatorDataMessage()
-    frame.decode_message(message=bytearray.fromhex("62640002"))
-    assert not frame.data
+    test_message = messages[FrameType.MESSAGE_REGULATOR_DATA]
+    test_message[4], test_message[3] = (2, 0)
+    frame = RegulatorDataMessage(message=test_message)
+    decoder = frame.data[ATTR_REGDATA_DECODER]
+    assert not decoder.decode(frame.message)[0]
+
+
+def test_regdata_decode_message_with_unknown_state(
+    messages: Dict[int, bytearray]
+) -> None:
+    """Test parsing of regdata message with unknown device state."""
+    test_message = messages[FrameType.MESSAGE_REGULATOR_DATA]
+    test_message[29] = 12
+    test_schema = DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
+    frame = RegulatorDataMessage(message=test_message)
+    decoder = frame.data[ATTR_REGDATA_DECODER]
+    data = decoder.decode(frame.message, data=test_schema.data)[0]
+    regdata = data[ATTR_REGDATA]
+    assert regdata[ATTR_STATE] == 12
 
 
 def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
@@ -69,9 +92,9 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_THERMOSTATS][0]["target"] == 50
 
     # Test with the unknown state.
-    test_message[22] = 9
+    test_message[22] = 12
     frame = SensorDataMessage(message=test_message)
-    assert frame.data[ATTR_ECOMAX_SENSORS][ATTR_STATE] == 9
+    assert frame.data[ATTR_ECOMAX_SENSORS][ATTR_STATE] == 12
 
 
 def test_current_data_without_thermostats(
