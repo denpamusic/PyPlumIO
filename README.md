@@ -206,8 +206,9 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     ecomax.subscribe("heating_temp", my_callback)
+
     # Wait until disconnected (forever)
-    connection.wait_until_done()
+    await connection.wait_until_done()
 
 asyncio.run(main())
 ```
@@ -293,7 +294,7 @@ async def main():
     print(mixer.data)
 
     # Wait until disconnected (forever)
-    connection.wait_until_done()
+    await connection.wait_until_done()
 
 asyncio.run(main())
 ```
