@@ -7,7 +7,7 @@ from typing import Final, Optional, Tuple
 from pyplumio.const import ATTR_MODULES, BYTE_UNDEFINED
 from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 MODULE_A: Final = "module_a"
 MODULE_B: Final = "module_b"
@@ -56,4 +56,4 @@ class ModulesStructure(StructureDecoder):
             module_version, offset = _get_module_version(module_name, message, offset)
             setattr(connected_modules, module_name, module_version)
 
-        return make_device_data(data, {ATTR_MODULES: connected_modules}), offset
+        return ensure_device_data(data, {ATTR_MODULES: connected_modules}), offset

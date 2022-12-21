@@ -8,7 +8,7 @@ from pyplumio.const import ATTR_PRODUCT
 from pyplumio.helpers.product_info import ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.uid import unpack_uid
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 
 class ProductInfoStructure(StructureDecoder):
@@ -24,7 +24,7 @@ class ProductInfoStructure(StructureDecoder):
         product_model = util.unpack_string(message, offset + 16)
 
         return (
-            make_device_data(
+            ensure_device_data(
                 data,
                 {
                     ATTR_PRODUCT: ProductInfo(

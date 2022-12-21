@@ -7,7 +7,7 @@ from typing import Final, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_LAMBDA_SENSOR, BYTE_UNDEFINED
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 LAMBDA_LEVEL: Final = "lambda_level"
 LAMBDA_STATUS: Final = "lambda_status"
@@ -36,4 +36,4 @@ class LambaSensorStructure(StructureDecoder):
             )
             offset += 3
 
-        return make_device_data(data, {ATTR_LAMBDA_SENSOR: lambda_sensor}), offset + 1
+        return ensure_device_data(data, {ATTR_LAMBDA_SENSOR: lambda_sensor}), offset + 1

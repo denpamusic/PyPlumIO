@@ -6,7 +6,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 FAN_OUTPUT: Final = "fan"
 FEEDER_OUTPUT: Final = "feeder"
@@ -52,7 +52,7 @@ class OutputsStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         outputs = util.unpack_ushort(message[offset : offset + 4])
-        data = make_device_data(data)
+        data = ensure_device_data(data)
         for index, output in enumerate(OUTPUTS):
             data[output] = bool(outputs & int(math.pow(2, index)))
 

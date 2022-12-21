@@ -11,7 +11,7 @@ from pyplumio.const import (
 )
 from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure, make_device_data
+from pyplumio.structures import Structure, ensure_device_data
 from pyplumio.util import unpack_parameter
 
 SCHEDULE_SIZE: Final = 42  # 6 bytes per day, 7 days total
@@ -139,4 +139,4 @@ class SchedulesStructure(Structure):
             schedule[ATTR_SCHEDULE], offset = _decode_schedule(message, offset + 5)
             schedules[schedule_name] = schedule
 
-        return make_device_data(data, {ATTR_SCHEDULES: schedules}), offset
+        return ensure_device_data(data, {ATTR_SCHEDULES: schedules}), offset

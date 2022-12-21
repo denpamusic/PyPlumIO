@@ -6,7 +6,7 @@ from typing import Final, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_ECOMAX_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 PARAMETER_ECOMAX_CONTROL: Final = "ecomax_control"
 PARAMETER_BOILER_CONTROL: Final = "boiler_control"
@@ -219,6 +219,6 @@ class EcomaxParametersStructure(StructureDecoder):
             offset += 3
 
         return (
-            make_device_data(data, {ATTR_ECOMAX_PARAMETERS: ecomax_parameters}),
+            ensure_device_data(data, {ATTR_ECOMAX_PARAMETERS: ecomax_parameters}),
             offset,
         )

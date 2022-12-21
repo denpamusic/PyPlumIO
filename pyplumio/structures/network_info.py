@@ -11,7 +11,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import Structure, make_device_data
+from pyplumio.structures import Structure, ensure_device_data
 
 
 class NetworkInfoStructure(Structure):
@@ -62,4 +62,4 @@ class NetworkInfoStructure(Structure):
             server_status=bool(message[offset + 25]),
         )
 
-        return make_device_data(data, {ATTR_NETWORK: network_info}), offset
+        return ensure_device_data(data, {ATTR_NETWORK: network_info}), offset

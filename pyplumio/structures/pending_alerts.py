@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from pyplumio.const import ATTR_PENDING_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 
 class PendingAlertsStructure(StructureDecoder):
@@ -16,6 +16,6 @@ class PendingAlertsStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         alerts_number = message[offset]
-        return make_device_data(data, {ATTR_PENDING_ALERTS: alerts_number}), (
+        return ensure_device_data(data, {ATTR_PENDING_ALERTS: alerts_number}), (
             offset + alerts_number + 1
         )

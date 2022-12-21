@@ -5,7 +5,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 HEATING_PUMP_FLAG: Final = "heating_pump_flag"
 WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
@@ -27,7 +27,7 @@ class OutputFlagsStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         output_flags = util.unpack_ushort(message[offset : offset + 4])
-        data = make_device_data(
+        data = ensure_device_data(
             data,
             {
                 HEATING_PUMP_FLAG: bool(output_flags & 0x04),

@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.helpers.typing import DeviceDataType, VersionsInfoType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 
 class FrameVersionsStructure(StructureDecoder):
@@ -25,4 +25,4 @@ class FrameVersionsStructure(StructureDecoder):
             frame_versions[frame_type] = version
             offset += 3
 
-        return make_device_data(data, {ATTR_FRAME_VERSIONS: frame_versions}), offset
+        return ensure_device_data(data, {ATTR_FRAME_VERSIONS: frame_versions}), offset

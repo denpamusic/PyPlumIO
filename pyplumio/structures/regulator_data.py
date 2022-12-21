@@ -6,7 +6,7 @@ from typing import Final, List, Optional, Tuple
 from pyplumio.const import ATTR_REGDATA, ATTR_SCHEMA
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 
 REGDATA_VERSION: Final = "1.0"
@@ -43,7 +43,7 @@ class RegulatorDataStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = make_device_data(data)
+        data = ensure_device_data(data)
         schema = data.get(ATTR_SCHEMA, [])
         offset += 2
         frame_version = f"{message[offset+1]}.{message[offset]}"
@@ -55,6 +55,6 @@ class RegulatorDataStructure(StructureDecoder):
         )
         regulator_data = _decode_regulator_data(message, offset, schema)
         if not regulator_data:
-            return make_device_data(data), offset
+            return ensure_device_data(data), offset
 
-        return make_device_data(data, {ATTR_REGDATA: regulator_data}), offset
+        return ensure_device_data(data, {ATTR_REGDATA: regulator_data}), offset

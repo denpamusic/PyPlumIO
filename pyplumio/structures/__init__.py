@@ -9,7 +9,7 @@ from pyplumio.frames import Frame
 from pyplumio.helpers.typing import DeviceDataType
 
 
-def make_device_data(data: Optional[DeviceDataType], *args) -> DeviceDataType:
+def ensure_device_data(data: Optional[DeviceDataType], *args) -> DeviceDataType:
     """Make new or merge multiple device data."""
     if data is None:
         data = {}

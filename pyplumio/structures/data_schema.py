@@ -7,7 +7,7 @@ from pyplumio import util
 from pyplumio.const import ATTR_SCHEMA, ATTR_STATE
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.outputs import (
     FAN_OUTPUT,
     FEEDER_OUTPUT,
@@ -62,4 +62,4 @@ class DataSchemaStructure(StructureDecoder):
                 schema.append((param_name, DATA_TYPES[param_type]()))
                 offset += 3
 
-        return make_device_data(data, {ATTR_SCHEMA: schema}), offset
+        return ensure_device_data(data, {ATTR_SCHEMA: schema}), offset

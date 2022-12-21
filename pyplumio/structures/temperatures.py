@@ -6,7 +6,7 @@ from typing import Final, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 HEATING_TEMP: Final = "heating_temp"
 FEEDER_TEMP: Final = "feeder_temp"
@@ -55,7 +55,7 @@ class TemperaturesStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         temp_number = message[offset]
         offset += 1
-        data = make_device_data(data)
+        data = ensure_device_data(data)
         for _ in range(temp_number):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]

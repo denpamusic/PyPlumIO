@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from pyplumio import util
 from pyplumio.const import ATTR_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures import StructureDecoder, make_device_data
+from pyplumio.structures import StructureDecoder, ensure_device_data
 
 
 def _convert_to_datetime(seconds: int) -> datetime:
@@ -71,4 +71,4 @@ class AlertsStructure(StructureDecoder):
             alerts.append(Alert(code, from_dt, to_dt))
             offset += 9
 
-        return make_device_data(data, {ATTR_ALERTS: alerts}), offset
+        return ensure_device_data(data, {ATTR_ALERTS: alerts}), offset

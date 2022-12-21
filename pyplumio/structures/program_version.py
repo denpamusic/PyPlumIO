@@ -6,7 +6,7 @@ from typing import Optional, Tuple
 from pyplumio.const import ATTR_VERSION
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures import Structure, make_device_data
+from pyplumio.structures import Structure, ensure_device_data
 
 
 class ProgramVersionStructure(Structure):
@@ -48,4 +48,4 @@ class ProgramVersionStructure(Structure):
             map(str, [software_version1, software_version2, software_version3])
         )
 
-        return make_device_data(data, {ATTR_VERSION: version_info}), offset + 15
+        return ensure_device_data(data, {ATTR_VERSION: version_info}), offset + 15
