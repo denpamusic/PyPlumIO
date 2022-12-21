@@ -9,19 +9,19 @@ from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-MODULE_A: Final = "module_a"
-MODULE_B: Final = "module_b"
-MODULE_C: Final = "module_c"
-MODULE_LAMBDA: Final = "module_lambda"
-MODULE_ECOSTER: Final = "module_ecoster"
-MODULE_PANEL: Final = "module_panel"
+ATTR_MODULE_A: Final = "module_a"
+ATTR_MODULE_B: Final = "module_b"
+ATTR_MODULE_C: Final = "module_c"
+ATTR_MODULE_LAMBDA: Final = "module_lambda"
+ATTR_MODULE_ECOSTER: Final = "module_ecoster"
+ATTR_MODULE_PANEL: Final = "module_panel"
 MODULES: Tuple[str, ...] = (
-    MODULE_A,
-    MODULE_B,
-    MODULE_C,
-    MODULE_LAMBDA,
-    MODULE_ECOSTER,
-    MODULE_PANEL,
+    ATTR_MODULE_A,
+    ATTR_MODULE_B,
+    ATTR_MODULE_C,
+    ATTR_MODULE_LAMBDA,
+    ATTR_MODULE_ECOSTER,
+    ATTR_MODULE_PANEL,
 )
 
 
@@ -36,7 +36,7 @@ def _get_module_version(
     module_version = ".".join(str(i) for i in version_data)
     offset += 3
 
-    if module_name == MODULE_A:
+    if module_name == ATTR_MODULE_A:
         vendor_code, vendor_version = struct.unpack("<BB", message[offset : offset + 2])
         module_version += f".{chr(vendor_code)}{str(vendor_version)}"
         offset += 2

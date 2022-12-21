@@ -6,15 +6,15 @@ from typing import Final, Optional, Tuple
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-HEATING_TARGET: Final = "heating_target"
-HEATING_STATUS: Final = "heating_status"
-WATER_HEATER_TARGET: Final = "water_heater_target"
-WATER_HEATER_STATUS: Final = "water_heater_status"
+ATTR_HEATING_TARGET: Final = "heating_target"
+ATTR_HEATING_STATUS: Final = "heating_status"
+ATTR_WATER_HEATER_TARGET: Final = "water_heater_target"
+ATTR_WATER_HEATER_STATUS: Final = "water_heater_status"
 STATUSES: Tuple[str, ...] = (
-    HEATING_TARGET,
-    HEATING_STATUS,
-    WATER_HEATER_TARGET,
-    WATER_HEATER_STATUS,
+    ATTR_HEATING_TARGET,
+    ATTR_HEATING_STATUS,
+    ATTR_WATER_HEATER_TARGET,
+    ATTR_WATER_HEATER_STATUS,
 )
 
 

@@ -8,39 +8,39 @@ from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-FAN_OUTPUT: Final = "fan"
-FEEDER_OUTPUT: Final = "feeder"
-HEATING_PUMP_OUTPUT: Final = "heating_pump"
-WATER_HEATER_PUMP_OUTPUT: Final = "water_heater_pump"
-CIRCULATION_PUMP_OUTPUT: Final = "ciculation_pump"
-LIGHTER_OUTPUT: Final = "lighter"
-ALARM_OUTPUT: Final = "alarm"
-OUTER_BOILER_OUTPUT: Final = "outer_boiler"
-FAN2_EXHAUST_OUTPUT: Final = "fan2_exhaust"
-FEEDER2_OUTPUT: Final = "feeder2"
-OUTER_FEEDER_OUTPUT: Final = "outer_feeder"
-SOLAR_PUMP_OUTPUT: Final = "solar_pump"
-FIREPLACE_PUMP_OUTPUT: Final = "fireplace_pump"
-GCZ_CONTACT: Final = "gcz_contact"
-BLOW_FAN1_OUTPUT: Final = "blow_fan1"
-BLOW_FAN2_OUTPUT: Final = "blow_fan2"
+ATTR_FAN_OUTPUT: Final = "fan"
+ATTR_FEEDER_OUTPUT: Final = "feeder"
+ATTR_HEATING_PUMP_OUTPUT: Final = "heating_pump"
+ATTR_WATER_HEATER_PUMP_OUTPUT: Final = "water_heater_pump"
+ATTR_CIRCULATION_PUMP_OUTPUT: Final = "ciculation_pump"
+ATTR_LIGHTER_OUTPUT: Final = "lighter"
+ATTR_ALARM_OUTPUT: Final = "alarm"
+ATTR_OUTER_BOILER_OUTPUT: Final = "outer_boiler"
+ATTR_FAN2_EXHAUST_OUTPUT: Final = "fan2_exhaust"
+ATTR_FEEDER2_OUTPUT: Final = "feeder2"
+ATTR_OUTER_FEEDER_OUTPUT: Final = "outer_feeder"
+ATTR_SOLAR_PUMP_OUTPUT: Final = "solar_pump"
+ATTR_FIREPLACE_PUMP_OUTPUT: Final = "fireplace_pump"
+ATTR_GCZ_CONTACT: Final = "gcz_contact"
+ATTR_BLOW_FAN1_OUTPUT: Final = "blow_fan1"
+ATTR_BLOW_FAN2_OUTPUT: Final = "blow_fan2"
 OUTPUTS: Tuple[str, ...] = (
-    FAN_OUTPUT,
-    FEEDER_OUTPUT,
-    HEATING_PUMP_OUTPUT,
-    WATER_HEATER_PUMP_OUTPUT,
-    CIRCULATION_PUMP_OUTPUT,
-    LIGHTER_OUTPUT,
-    ALARM_OUTPUT,
-    OUTER_BOILER_OUTPUT,
-    FAN2_EXHAUST_OUTPUT,
-    FEEDER2_OUTPUT,
-    OUTER_FEEDER_OUTPUT,
-    SOLAR_PUMP_OUTPUT,
-    FIREPLACE_PUMP_OUTPUT,
-    GCZ_CONTACT,
-    BLOW_FAN1_OUTPUT,
-    BLOW_FAN2_OUTPUT,
+    ATTR_FAN_OUTPUT,
+    ATTR_FEEDER_OUTPUT,
+    ATTR_HEATING_PUMP_OUTPUT,
+    ATTR_WATER_HEATER_PUMP_OUTPUT,
+    ATTR_CIRCULATION_PUMP_OUTPUT,
+    ATTR_LIGHTER_OUTPUT,
+    ATTR_ALARM_OUTPUT,
+    ATTR_OUTER_BOILER_OUTPUT,
+    ATTR_FAN2_EXHAUST_OUTPUT,
+    ATTR_FEEDER2_OUTPUT,
+    ATTR_OUTER_FEEDER_OUTPUT,
+    ATTR_SOLAR_PUMP_OUTPUT,
+    ATTR_FIREPLACE_PUMP_OUTPUT,
+    ATTR_GCZ_CONTACT,
+    ATTR_BLOW_FAN1_OUTPUT,
+    ATTR_BLOW_FAN2_OUTPUT,
 )
 
 

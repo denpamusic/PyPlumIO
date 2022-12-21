@@ -7,16 +7,10 @@ from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-HEATING_PUMP_FLAG: Final = "heating_pump_flag"
-WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
-CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
-SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
-OUTPUT_FLAGS: Tuple[str, ...] = (
-    HEATING_PUMP_FLAG,
-    WATER_HEATER_PUMP_FLAG,
-    CIRCULATION_PUMP_FLAG,
-    SOLAR_PUMP_FLAG,
-)
+ATTR_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
+ATTR_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
+ATTR_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
+ATTR_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
 
 
 class OutputFlagsStructure(StructureDecoder):
@@ -30,10 +24,10 @@ class OutputFlagsStructure(StructureDecoder):
         data = ensure_device_data(
             data,
             {
-                HEATING_PUMP_FLAG: bool(output_flags & 0x04),
-                WATER_HEATER_PUMP_FLAG: bool(output_flags & 0x08),
-                CIRCULATION_PUMP_FLAG: bool(output_flags & 0x10),
-                SOLAR_PUMP_FLAG: bool(output_flags & 0x800),
+                ATTR_HEATING_PUMP_FLAG: bool(output_flags & 0x04),
+                ATTR_WATER_HEATER_PUMP_FLAG: bool(output_flags & 0x08),
+                ATTR_CIRCULATION_PUMP_FLAG: bool(output_flags & 0x10),
+                ATTR_SOLAR_PUMP_FLAG: bool(output_flags & 0x800),
             },
         )
         return data, offset + 4

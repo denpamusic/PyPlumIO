@@ -8,11 +8,11 @@ from pyplumio.const import ATTR_THERMOSTATS, BYTE_UNDEFINED
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-ECOSTER_CONTACTS: Final = "contacts"
-ECOSTER_SCHEDULE: Final = "schedule"
-ECOSTER_STATE: Final = "state"
-ECOSTER_TEMP: Final = "temp"
-ECOSTER_TARGET: Final = "target"
+ATTR_ECOSTER_CONTACTS: Final = "contacts"
+ATTR_ECOSTER_SCHEDULE: Final = "schedule"
+ATTR_ECOSTER_STATE: Final = "state"
+ATTR_ECOSTER_TEMP: Final = "temp"
+ATTR_ECOSTER_TARGET: Final = "target"
 
 
 class ThermostatsStructure(StructureDecoder):
@@ -34,13 +34,15 @@ class ThermostatsStructure(StructureDecoder):
         schedule_mask = 1 << 3
         for _ in range(therm_number):
             therm: DeviceDataType = {}
-            therm[ECOSTER_CONTACTS] = bool(therm_contacts & contact_mask)
-            therm[ECOSTER_SCHEDULE] = bool(therm_contacts & schedule_mask)
-            therm[ECOSTER_STATE] = message[offset]
-            therm[ECOSTER_TEMP] = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            therm[ECOSTER_TARGET] = util.unpack_float(message[offset + 5 : offset + 9])[
-                0
-            ]
+            therm[ATTR_ECOSTER_CONTACTS] = bool(therm_contacts & contact_mask)
+            therm[ATTR_ECOSTER_SCHEDULE] = bool(therm_contacts & schedule_mask)
+            therm[ATTR_ECOSTER_STATE] = message[offset]
+            therm[ATTR_ECOSTER_TEMP] = util.unpack_float(
+                message[offset + 1 : offset + 5]
+            )[0]
+            therm[ATTR_ECOSTER_TARGET] = util.unpack_float(
+                message[offset + 5 : offset + 9]
+            )[0]
             thermostats.append(therm)
             offset += 9
             contact_mask = contact_mask << 1
