@@ -4,7 +4,7 @@ from __future__ import annotations
 import functools
 import socket
 import struct
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.typing import ParameterDataType
@@ -24,11 +24,6 @@ unpack_header = struct.Struct("<BH4B").unpack_from
 def crc(data: bytes) -> int:
     """Return the checksum."""
     return functools.reduce(lambda x, y: x ^ y, data)
-
-
-def to_hex(data: bytes) -> List[str]:
-    """Return a hex representation of byte string."""
-    return [f"{data[i]:02X}" for i in range(0, len(data))]
 
 
 def unpack_ushort(data: bytes) -> int:

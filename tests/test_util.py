@@ -9,11 +9,6 @@ def test_crc() -> None:
     assert util.crc(b"\x68\x0a\x00\x00\x56\x30\x05\x40") == 0x41
 
 
-def test_to_hex() -> None:
-    """Test conversion to hex."""
-    assert util.to_hex(b"\xFE\xED\xBE\xEF") == ["FE", "ED", "BE", "EF"]
-
-
 def test_unpack_ushort() -> None:
     """Test unpacking unsigned short."""
     assert util.unpack_ushort(b"\x0a\x00") == 10

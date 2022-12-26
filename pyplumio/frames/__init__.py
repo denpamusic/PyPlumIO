@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import ClassVar, Dict, Final, List, Optional
+from typing import ClassVar, Dict, Final, Optional
 
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
@@ -128,6 +128,10 @@ class Frame(ABC, FrameDataClass):
 
         return buffer
 
+    def hex(self, *args, **kwargs) -> str:
+        """Return hex frame representation."""
+        return self.bytes.hex(*args, **kwargs)
+
     @property
     def bytes(self) -> bytes:
         """Return bytes frame representation."""
@@ -137,11 +141,6 @@ class Frame(ABC, FrameDataClass):
         data.append(util.crc(data))
         data.append(FRAME_END)
         return bytes(data)
-
-    @property
-    def hex(self) -> List[str]:
-        """Return hex frame representation."""
-        return util.to_hex(self.bytes)
 
 
 class Request(Frame):

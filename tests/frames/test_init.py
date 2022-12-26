@@ -115,8 +115,8 @@ def test_to_bytes() -> None:
 def test_to_hex() -> None:
     """Test conversion to hex."""
     frame = RequestFrame(message=bytearray(b"\xB0\x0B"))
-    hex_data = ["68", "0C", "00", "00", "56", "30", "05", "40", "B0", "0B", "FC", "16"]
-    assert frame.hex == hex_data
+    hex_data = "680c000056300540b00bfc16"
+    assert frame.hex() == hex_data
 
 
 def test_equality() -> None:
