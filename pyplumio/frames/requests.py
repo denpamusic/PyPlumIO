@@ -181,7 +181,7 @@ class AlertsRequest(Request):
         """Create frame message."""
         message = bytearray()
         message.append(0)  # Index of the first alert.
-        message.append(100)  # Number of alert.
+        message.append(100)  # Number of alerts.
         return message
 
 

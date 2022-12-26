@@ -304,7 +304,7 @@ async def main():
 
     # Get single thermostat from the list.
     thermostat = thermostats[0]
-    thermostat_temp = await mixer.get_value("thermostat_temp")
+    thermostat_temp = await thermostat.get_value("thermostat_temp")
     await thermostat.set_value("thermostat_day_target_temp", 20)
     thermostat.subscribe("thermostat_state", on_change(my_thermostat_callback))
 
