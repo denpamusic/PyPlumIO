@@ -92,6 +92,10 @@ class Frame(ABC, FrameDataClass):
         """Return frame length."""
         return self.length
 
+    def hex(self, *args, **kwargs) -> str:
+        """Return hex frame representation."""
+        return self.bytes.hex(*args, **kwargs)
+
     @abstractmethod
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
@@ -127,10 +131,6 @@ class Frame(ABC, FrameDataClass):
         )
 
         return buffer
-
-    def hex(self, *args, **kwargs) -> str:
-        """Return hex frame representation."""
-        return self.bytes.hex(*args, **kwargs)
 
     @property
     def bytes(self) -> bytes:
