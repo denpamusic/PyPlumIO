@@ -2,7 +2,15 @@
 
 from typing import Dict
 
-from pyplumio.const import ATTR_SCHEMA, ATTR_STATE, DeviceType, FrameType
+from pyplumio.const import (
+    ATTR_SCHEMA,
+    ATTR_STATE,
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PARAMETERS_DECODER,
+    ATTR_THERMOSTATS,
+    DeviceType,
+    FrameType,
+)
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -12,11 +20,13 @@ from pyplumio.frames.responses import (
     PasswordResponse,
     ProgramVersionResponse,
     SchedulesResponse,
+    ThermostatParametersResponse,
     UIDResponse,
 )
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.data_schema import REGDATA_SCHEMA
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
 
 def test_responses_type() -> None:
@@ -111,6 +121,37 @@ def test_mixer_parameters_response(
     # Test with empty parameters.
     frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
     assert frame1.data is None
+
+
+def test_thermostat_parameters_response(
+    data: Dict[int, DeviceDataType],
+    messages: Dict[int, bytearray],
+) -> None:
+    """Test parsing message for thermostat parameters response."""
+    frame = ThermostatParametersResponse(
+        message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+    )
+    decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
+    frame_data = decoder.decode(
+        message=frame.message,
+        data={ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}]},
+    )[0]
+    assert frame_data == data[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+
+
+def test_thermostat_parameters_response_with_no_parameters() -> None:
+    """Test parsing messaghe for thermosat parameters response
+    with no parameters."""
+    frame = ThermostatParametersResponse(
+        message=bytearray.fromhex("00000300FFFFFFFFFFFFFFFFFF")
+    )
+    decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
+    frame_data = decoder.decode(
+        message=frame.message,
+        data={ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}]},
+    )[0]
+    assert ATTR_THERMOSTAT_PROFILE not in frame_data
+    assert ATTR_THERMOSTAT_PARAMETERS not in frame_data
 
 
 def test_data_schema_response(messages: Dict[int, bytearray]) -> None:

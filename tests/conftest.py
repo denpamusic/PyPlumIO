@@ -12,8 +12,8 @@ from pyplumio.const import (
     ATTR_ALERTS,
     ATTR_ECOMAX_PARAMETERS,
     ATTR_EXTRA,
+    ATTR_INDEX,
     ATTR_MIXER_PARAMETERS,
-    ATTR_NAME,
     ATTR_NETWORK,
     ATTR_PARAMETER,
     ATTR_PASSWORD,
@@ -21,6 +21,8 @@ from pyplumio.const import (
     ATTR_SCHEDULE,
     ATTR_SCHEDULES,
     ATTR_SWITCH,
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTATS,
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VERSION,
@@ -37,6 +39,7 @@ from pyplumio.helpers.product_info import ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import Alert
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
 TEST_SCHEDULE: List[bool] = [
     False,
@@ -141,6 +144,20 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 ]
             ]
         },
+        FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
+            ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}],
+            ATTR_THERMOSTAT_PROFILE: (0, 0, 1),
+            ATTR_THERMOSTAT_PARAMETERS: [
+                [
+                    (0, (2, 0, 5)),
+                    (1, (45, 40, 50)),
+                ],
+                [
+                    (0, (1, 0, 5)),
+                    (1, (45, 40, 50)),
+                ],
+            ],
+        },
         FrameType.RESPONSE_ALERTS: {
             ATTR_ALERTS: [
                 Alert(
@@ -165,13 +182,18 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             }
         },
         FrameType.REQUEST_SET_ECOMAX_PARAMETER: {
-            ATTR_NAME: 0,
+            ATTR_INDEX: 0,
             ATTR_VALUE: 80,
         },
         FrameType.REQUEST_SET_MIXER_PARAMETER: {
-            ATTR_NAME: 0,
+            ATTR_INDEX: 0,
             ATTR_VALUE: 40,
             ATTR_EXTRA: 0,
+        },
+        FrameType.REQUEST_SET_THERMOSTAT_PARAMETER: {
+            ATTR_INDEX: 1,
+            ATTR_VALUE: 42,
+            ATTR_EXTRA: 12,
         },
         FrameType.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
         FrameType.REQUEST_SET_SCHEDULE: {
@@ -204,6 +226,9 @@ def fixture_messages() -> Dict[int, bytearray]:
             "000005503D643C294C28143BFFFFFF1401FA"
         ),
         FrameType.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
+        FrameType.RESPONSE_THERMOSTAT_PARAMETERS: bytearray.fromhex(
+            "000005000000010200052D00280032000100052D0028003200"
+        ),
         FrameType.RESPONSE_DATA_SCHEMA: bytearray.fromhex(
             """01010400070A02060A00060A01060A02000A01000A0
 3060A07060A05060A06060A08060A09060A0A060A03000A04060A0B060A0C060A0D060A0E060A0F060A10060
@@ -263,6 +288,7 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
         FrameType.REQUEST_ECOMAX_PARAMETERS: bytearray.fromhex("FF00"),
         FrameType.REQUEST_SET_ECOMAX_PARAMETER: bytearray.fromhex("0050"),
         FrameType.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
+        FrameType.REQUEST_SET_THERMOSTAT_PARAMETER: bytearray.fromhex("0d2a"),
         FrameType.REQUEST_ECOMAX_CONTROL: bytearray.fromhex("01"),
         FrameType.REQUEST_SET_SCHEDULE: bytearray.fromhex(
             """010000050000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000F

@@ -19,8 +19,10 @@ from pyplumio.frames.requests import (
     SetEcomaxParameterRequest,
     SetMixerParameterRequest,
     SetScheduleRequest,
+    SetThermostatParameterRequest,
     StartMasterRequest,
     StopMasterRequest,
+    ThermostatParametersRequest,
     UIDRequest,
 )
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
@@ -45,6 +47,7 @@ def test_request_type() -> None:
         StartMasterRequest,
         StopMasterRequest,
         AlertsRequest,
+        ThermostatParametersRequest,
     ):
         frame = request(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
         assert isinstance(frame, request)
@@ -96,6 +99,22 @@ def test_set_mixer_parameter_with_no_data() -> None:
     """Test set mixer parameter request with no data."""
     with pytest.raises(FrameDataError):
         SetMixerParameterRequest()
+
+
+def test_set_thermostat_parameter(
+    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+) -> None:
+    """Test set thermostat parameter request bytes."""
+    frame = SetThermostatParameterRequest(
+        data=data[FrameType.REQUEST_SET_THERMOSTAT_PARAMETER]
+    )
+    assert frame.message == messages[FrameType.REQUEST_SET_THERMOSTAT_PARAMETER]
+
+
+def test_set_thermostat_parameter_with_no_data() -> None:
+    """Test set thermostat parameter request with no data."""
+    with pytest.raises(FrameDataError):
+        SetThermostatParameterRequest()
 
 
 def test_ecomax_control(

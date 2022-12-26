@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import ClassVar, Optional
 
-from pyplumio.const import ATTR_EXTRA, ATTR_NAME, ATTR_VALUE, FrameType
+from pyplumio.const import ATTR_EXTRA, ATTR_INDEX, ATTR_VALUE, FrameType
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
@@ -69,6 +69,19 @@ class MixerParametersRequest(Request):
         return message
 
 
+class ThermostatParametersRequest(Request):
+    """Represents thermostat parameters request."""
+
+    frame_type: ClassVar[int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        message = bytearray()
+        message.append(255)  # Number of parameters.
+        message.append(0)  # Index of the first parameter.
+        return message
+
+
 class DataSchemaRequest(Request):
     """Represents data schema request."""
 
@@ -84,9 +97,9 @@ class SetEcomaxParameterRequest(Request):
         """Create frame message."""
         try:
             message = bytearray()
-            name = data[ATTR_NAME]
+            index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
-            message.append(name)
+            message.append(index)
             message.append(value)
             return message
         except (KeyError, ValueError) as e:
@@ -101,12 +114,31 @@ class SetMixerParameterRequest(Request):
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
         try:
-            name = data[ATTR_NAME]
+            index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
             mixer_number = data[ATTR_EXTRA]
             message = bytearray()
             message.append(mixer_number)
-            message.append(name)
+            message.append(index)
+            message.append(value)
+            return message
+        except (KeyError, ValueError) as e:
+            raise FrameDataError from e
+
+
+class SetThermostatParameterRequest(Request):
+    """Represents set thermostat parameter request."""
+
+    frame_type: ClassVar[int] = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
+
+    def create_message(self, data: DeviceDataType) -> MessageType:
+        """Create frame message."""
+        try:
+            message = bytearray()
+            index = data[ATTR_INDEX]
+            value = data[ATTR_VALUE]
+            offset = data[ATTR_EXTRA]
+            message.append(index if offset is None else index + offset)
             message.append(value)
             return message
         except (KeyError, ValueError) as e:
@@ -148,8 +180,8 @@ class AlertsRequest(Request):
     def create_message(self, data: DeviceDataType) -> MessageType:
         """Create frame message."""
         message = bytearray()
-        message.append(0)  # Index of the first alarm.
-        message.append(100)  # Number of alarms.
+        message.append(0)  # Index of the first alert.
+        message.append(100)  # Number of alert.
         return message
 
 

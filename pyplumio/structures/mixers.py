@@ -10,7 +10,7 @@ from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_MIXER_TEMP: Final = "mixer_temp"
-ATTR_MIXER_TARGET_TEMP: Final = "mixer_target"
+ATTR_MIXER_TARGET: Final = "mixer_target"
 ATTR_MIXER_PUMP_OUTPUT: Final = "mixer_pump"
 
 
@@ -29,7 +29,7 @@ class MixersStructure(StructureDecoder):
             if not math.isnan(mixer_temp):
                 mixer: DeviceDataType = {}
                 mixer[ATTR_MIXER_TEMP] = mixer_temp
-                mixer[ATTR_MIXER_TARGET_TEMP] = message[offset + 4]
+                mixer[ATTR_MIXER_TARGET] = message[offset + 4]
                 mixer_outputs = message[offset + 6]
                 mixer[ATTR_MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
                 mixer_sensors.append(mixer)

@@ -8,8 +8,8 @@ from pyplumio.const import ATTR_ECOMAX_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-PARAMETER_ECOMAX_CONTROL: Final = "ecomax_control"
-PARAMETER_BOILER_CONTROL: Final = "boiler_control"
+ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
+ATTR_BOILER_CONTROL: Final = "boiler_control"
 
 ECOMAX_P_PARAMETERS: Tuple[str, ...] = (
     "airflow_power_100",

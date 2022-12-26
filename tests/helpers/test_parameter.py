@@ -10,6 +10,7 @@ from pyplumio.frames.requests import (
     EcomaxControlRequest,
     SetEcomaxParameterRequest,
     SetMixerParameterRequest,
+    SetThermostatParameterRequest,
 )
 from pyplumio.helpers.parameter import (
     STATE_OFF,
@@ -18,8 +19,11 @@ from pyplumio.helpers.parameter import (
     EcomaxParameter,
     MixerParameter,
     ScheduleParameter,
+    ThermostatParameter,
 )
 from pyplumio.helpers.typing import ParameterDataType
+from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
 
 @pytest.fixture(name="parameter")
@@ -49,7 +53,7 @@ async def test_parameter_set(
     await callback(parameter)
     assert not parameter.change_pending
     with patch("pyplumio.helpers.parameter.Parameter.change_pending", False):
-        assert await parameter.set("on")
+        assert await parameter.set(STATE_ON)
 
     assert parameter == 1
 
@@ -111,6 +115,19 @@ def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
     assert isinstance(parameter.request, SetMixerParameterRequest)
 
 
+def test_parameter_request_thermostat(ecomax: EcoMAX) -> None:
+    """Test set thermostat parameter request instance."""
+    parameter = ThermostatParameter(
+        device=ecomax,
+        name="thermostat_mode",
+        value=0,
+        min_value=0,
+        max_value=5,
+        extra=12,
+    )
+    assert isinstance(parameter.request, SetThermostatParameterRequest)
+
+
 @patch("asyncio.Queue.put")
 @patch("pyplumio.helpers.parameter._collect_schedule_data")
 @patch("pyplumio.helpers.parameter.factory")
@@ -140,12 +157,24 @@ def test_parameter_request_control(ecomax: EcoMAX) -> None:
     """Test ecoMAX control parameter request instance."""
     parameter = EcomaxParameter(
         device=ecomax,
-        name="ecomax_control",
+        name=ATTR_ECOMAX_CONTROL,
         value=1,
         min_value=0,
         max_value=1,
     )
     assert isinstance(parameter.request, EcomaxControlRequest)
+
+
+def test_parameter_request_thermostat_profile(ecomax: EcoMAX) -> None:
+    """Test thermostat profile parameter request instance."""
+    parameter = EcomaxParameter(
+        device=ecomax,
+        name=ATTR_THERMOSTAT_PROFILE,
+        value=0,
+        min_value=0,
+        max_value=5,
+    )
+    assert isinstance(parameter.request, SetThermostatParameterRequest)
 
 
 @patch("asyncio.Queue.put")
@@ -155,11 +184,11 @@ async def test_parameter_request_with_unchanged_value(
     """Test that frame doesn't get dispatched if value is unchanged."""
     assert not parameter.change_pending
 
-    assert not await parameter.set("off", retries=3)
+    assert not await parameter.set(STATE_OFF, retries=3)
     assert parameter.change_pending
     assert mock_put.await_count == 3
     assert "Timed out while trying to set 'summer_mode' parameter" in caplog.text
-    await parameter.set("off")
+    await parameter.set(STATE_OFF)
     mock_put.not_awaited()
 
 

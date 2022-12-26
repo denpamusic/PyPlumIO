@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import (
     ATTR_EXTRA,
-    ATTR_NAME,
+    ATTR_INDEX,
     ATTR_PRODUCT,
     ATTR_VALUE,
     STATE_OFF,
@@ -20,12 +20,17 @@ from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import _collect_schedule_data
 from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
 from pyplumio.structures.ecomax_parameters import (
+    ATTR_ECOMAX_CONTROL,
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
 )
 from pyplumio.structures.mixer_parameters import (
     ECOMAX_I_MIXER_PARAMETERS,
     ECOMAX_P_MIXER_PARAMETERS,
+)
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PROFILE,
+    THERMOSTAT_PARAMETERS,
 )
 
 if TYPE_CHECKING:
@@ -215,7 +220,7 @@ class EcomaxParameter(Parameter):
     def request(self) -> Request:
         """Return request to change the parameter."""
 
-        if self.name == "ecomax_control":
+        if self.name == ATTR_ECOMAX_CONTROL:
             return factory(
                 "frames.requests.EcomaxControlRequest",
                 recipient=self.device.address,
@@ -224,11 +229,22 @@ class EcomaxParameter(Parameter):
                 },
             )
 
+        if self.name == ATTR_THERMOSTAT_PROFILE:
+            return factory(
+                "frames.requests.SetThermostatParameterRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_INDEX: 0,
+                    ATTR_VALUE: self.value,
+                    ATTR_EXTRA: self.extra,
+                },
+            )
+
         return factory(
             "frames.requests.SetEcomaxParameterRequest",
             recipient=self.device.address,
             data={
-                ATTR_NAME: (
+                ATTR_INDEX: (
                     ECOMAX_P_PARAMETERS.index(self.name)
                     if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_PARAMETERS.index(self.name)
@@ -252,7 +268,7 @@ class MixerParameter(Parameter):
             "frames.requests.SetMixerParameterRequest",
             recipient=self.device.address,
             data={
-                ATTR_NAME: (
+                ATTR_INDEX: (
                     ECOMAX_P_MIXER_PARAMETERS.index(self.name)
                     if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_MIXER_PARAMETERS.index(self.name)
@@ -265,6 +281,29 @@ class MixerParameter(Parameter):
 
 class MixerBinaryParameter(MixerParameter, BinaryParameter):
     """Represents mixer binary parameter."""
+
+
+class ThermostatParameter(Parameter):
+    """Represents thermostat parameter."""
+
+    @property
+    def request(self) -> Request:
+        """Return request to change the parameter."""
+        return factory(
+            "frames.requests.SetThermostatParameterRequest",
+            recipient=self.device.address,
+            data={
+                # Increase the index by one to account for thermostat
+                # profile, which is being set at ecoMAX device level.
+                ATTR_INDEX: THERMOSTAT_PARAMETERS.index(self.name) + 1,
+                ATTR_VALUE: self.value,
+                ATTR_EXTRA: self.extra,
+            },
+        )
+
+
+class ThermostatBinaryParameter(MixerParameter, BinaryParameter):
+    """Represents thermostat binary parameter."""
 
 
 class ScheduleParameter(Parameter):

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pyplumio.const import ATTR_PASSWORD, FrameType
+from pyplumio.const import ATTR_PASSWORD, ATTR_THERMOSTAT_PARAMETERS_DECODER, FrameType
 from pyplumio.frames import Response
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.alerts import AlertsStructure
@@ -14,6 +14,7 @@ from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
 from pyplumio.structures.program_version import ProgramVersionStructure
 from pyplumio.structures.schedules import SchedulesStructure
+from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
 
 class ProgramVersionResponse(Response):
@@ -101,6 +102,18 @@ class MixerParametersResponse(Response):
         return MixerParametersStructure(self).decode(message)[0]
 
 
+class ThermostatParametersResponse(Response):
+    """Represents thermostat parameters response. Contains editable
+    thermostat parameters.
+    """
+
+    frame_type: ClassVar[int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
+
+    def decode_message(self, message: MessageType) -> DeviceDataType:
+        """Decode frame message."""
+        return {ATTR_THERMOSTAT_PARAMETERS_DECODER: ThermostatParametersStructure(self)}
+
+
 class DataSchemaResponse(Response):
     """Represents data schema response. Contains schema that describes
     regdata message structure.
@@ -127,6 +140,14 @@ class SetMixerParameterResponse(Response):
     """
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
+
+
+class SetThermostatParameterResponse(Response):
+    """Represents set thermostat parameter response. Empty response
+    that aknowledges, that thermostat parameter was successfully changed.
+    """
+
+    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
 
 
 class EcomaxControlResponse(Response):

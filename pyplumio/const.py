@@ -7,7 +7,7 @@ from typing import Final
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
 
-ATTR_NAME: Final = "name"
+ATTR_INDEX: Final = "index"
 ATTR_VALUE: Final = "value"
 ATTR_EXTRA: Final = "extra"
 ATTR_ECOMAX_SENSORS: Final = "sensors"
@@ -28,6 +28,9 @@ ATTR_MODULES: Final = "modules"
 ATTR_POWER: Final = "power"
 ATTR_THERMOSTAT: Final = "thermostat"
 ATTR_THERMOSTATS: Final = "thermostats"
+ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
+ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
+ATTR_THERMOSTAT_PARAMETERS_DECODER: Final = "thermostat_parameters_decoder"
 ATTR_TRANSMISSION: Final = "transmission"
 ATTR_PRODUCT: Final = "product"
 ATTR_NETWORK: Final = "network"
@@ -93,6 +96,8 @@ class FrameType(IntEnum):
     REQUEST_ALERTS = 61
     REQUEST_PROGRAM_VERSION = 64
     REQUEST_DATA_SCHEMA = 85
+    REQUEST_THERMOSTAT_PARAMETERS = 92
+    REQUEST_SET_THERMOSTAT_PARAMETER = 93
     RESPONSE_DEVICE_AVAILABLE = 176
     RESPONSE_ECOMAX_PARAMETERS = 177
     RESPONSE_MIXER_PARAMETERS = 178
@@ -105,5 +110,7 @@ class FrameType(IntEnum):
     RESPONSE_ALERTS = 189
     RESPONSE_PROGRAM_VERSION = 192
     RESPONSE_DATA_SCHEMA = 213
+    RESPONSE_THERMOSTAT_PARAMETERS = 220
+    RESPONSE_SET_THERMOSTAT_PARAMETER = 221
     MESSAGE_REGULATOR_DATA = 8
     MESSAGE_SENSOR_DATA = 53

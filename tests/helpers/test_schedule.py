@@ -12,6 +12,7 @@ from pyplumio.const import (
     ATTR_SCHEDULES,
     ATTR_SWITCH,
     ATTR_TYPE,
+    STATE_ON,
 )
 from pyplumio.devices import Device, DeviceType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
@@ -49,7 +50,7 @@ def test_schedule_day(schedule_day: ScheduleDay) -> None:
     # Test with incorrect interval.
     for (start, end) in (("01:00", "00:30"), ("00:foo", "bar")):
         with pytest.raises(ValueError):
-            schedule_day.set_state("on", start, end)
+            schedule_day.set_state(STATE_ON, start, end)
 
     # Set whole day schedule.
     schedule_day.set_on()

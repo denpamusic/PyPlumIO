@@ -5,7 +5,7 @@ import asyncio
 from collections.abc import Sequence
 import logging
 import time
-from typing import ClassVar, Final, Tuple
+from typing import ClassVar, Final, Optional, Tuple
 
 from pyplumio.const import (
     ATTR_ECOMAX_PARAMETERS,
@@ -24,11 +24,15 @@ from pyplumio.const import (
     ATTR_SCHEDULES,
     ATTR_STATE,
     ATTR_SWITCH,
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PARAMETERS_DECODER,
+    ATTR_THERMOSTAT_SENSORS,
+    ATTR_THERMOSTATS,
     DeviceState,
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import Device, Mixer
+from pyplumio.devices import Device, Mixer, Thermostat
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import (
@@ -38,6 +42,8 @@ from pyplumio.helpers.parameter import (
     MixerParameter,
     ScheduleBinaryParameter,
     ScheduleParameter,
+    ThermostatBinaryParameter,
+    ThermostatParameter,
     is_binary_parameter,
 )
 from pyplumio.helpers.product_info import ProductType
@@ -45,14 +51,18 @@ from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.ecomax_parameters import (
+    ATTR_BOILER_CONTROL,
+    ATTR_ECOMAX_CONTROL,
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
-    PARAMETER_BOILER_CONTROL,
-    PARAMETER_ECOMAX_CONTROL,
 )
 from pyplumio.structures.mixer_parameters import (
     ECOMAX_I_MIXER_PARAMETERS,
     ECOMAX_P_MIXER_PARAMETERS,
+)
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PROFILE,
+    THERMOSTAT_PARAMETERS,
 )
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
@@ -74,6 +84,7 @@ class EcoMAX(Device):
         FrameType.REQUEST_PASSWORD,
         FrameType.REQUEST_ALERTS,
         FrameType.REQUEST_SCHEDULES,
+        FrameType.REQUEST_THERMOSTAT_PARAMETERS,
     )
 
     def __init__(self, queue: asyncio.Queue):
@@ -91,6 +102,12 @@ class EcoMAX(Device):
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
         self.subscribe(ATTR_FRAME_VERSIONS, self._frame_versions.async_update)
+        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._add_thermostat_sensors)
+        self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
+        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._add_thermostat_parameters)
+        self.subscribe(
+            ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
+        )
 
     async def _merge_required_frames(
         self, frame_versions: VersionsInfoType
@@ -112,6 +129,23 @@ class EcoMAX(Device):
                 self.set_device_data(ATTR_MIXERS, mixers)
 
         return mixer
+
+    def _get_thermostat(
+        self, thermostat_number: int, total_thermostats: int
+    ) -> Thermostat:
+        """Get or create a new thermostat object and add it to the
+        device."""
+        thermostats = self.data.setdefault(ATTR_THERMOSTATS, [])
+        try:
+            thermostat = thermostats[thermostat_number]
+        except IndexError:
+            thermostat = Thermostat(thermostat_number)
+            thermostats.append(thermostat)
+            if len(thermostats) == total_thermostats:
+                # All thermostats were processed, notify callbacks and getters.
+                self.set_device_data(ATTR_THERMOSTATS, thermostats)
+
+        return thermostat
 
     async def _add_ecomax_sensors(self, sensors: DeviceDataType) -> bool:
         """Add ecomax sensor values to the device data."""
@@ -184,17 +218,77 @@ class EcoMAX(Device):
 
         return True
 
+    async def _add_thermostat_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
+        """Set sensor values for the thermostat."""
+        for thermostat_number, thermostat_data in enumerate(sensors):
+            thermostat = self._get_thermostat(thermostat_number, len(sensors))
+            for name, value in thermostat_data.items():
+                await thermostat.async_set_device_data(name, value)
+
+        return True
+
+    async def _add_thermostat_parameters(
+        self, parameters: Sequence[Sequence[Tuple[int, ParameterDataType]]]
+    ) -> bool:
+        """Set thermostat parameters."""
+        for thermostat_number, thermostat_parameters in enumerate(parameters):
+            thermostat = self._get_thermostat(thermostat_number, len(parameters))
+            for thermostat_parameter in thermostat_parameters:
+                index, value = thermostat_parameter
+                cls = (
+                    ThermostatBinaryParameter
+                    if is_binary_parameter(value)
+                    else ThermostatParameter
+                )
+                parameter = cls(
+                    device=self,
+                    name=THERMOSTAT_PARAMETERS[index],
+                    value=value[0],
+                    min_value=value[1],
+                    max_value=value[2],
+                    extra=(thermostat_number * len(thermostat_parameters)),
+                )
+                await thermostat.async_set_device_data(parameter.name, parameter)
+
+        return True
+
+    async def _add_thermostat_profile_parameter(
+        self, parameter: ParameterDataType
+    ) -> Optional[EcomaxParameter]:
+        """Add thermostat profile parameter to the device instance."""
+        if parameter is not None:
+            return EcomaxParameter(
+                device=self,
+                name=ATTR_THERMOSTAT_PROFILE,
+                value=parameter[0],
+                min_value=parameter[1],
+                max_value=parameter[2],
+            )
+
+        return None
+
+    async def _decode_thermostat_parameters(self, decoder: StructureDecoder) -> bool:
+        """Decode thermostat parameters."""
+        data = decoder.decode(decoder.frame.message, data=self.data)[0]
+        for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
+            try:
+                await self.async_set_device_data(field, data[field])
+            except KeyError:
+                continue
+
+        return True
+
     async def _add_ecomax_control_parameter(self, mode: int) -> None:
         """Add ecoMAX control parameter to the device instance."""
         parameter = EcomaxBinaryParameter(
             device=self,
-            name=PARAMETER_ECOMAX_CONTROL,
+            name=ATTR_ECOMAX_CONTROL,
             value=(mode != DeviceState.OFF),
             min_value=0,
             max_value=1,
         )
-        await self.async_set_device_data(PARAMETER_ECOMAX_CONTROL, parameter)
-        await self.async_set_device_data(PARAMETER_BOILER_CONTROL, parameter)
+        await self.async_set_device_data(ATTR_ECOMAX_CONTROL, parameter)
+        await self.async_set_device_data(ATTR_BOILER_CONTROL, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
@@ -263,7 +357,7 @@ class EcoMAX(Device):
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""
         try:
-            return await self.data[PARAMETER_ECOMAX_CONTROL].turn_on()
+            return await self.data[ATTR_ECOMAX_CONTROL].turn_on()
         except KeyError:
             _LOGGER.error("ecoMAX control is not available, please try later")
             return False
@@ -271,16 +365,19 @@ class EcoMAX(Device):
     async def turn_off(self) -> bool:
         """Turn off the ecoMAX controller."""
         try:
-            return await self.data[PARAMETER_ECOMAX_CONTROL].turn_off()
+            return await self.data[ATTR_ECOMAX_CONTROL].turn_off()
         except KeyError:
             _LOGGER.error("ecoMAX control is not available, please try later")
             return False
 
     async def shutdown(self) -> None:
-        """Cancel scheduled tasks."""
-        mixers = self.data.get(ATTR_MIXERS, [])
-        for mixer in mixers:
-            await mixer.shutdown()
+        """Cancel scheduled tasks for root and sub devices."""
+        subdevices = []
+        subdevices.extend(self.data.get(ATTR_MIXERS, []))
+        subdevices.extend(self.data.get(ATTR_THERMOSTATS, []))
+        print(subdevices)
+        for subdevice in subdevices:
+            await subdevice.shutdown()
 
         await super().shutdown()
 

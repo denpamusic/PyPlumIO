@@ -27,7 +27,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Writing](#writing)
   - [Callbacks](#callbacks)
   - [Filters](#filters)
-  - [Working with Mixers](#working-with-mixers)
+  - [Working with Sub-Devices](#working-with-sub-devices)
   - [Working with Schedules](#working-with-schedules)
   - [Network Information](#network-information)
 - [Protocol](#protocol)
@@ -257,16 +257,17 @@ async def main():
 
 ```
 
-### Working with Mixers
-If your ecoMAX controller support mixers, you can access them via `mixers` property
-through `BaseDevice.get_value("mixers")` call.
+### Working with Sub-Devices
+If your ecoMAX controller has connected sub-devices such as mixers and/or thermostats,
+you can access them via respective properties through `BaseDevice.get_value("mixers")`
+or `BaseDevice.get_value("thermostats")` call.
 
-Result of this call will be a list of `Mixer` instances.
-`Mixer` class inherits `BaseDevice` and provides access to getter/setter functions and
+Result of this call will be a list of `Mixer` or `Thermostat` instances.
+Both classes inherit `BaseDevice` and provide access to getter/setter functions and
 callback support.
 
-Each device supports different attributes and parameters for mixers, you can check all
-available values and parameters by looking at `Mixer.data` attribute.
+Each device supports different attributes and parameters for sub-devices, you can check all
+available values and parameters by looking at `Mixer.data` or `Thermostat.data` attribute.
 
 ```python
 import asyncio
@@ -274,24 +275,41 @@ import pyplumio
 
 from pyplumio.helpers.filters import on_change
 
-async def my_callback(mixer_pump_status: bool) -> None:
-  print(f"Mixer Pump Working: {mixer_pump_status}")
+
+async def my_mixer_callback(mixer_pump_status: bool) -> None:
+  print(f"Mixer pump is working: {mixer_pump_status}")
+
+
+async def my_thermostat_callback(thermostat_state: int) -> None:
+  print(f"Thermostat state: {thermostat_state}")
+
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get_device("ecomax")
     mixers = await ecomax.get_value("mixers", timeout=10)
-    # If this fails with timeout, check that you have temperature probe
-    # connected for at least one mixer.
+    thermostats = await ecomax.get_value("thermostats", timeout=10)
+    # If any of these call fail with timeout,
+    # check that you have thermostats connected to your controller and
+    # temperature probe connected for at least one mixer.
 
     # Get single mixer from the list.
     mixer = mixers[0]
-    mixer_temp = await mixer.get_value("temp")
+    mixer_temp = await mixer.get_value("mixer_temp")
     await mixer.set_value("mixer_target_temp", 50)
-    mixer.subscribe("mixer_pump", on_change(my_callback))
+    mixer.subscribe("mixer_pump", on_change(my_mixer_callback))
 
     # Print all available mixer data.
     print(mixer.data)
+
+    # Get single thermostat from the list.
+    thermostat = thermostats[0]
+    thermostat_temp = await mixer.get_value("thermostat_temp")
+    await thermostat.set_value("thermostat_day_target_temp", 20)
+    thermostat.subscribe("thermostat_state", on_change(my_thermostat_callback))
+
+    # Print all available thermostat data.
+    print(thermostat.data)
 
     # Wait until disconnected (forever)
     await connection.wait_until_done()

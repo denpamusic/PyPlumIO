@@ -6,7 +6,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import ChecksumError, ReadError
+from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import FrameReader, FrameWriter
 
@@ -47,12 +49,12 @@ async def test_frame_reader(
     """Test frame reader."""
     frame = await frame_reader.read()
     assert isinstance(frame, EcomaxParametersRequest)
-    assert frame.frame_type == 0x31
-    assert frame.sender == 0x56
-    assert frame.sender_type == 0x30
-    assert frame.recipient == 0x0
+    assert frame.frame_type == FrameType.REQUEST_ECOMAX_PARAMETERS
+    assert frame.sender == DeviceType.ECONET
+    assert frame.sender_type == ECONET_TYPE
+    assert frame.recipient == DeviceType.ALL
     assert frame.message == b"\xff\x00"
-    assert frame.econet_version == 0x5
+    assert frame.econet_version == ECONET_VERSION
     assert mock_read.call_count == 3
     assert mock_readexactly.call_count == 1
 
