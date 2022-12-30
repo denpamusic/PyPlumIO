@@ -58,10 +58,6 @@ class ThermostatSensorsStructure(StructureDecoder):
             schedule_mask = schedule_mask << 1
             offset += 9
 
-        if not thermostat_sensors:
-            # No thermostats sensors detected.
-            return data, offset
-
         return (
             ensure_device_data(
                 data,
