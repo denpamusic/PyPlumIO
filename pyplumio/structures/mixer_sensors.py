@@ -5,7 +5,7 @@ import math
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_MIXER_SENSORS
+from pyplumio.const import ATTR_MIXER_SENSORS, ATTR_MIXERS_NUMBER
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -14,7 +14,7 @@ ATTR_MIXER_TARGET: Final = "mixer_target"
 ATTR_MIXER_PUMP_OUTPUT: Final = "mixer_pump"
 
 
-class MixersStructure(StructureDecoder):
+class MixerSensorsStructure(StructureDecoder):
     """Represents mixers data structure."""
 
     def decode(
@@ -40,4 +40,13 @@ class MixersStructure(StructureDecoder):
             # No mixer sensors detected.
             return data, offset
 
-        return ensure_device_data(data, {ATTR_MIXER_SENSORS: mixer_sensors}), offset
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_MIXER_SENSORS: mixer_sensors,
+                    ATTR_MIXERS_NUMBER: mixers_number,
+                },
+            ),
+            offset,
+        )

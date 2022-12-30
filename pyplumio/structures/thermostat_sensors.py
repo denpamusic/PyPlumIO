@@ -20,7 +20,7 @@ ATTR_THERMOSTAT_CONTACTS: Final = "thermostat_contacts"
 ATTR_THERMOSTAT_SCHEDULE: Final = "thermostat_schedule"
 
 
-class ThermostatsStructure(StructureDecoder):
+class ThermostatSensorsStructure(StructureDecoder):
     """Represents thermostats data structure."""
 
     def decode(
@@ -57,6 +57,10 @@ class ThermostatsStructure(StructureDecoder):
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1
             offset += 9
+
+        if not thermostat_sensors:
+            # No thermostats sensors detected.
+            return data, offset
 
         return (
             ensure_device_data(

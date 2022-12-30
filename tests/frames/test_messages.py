@@ -19,7 +19,7 @@ from pyplumio.const import (
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.structures.lambda_sensor import ATTR_LAMBDA_LEVEL
-from pyplumio.structures.mixers import (
+from pyplumio.structures.mixer_sensors import (
     ATTR_MIXER_PUMP_OUTPUT,
     ATTR_MIXER_TARGET,
     ATTR_MIXER_TEMP,
@@ -27,7 +27,7 @@ from pyplumio.structures.mixers import (
 from pyplumio.structures.outputs import ATTR_HEATING_PUMP_OUTPUT
 from pyplumio.structures.statuses import ATTR_HEATING_STATUS, ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
-from pyplumio.structures.thermostats import (
+from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTAT_CONTACTS,
     ATTR_THERMOSTAT_SCHEDULE,
     ATTR_THERMOSTAT_STATE,
