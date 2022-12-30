@@ -22,7 +22,7 @@ from pyplumio.const import (
     ATTR_SCHEDULES,
     ATTR_SWITCH,
     ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTATS,
+    ATTR_THERMOSTATS_NUMBER,
     ATTR_TYPE,
     ATTR_VALUE,
     ATTR_VERSION,
@@ -145,7 +145,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ]
         },
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
-            ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}],
+            ATTR_THERMOSTATS_NUMBER: 2,
             ATTR_THERMOSTAT_PROFILE: (0, 0, 1),
             ATTR_THERMOSTAT_PARAMETERS: [
                 [

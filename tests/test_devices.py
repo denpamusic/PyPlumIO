@@ -22,6 +22,7 @@ from pyplumio.const import (
     ATTR_STATE,
     ATTR_THERMOSTAT_SENSORS,
     ATTR_THERMOSTATS,
+    ATTR_THERMOSTATS_NUMBER,
     DeviceType,
     FrameType,
 )
@@ -230,13 +231,7 @@ async def test_thermostat_parameters_callbacks(
     assert ATTR_THERMOSTATS not in ecomax.data
 
     # Test handling thermostat parameters with two thermostats.
-    ecomax.handle_frame(
-        Response(
-            data={
-                ATTR_THERMOSTAT_SENSORS: [{"test_sensor": True}, {"test_sensor": True}]
-            }
-        )
-    )
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_NUMBER: 2}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
             message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]

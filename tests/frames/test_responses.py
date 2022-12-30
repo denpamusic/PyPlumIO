@@ -7,7 +7,7 @@ from pyplumio.const import (
     ATTR_STATE,
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PARAMETERS_DECODER,
-    ATTR_THERMOSTATS,
+    ATTR_THERMOSTATS_NUMBER,
     DeviceType,
     FrameType,
 )
@@ -134,7 +134,7 @@ def test_thermostat_parameters_response(
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
     frame_data = decoder.decode(
         message=frame.message,
-        data={ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}]},
+        data={ATTR_THERMOSTATS_NUMBER: 2},
     )[0]
     assert frame_data == data[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
 
@@ -148,7 +148,7 @@ def test_thermostat_parameters_response_with_no_parameters() -> None:
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
     frame_data = decoder.decode(
         message=frame.message,
-        data={ATTR_THERMOSTATS: [{"test_sensor": True}, {"test_sensor": True}]},
+        data={ATTR_THERMOSTATS_NUMBER: 2},
     )[0]
     assert ATTR_THERMOSTAT_PROFILE not in frame_data
     assert ATTR_THERMOSTAT_PARAMETERS not in frame_data

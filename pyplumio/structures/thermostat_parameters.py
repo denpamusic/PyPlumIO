@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Final, Iterable, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_THERMOSTAT_PARAMETERS, ATTR_THERMOSTATS
+from pyplumio.const import ATTR_THERMOSTAT_PARAMETERS, ATTR_THERMOSTATS_NUMBER
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -57,16 +57,16 @@ class ThermostatParametersStructure(StructureDecoder):
         data = ensure_device_data(data)
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
-        thermostat_numbers = len(data.get(ATTR_THERMOSTATS, []))
+        thermostats_number = data.get(ATTR_THERMOSTATS_NUMBER, 0)
         offset += 4
-        if thermostat_numbers == 0:
+        if thermostats_number == 0:
             return ensure_device_data(data), offset
 
-        total_parameters = (parameters_number + first_parameter) // thermostat_numbers
+        total_parameters = (parameters_number + first_parameter) // thermostats_number
         thermostat_parameters: List[List[Tuple[int, ParameterDataType]]] = []
         thermostat_profile = util.unpack_parameter(message, offset)
         offset += 3
-        for _ in range(thermostat_numbers):
+        for _ in range(thermostats_number):
             parameters, offset = _decode_thermostat_parameters(
                 message,
                 offset,
