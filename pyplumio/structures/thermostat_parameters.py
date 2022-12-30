@@ -54,26 +54,28 @@ class ThermostatParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_device_data(data)
-        first_parameter = message[offset + 1]
-        parameters_number = message[offset + 2]
         thermostats_number = data.get(ATTR_THERMOSTATS_NUMBER, 0)
-        offset += 4
         if thermostats_number == 0:
             return ensure_device_data(data), offset
 
+        data = ensure_device_data(data)
+        first_parameter = message[offset + 1]
+        parameters_number = message[offset + 2]
+        offset += 4
         total_parameters = (parameters_number + first_parameter) // thermostats_number
-        thermostat_parameters: List[List[Tuple[int, ParameterDataType]]] = []
+        thermostat_parameters: List[
+            Tuple[int, List[Tuple[int, ParameterDataType]]]
+        ] = []
         thermostat_profile = util.unpack_parameter(message, offset)
         offset += 3
-        for _ in range(thermostats_number):
+        for thermostat_number in range(thermostats_number):
             parameters, offset = _decode_thermostat_parameters(
                 message,
                 offset,
                 range(first_parameter, total_parameters),
             )
             if parameters:
-                thermostat_parameters.append(parameters)
+                thermostat_parameters.append((thermostat_number, parameters))
 
         if not thermostat_parameters:
             # No thermostat parameters detected.

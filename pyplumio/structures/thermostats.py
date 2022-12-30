@@ -36,8 +36,8 @@ class ThermostatsStructure(StructureDecoder):
         offset += 1
         contact_mask = 1
         schedule_mask = 1 << 3
-        thermostat_sensors: List[DeviceDataType] = []
-        for _ in range(thermostats_number):
+        thermostat_sensors: List[Tuple[int, DeviceDataType]] = []
+        for thermostat_number in range(thermostats_number):
             thermostat_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
             if not math.isnan(thermostat_temp):
                 thermostat: DeviceDataType = {}
@@ -52,7 +52,7 @@ class ThermostatsStructure(StructureDecoder):
                 thermostat[ATTR_THERMOSTAT_SCHEDULE] = bool(
                     thermostats_contacts & schedule_mask
                 )
-                thermostat_sensors.append(thermostat)
+                thermostat_sensors.append((thermostat_number, thermostat))
 
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1

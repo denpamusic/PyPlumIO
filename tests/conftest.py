@@ -138,24 +138,33 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         },
         FrameType.RESPONSE_MIXER_PARAMETERS: {
             ATTR_MIXER_PARAMETERS: [
-                [
-                    (0, (30, 40, 60)),
-                    (1, (20, 30, 40)),
-                ]
+                (
+                    0,
+                    [
+                        (0, (30, 40, 60)),
+                        (1, (20, 30, 40)),
+                    ],
+                )
             ]
         },
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
             ATTR_THERMOSTATS_NUMBER: 2,
             ATTR_THERMOSTAT_PROFILE: (0, 0, 1),
             ATTR_THERMOSTAT_PARAMETERS: [
-                [
-                    (0, (2, 0, 5)),
-                    (1, (45, 40, 50)),
-                ],
-                [
-                    (0, (1, 0, 5)),
-                    (1, (45, 40, 50)),
-                ],
+                (
+                    0,
+                    [
+                        (0, (2, 0, 5)),
+                        (1, (45, 40, 50)),
+                    ],
+                ),
+                (
+                    1,
+                    [
+                        (0, (1, 0, 5)),
+                        (1, (45, 40, 50)),
+                    ],
+                ),
             ],
         },
         FrameType.RESPONSE_ALERTS: {

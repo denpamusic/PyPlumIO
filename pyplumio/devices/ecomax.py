@@ -179,21 +179,23 @@ class EcoMAX(Device):
 
         return True
 
-    async def _add_mixer_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
+    async def _add_mixer_sensors(
+        self, sensors: Sequence[Tuple[int, DeviceDataType]]
+    ) -> bool:
         """Set sensor values for the mixer."""
-        for mixer_number, mixer_data in enumerate(sensors):
+        for mixer_number, mixer_sensors in sensors:
             mixer = self._get_mixer(mixer_number, len(sensors))
-            for name, value in mixer_data.items():
+            for name, value in mixer_sensors.items():
                 await mixer.async_set_device_data(name, value)
 
         return True
 
     async def _add_mixer_parameters(
-        self, parameters: Sequence[Sequence[Tuple[int, ParameterDataType]]]
+        self, parameters: Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
     ) -> bool:
         """Set mixer parameters."""
         product = await self.get_value(ATTR_PRODUCT)
-        for mixer_number, mixer_parameters in enumerate(parameters):
+        for mixer_number, mixer_parameters in parameters:
             mixer = self._get_mixer(mixer_number, len(parameters))
             for mixer_parameter in mixer_parameters:
                 index, value = mixer_parameter
@@ -218,20 +220,22 @@ class EcoMAX(Device):
 
         return True
 
-    async def _add_thermostat_sensors(self, sensors: Sequence[DeviceDataType]) -> bool:
+    async def _add_thermostat_sensors(
+        self, sensors: Sequence[Tuple[int, DeviceDataType]]
+    ) -> bool:
         """Set sensor values for the thermostat."""
-        for thermostat_number, thermostat_data in enumerate(sensors):
+        for thermostat_number, thermostat_sensors in sensors:
             thermostat = self._get_thermostat(thermostat_number, len(sensors))
-            for name, value in thermostat_data.items():
+            for name, value in thermostat_sensors.items():
                 await thermostat.async_set_device_data(name, value)
 
         return True
 
     async def _add_thermostat_parameters(
-        self, parameters: Sequence[Sequence[Tuple[int, ParameterDataType]]]
+        self, parameters: Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
     ) -> bool:
         """Set thermostat parameters."""
-        for thermostat_number, thermostat_parameters in enumerate(parameters):
+        for thermostat_number, thermostat_parameters in parameters:
             thermostat = self._get_thermostat(thermostat_number, len(parameters))
             for thermostat_parameter in thermostat_parameters:
                 index, value = thermostat_parameter

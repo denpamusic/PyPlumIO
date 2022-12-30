@@ -23,8 +23,8 @@ class MixersStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         mixers_number = message[offset]
         offset += 1
-        mixer_sensors: List[DeviceDataType] = []
-        for _ in range(mixers_number):
+        mixer_sensors: List[Tuple[int, DeviceDataType]] = []
+        for mixer_number in range(mixers_number):
             mixer_temp = util.unpack_float(message[offset : offset + 4])[0]
             if not math.isnan(mixer_temp):
                 mixer: DeviceDataType = {}
@@ -32,7 +32,7 @@ class MixersStructure(StructureDecoder):
                 mixer[ATTR_MIXER_TARGET] = message[offset + 4]
                 mixer_outputs = message[offset + 6]
                 mixer[ATTR_MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
-                mixer_sensors.append(mixer)
+                mixer_sensors.append((mixer_number, mixer))
 
             offset += 8
 

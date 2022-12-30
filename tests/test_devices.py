@@ -196,7 +196,7 @@ async def test_regdata_callbacks(
 
 async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on receiving mixer sensors info."""
-    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [{"test_sensor": 42}]}))
+    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [(0, {"test_sensor": 42})]}))
     mixers = await ecomax.get_value(ATTR_MIXERS)
     assert len(mixers) == 1
     assert isinstance(mixers[0], Mixer)
@@ -206,7 +206,9 @@ async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
 
 async def test_thermostat_sensors_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on receiving thermostat sensors info."""
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_SENSORS: [{"test_sensor": 42}]}))
+    ecomax.handle_frame(
+        Response(data={ATTR_THERMOSTAT_SENSORS: [(0, {"test_sensor": 42})]})
+    )
     await ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
@@ -265,10 +267,13 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
         Response(
             data={
                 ATTR_MIXER_PARAMETERS: [
-                    [
-                        (0, [0, 0, 1]),
-                        (1, [10, 5, 20]),
-                    ]
+                    (
+                        0,
+                        [
+                            (0, [0, 0, 1]),
+                            (1, [10, 5, 20]),
+                        ],
+                    )
                 ]
             }
         )
@@ -430,9 +435,9 @@ async def test_shutdown(
     ecomax: EcoMAX,
 ) -> None:
     """Test device tasks shutdown."""
-    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [{"test_sensor": 42}]}))
+    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [(0, {"test_sensor": 42})]}))
     ecomax.handle_frame(
-        Response(data={ATTR_THERMOSTAT_SENSORS: [{"test_sensors": 42}]})
+        Response(data={ATTR_THERMOSTAT_SENSORS: [(0, {"test_sensors": 42})]})
     )
     await ecomax.get_value(ATTR_MIXERS)
     await ecomax.get_value(ATTR_THERMOSTATS)

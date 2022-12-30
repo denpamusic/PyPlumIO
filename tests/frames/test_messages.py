@@ -19,14 +19,20 @@ from pyplumio.const import (
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.structures.lambda_sensor import ATTR_LAMBDA_LEVEL
-from pyplumio.structures.mixers import ATTR_MIXER_TARGET, ATTR_MIXER_TEMP
+from pyplumio.structures.mixers import (
+    ATTR_MIXER_PUMP_OUTPUT,
+    ATTR_MIXER_TARGET,
+    ATTR_MIXER_TEMP,
+)
 from pyplumio.structures.outputs import ATTR_HEATING_PUMP_OUTPUT
 from pyplumio.structures.statuses import ATTR_HEATING_STATUS, ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
 from pyplumio.structures.thermostats import (
     ATTR_THERMOSTAT_CONTACTS,
     ATTR_THERMOSTAT_SCHEDULE,
+    ATTR_THERMOSTAT_STATE,
     ATTR_THERMOSTAT_TARGET,
+    ATTR_THERMOSTAT_TEMP,
 )
 
 
@@ -75,15 +81,30 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_MODULES].module_a == "18.11.58.K1"
     assert data[ATTR_MODULES].module_panel == "18.10.72"
     assert data[ATTR_LAMBDA_SENSOR][ATTR_LAMBDA_LEVEL] == 40
-    assert ATTR_MIXER_SENSORS in data
-    assert len(data[ATTR_MIXER_SENSORS]) == 1
-    assert data[ATTR_MIXER_SENSORS][0][ATTR_MIXER_TEMP] == 20.0
-    assert data[ATTR_MIXER_SENSORS][0][ATTR_MIXER_TARGET] == 40
     assert data[ATTR_PENDING_ALERTS] == 0
     assert data[ATTR_FUEL_LEVEL] == 32
-    assert data[ATTR_THERMOSTAT_SENSORS][0][ATTR_THERMOSTAT_CONTACTS]
-    assert not data[ATTR_THERMOSTAT_SENSORS][0][ATTR_THERMOSTAT_SCHEDULE]
-    assert data[ATTR_THERMOSTAT_SENSORS][0][ATTR_THERMOSTAT_TARGET] == 50
+    assert data[ATTR_MIXER_SENSORS] == [
+        (
+            4,
+            {
+                ATTR_MIXER_TEMP: 20.0,
+                ATTR_MIXER_TARGET: 40,
+                ATTR_MIXER_PUMP_OUTPUT: False,
+            },
+        )
+    ]
+    assert data[ATTR_THERMOSTAT_SENSORS] == [
+        (
+            0,
+            {
+                ATTR_THERMOSTAT_STATE: 3,
+                ATTR_THERMOSTAT_TEMP: 43.5,
+                ATTR_THERMOSTAT_TARGET: 50.0,
+                ATTR_THERMOSTAT_CONTACTS: True,
+                ATTR_THERMOSTAT_SCHEDULE: False,
+            },
+        )
+    ]
 
     # Test with the unknown state.
     test_message[22] = 12
