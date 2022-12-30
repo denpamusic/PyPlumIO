@@ -58,7 +58,7 @@ class BaseDevice(ABC, TaskManager):
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
         value = self.data[name]
-        return int(value) if isinstance(value, Parameter) else value
+        return value.value if isinstance(value, Parameter) else value
 
     async def set_value(
         self,

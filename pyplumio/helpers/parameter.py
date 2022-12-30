@@ -93,17 +93,17 @@ class Parameter(ABC):
         return (
             self.__class__.__name__
             + f"(device={self.device.__class__.__name__}, name={self.name}, "
-            + f"value={self._value}, min_value={self._min_value}, "
-            + f"max_value={self._max_value}, extra={self.extra})"
+            + f"value={self.value}, min_value={self.min_value}, "
+            + f"max_value={self.max_value}, extra={self.extra})"
         )
 
     def _call_relational_method(self, method_to_call, other):
-        func = getattr(self.value, method_to_call)
+        func = getattr(self._value, method_to_call)
         return func(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
         """Return integer representation of parameter value."""
-        return self.value
+        return self._value
 
     def __add__(self, other) -> int:
         """Return result of addition."""
@@ -151,11 +151,10 @@ class Parameter(ABC):
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set parameter value."""
-        value = _normalize_parameter_value(value)
-        if value == self._value:
+        if (value := _normalize_parameter_value(value)) == self._value:
             return True
 
-        if value < self.min_value or value > self.max_value:
+        if value < self._min_value or value > self._max_value:
             raise ValueError(
                 f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
             )
@@ -176,17 +175,17 @@ class Parameter(ABC):
         return True
 
     @property
-    def value(self) -> int:
+    def value(self) -> ParameterValueType:
         """Return parameter value."""
         return self._value
 
     @property
-    def min_value(self) -> int:
+    def min_value(self) -> ParameterValueType:
         """Return minimum allowed value."""
         return self._min_value
 
     @property
-    def max_value(self) -> int:
+    def max_value(self) -> ParameterValueType:
         """Return maximum allowed value."""
         return self._max_value
 
@@ -225,7 +224,7 @@ class EcomaxParameter(Parameter):
                 "frames.requests.EcomaxControlRequest",
                 recipient=self.device.address,
                 data={
-                    ATTR_VALUE: self.value,
+                    ATTR_VALUE: self._value,
                 },
             )
 
@@ -235,7 +234,7 @@ class EcomaxParameter(Parameter):
                 recipient=self.device.address,
                 data={
                     ATTR_INDEX: 0,
-                    ATTR_VALUE: self.value,
+                    ATTR_VALUE: self._value,
                     ATTR_EXTRA: self.extra,
                 },
             )
@@ -249,7 +248,7 @@ class EcomaxParameter(Parameter):
                     if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_PARAMETERS.index(self.name)
                 ),
-                ATTR_VALUE: self.value,
+                ATTR_VALUE: self._value,
             },
         )
 
@@ -273,7 +272,7 @@ class MixerParameter(Parameter):
                     if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
                     else ECOMAX_I_MIXER_PARAMETERS.index(self.name)
                 ),
-                ATTR_VALUE: self.value,
+                ATTR_VALUE: self._value,
                 ATTR_EXTRA: self.extra,
             },
         )
@@ -286,6 +285,36 @@ class MixerBinaryParameter(MixerParameter, BinaryParameter):
 class ThermostatParameter(Parameter):
     """Represents thermostat parameter."""
 
+    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
+        """Set parameter value."""
+        if isinstance(value, (int, float)) and self.name.endswith("target_temp"):
+            value *= 10
+
+        return await super().set(value, retries)
+
+    @property
+    def value(self) -> ParameterValueType:
+        """Return parameter value."""
+        return self._value / 10 if self.name.endswith("target_temp") else self._value
+
+    @property
+    def min_value(self) -> ParameterValueType:
+        """Return minimum allowed value."""
+        return (
+            self._min_value / 10
+            if self.name.endswith("target_temp")
+            else self._min_value
+        )
+
+    @property
+    def max_value(self) -> ParameterValueType:
+        """Return maximum allowed value."""
+        return (
+            self._max_value / 10
+            if self.name.endswith("target_temp")
+            else self._max_value
+        )
+
     @property
     def request(self) -> Request:
         """Return request to change the parameter."""
@@ -296,7 +325,7 @@ class ThermostatParameter(Parameter):
                 # Increase the index by one to account for thermostat
                 # profile, which is being set at ecoMAX device level.
                 ATTR_INDEX: THERMOSTAT_PARAMETERS.index(self.name) + 1,
-                ATTR_VALUE: self.value,
+                ATTR_VALUE: self._value,
                 ATTR_EXTRA: self.extra,
             },
         )

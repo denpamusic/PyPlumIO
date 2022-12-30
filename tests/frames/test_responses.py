@@ -134,7 +134,7 @@ def test_thermostat_parameters_response(
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
     frame_data = decoder.decode(
         message=frame.message,
-        data={ATTR_THERMOSTATS_NUMBER: 2},
+        data={ATTR_THERMOSTATS_NUMBER: 3},
     )[0]
     assert frame_data == data[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
 

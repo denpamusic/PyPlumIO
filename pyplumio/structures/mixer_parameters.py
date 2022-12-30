@@ -75,13 +75,14 @@ class MixerParametersStructure(StructureDecoder):
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
         mixers_number = message[offset + 3]
+        total_parameters_per_mixer = parameters_number + first_parameter
         offset += 4
         mixer_parameters: List[Tuple[int, List[Tuple[int, ParameterDataType]]]] = []
         for mixer_number in range(mixers_number):
             parameters, offset = _decode_mixer_parameters(
                 message,
                 offset,
-                range(first_parameter, parameters_number + first_parameter),
+                range(first_parameter, total_parameters_per_mixer),
             )
             if parameters:
                 mixer_parameters.append((mixer_number, parameters))

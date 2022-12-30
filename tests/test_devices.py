@@ -47,12 +47,12 @@ from pyplumio.frames.responses import DataSchemaResponse, ThermostatParametersRe
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.parameter import (
     EcomaxBinaryParameter,
+    EcomaxParameter,
     MixerBinaryParameter,
     MixerParameter,
     Parameter,
     ScheduleBinaryParameter,
     ScheduleParameter,
-    ThermostatParameter,
 )
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
@@ -233,7 +233,7 @@ async def test_thermostat_parameters_callbacks(
     assert ATTR_THERMOSTATS not in ecomax.data
 
     # Test handling thermostat parameters with two thermostats.
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_NUMBER: 2}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_NUMBER: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
             message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
@@ -241,14 +241,19 @@ async def test_thermostat_parameters_callbacks(
     )
     await ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
-    assert len(thermostats) == 2
-    assert await thermostats[0].get_parameter("thermostat_mode")
-    assert await ecomax.get_parameter(ATTR_THERMOSTAT_PROFILE)
+    assert len(thermostats) == 1
+    party_target_temp = await thermostats[0].get_parameter(
+        "thermostat_party_target_temp"
+    )
+    assert party_target_temp.value == 22.0
+    assert party_target_temp.min_value == 10.0
+    assert party_target_temp.max_value == 35.0
+    assert party_target_temp.extra == 0
 
 
 async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on receiving thermostat profile."""
-    test_parameter = ThermostatParameter(
+    test_parameter = EcomaxParameter(
         device=ecomax, name=ATTR_THERMOSTAT_PROFILE, value=2, min_value=0, max_value=5
     )
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_PROFILE: (2, 0, 5)}))

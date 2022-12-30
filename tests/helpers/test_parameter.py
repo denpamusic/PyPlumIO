@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
+from pyplumio.const import ATTR_EXTRA, ATTR_INDEX, ATTR_VALUE
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.requests import (
     EcomaxControlRequest,
@@ -115,17 +116,26 @@ def test_parameter_request_mixer(ecomax: EcoMAX) -> None:
     assert isinstance(parameter.request, SetMixerParameterRequest)
 
 
-def test_parameter_request_thermostat(ecomax: EcoMAX) -> None:
+async def test_parameter_request_thermostat(
+    ecomax: EcoMAX, bypass_asyncio_sleep
+) -> None:
     """Test set thermostat parameter request instance."""
     parameter = ThermostatParameter(
         device=ecomax,
-        name="thermostat_mode",
-        value=0,
-        min_value=0,
-        max_value=5,
+        name="thermostat_party_target_temp",
+        value=220,
+        min_value=100,
+        max_value=350,
         extra=12,
     )
     assert isinstance(parameter.request, SetThermostatParameterRequest)
+    assert parameter.value == 22.0
+    assert parameter.min_value == 10.0
+    assert parameter.max_value == 35.0
+    assert parameter.extra == 12
+    await parameter.set(20)
+    assert parameter.request.data == {ATTR_INDEX: 2, ATTR_VALUE: 200, ATTR_EXTRA: 12}
+    assert parameter.request.message.hex() == "0ec8"
 
 
 @patch("asyncio.Queue.put")

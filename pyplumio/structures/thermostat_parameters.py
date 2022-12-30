@@ -61,18 +61,20 @@ class ThermostatParametersStructure(StructureDecoder):
 
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
-        offset += 4
-        total_parameters = (parameters_number + first_parameter) // thermostats_number
+        offset += 3
+        total_parameters_per_thermostat = (
+            parameters_number + first_parameter
+        ) // thermostats_number
+        thermostat_profile = util.unpack_parameter(message, offset)
+        offset += 3
         thermostat_parameters: List[
             Tuple[int, List[Tuple[int, ParameterDataType]]]
         ] = []
-        thermostat_profile = util.unpack_parameter(message, offset)
-        offset += 3
         for thermostat_number in range(thermostats_number):
             parameters, offset = _decode_thermostat_parameters(
                 message,
                 offset,
-                range(first_parameter, total_parameters),
+                range(first_parameter, total_parameters_per_thermostat),
             )
             if parameters:
                 thermostat_parameters.append((thermostat_number, parameters))
