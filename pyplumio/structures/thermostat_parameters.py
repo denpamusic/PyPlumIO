@@ -54,11 +54,11 @@ class ThermostatParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
+        data = ensure_device_data(data)
         thermostats_number = data.get(ATTR_THERMOSTATS_NUMBER, 0)
         if thermostats_number == 0:
-            return ensure_device_data(data), offset
+            return data, offset
 
-        data = ensure_device_data(data)
         first_parameter = message[offset + 1]
         parameters_number = message[offset + 2]
         offset += 4
