@@ -148,23 +148,26 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ]
         },
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
-            ATTR_THERMOSTATS_NUMBER: 2,
-            ATTR_THERMOSTAT_PROFILE: (0, 0, 1),
+            ATTR_THERMOSTATS_NUMBER: 3,
+            ATTR_THERMOSTAT_PROFILE: None,
             ATTR_THERMOSTAT_PARAMETERS: [
                 (
                     0,
                     [
-                        (0, (2, 0, 5)),
-                        (1, (45, 40, 50)),
+                        (0, (0, 0, 7)),
+                        (1, (220, 100, 350)),
+                        (2, (150, 100, 350)),
+                        (3, (100, 60, 140)),
+                        (4, (2, 0, 60)),
+                        (5, (1, 0, 60)),
+                        (6, (1, 0, 60)),
+                        (7, (10, 0, 60)),
+                        (8, (9, 0, 50)),
+                        (9, (222, 100, 350)),
+                        (10, (212, 100, 350)),
+                        (11, (90, 50, 300)),
                     ],
-                ),
-                (
-                    1,
-                    [
-                        (0, (1, 0, 5)),
-                        (1, (45, 40, 50)),
-                    ],
-                ),
+                )
             ],
         },
         FrameType.RESPONSE_ALERTS: {
@@ -236,7 +239,12 @@ def fixture_messages() -> Dict[int, bytearray]:
         ),
         FrameType.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: bytearray.fromhex(
-            "000005000000010200052D00280032000100052D0028003200"
+            """000025FFFFFF000007DC0064005E01960064005E01643C8C02003C01003C01003C0A003C0
+90032DE0064005E01D40064005E015A0032002C01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF""".replace(
+                "\n", ""
+            )
         ),
         FrameType.RESPONSE_DATA_SCHEMA: bytearray.fromhex(
             """01010400070A02060A00060A01060A02000A01000A0
