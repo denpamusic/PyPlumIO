@@ -375,7 +375,6 @@ class EcoMAX(Device):
         subdevices = []
         subdevices.extend(self.data.get(ATTR_MIXERS, []))
         subdevices.extend(self.data.get(ATTR_THERMOSTATS, []))
-        print(subdevices)
         for subdevice in subdevices:
             await subdevice.shutdown()
 
