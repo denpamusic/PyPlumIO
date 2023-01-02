@@ -50,15 +50,17 @@ class DataSchemaStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        blocks_number = util.unpack_ushort(message[offset : offset + 2])
+        blocks_count = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
+        if blocks_count == 0:
+            return ensure_device_data(data), offset
+
         schema: List[Tuple[str, DataType]] = []
-        if blocks_number > 0:
-            for _ in range(blocks_number):
-                param_type = message[offset]
-                param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-                param_name = REGDATA_SCHEMA.get(param_id, str(param_id))
-                schema.append((param_name, DATA_TYPES[param_type]()))
-                offset += 3
+        for _ in range(blocks_count):
+            param_type = message[offset]
+            param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
+            param_name = REGDATA_SCHEMA.get(param_id, str(param_id))
+            schema.append((param_name, DATA_TYPES[param_type]()))
+            offset += 3
 
         return ensure_device_data(data, {ATTR_SCHEMA: schema}), offset

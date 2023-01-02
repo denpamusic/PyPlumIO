@@ -88,9 +88,9 @@ class MixerParametersStructure(StructureDecoder):
             if parameters:
                 mixer_parameters.append((index, parameters))
 
-        if not parameters:
+        if not mixer_parameters:
             # No mixer parameters detected.
-            return data, offset
+            return ensure_device_data(data), offset
 
         return (
             ensure_device_data(data, {ATTR_MIXER_PARAMETERS: mixer_parameters}),

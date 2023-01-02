@@ -14,7 +14,9 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
+from pyplumio.structures.fan_power import ATTR_FAN_POWER
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
+from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.fuel_level import ATTR_FUEL_LEVEL
 from pyplumio.structures.lambda_sensor import ATTR_LAMBDA_SENSOR, ATTR_LEVEL
 from pyplumio.structures.load import ATTR_LOAD
@@ -22,6 +24,7 @@ from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS, ATTR_PUMP
 from pyplumio.structures.modules import ATTR_MODULES
 from pyplumio.structures.outputs import ATTR_HEATING_PUMP
 from pyplumio.structures.pending_alerts import ATTR_PENDING_ALERTS
+from pyplumio.structures.power import ATTR_POWER
 from pyplumio.structures.regulator_data import ATTR_REGDATA_DECODER
 from pyplumio.structures.statuses import ATTR_HEATING_STATUS, ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
@@ -30,11 +33,15 @@ from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTAT_SENSORS,
 )
 
-INDEX_FUEL_LEVEL: Final = 82
-INDEX_LOAD: Final = 88
-INDEX_VERSION_MAJOR: Final = 4
 INDEX_VERSION_MINOR: Final = 3
+INDEX_VERSION_MAJOR: Final = 4
 INDEX_STATE: Final = 22
+INDEX_FUEL_LEVEL: Final = 82
+INDEX_FAN_POWER: Final = 84
+INDEX_LOAD: Final = 88
+INDEX_POWER: Final = 89
+INDEX_FUEL_CONSUMPTION: Final = 93
+INDEX_LAMBDA_SENSOR: Final = 110
 
 
 def test_messages_type() -> None:
@@ -66,8 +73,8 @@ def test_regdata_decode_message_with_unknown_version(
     assert not decoder.decode(frame.message)[0]
 
 
-def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
-    """Test parsing current data message."""
+def test_sensor_data_decode_message(messages: Dict[int, bytearray]) -> None:
+    """Test parsing sensor data message."""
     test_message = messages[FrameType.MESSAGE_SENSOR_DATA]
     frame = SensorDataMessage(message=test_message)
     data = frame.data[ATTR_SENSORS]
@@ -113,7 +120,7 @@ def test_current_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert frame.data[ATTR_SENSORS][ATTR_STATE] == 12
 
 
-def test_current_data_without_fuel_level_and_load(
+def test_sensor_data_without_fuel_level_and_load(
     messages: Dict[int, bytearray]
 ) -> None:
     """Test that fuel level and load keys are not present in the device data
@@ -126,6 +133,36 @@ def test_current_data_without_fuel_level_and_load(
     frame = SensorDataMessage(message=test_message)
     assert ATTR_FUEL_LEVEL not in frame.data
     assert ATTR_LOAD not in frame.data
+
+
+def test_sensor_data_without_lambda_sensor(messages: Dict[int, bytearray]) -> None:
+    """Test that lambda sensor dict are not present in the device data
+    if it is unavailable.
+    """
+    test_message = messages[FrameType.MESSAGE_SENSOR_DATA]
+    test_message[INDEX_LAMBDA_SENSOR] = BYTE_UNDEFINED
+    for byte in range(1, 6):
+        del test_message[INDEX_LAMBDA_SENSOR + byte]
+
+    frame = SensorDataMessage(message=test_message)
+    assert ATTR_LAMBDA_SENSOR not in frame.data
+
+
+def test_sensor_data_without_fan_power_and_fuel_consumption(
+    messages: Dict[int, bytearray]
+) -> None:
+    """Test that power, fan power and fuel consumption keys are not
+    present in the device data if they are unavailable.
+    """
+    test_message = messages[FrameType.MESSAGE_SENSOR_DATA]
+    for index in (INDEX_FAN_POWER, INDEX_FUEL_CONSUMPTION, INDEX_POWER):
+        for byte in range(4):
+            test_message[index + byte] = 0xFF
+
+    frame = SensorDataMessage(message=test_message)
+    assert ATTR_FAN_POWER not in frame.data
+    assert ATTR_FUEL_CONSUMPTION not in frame.data
+    assert ATTR_POWER not in frame.data
 
 
 def test_current_data_without_thermostats(

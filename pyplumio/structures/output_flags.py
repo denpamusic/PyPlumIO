@@ -21,13 +21,15 @@ class OutputFlagsStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         output_flags = util.unpack_ushort(message[offset : offset + 4])
-        data = ensure_device_data(
-            data,
-            {
-                ATTR_HEATING_PUMP_FLAG: bool(output_flags & 0x04),
-                ATTR_WATER_HEATER_PUMP_FLAG: bool(output_flags & 0x08),
-                ATTR_CIRCULATION_PUMP_FLAG: bool(output_flags & 0x10),
-                ATTR_SOLAR_PUMP_FLAG: bool(output_flags & 0x800),
-            },
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_HEATING_PUMP_FLAG: bool(output_flags & 0x04),
+                    ATTR_WATER_HEATER_PUMP_FLAG: bool(output_flags & 0x08),
+                    ATTR_CIRCULATION_PUMP_FLAG: bool(output_flags & 0x10),
+                    ATTR_SOLAR_PUMP_FLAG: bool(output_flags & 0x800),
+                },
+            ),
+            offset + 4,
         )
-        return data, offset + 4

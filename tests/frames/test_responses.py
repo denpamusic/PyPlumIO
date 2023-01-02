@@ -117,7 +117,7 @@ def test_mixer_parameters_response(
 
     # Test with empty parameters.
     frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
-    assert frame1.data is None
+    assert not frame1.data
 
 
 def test_thermostat_parameters_response(
@@ -166,7 +166,7 @@ def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
 def test_data_schema_response_with_no_parameters() -> None:
     """Test parsing message for data schema with no parameters."""
     frame = DataSchemaResponse(message=bytearray.fromhex("0000"))
-    assert frame.data == {ATTR_SCHEMA: []}
+    assert ATTR_SCHEMA not in frame.data
 
 
 def test_alerts_response(

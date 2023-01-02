@@ -1,6 +1,6 @@
 """Contains schedule decoder."""
 
-from typing import Final, List, Optional, Sequence, Tuple, Union
+from typing import Dict, Final, List, Optional, Sequence, Tuple, Union
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.exceptions import FrameDataError
@@ -125,7 +125,7 @@ class SchedulesStructure(Structure):
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         offset += 3
-        schedules = {}
+        schedules: Dict[str, DeviceDataType] = {}
         for _ in range(first_index, first_index + last_index):
             schedule_type = message[offset]
             name = SCHEDULES[schedule_type]
