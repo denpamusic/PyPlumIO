@@ -9,8 +9,8 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 
-ATTR_REGDATA: Final = "ecomax_sensors"
-ATTR_REGDATA_DECODER: Final = "ecomax_sensors_decoder"
+ATTR_REGDATA: Final = "regdata"
+ATTR_REGDATA_DECODER: Final = "regdata_decoder"
 
 REGDATA_VERSION: Final = "1.0"
 
@@ -26,13 +26,13 @@ def _unpack_data(
     return data_type, boolean_index
 
 
-def _decode_ecomax_sensors(
+def _decode_regulator_data(
     message: bytearray,
     offset: int,
     schema: List[Tuple[str, DataType]],
     boolean_index: int = 0,
 ) -> DeviceDataType:
-    """Decode ecoMAX sensor data from the schema."""
+    """Decode regulator data from the schema."""
     data = ensure_device_data(None)
     for (sensor_id, data_type) in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
@@ -65,7 +65,7 @@ class RegulatorDataStructure(StructureDecoder):
         data, offset = FrameVersionsStructure(self.frame).decode(
             message, offset + 2, data
         )
-        sensors = _decode_ecomax_sensors(message, offset, schema)
+        sensors = _decode_regulator_data(message, offset, schema)
         if not sensors:
             return ensure_device_data(data), offset
 
