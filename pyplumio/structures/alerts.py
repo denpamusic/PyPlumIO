@@ -20,11 +20,11 @@ ATTR_SECOND: Final = "second"
 
 def _convert_to_datetime(seconds: int) -> datetime:
     """Converts timestamp to datetime."""
-    intervals = (
-        (ATTR_YEAR, 32140800),  # 60 * 60 * 24 * 31 * 12
-        (ATTR_MONTH, 2678400),  # 60 * 60 * 24 * 31
-        (ATTR_DAY, 86400),  # 60 * 60 * 24
-        (ATTR_HOUR, 3600),  # 60 * 60
+    intervals: Tuple[Tuple[str, int], ...] = (
+        (ATTR_YEAR, 32140800),  # 60sec * 60min * 24h * 31d * 12m
+        (ATTR_MONTH, 2678400),  # 60sec * 60min * 24h * 31d
+        (ATTR_DAY, 86400),  # 60sec * 60min * 24h
+        (ATTR_HOUR, 3600),  # 60sec * 60min
         (ATTR_MINUTE, 60),
         (ATTR_SECOND, 1),
     )
