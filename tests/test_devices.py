@@ -11,6 +11,8 @@ from pyplumio.const import (
     ATTR_SCHEDULE,
     ATTR_SENSORS,
     ATTR_STATE,
+    STATE_OFF,
+    STATE_ON,
     DeviceType,
     FrameType,
 )
@@ -135,7 +137,7 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     assert await ecomax.get_value("test_sensor") == 42
     ecomax_control = await ecomax.get_parameter("ecomax_control")
     assert isinstance(ecomax_control, EcomaxBinaryParameter)
-    assert ecomax_control.value == 1
+    assert ecomax_control.value == STATE_ON
 
 
 async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
@@ -151,7 +153,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
         )
     )
 
-    assert await ecomax.get_value("airflow_power_100") == 0
+    assert await ecomax.get_value("airflow_power_100") == STATE_OFF
     test_binary_parameter = await ecomax.get_parameter("airflow_power_100")
     assert isinstance(test_binary_parameter, EcomaxBinaryParameter)
     assert await ecomax.get_value("airflow_power_50") == 10
@@ -290,7 +292,7 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     )
     mixers = await ecomax.get_value(ATTR_MIXERS)
     test_binary_parameter = await mixers[0].get_parameter("mixer_target_temp")
-    assert test_binary_parameter.value == 0
+    assert test_binary_parameter.value == STATE_OFF
     assert isinstance(test_binary_parameter, MixerBinaryParameter)
     test_parameter = await mixers[0].get_parameter("min_target_temp")
     assert isinstance(test_parameter, MixerParameter)
@@ -308,7 +310,7 @@ async def test_schedule_callback(
     schedule_switch = await ecomax.get_parameter("schedule_heating_switch")
     schedule_parameter = await ecomax.get_parameter("schedule_heating_parameter")
     assert isinstance(schedule, Schedule)
-    assert schedule_switch.value == 0
+    assert schedule_switch.value == STATE_OFF
     assert isinstance(schedule_switch, ScheduleBinaryParameter)
     assert schedule_parameter.value == 5
     assert schedule_parameter.min_value == 0

@@ -38,6 +38,9 @@ def fixture_parameter(ecomax: EcoMAX) -> EcomaxBinaryParameter:
         max_value=1,
     )
     ecomax.data["summer_mode"] = parameter
+    assert parameter.value == STATE_ON
+    assert parameter.min_value == STATE_OFF
+    assert parameter.max_value == STATE_ON
     return parameter
 
 
@@ -56,7 +59,7 @@ async def test_parameter_set(
     with patch("pyplumio.helpers.parameter.Parameter.change_pending", False):
         assert await parameter.set(STATE_ON)
 
-    assert parameter == 1
+    assert parameter == STATE_ON
 
 
 async def test_parameter_set_out_of_range(parameter: EcomaxBinaryParameter) -> None:
@@ -93,8 +96,8 @@ def test_parameter_int(parameter: EcomaxBinaryParameter) -> None:
 def test_parameter_repr(parameter: EcomaxBinaryParameter) -> None:
     """Test parameter serilizable representation."""
     assert repr(parameter) == (
-        "EcomaxBinaryParameter(device=EcoMAX, name=summer_mode, value=1, "
-        + "min_value=0, max_value=1, extra=None)"
+        "EcomaxBinaryParameter(device=EcoMAX, name=summer_mode, value=on, "
+        + "min_value=off, max_value=on, extra=None)"
     )
 
 

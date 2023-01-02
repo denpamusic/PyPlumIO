@@ -197,6 +197,21 @@ class Parameter(ABC):
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
+    @property
+    def value(self) -> ParameterValueType:
+        """Return parameter value."""
+        return STATE_ON if self._value == 1 else STATE_OFF
+
+    @property
+    def min_value(self) -> ParameterValueType:
+        """Return minimum allowed value."""
+        return STATE_OFF
+
+    @property
+    def max_value(self) -> ParameterValueType:
+        """Return maximum allowed value."""
+        return STATE_ON
+
     async def turn_on(self) -> bool:
         """Turn parameter on."""
         return await self.set(STATE_ON)
