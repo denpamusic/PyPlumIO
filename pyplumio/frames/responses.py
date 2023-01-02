@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from pyplumio.const import ATTR_PASSWORD, ATTR_THERMOSTAT_PARAMETERS_DECODER, FrameType
+from pyplumio.const import ATTR_PASSWORD, FrameType
 from pyplumio.frames import Response
 from pyplumio.helpers.typing import DeviceDataType, MessageType
 from pyplumio.structures.alerts import AlertsStructure
@@ -14,7 +14,10 @@ from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
 from pyplumio.structures.program_version import ProgramVersionStructure
 from pyplumio.structures.schedules import SchedulesStructure
-from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS_DECODER,
+    ThermostatParametersStructure,
+)
 
 
 class ProgramVersionResponse(Response):
@@ -116,7 +119,7 @@ class ThermostatParametersResponse(Response):
 
 class DataSchemaResponse(Response):
     """Represents data schema response. Contains schema that describes
-    regdata message structure.
+    ecoMAX sensors message structure.
     """
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_DATA_SCHEMA

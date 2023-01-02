@@ -4,11 +4,12 @@ from __future__ import annotations
 import struct
 from typing import Final, Optional, Tuple
 
-from pyplumio.const import ATTR_MODULES, BYTE_UNDEFINED
+from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
+ATTR_MODULES: Final = "modules"
 ATTR_MODULE_A: Final = "module_a"
 ATTR_MODULE_B: Final = "module_b"
 ATTR_MODULE_C: Final = "module_c"

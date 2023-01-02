@@ -8,39 +8,39 @@ from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-ATTR_FAN_OUTPUT: Final = "fan"
-ATTR_FEEDER_OUTPUT: Final = "feeder"
-ATTR_HEATING_PUMP_OUTPUT: Final = "heating_pump"
-ATTR_WATER_HEATER_PUMP_OUTPUT: Final = "water_heater_pump"
-ATTR_CIRCULATION_PUMP_OUTPUT: Final = "ciculation_pump"
-ATTR_LIGHTER_OUTPUT: Final = "lighter"
-ATTR_ALARM_OUTPUT: Final = "alarm"
-ATTR_OUTER_BOILER_OUTPUT: Final = "outer_boiler"
-ATTR_FAN2_EXHAUST_OUTPUT: Final = "fan2_exhaust"
-ATTR_FEEDER2_OUTPUT: Final = "feeder2"
-ATTR_OUTER_FEEDER_OUTPUT: Final = "outer_feeder"
-ATTR_SOLAR_PUMP_OUTPUT: Final = "solar_pump"
-ATTR_FIREPLACE_PUMP_OUTPUT: Final = "fireplace_pump"
+ATTR_FAN: Final = "fan"
+ATTR_FEEDER: Final = "feeder"
+ATTR_HEATING_PUMP: Final = "heating_pump"
+ATTR_WATER_HEATER_PUMP: Final = "water_heater_pump"
+ATTR_CIRCULATION_PUMP: Final = "ciculation_pump"
+ATTR_LIGHTER: Final = "lighter"
+ATTR_ALARM: Final = "alarm"
+ATTR_OUTER_BOILER: Final = "outer_boiler"
+ATTR_FAN2_EXHAUST: Final = "fan2_exhaust"
+ATTR_FEEDER2: Final = "feeder2"
+ATTR_OUTER_FEEDER: Final = "outer_feeder"
+ATTR_SOLAR_PUMP: Final = "solar_pump"
+ATTR_FIREPLACE_PUMP: Final = "fireplace_pump"
 ATTR_GCZ_CONTACT: Final = "gcz_contact"
-ATTR_BLOW_FAN1_OUTPUT: Final = "blow_fan1"
-ATTR_BLOW_FAN2_OUTPUT: Final = "blow_fan2"
+ATTR_BLOW_FAN1: Final = "blow_fan1"
+ATTR_BLOW_FAN2: Final = "blow_fan2"
 OUTPUTS: Tuple[str, ...] = (
-    ATTR_FAN_OUTPUT,
-    ATTR_FEEDER_OUTPUT,
-    ATTR_HEATING_PUMP_OUTPUT,
-    ATTR_WATER_HEATER_PUMP_OUTPUT,
-    ATTR_CIRCULATION_PUMP_OUTPUT,
-    ATTR_LIGHTER_OUTPUT,
-    ATTR_ALARM_OUTPUT,
-    ATTR_OUTER_BOILER_OUTPUT,
-    ATTR_FAN2_EXHAUST_OUTPUT,
-    ATTR_FEEDER2_OUTPUT,
-    ATTR_OUTER_FEEDER_OUTPUT,
-    ATTR_SOLAR_PUMP_OUTPUT,
-    ATTR_FIREPLACE_PUMP_OUTPUT,
+    ATTR_FAN,
+    ATTR_FEEDER,
+    ATTR_HEATING_PUMP,
+    ATTR_WATER_HEATER_PUMP,
+    ATTR_CIRCULATION_PUMP,
+    ATTR_LIGHTER,
+    ATTR_ALARM,
+    ATTR_OUTER_BOILER,
+    ATTR_FAN2_EXHAUST,
+    ATTR_FEEDER2,
+    ATTR_OUTER_FEEDER,
+    ATTR_SOLAR_PUMP,
+    ATTR_FIREPLACE_PUMP,
     ATTR_GCZ_CONTACT,
-    ATTR_BLOW_FAN1_OUTPUT,
-    ATTR_BLOW_FAN2_OUTPUT,
+    ATTR_BLOW_FAN1,
+    ATTR_BLOW_FAN2,
 )
 
 

@@ -9,13 +9,13 @@ import pytest
 from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
     ATTR_SWITCH,
     ATTR_TYPE,
     STATE_ON,
 )
 from pyplumio.devices import Device, DeviceType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
+from pyplumio.structures.schedules import ATTR_SCHEDULES
 
 
 @pytest.fixture(name="schedule_day")

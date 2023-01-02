@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Final, Iterator, List, Literal, Tuple
 from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
     ATTR_SWITCH,
     ATTR_TYPE,
     STATE_OFF,
@@ -18,6 +17,7 @@ from pyplumio.const import (
 )
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.structures.schedules import ATTR_SCHEDULES
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device

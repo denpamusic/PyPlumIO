@@ -53,10 +53,10 @@ class TemperaturesStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        temp_number = message[offset]
-        offset += 1
         data = ensure_device_data(data)
-        for _ in range(temp_number):
+        temp_count = message[offset]
+        offset += 1
+        for _ in range(temp_count):
             index = message[offset]
             temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
 

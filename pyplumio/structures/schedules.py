@@ -2,17 +2,13 @@
 
 from typing import Final, List, Optional, Sequence, Tuple, Union
 
-from pyplumio.const import (
-    ATTR_PARAMETER,
-    ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
-    ATTR_SWITCH,
-    ATTR_TYPE,
-)
+from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import Structure, ensure_device_data
 from pyplumio.util import unpack_parameter
+
+ATTR_SCHEDULES: Final = "schedules"
 
 SCHEDULE_SIZE: Final = 42  # 6 bytes per day, 7 days total
 
@@ -126,17 +122,17 @@ class SchedulesStructure(Structure):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_block = message[offset + 1]
-        block_number = message[offset + 2]
+        first_index = message[offset + 1]
+        last_index = message[offset + 2]
         offset += 3
         schedules = {}
-        for _ in range(first_block, first_block + block_number):
+        for _ in range(first_index, first_index + last_index):
             schedule_type = message[offset]
-            schedule_name = SCHEDULES[schedule_type]
+            name = SCHEDULES[schedule_type]
             schedule: DeviceDataType = {}
             schedule[ATTR_SWITCH] = (message[offset + 1], 0, 1)
             schedule[ATTR_PARAMETER] = unpack_parameter(message, offset + 2)
             schedule[ATTR_SCHEDULE], offset = _decode_schedule(message, offset + 5)
-            schedules[schedule_name] = schedule
+            schedules[name] = schedule
 
         return ensure_device_data(data, {ATTR_SCHEDULES: schedules}), offset

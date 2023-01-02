@@ -4,47 +4,49 @@ from __future__ import annotations
 from typing import Final, Iterable, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_THERMOSTAT_PARAMETERS, ATTR_THERMOSTATS_NUMBER
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"
+ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
+ATTR_THERMOSTAT_PARAMETERS_DECODER: Final = "thermostat_parameters_decoder"
 
 THERMOSTAT_PARAMETERS: Tuple[str, ...] = (
-    "thermostat_mode",
-    "thermostat_party_target_temp",
-    "thermostat_summer_target_temp",
-    "thermostat_correction",
-    "thermostat_away_timer",
-    "thermostat_vent_timer",
-    "thermostat_party_timer",
-    "thermostat_holiday_timer",
-    "thermostat_hysteresis",
-    "thermostat_day_target_temp",
-    "thermostat_night_target_temp",
-    "thermostat_antifreeze_target_temp",
-    "thermostat_heating_target_temp",
-    "thermostat_heating_timer",
-    "thermostat_off_timer",
+    "mode",
+    "party_target_temp",
+    "summer_target_temp",
+    "correction",
+    "away_timer",
+    "vent_timer",
+    "party_timer",
+    "holiday_timer",
+    "hysteresis",
+    "day_target_temp",
+    "night_target_temp",
+    "antifreeze_target_temp",
+    "heating_target_temp",
+    "heating_timer",
+    "off_timer",
 )
 
 
 def _decode_thermostat_parameters(
-    message: bytearray, offset: int, parameter_name_indexes: Iterable
+    message: bytearray, offset: int, indexes: Iterable
 ) -> Tuple[List[Tuple[int, ParameterDataType]], int]:
     """Decode parameters for a single thermostat."""
-    thermostat_parameters: List[Tuple[int, ParameterDataType]] = []
-    for index in parameter_name_indexes:
+    parameters: List[Tuple[int, ParameterDataType]] = []
+    for index in indexes:
         parameter_size = (
             2 if THERMOSTAT_PARAMETERS[index].endswith("target_temp") else 1
         )
         parameter = util.unpack_parameter(message, offset, size=parameter_size)
         if parameter is not None:
-            thermostat_parameters.append((index, parameter))
+            parameters.append((index, parameter))
 
         offset += 3 * parameter_size
 
-    return thermostat_parameters, offset
+    return parameters, offset
 
 
 class ThermostatParametersStructure(StructureDecoder):
@@ -55,29 +57,26 @@ class ThermostatParametersStructure(StructureDecoder):
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
-        thermostats_number = data.get(ATTR_THERMOSTATS_NUMBER, 0)
-        if thermostats_number == 0:
+        thermostat_count = data.get(ATTR_THERMOSTAT_COUNT, 0)
+        if thermostat_count == 0:
             return data, offset
 
-        first_parameter = message[offset + 1]
-        parameters_number = message[offset + 2]
-        offset += 3
-        total_parameters_per_thermostat = (
-            parameters_number + first_parameter
-        ) // thermostats_number
-        thermostat_profile = util.unpack_parameter(message, offset)
-        offset += 3
+        first_index = message[offset + 1]
+        last_index = message[offset + 2]
+        thermostat_profile = util.unpack_parameter(message, offset + 3)
+        parameter_count_per_thermostat = (first_index + last_index) // thermostat_count
+        offset += 6
         thermostat_parameters: List[
             Tuple[int, List[Tuple[int, ParameterDataType]]]
         ] = []
-        for thermostat_number in range(thermostats_number):
+        for index in range(thermostat_count):
             parameters, offset = _decode_thermostat_parameters(
                 message,
                 offset,
-                range(first_parameter, total_parameters_per_thermostat),
+                range(first_index, parameter_count_per_thermostat),
             )
             if parameters:
-                thermostat_parameters.append((thermostat_number, parameters))
+                thermostat_parameters.append((index, parameters))
 
         if not thermostat_parameters:
             # No thermostat parameters detected.

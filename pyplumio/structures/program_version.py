@@ -1,12 +1,13 @@
 """Contains network program version decoder."""
 
 import struct
-from typing import Optional, Tuple
+from typing import Final, Optional, Tuple
 
-from pyplumio.const import ATTR_VERSION
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures import Structure, ensure_device_data
+
+ATTR_VERSION: Final = "version"
 
 
 class ProgramVersionStructure(Structure):

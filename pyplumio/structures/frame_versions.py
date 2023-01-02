@@ -1,12 +1,13 @@
 """Contains frame versions structure decoder."""
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_FRAME_VERSIONS
 from pyplumio.helpers.typing import DeviceDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+
+ATTR_FRAME_VERSIONS: Final = "frame_versions"
 
 
 class FrameVersionsStructure(StructureDecoder):

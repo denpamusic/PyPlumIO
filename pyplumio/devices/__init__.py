@@ -161,20 +161,20 @@ class Device(BaseDevice):
 class Mixer(BaseDevice):
     """Represents the mixer device."""
 
-    mixer_number: int
+    index: int
 
-    def __init__(self, mixer_number: int = 0):
+    def __init__(self, index: int = 0):
         """Initialize new Mixer object."""
         super().__init__()
-        self.mixer_number = mixer_number
+        self.index = index
 
 
 class Thermostat(BaseDevice):
     """Represent the thermostat device."""
 
-    thermostat_number: int
+    index: int
 
-    def __init__(self, thermostat_number: int = 0):
+    def __init__(self, index: int = 0):
         """Initialize new Thermostat object."""
         super().__init__()
-        self.thermostat_number = thermostat_number
+        self.index = index

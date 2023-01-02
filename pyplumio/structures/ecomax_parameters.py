@@ -4,12 +4,11 @@ from __future__ import annotations
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_ECOMAX_PARAMETERS
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
-ATTR_BOILER_CONTROL: Final = "boiler_control"
+ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
 
 ECOMAX_P_PARAMETERS: Tuple[str, ...] = (
     "airflow_power_100",
@@ -207,11 +206,11 @@ class EcomaxParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_parameter = message[offset + 1]
-        parameters_number = message[offset + 2]
+        first_index = message[offset + 1]
+        last_index = message[offset + 2]
         offset += 3
         ecomax_parameters: List[Tuple[int, ParameterDataType]] = []
-        for index in range(first_parameter, parameters_number + first_parameter):
+        for index in range(first_index, first_index + last_index):
             parameter = util.unpack_parameter(message, offset)
             if parameter is not None:
                 ecomax_parameters.append((index, parameter))

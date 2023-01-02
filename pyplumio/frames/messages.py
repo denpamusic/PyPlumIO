@@ -4,8 +4,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from pyplumio.const import (
-    ATTR_ECOMAX_SENSORS,
-    ATTR_REGDATA_DECODER,
+    ATTR_SENSORS,
     ATTR_STATE,
     ATTR_THERMOSTAT,
     ATTR_TRANSMISSION,
@@ -26,7 +25,10 @@ from pyplumio.structures.output_flags import OutputFlagsStructure
 from pyplumio.structures.outputs import OutputsStructure
 from pyplumio.structures.pending_alerts import PendingAlertsStructure
 from pyplumio.structures.power import PowerStructure
-from pyplumio.structures.regulator_data import RegulatorDataStructure
+from pyplumio.structures.regulator_data import (
+    ATTR_REGDATA_DECODER,
+    RegulatorDataStructure,
+)
 from pyplumio.structures.statuses import StatusesStructure
 from pyplumio.structures.temperatures import TemperaturesStructure
 from pyplumio.structures.thermostat_sensors import ThermostatSensorsStructure
@@ -76,4 +78,4 @@ class SensorDataMessage(Message):
         )
         sensors, offset = MixerSensorsStructure(self).decode(message, offset, sensors)
 
-        return {ATTR_ECOMAX_SENSORS: sensors}
+        return {ATTR_SENSORS: sensors}

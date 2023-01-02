@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_FUEL_CONSUMPTION
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder
+
+ATTR_FUEL_CONSUMPTION: Final = "fuel_consumption"
 
 
 class FuelConsumptionStructure(StructureDecoder):

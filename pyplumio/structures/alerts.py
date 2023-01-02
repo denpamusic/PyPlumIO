@@ -3,23 +3,30 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+
+ATTR_ALERTS: Final = "alerts"
+ATTR_YEAR: Final = "year"
+ATTR_MONTH: Final = "month"
+ATTR_DAY: Final = "day"
+ATTR_HOUR: Final = "hour"
+ATTR_MINUTE: Final = "minute"
+ATTR_SECOND: Final = "second"
 
 
 def _convert_to_datetime(seconds: int) -> datetime:
     """Converts timestamp to datetime."""
     intervals = (
-        ("year", 32140800),  # 60 * 60 * 24 * 31 * 12
-        ("month", 2678400),  # 60 * 60 * 24 * 31
-        ("day", 86400),  # 60 * 60 * 24
-        ("hour", 3600),  # 60 * 60
-        ("minute", 60),
-        ("second", 1),
+        (ATTR_YEAR, 32140800),  # 60 * 60 * 24 * 31 * 12
+        (ATTR_MONTH, 2678400),  # 60 * 60 * 24 * 31
+        (ATTR_DAY, 86400),  # 60 * 60 * 24
+        (ATTR_HOUR, 3600),  # 60 * 60
+        (ATTR_MINUTE, 60),
+        (ATTR_SECOND, 1),
     )
 
     result: Dict[str, int] = {}
@@ -30,12 +37,12 @@ def _convert_to_datetime(seconds: int) -> datetime:
         result[name] = value
 
     return datetime(
-        year=(result["year"] + 2000),
-        month=(result["month"] + 1),
-        day=(result["day"] + 1),
-        hour=result["hour"],
-        minute=result["minute"],
-        second=result["second"],
+        year=(result[ATTR_YEAR] + 2000),
+        month=(result[ATTR_MONTH] + 1),
+        day=(result[ATTR_DAY] + 1),
+        hour=result[ATTR_HOUR],
+        minute=result[ATTR_MINUTE],
+        second=result[ATTR_SECOND],
     )
 
 
@@ -55,11 +62,11 @@ class AlertsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_alert = message[offset + 1]
-        alerts_number = message[offset + 2]
+        first_index = message[offset + 1]
+        last_index = message[offset + 2]
         offset += 3
         alerts: List[Alert] = []
-        for _ in range(first_alert, first_alert + alerts_number):
+        for _ in range(first_index, first_index + last_index):
             code = message[offset]
             from_ts = util.unpack_uint(message[offset + 1 : offset + 5])[0]
             from_dt = _convert_to_datetime(from_ts)

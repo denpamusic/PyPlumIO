@@ -1,11 +1,12 @@
 """Contains alarms structure decoder."""
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Final, Optional, Tuple
 
-from pyplumio.const import ATTR_PENDING_ALERTS
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+
+ATTR_PENDING_ALERTS: Final = "pending_alerts"
 
 
 class PendingAlertsStructure(StructureDecoder):

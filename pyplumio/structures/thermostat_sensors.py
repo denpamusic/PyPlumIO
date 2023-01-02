@@ -6,18 +6,18 @@ from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
 from pyplumio.const import (
-    ATTR_THERMOSTAT_SENSORS,
-    ATTR_THERMOSTATS_NUMBER,
+    ATTR_CURRENT_TEMP,
+    ATTR_SCHEDULE,
+    ATTR_STATE,
+    ATTR_TARGET_TEMP,
     BYTE_UNDEFINED,
 )
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-ATTR_THERMOSTAT_STATE: Final = "thermostat_state"
-ATTR_THERMOSTAT_TEMP: Final = "thermostat_temp"
-ATTR_THERMOSTAT_TARGET: Final = "thermostat_target"
-ATTR_THERMOSTAT_CONTACTS: Final = "thermostat_contacts"
-ATTR_THERMOSTAT_SCHEDULE: Final = "thermostat_schedule"
+ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
+ATTR_THERMOSTAT_COUNT: Final = "thermostat_count"
+ATTR_CONTACTS: Final = "contacts"
 
 
 class ThermostatSensorsStructure(StructureDecoder):
@@ -30,29 +30,24 @@ class ThermostatSensorsStructure(StructureDecoder):
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1
 
-        thermostats_contacts = message[offset]
-        offset += 1
-        thermostats_number = message[offset]
-        offset += 1
+        contacts = message[offset]
+        thermostat_count = message[offset + 1]
+        offset += 2
         contact_mask = 1
         schedule_mask = 1 << 3
         thermostat_sensors: List[Tuple[int, DeviceDataType]] = []
-        for thermostat_number in range(thermostats_number):
-            thermostat_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            if not math.isnan(thermostat_temp):
-                thermostat: DeviceDataType = {}
-                thermostat[ATTR_THERMOSTAT_STATE] = message[offset]
-                thermostat[ATTR_THERMOSTAT_TEMP] = thermostat_temp
-                thermostat[ATTR_THERMOSTAT_TARGET] = util.unpack_float(
+        for index in range(thermostat_count):
+            current_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
+            if not math.isnan(current_temp):
+                sensors: DeviceDataType = {}
+                sensors[ATTR_STATE] = message[offset]
+                sensors[ATTR_CURRENT_TEMP] = current_temp
+                sensors[ATTR_TARGET_TEMP] = util.unpack_float(
                     message[offset + 5 : offset + 9]
                 )[0]
-                thermostat[ATTR_THERMOSTAT_CONTACTS] = bool(
-                    thermostats_contacts & contact_mask
-                )
-                thermostat[ATTR_THERMOSTAT_SCHEDULE] = bool(
-                    thermostats_contacts & schedule_mask
-                )
-                thermostat_sensors.append((thermostat_number, thermostat))
+                sensors[ATTR_CONTACTS] = bool(contacts & contact_mask)
+                sensors[ATTR_SCHEDULE] = bool(contacts & schedule_mask)
+                thermostat_sensors.append((index, sensors))
 
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1
@@ -63,7 +58,7 @@ class ThermostatSensorsStructure(StructureDecoder):
                 data,
                 {
                     ATTR_THERMOSTAT_SENSORS: thermostat_sensors,
-                    ATTR_THERMOSTATS_NUMBER: thermostats_number,
+                    ATTR_THERMOSTAT_COUNT: thermostat_count,
                 },
             ),
             offset,

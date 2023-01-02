@@ -8,26 +8,11 @@ import time
 from typing import ClassVar, Final, Optional, Tuple
 
 from pyplumio.const import (
-    ATTR_ECOMAX_PARAMETERS,
-    ATTR_ECOMAX_SENSORS,
-    ATTR_FRAME_VERSIONS,
-    ATTR_FUEL_BURNED,
-    ATTR_FUEL_CONSUMPTION,
-    ATTR_MIXER_PARAMETERS,
-    ATTR_MIXER_SENSORS,
-    ATTR_MIXERS,
     ATTR_PARAMETER,
-    ATTR_PRODUCT,
-    ATTR_REGDATA,
-    ATTR_REGDATA_DECODER,
     ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
+    ATTR_SENSORS,
     ATTR_STATE,
     ATTR_SWITCH,
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PARAMETERS_DECODER,
-    ATTR_THERMOSTAT_SENSORS,
-    ATTR_THERMOSTATS,
     DeviceState,
     DeviceType,
     FrameType,
@@ -51,19 +36,33 @@ from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.ecomax_parameters import (
-    ATTR_BOILER_CONTROL,
     ATTR_ECOMAX_CONTROL,
+    ATTR_ECOMAX_PARAMETERS,
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
 )
+from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
+from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import (
+    ATTR_MIXER_PARAMETERS,
     ECOMAX_I_MIXER_PARAMETERS,
     ECOMAX_P_MIXER_PARAMETERS,
 )
+from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
+from pyplumio.structures.product_info import ATTR_PRODUCT
+from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
+from pyplumio.structures.schedules import ATTR_SCHEDULES
 from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PARAMETERS_DECODER,
     ATTR_THERMOSTAT_PROFILE,
     THERMOSTAT_PARAMETERS,
 )
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
+
+ATTR_MIXERS: Final = "mixers"
+ATTR_THERMOSTATS: Final = "thermostats"
+ATTR_FUEL_BURNED: Final = "fuel_burned"
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
 
@@ -93,7 +92,7 @@ class EcoMAX(Device):
         self._frame_versions = FrameVersions(device=self)
         self._fuel_burned_timestamp = time.time()
         self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
-        self.subscribe(ATTR_ECOMAX_SENSORS, self._add_ecomax_sensors)
+        self.subscribe(ATTR_SENSORS, self._add_ecomax_sensors)
         self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.subscribe(ATTR_ECOMAX_PARAMETERS, self._add_ecomax_parameters)
@@ -116,13 +115,13 @@ class EcoMAX(Device):
         requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
         return {**requirements, **frame_versions}
 
-    def _get_mixer(self, mixer_number: int, total_mixers: int) -> Mixer:
+    def _get_mixer(self, mixer_index: int, total_mixers: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
         mixers = self.data.setdefault(ATTR_MIXERS, [])
         try:
-            mixer = mixers[mixer_number]
+            mixer = mixers[mixer_index]
         except IndexError:
-            mixer = Mixer(mixer_number)
+            mixer = Mixer(mixer_index)
             mixers.append(mixer)
             if len(mixers) == total_mixers:
                 # All mixers were processed, notify callbacks and getters.
@@ -131,15 +130,15 @@ class EcoMAX(Device):
         return mixer
 
     def _get_thermostat(
-        self, thermostat_number: int, total_thermostats: int
+        self, thermostat_index: int, total_thermostats: int
     ) -> Thermostat:
         """Get or create a new thermostat object and add it to the
         device."""
         thermostats = self.data.setdefault(ATTR_THERMOSTATS, [])
         try:
-            thermostat = thermostats[thermostat_number]
+            thermostat = thermostats[thermostat_index]
         except IndexError:
-            thermostat = Thermostat(thermostat_number)
+            thermostat = Thermostat(thermostat_index)
             thermostats.append(thermostat)
             if len(thermostats) == total_thermostats:
                 # All thermostats were processed, notify callbacks and getters.
@@ -183,8 +182,8 @@ class EcoMAX(Device):
         self, sensors: Sequence[Tuple[int, DeviceDataType]]
     ) -> bool:
         """Set sensor values for the mixer."""
-        for mixer_number, mixer_sensors in sensors:
-            mixer = self._get_mixer(mixer_number, len(sensors))
+        for mixer_index, mixer_sensors in sensors:
+            mixer = self._get_mixer(mixer_index, len(sensors))
             for name, value in mixer_sensors.items():
                 await mixer.async_set_device_data(name, value)
 
@@ -195,8 +194,8 @@ class EcoMAX(Device):
     ) -> bool:
         """Set mixer parameters."""
         product = await self.get_value(ATTR_PRODUCT)
-        for mixer_number, mixer_parameters in parameters:
-            mixer = self._get_mixer(mixer_number, len(parameters))
+        for mixer_index, mixer_parameters in parameters:
+            mixer = self._get_mixer(mixer_index, len(parameters))
             for mixer_parameter in mixer_parameters:
                 index, value = mixer_parameter
                 cls = (
@@ -214,7 +213,7 @@ class EcoMAX(Device):
                     value=value[0],
                     min_value=value[1],
                     max_value=value[2],
-                    extra=mixer_number,
+                    extra=mixer_index,
                 )
                 await mixer.async_set_device_data(parameter.name, parameter)
 
@@ -224,8 +223,8 @@ class EcoMAX(Device):
         self, sensors: Sequence[Tuple[int, DeviceDataType]]
     ) -> bool:
         """Set sensor values for the thermostat."""
-        for thermostat_number, thermostat_sensors in sensors:
-            thermostat = self._get_thermostat(thermostat_number, len(sensors))
+        for thermostat_index, thermostat_sensors in sensors:
+            thermostat = self._get_thermostat(thermostat_index, len(sensors))
             for name, value in thermostat_sensors.items():
                 await thermostat.async_set_device_data(name, value)
 
@@ -235,8 +234,8 @@ class EcoMAX(Device):
         self, parameters: Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
     ) -> bool:
         """Set thermostat parameters."""
-        for thermostat_number, thermostat_parameters in parameters:
-            thermostat = self._get_thermostat(thermostat_number, len(parameters))
+        for thermostat_index, thermostat_parameters in parameters:
+            thermostat = self._get_thermostat(thermostat_index, len(parameters))
             for thermostat_parameter in thermostat_parameters:
                 index, value = thermostat_parameter
                 cls = (
@@ -250,7 +249,7 @@ class EcoMAX(Device):
                     value=value[0],
                     min_value=value[1],
                     max_value=value[2],
-                    extra=(thermostat_number * len(thermostat_parameters)),
+                    extra=(thermostat_index * len(thermostat_parameters)),
                 )
                 await thermostat.async_set_device_data(parameter.name, parameter)
 
@@ -292,7 +291,6 @@ class EcoMAX(Device):
             max_value=1,
         )
         await self.async_set_device_data(ATTR_ECOMAX_CONTROL, parameter)
-        await self.async_set_device_data(ATTR_BOILER_CONTROL, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""

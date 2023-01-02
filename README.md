@@ -276,8 +276,8 @@ import pyplumio
 from pyplumio.helpers.filters import on_change
 
 
-async def my_mixer_callback(mixer_pump_status: bool) -> None:
-  print(f"Mixer pump is working: {mixer_pump_status}")
+async def my_mixer_callback(pump_state: bool) -> None:
+  print(f"Mixer pump is {"working" if pump_state else "not working"}")
 
 
 async def my_thermostat_callback(thermostat_state: int) -> None:
@@ -295,18 +295,18 @@ async def main():
 
     # Get single mixer from the list.
     mixer = mixers[0]
-    mixer_temp = await mixer.get_value("mixer_temp")
+    mixer_temp = await mixer.get_value("current_temp")
     await mixer.set_value("mixer_target_temp", 50)
-    mixer.subscribe("mixer_pump", on_change(my_mixer_callback))
+    mixer.subscribe("pump", on_change(my_mixer_callback))
 
     # Print all available mixer data.
     print(mixer.data)
 
     # Get single thermostat from the list.
     thermostat = thermostats[0]
-    thermostat_temp = await thermostat.get_value("thermostat_temp")
-    await thermostat.set_value("thermostat_day_target_temp", 20)
-    thermostat.subscribe("thermostat_state", on_change(my_thermostat_callback))
+    thermostat_temp = await thermostat.get_value("current_temp")
+    await thermostat.set_value("day_target_temp", 20)
+    thermostat.subscribe("state", on_change(my_thermostat_callback))
 
     # Print all available thermostat data.
     print(thermostat.data)

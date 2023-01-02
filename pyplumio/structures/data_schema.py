@@ -1,19 +1,19 @@
 """Contains data schema structure decoder."""
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_SCHEMA, ATTR_STATE
+from pyplumio.const import ATTR_STATE
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.outputs import (
-    ATTR_FAN_OUTPUT,
-    ATTR_FEEDER_OUTPUT,
-    ATTR_HEATING_PUMP_OUTPUT,
-    ATTR_LIGHTER_OUTPUT,
-    ATTR_WATER_HEATER_PUMP_OUTPUT,
+    ATTR_FAN,
+    ATTR_FEEDER,
+    ATTR_HEATING_PUMP,
+    ATTR_LIGHTER,
+    ATTR_WATER_HEATER_PUMP,
 )
 from pyplumio.structures.statuses import ATTR_HEATING_TARGET, ATTR_WATER_HEATER_TARGET
 from pyplumio.structures.temperatures import (
@@ -24,8 +24,10 @@ from pyplumio.structures.temperatures import (
     ATTR_WATER_HEATER_TEMP,
 )
 
+ATTR_SCHEMA: Final = "schema"
+
 REGDATA_SCHEMA: Dict[int, str] = {
-    3: ATTR_LIGHTER_OUTPUT,
+    3: ATTR_LIGHTER,
     1024: ATTR_HEATING_TEMP,
     1026: ATTR_FEEDER_TEMP,
     1025: ATTR_WATER_HEATER_TEMP,
@@ -33,10 +35,10 @@ REGDATA_SCHEMA: Dict[int, str] = {
     1030: ATTR_EXHAUST_TEMP,
     1280: ATTR_HEATING_TARGET,
     1281: ATTR_WATER_HEATER_TARGET,
-    1536: ATTR_FAN_OUTPUT,
-    1538: ATTR_FEEDER_OUTPUT,
-    1541: ATTR_HEATING_PUMP_OUTPUT,
-    1542: ATTR_WATER_HEATER_PUMP_OUTPUT,
+    1536: ATTR_FAN,
+    1538: ATTR_FEEDER,
+    1541: ATTR_HEATING_PUMP,
+    1542: ATTR_WATER_HEATER_PUMP,
     1792: ATTR_STATE,
 }
 

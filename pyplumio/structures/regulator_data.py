@@ -3,11 +3,14 @@ from __future__ import annotations
 
 from typing import Final, List, Optional, Tuple
 
-from pyplumio.const import ATTR_REGDATA, ATTR_SCHEMA
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.typing import BytesType, DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
+
+ATTR_REGDATA: Final = "ecomax_sensors"
+ATTR_REGDATA_DECODER: Final = "ecomax_sensors_decoder"
 
 REGDATA_VERSION: Final = "1.0"
 
@@ -23,13 +26,13 @@ def _unpack_data(
     return data_type, boolean_index
 
 
-def _decode_regulator_data(
+def _decode_ecomax_sensors(
     message: bytearray,
     offset: int,
     schema: List[Tuple[str, DataType]],
     boolean_index: int = 0,
 ) -> DeviceDataType:
-    """Decode regulator data from the schema."""
+    """Decode ecoMAX sensor data from the schema."""
     data = ensure_device_data(None)
     for (sensor_id, data_type) in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
@@ -55,15 +58,15 @@ class RegulatorDataStructure(StructureDecoder):
         data = ensure_device_data(data)
         schema = data.get(ATTR_SCHEMA, [])
         offset += 2
-        frame_version = f"{message[offset+1]}.{message[offset]}"
-        if frame_version != REGDATA_VERSION:
+        regdata_version = f"{message[offset+1]}.{message[offset]}"
+        if regdata_version != REGDATA_VERSION:
             return data, offset
 
         data, offset = FrameVersionsStructure(self.frame).decode(
             message, offset + 2, data
         )
-        regulator_data = _decode_regulator_data(message, offset, schema)
-        if not regulator_data:
+        sensors = _decode_ecomax_sensors(message, offset, schema)
+        if not sensors:
             return ensure_device_data(data), offset
 
-        return ensure_device_data(data, {ATTR_REGDATA: regulator_data}), offset
+        return ensure_device_data(data, {ATTR_REGDATA: sensors}), offset

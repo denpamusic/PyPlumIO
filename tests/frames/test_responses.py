@@ -2,15 +2,7 @@
 
 from typing import Dict
 
-from pyplumio.const import (
-    ATTR_SCHEMA,
-    ATTR_STATE,
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PARAMETERS_DECODER,
-    ATTR_THERMOSTATS_NUMBER,
-    DeviceType,
-    FrameType,
-)
+from pyplumio.const import ATTR_STATE, DeviceType, FrameType
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -25,8 +17,13 @@ from pyplumio.frames.responses import (
 )
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures.data_schema import REGDATA_SCHEMA
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
+from pyplumio.structures.data_schema import ATTR_SCHEMA, REGDATA_SCHEMA
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PARAMETERS_DECODER,
+    ATTR_THERMOSTAT_PROFILE,
+)
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
 
 def test_responses_type() -> None:
@@ -134,7 +131,7 @@ def test_thermostat_parameters_response(
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
     frame_data = decoder.decode(
         message=frame.message,
-        data={ATTR_THERMOSTATS_NUMBER: 3},
+        data={ATTR_THERMOSTAT_COUNT: 3},
     )[0]
     assert frame_data == data[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
 
@@ -148,7 +145,7 @@ def test_thermostat_parameters_response_with_no_parameters() -> None:
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
     frame_data = decoder.decode(
         message=frame.message,
-        data={ATTR_THERMOSTATS_NUMBER: 2},
+        data={ATTR_THERMOSTAT_COUNT: 2},
     )[0]
     assert ATTR_THERMOSTAT_PROFILE not in frame_data
     assert ATTR_THERMOSTAT_PARAMETERS not in frame_data

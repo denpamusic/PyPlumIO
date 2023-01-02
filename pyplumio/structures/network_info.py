@@ -1,10 +1,9 @@
 """Contains network info structure decoder."""
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Final, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_NETWORK
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -12,6 +11,8 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import Structure, ensure_device_data
+
+ATTR_NETWORK: Final = "network"
 
 
 class NetworkInfoStructure(Structure):

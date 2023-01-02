@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
-from pyplumio.const import ATTR_NETWORK, DeviceType, FrameType
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.devices import Device, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -22,6 +22,7 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.stream import FrameReader, FrameWriter
+from pyplumio.structures.network_info import ATTR_NETWORK
 
 _LOGGER = logging.getLogger(__name__)
 

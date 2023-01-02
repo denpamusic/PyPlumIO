@@ -122,7 +122,7 @@ async def test_parameter_request_thermostat(
     """Test set thermostat parameter request instance."""
     parameter = ThermostatParameter(
         device=ecomax,
-        name="thermostat_party_target_temp",
+        name="party_target_temp",
         value=220,
         min_value=100,
         max_value=350,

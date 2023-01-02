@@ -5,13 +5,13 @@ import math
 from typing import Final, List, Optional, Tuple
 
 from pyplumio import util
-from pyplumio.const import ATTR_MIXER_SENSORS, ATTR_MIXERS_NUMBER
+from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
-ATTR_MIXER_TEMP: Final = "mixer_temp"
-ATTR_MIXER_TARGET: Final = "mixer_target"
-ATTR_MIXER_PUMP_OUTPUT: Final = "mixer_pump"
+ATTR_PUMP: Final = "pump"
+ATTR_MIXER_COUNT: Final = "mixer_count"
+ATTR_MIXER_SENSORS: Final = "mixer_sensors"
 
 
 class MixerSensorsStructure(StructureDecoder):
@@ -21,31 +21,31 @@ class MixerSensorsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
     ) -> Tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
-        mixers_number = message[offset]
+        mixer_count = message[offset]
         offset += 1
         mixer_sensors: List[Tuple[int, DeviceDataType]] = []
-        for mixer_number in range(mixers_number):
-            mixer_temp = util.unpack_float(message[offset : offset + 4])[0]
-            if not math.isnan(mixer_temp):
-                mixer: DeviceDataType = {}
-                mixer[ATTR_MIXER_TEMP] = mixer_temp
-                mixer[ATTR_MIXER_TARGET] = message[offset + 4]
-                mixer_outputs = message[offset + 6]
-                mixer[ATTR_MIXER_PUMP_OUTPUT] = bool(mixer_outputs & 0x01)
-                mixer_sensors.append((mixer_number, mixer))
+        for index in range(mixer_count):
+            current_temp = util.unpack_float(message[offset : offset + 4])[0]
+            if not math.isnan(current_temp):
+                sensors: DeviceDataType = {}
+                sensors[ATTR_CURRENT_TEMP] = current_temp
+                sensors[ATTR_TARGET_TEMP] = message[offset + 4]
+                outputs = message[offset + 6]
+                sensors[ATTR_PUMP] = bool(outputs & 0x01)
+                mixer_sensors.append((index, sensors))
 
             offset += 8
 
         if not mixer_sensors:
             # No mixer sensors detected.
-            return data, offset
+            return ensure_device_data(data), offset
 
         return (
             ensure_device_data(
                 data,
                 {
                     ATTR_MIXER_SENSORS: mixer_sensors,
-                    ATTR_MIXERS_NUMBER: mixers_number,
+                    ATTR_MIXER_COUNT: mixer_count,
                 },
             ),
             offset,

@@ -116,9 +116,9 @@ class SetMixerParameterRequest(Request):
         try:
             index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
-            mixer_number = data[ATTR_EXTRA]
+            mixer_index = data[ATTR_EXTRA]
             message = bytearray()
-            message.append(mixer_number)
+            message.append(mixer_index)
             message.append(index)
             message.append(value)
             return message

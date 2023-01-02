@@ -6,14 +6,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Final
 
-from pyplumio.const import (
-    ATTR_EXTRA,
-    ATTR_INDEX,
-    ATTR_PRODUCT,
-    ATTR_VALUE,
-    STATE_OFF,
-    STATE_ON,
-)
+from pyplumio.const import ATTR_EXTRA, ATTR_INDEX, ATTR_VALUE, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.product_info import ProductType
@@ -28,6 +21,7 @@ from pyplumio.structures.mixer_parameters import (
     ECOMAX_I_MIXER_PARAMETERS,
     ECOMAX_P_MIXER_PARAMETERS,
 )
+from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PROFILE,
     THERMOSTAT_PARAMETERS,

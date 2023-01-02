@@ -9,23 +9,14 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.const import (
-    ATTR_ALERTS,
-    ATTR_ECOMAX_PARAMETERS,
     ATTR_EXTRA,
     ATTR_INDEX,
-    ATTR_MIXER_PARAMETERS,
-    ATTR_NETWORK,
     ATTR_PARAMETER,
     ATTR_PASSWORD,
-    ATTR_PRODUCT,
     ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
     ATTR_SWITCH,
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTATS_NUMBER,
     ATTR_TYPE,
     ATTR_VALUE,
-    ATTR_VERSION,
     FrameType,
 )
 from pyplumio.devices.ecomax import EcoMAX
@@ -38,8 +29,18 @@ from pyplumio.helpers.network_info import (
 from pyplumio.helpers.product_info import ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
-from pyplumio.structures.alerts import Alert
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
+from pyplumio.structures.alerts import ATTR_ALERTS, Alert
+from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
+from pyplumio.structures.network_info import ATTR_NETWORK
+from pyplumio.structures.product_info import ATTR_PRODUCT
+from pyplumio.structures.program_version import ATTR_VERSION
+from pyplumio.structures.schedules import ATTR_SCHEDULES
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PROFILE,
+)
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
 TEST_SCHEDULE: List[bool] = [
     False,
@@ -148,7 +149,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ]
         },
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
-            ATTR_THERMOSTATS_NUMBER: 3,
+            ATTR_THERMOSTAT_COUNT: 3,
             ATTR_THERMOSTAT_PROFILE: None,
             ATTR_THERMOSTAT_PARAMETERS: [
                 (

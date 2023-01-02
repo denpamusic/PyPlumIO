@@ -8,26 +8,19 @@ import warnings
 import pytest
 
 from pyplumio.const import (
-    ATTR_ECOMAX_PARAMETERS,
-    ATTR_ECOMAX_SENSORS,
-    ATTR_FRAME_VERSIONS,
-    ATTR_FUEL_BURNED,
-    ATTR_FUEL_CONSUMPTION,
-    ATTR_MIXER_PARAMETERS,
-    ATTR_MIXER_SENSORS,
-    ATTR_MIXERS,
-    ATTR_REGDATA,
     ATTR_SCHEDULE,
-    ATTR_SCHEDULES,
+    ATTR_SENSORS,
     ATTR_STATE,
-    ATTR_THERMOSTAT_SENSORS,
-    ATTR_THERMOSTATS,
-    ATTR_THERMOSTATS_NUMBER,
     DeviceType,
     FrameType,
 )
 from pyplumio.devices import Mixer, Thermostat, get_device_handler
-from pyplumio.devices.ecomax import EcoMAX
+from pyplumio.devices.ecomax import (
+    ATTR_FUEL_BURNED,
+    ATTR_MIXERS,
+    ATTR_THERMOSTATS,
+    EcoMAX,
+)
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Response
@@ -56,10 +49,23 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
+from pyplumio.structures.ecomax_parameters import (
+    ATTR_ECOMAX_CONTROL,
+    ATTR_ECOMAX_PARAMETERS,
+)
+from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
+from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
+from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
+from pyplumio.structures.regulator_data import ATTR_REGDATA
+from pyplumio.structures.schedules import ATTR_SCHEDULES
 from pyplumio.structures.statuses import ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
+from pyplumio.structures.thermostat_sensors import (
+    ATTR_THERMOSTAT_COUNT,
+    ATTR_THERMOSTAT_SENSORS,
+)
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -120,7 +126,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
 async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are fired on received data frames."""
     frames = (
-        Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 42}}),
+        Response(data={ATTR_SENSORS: {"test_sensor": 42}}),
         Response(data={ATTR_STATE: 1}),
     )
     for frame in frames:
@@ -200,7 +206,7 @@ async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
     mixers = await ecomax.get_value(ATTR_MIXERS)
     assert len(mixers) == 1
     assert isinstance(mixers[0], Mixer)
-    assert mixers[0].mixer_number == 0
+    assert mixers[0].index == 0
     assert await mixers[0].get_value("test_sensor") == 42
 
 
@@ -213,7 +219,7 @@ async def test_thermostat_sensors_callbacks(ecomax: EcoMAX) -> None:
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
     assert isinstance(thermostats[0], Thermostat)
-    assert thermostats[0].thermostat_number == 0
+    assert thermostats[0].index == 0
     assert await thermostats[0].get_value("test_sensor") == 42
 
 
@@ -232,8 +238,9 @@ async def test_thermostat_parameters_callbacks(
     assert ATTR_THERMOSTAT_PROFILE not in ecomax.data
     assert ATTR_THERMOSTATS not in ecomax.data
 
-    # Test handling thermostat parameters with two thermostats.
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_NUMBER: 3}))
+    # Test handling thermostat parameters with support for three
+    # thermostats with only one working.
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
             message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
@@ -242,9 +249,7 @@ async def test_thermostat_parameters_callbacks(
     await ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
-    party_target_temp = await thermostats[0].get_parameter(
-        "thermostat_party_target_temp"
-    )
+    party_target_temp = await thermostats[0].get_parameter("party_target_temp")
     assert party_target_temp.value == 22.0
     assert party_target_temp.min_value == 10.0
     assert party_target_temp.max_value == 35.0
@@ -287,7 +292,7 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     test_binary_parameter = await mixers[0].get_parameter("mixer_target_temp")
     assert test_binary_parameter.value == 0
     assert isinstance(test_binary_parameter, MixerBinaryParameter)
-    test_parameter = await mixers[0].get_parameter("min_mixer_target_temp")
+    test_parameter = await mixers[0].get_parameter("min_target_temp")
     assert isinstance(test_parameter, MixerParameter)
     assert test_parameter.value == 10
     assert test_parameter.min_value == 5
@@ -332,20 +337,20 @@ async def test_subscribe(ecomax: EcoMAX) -> None:
     """Test callback registration."""
     mock_callback = AsyncMock(return_value=None)
     ecomax.subscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 42.1}}))
+    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 42.1}}))
     await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(42.1)
     mock_callback.reset_mock()
 
     # Test with change.
-    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 45}}))
+    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 45}}))
     await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(45)
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
     ecomax.unsubscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_ECOMAX_SENSORS: {"test_sensor": 50}}))
+    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 50}}))
     await ecomax.wait_until_done()
     mock_callback.assert_not_awaited()
 
