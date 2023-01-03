@@ -1,5 +1,6 @@
 """Contains schedule decoder."""
 
+from functools import lru_cache
 from typing import Dict, Final, List, Optional, Sequence, Tuple, Union
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
@@ -56,6 +57,7 @@ SCHEDULES: Tuple[str, ...] = (
 )
 
 
+@lru_cache(maxsize=16)
 def _split_byte(byte: int) -> List[bool]:
     """Split single byte into an eight bits."""
     bits = []
