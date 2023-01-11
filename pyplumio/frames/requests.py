@@ -3,7 +3,13 @@ from __future__ import annotations
 
 from typing import ClassVar, Optional
 
-from pyplumio.const import ATTR_EXTRA, ATTR_INDEX, ATTR_VALUE, FrameType
+from pyplumio.const import (
+    ATTR_DEVICE_INDEX,
+    ATTR_INDEX,
+    ATTR_OFFSET,
+    ATTR_VALUE,
+    FrameType,
+)
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
@@ -116,7 +122,7 @@ class SetMixerParameterRequest(Request):
         try:
             index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
-            mixer_index = data[ATTR_EXTRA]
+            mixer_index = data[ATTR_DEVICE_INDEX]
             message = bytearray()
             message.append(mixer_index)
             message.append(index)
@@ -137,7 +143,7 @@ class SetThermostatParameterRequest(Request):
             message = bytearray()
             index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
-            offset = data[ATTR_EXTRA]
+            offset = data[ATTR_OFFSET]
             message.append(index if offset is None else index + offset)
             message.append(value)
             return message

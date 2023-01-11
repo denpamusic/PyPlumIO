@@ -184,7 +184,7 @@ async def test_write_consumer(
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
 @patch("pyplumio.frames.requests.ProgramVersionRequest.response")
-@patch("pyplumio.protocol.Device.handle_frame")
+@patch("pyplumio.protocol.Addressable.handle_frame")
 async def test_frame_consumer(
     mock_handle_frame,
     mock_program_version_response,

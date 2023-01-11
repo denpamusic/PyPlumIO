@@ -4,10 +4,10 @@ from __future__ import annotations
 from typing import ClassVar
 
 from pyplumio.const import DeviceType
-from pyplumio.devices import Device
+from pyplumio.devices import Addressable
 
 
-class EcoSTER(Device):
+class EcoSTER(Addressable):
     """Represents ecoSTER thermostat."""
 
     address: ClassVar[int] = DeviceType.ECOSTER

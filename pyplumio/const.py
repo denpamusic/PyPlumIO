@@ -9,7 +9,6 @@ STATE_OFF: Final = "off"
 
 ATTR_INDEX: Final = "index"
 ATTR_VALUE: Final = "value"
-ATTR_EXTRA: Final = "extra"
 ATTR_STATE: Final = "state"
 ATTR_SENSORS: Final = "sensors"
 ATTR_PASSWORD: Final = "password"
@@ -21,6 +20,8 @@ ATTR_TRANSMISSION: Final = "transmission"
 ATTR_THERMOSTAT: Final = "thermostat"
 ATTR_CURRENT_TEMP: Final = "current_temp"
 ATTR_TARGET_TEMP: Final = "target_temp"
+ATTR_DEVICE_INDEX: Final = "device_index"
+ATTR_OFFSET: Final = "offset"
 
 BYTE_UNDEFINED: Final = 0xFF
 

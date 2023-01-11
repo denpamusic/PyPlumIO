@@ -1,16 +1,22 @@
 """Contains tests for devices."""
 
 import asyncio
-from typing import Dict, Tuple
+from typing import Dict
 from unittest.mock import AsyncMock, Mock, call, patch
-import warnings
 
 import pytest
 
 from pyplumio.const import (
+    ATTR_DEVICE_INDEX,
+    ATTR_INDEX,
+    ATTR_OFFSET,
+    ATTR_PARAMETER,
     ATTR_SCHEDULE,
     ATTR_SENSORS,
     ATTR_STATE,
+    ATTR_SWITCH,
+    ATTR_TYPE,
+    ATTR_VALUE,
     STATE_OFF,
     STATE_ON,
     DeviceType,
@@ -26,48 +32,55 @@ from pyplumio.devices.ecomax import (
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Response
-from pyplumio.frames.messages import RegulatorDataMessage
+from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
     DataSchemaRequest,
+    EcomaxControlRequest,
     EcomaxParametersRequest,
     MixerParametersRequest,
     PasswordRequest,
     SchedulesRequest,
+    SetEcomaxParameterRequest,
+    SetMixerParameterRequest,
+    SetScheduleRequest,
+    SetThermostatParameterRequest,
     StartMasterRequest,
     ThermostatParametersRequest,
     UIDRequest,
 )
-from pyplumio.frames.responses import DataSchemaResponse, ThermostatParametersResponse
-from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
-from pyplumio.helpers.parameter import (
-    EcomaxBinaryParameter,
-    EcomaxParameter,
-    MixerBinaryParameter,
-    MixerParameter,
-    Parameter,
-    ScheduleBinaryParameter,
-    ScheduleParameter,
+from pyplumio.frames.responses import (
+    DataSchemaResponse,
+    EcomaxParametersResponse,
+    MixerParametersResponse,
+    SchedulesResponse,
+    ThermostatParametersResponse,
 )
+from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
-    ATTR_ECOMAX_PARAMETERS,
+    EcomaxBinaryParameter,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
-from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
+from pyplumio.structures.mixer_parameters import MixerBinaryParameter, MixerParameter
 from pyplumio.structures.regulator_data import ATTR_REGDATA
-from pyplumio.structures.schedules import ATTR_SCHEDULES
+from pyplumio.structures.schedules import (
+    ATTR_SCHEDULE_PARAMETER,
+    ATTR_SCHEDULE_SWITCH,
+    ATTR_SCHEDULES,
+    ScheduleBinaryParameter,
+    ScheduleParameter,
+)
 from pyplumio.structures.statuses import ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
-from pyplumio.structures.thermostat_sensors import (
-    ATTR_THERMOSTAT_COUNT,
-    ATTR_THERMOSTAT_SENSORS,
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PROFILE,
+    ThermostatParameter,
 )
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -86,33 +99,33 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
-async def test_frame_versions_update(ecomax: EcoMAX) -> None:
+@patch("asyncio.Queue.put_nowait")
+async def test_frame_versions_update(mock_put_nowait, ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
-    versions = FrameVersions(ecomax)
-    with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
-        await versions.async_update(
-            {
-                FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
-                UNKNOWN_FRAME: DEFAULT_FRAME_VERSION,
-            }
-        )
-        await versions.async_update(
-            {int(x): DEFAULT_FRAME_VERSION for x in ecomax.required_frames}
-        )
-
-    calls = [
-        call(StartMasterRequest(recipient=DeviceType.ECOMAX)),
-        call(UIDRequest(recipient=DeviceType.ECOMAX)),
-        call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
-        call(EcomaxParametersRequest(recipient=DeviceType.ECOMAX)),
-        call(MixerParametersRequest(recipient=DeviceType.ECOMAX)),
-        call(PasswordRequest(recipient=DeviceType.ECOMAX)),
-        call(AlertsRequest(recipient=DeviceType.ECOMAX)),
-        call(SchedulesRequest(recipient=DeviceType.ECOMAX)),
-        call(ThermostatParametersRequest(recipient=DeviceType.ECOMAX)),
-    ]
-    mock_put_nowait.assert_has_calls(calls)
-    assert versions.versions == {
+    frame_versions = FrameVersions(device=ecomax)
+    await frame_versions.async_update(
+        {
+            FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
+            UNKNOWN_FRAME: DEFAULT_FRAME_VERSION,
+        }
+    )
+    await frame_versions.async_update(
+        {int(x): DEFAULT_FRAME_VERSION for x in ecomax.required_frames}
+    )
+    mock_put_nowait.assert_has_calls(
+        [
+            call(StartMasterRequest(recipient=DeviceType.ECOMAX)),
+            call(UIDRequest(recipient=DeviceType.ECOMAX)),
+            call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
+            call(EcomaxParametersRequest(recipient=DeviceType.ECOMAX)),
+            call(MixerParametersRequest(recipient=DeviceType.ECOMAX)),
+            call(PasswordRequest(recipient=DeviceType.ECOMAX)),
+            call(AlertsRequest(recipient=DeviceType.ECOMAX)),
+            call(SchedulesRequest(recipient=DeviceType.ECOMAX)),
+            call(ThermostatParametersRequest(recipient=DeviceType.ECOMAX)),
+        ]
+    )
+    assert frame_versions.versions == {
         FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
         FrameType.REQUEST_UID: DEFAULT_FRAME_VERSION,
         FrameType.REQUEST_DATA_SCHEMA: DEFAULT_FRAME_VERSION,
@@ -125,42 +138,47 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     }
 
 
-async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
+async def test_ecomax_data_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
     """Test callbacks that are fired on received data frames."""
-    frames = (
-        Response(data={ATTR_SENSORS: {"test_sensor": 42}}),
-        Response(data={ATTR_STATE: 1}),
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    for frame in frames:
-        ecomax.handle_frame(frame)
+    assert ecomax.wait_until_done()
+    heating_target = await ecomax.get_value("heating_target")
+    assert heating_target == 41.0
 
-    assert await ecomax.get_value("test_sensor") == 42
-    ecomax_control = await ecomax.get_parameter("ecomax_control")
+    ecomax_control = await ecomax.get_parameter(ATTR_ECOMAX_CONTROL)
     assert isinstance(ecomax_control, EcomaxBinaryParameter)
-    assert ecomax_control.value == STATE_ON
+    assert isinstance(ecomax_control.request, EcomaxControlRequest)
+    assert ecomax_control.value == STATE_OFF
+    assert ecomax_control.request.data == {ATTR_VALUE: 0}
 
 
-async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
+async def test_ecomax_parameters_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
     """Test callbacks that are fired on received parameter frames."""
     ecomax.handle_frame(
-        Response(
-            data={
-                ATTR_ECOMAX_PARAMETERS: [
-                    (0, [0, 0, 1]),
-                    (1, [10, 5, 20]),
-                ]
-            }
-        )
+        EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
     )
+    assert ecomax.wait_until_done()
+    fuzzy_logic = await ecomax.get_parameter("fuzzy_logic")
+    assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
+    assert isinstance(fuzzy_logic.request, SetEcomaxParameterRequest)
+    assert fuzzy_logic.value == STATE_ON
+    fuzzy_logic_value = await ecomax.get_value("fuzzy_logic")
+    assert fuzzy_logic_value == STATE_ON
+    assert fuzzy_logic.request.data == {
+        ATTR_INDEX: 18,
+        ATTR_VALUE: 1,
+    }
 
-    assert await ecomax.get_value("airflow_power_100") == STATE_OFF
-    test_binary_parameter = await ecomax.get_parameter("airflow_power_100")
-    assert isinstance(test_binary_parameter, EcomaxBinaryParameter)
-    assert await ecomax.get_value("airflow_power_50") == 10
-    test_parameter = await ecomax.get_parameter("airflow_power_50")
-    assert test_parameter.value == 10
-    assert test_parameter.min_value == 5
-    assert test_parameter.max_value == 20
+    airflow_power_50 = await ecomax.get_parameter("airflow_power_50")
+    assert airflow_power_50.value == 60.0
+    assert airflow_power_50.min_value == 41.0
+    assert airflow_power_50.max_value == 60.0
 
 
 @patch("time.time", side_effect=(0, 10, 600, 610))
@@ -168,9 +186,10 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     """Test callbacks that are fired on received fuel consumption."""
     ecomax = EcoMAX(asyncio.Queue())
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+    fuel_burned = await ecomax.get_value(ATTR_FUEL_BURNED)
+    assert fuel_burned == 0.01
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
-    assert await ecomax.get_value(ATTR_FUEL_BURNED) == 0.01
     assert "Skipping outdated fuel consumption" in caplog.text
 
 
@@ -178,14 +197,6 @@ async def test_regdata_callbacks(
     ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on received regdata."""
-    # Test handling regdata without data schema.
-    ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-    )
-    await ecomax.wait_until_done()
-    assert await ecomax.get_value(ATTR_FRAME_VERSIONS)
-
-    # Set data schema and decode the regdata.
     ecomax.handle_frame(
         DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     )
@@ -193,7 +204,6 @@ async def test_regdata_callbacks(
         RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
     await ecomax.wait_until_done()
-
     regdata = await ecomax.get_value(ATTR_REGDATA)
     assert regdata[ATTR_STATE] == 0
     assert round(regdata[ATTR_HEATING_TEMP], 1) == 22.4
@@ -202,46 +212,62 @@ async def test_regdata_callbacks(
     assert regdata["184"] == "255.255.255.0"
 
 
-async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
-    """Test callbacks that are fired on receiving mixer sensors info."""
-    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [(0, {"test_sensor": 42})]}))
-    mixers = await ecomax.get_value(ATTR_MIXERS)
-    assert len(mixers) == 1
-    assert isinstance(mixers[0], Mixer)
-    assert mixers[0].index == 0
-    assert await mixers[0].get_value("test_sensor") == 42
-
-
-async def test_thermostat_sensors_callbacks(ecomax: EcoMAX) -> None:
-    """Test callbacks that are fired on receiving thermostat sensors info."""
+async def test_regdata_callbacks_without_schema(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
+    """Test callbacks that are fired on received regdata."""
     ecomax.handle_frame(
-        Response(data={ATTR_THERMOSTAT_SENSORS: [(0, {"test_sensor": 42})]})
+        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
     await ecomax.wait_until_done()
+    assert ATTR_FRAME_VERSIONS in ecomax.data
+    assert ATTR_REGDATA not in ecomax.data
+
+
+async def test_mixer_sensors_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
+    """Test callbacks that are fired on receiving mixer sensors info."""
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    assert ecomax.wait_until_done()
+    mixers = await ecomax.get_value(ATTR_MIXERS)
+    assert len(mixers) == 1
+    mixer = mixers[0]
+    assert isinstance(mixer, Mixer)
+    assert mixer.index == 4
+    assert mixer.data == {"current_temp": 20.0, "target_temp": 40, "pump": False}
+
+
+async def test_thermostat_sensors_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
+    """Test callbacks that are fired on receiving thermostat sensors info."""
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    assert ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
-    assert isinstance(thermostats[0], Thermostat)
-    assert thermostats[0].index == 0
-    assert await thermostats[0].get_value("test_sensor") == 42
+    thermostat = thermostats[0]
+    assert isinstance(thermostat, Thermostat)
+    assert thermostat.index == 0
+    assert thermostat.data == {
+        "state": 3,
+        "current_temp": 43.5,
+        "target_temp": 50.0,
+        "contacts": True,
+        "schedule": False,
+    }
+    thermostat_count = await ecomax.get_value(ATTR_THERMOSTAT_COUNT)
+    assert thermostat_count == 1
 
 
 async def test_thermostat_parameters_callbacks(
     ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on receiving thermostat parameters."""
-    # Test handling thermostat parameters without thermostats.
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_SENSORS: []}))
-    ecomax.handle_frame(
-        ThermostatParametersResponse(
-            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-        )
-    )
-    await ecomax.wait_until_done()
-    assert ATTR_THERMOSTAT_PROFILE not in ecomax.data
-    assert ATTR_THERMOSTATS not in ecomax.data
-
-    # Test handling thermostat parameters with support for three
-    # thermostats with only one working.
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
@@ -251,108 +277,158 @@ async def test_thermostat_parameters_callbacks(
     await ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
-    party_target_temp = await thermostats[0].get_parameter("party_target_temp")
+    thermostat = thermostats[0]
+    assert len(thermostat.data) == 12
+    party_target_temp = await thermostat.get_parameter("party_target_temp")
+    assert isinstance(party_target_temp, ThermostatParameter)
+    assert isinstance(party_target_temp.request, SetThermostatParameterRequest)
     assert party_target_temp.value == 22.0
     assert party_target_temp.min_value == 10.0
     assert party_target_temp.max_value == 35.0
-    assert party_target_temp.extra == 0
+    assert party_target_temp.offset == 0
+    assert party_target_temp.request.data == {
+        ATTR_INDEX: 2,
+        ATTR_VALUE: 220,
+        ATTR_OFFSET: 0,
+    }
 
 
-async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
-    """Test callbacks that are fired on receiving thermostat profile."""
-    test_parameter = EcomaxParameter(
-        device=ecomax, name=ATTR_THERMOSTAT_PROFILE, value=2, min_value=0, max_value=5
+async def test_thermostat_parameters_callbacks_without_thermostats(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
+    """Test callbacks that are fired on receiving thermostat parameters."""
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 0}))
+    ecomax.handle_frame(
+        ThermostatParametersResponse(
+            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+        )
     )
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_PROFILE: (2, 0, 5)}))
     await ecomax.wait_until_done()
-    assert await ecomax.get_parameter(ATTR_THERMOSTAT_PROFILE) == test_parameter
+    assert ATTR_THERMOSTAT_PROFILE not in ecomax.data
+    assert ATTR_THERMOSTATS not in ecomax.data
 
-    # Test when parameter is None.
+
+async def test_thermostat_profile_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
+    """Test callbacks that are fired on receiving thermostat profile."""
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
+    ecomax.handle_frame(
+        ThermostatParametersResponse(
+            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+        )
+    )
+    await ecomax.wait_until_done()
+    thermostat_profile = await ecomax.get_parameter(ATTR_THERMOSTAT_PROFILE)
+    assert thermostat_profile.value == 0.0
+    assert thermostat_profile.min_value == 0.0
+    assert thermostat_profile.max_value == 5.0
+    assert isinstance(thermostat_profile.request, SetThermostatParameterRequest)
+    assert thermostat_profile.request.data == {
+        ATTR_INDEX: 0,
+        ATTR_VALUE: 0,
+        ATTR_OFFSET: 0,
+    }
+
+    # Test when thermostat profile is none.
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_PROFILE: None}))
     await ecomax.wait_until_done()
     assert await ecomax.get_value(ATTR_THERMOSTAT_PROFILE) is None
 
 
-async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
+async def test_mixer_parameters_callbacks(
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
     """Test callbacks that are fired on receiving mixer parameters."""
     ecomax.handle_frame(
-        Response(
-            data={
-                ATTR_MIXER_PARAMETERS: [
-                    (
-                        0,
-                        [
-                            (0, [0, 0, 1]),
-                            (1, [10, 5, 20]),
-                        ],
-                    )
-                ]
-            }
-        )
+        MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
     )
     mixers = await ecomax.get_value(ATTR_MIXERS)
-    test_binary_parameter = await mixers[0].get_parameter("mixer_target_temp")
-    assert test_binary_parameter.value == STATE_OFF
-    assert isinstance(test_binary_parameter, MixerBinaryParameter)
-    test_parameter = await mixers[0].get_parameter("min_target_temp")
-    assert isinstance(test_parameter, MixerParameter)
-    assert test_parameter.value == 10
-    assert test_parameter.min_value == 5
-    assert test_parameter.max_value == 20
+    assert len(mixers) == 1
+    mixer = mixers[0]
+    assert len(mixer.data) == 6
+    mixer_target_temp = await mixer.get_parameter("mixer_target_temp")
+    assert isinstance(mixer_target_temp, MixerParameter)
+    assert isinstance(mixer_target_temp.request, SetMixerParameterRequest)
+    assert mixer_target_temp.value == 40.0
+    assert mixer_target_temp.min_value == 30.0
+    assert mixer_target_temp.max_value == 60.0
+    assert mixer_target_temp.request.data == {
+        ATTR_INDEX: 0,
+        ATTR_VALUE: 40,
+        ATTR_DEVICE_INDEX: 0,
+    }
+
+    weather_control = await mixer.get_parameter("weather_control")
+    assert isinstance(weather_control, MixerBinaryParameter)
+    assert weather_control.value == STATE_ON
+
+    heat_curve = await mixer.get_parameter("heat_curve")
+    assert isinstance(heat_curve, MixerParameter)
+    assert heat_curve.value == 1.3
+    assert heat_curve.min_value == 1.0
+    assert heat_curve.max_value == 3.0
 
 
 async def test_schedule_callback(
-    ecomax: EcoMAX, data: Dict[int, DeviceDataType]
+    ecomax: EcoMAX, messages: Dict[int, bytearray], data: Dict[int, DeviceDataType]
 ) -> None:
     """Test callback that is fired on receiving schedule data."""
-    ecomax.handle_frame(Response(data=data[FrameType.RESPONSE_SCHEDULES]))
-    schedule = (await ecomax.get_value(ATTR_SCHEDULES))["heating"]
-    schedule_switch = await ecomax.get_parameter("schedule_heating_switch")
-    schedule_parameter = await ecomax.get_parameter("schedule_heating_parameter")
-    assert isinstance(schedule, Schedule)
-    assert schedule_switch.value == STATE_OFF
-    assert isinstance(schedule_switch, ScheduleBinaryParameter)
-    assert schedule_parameter.value == 5
-    assert schedule_parameter.min_value == 0
-    assert schedule_parameter.max_value == 30
-    assert isinstance(schedule_parameter, ScheduleParameter)
-    schedule_data = data[FrameType.RESPONSE_SCHEDULES][ATTR_SCHEDULES]["heating"]
-    assert schedule.sunday.intervals == schedule_data[ATTR_SCHEDULE][0]
+    ecomax.handle_frame(
+        SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])
+    )
+    schedules = await ecomax.get_value(ATTR_SCHEDULES)
+    assert len(schedules) == 1
+    heating_schedule = schedules["heating"]
+    assert isinstance(heating_schedule, Schedule)
+
+    heating_schedule_switch = await ecomax.get_parameter("heating_schedule_switch")
+    assert heating_schedule_switch.value == STATE_OFF
+    assert isinstance(heating_schedule_switch, ScheduleBinaryParameter)
+
+    heating_schedule_parameter = await ecomax.get_parameter(
+        "heating_schedule_parameter"
+    )
+    assert isinstance(heating_schedule_parameter, ScheduleParameter)
+    assert isinstance(heating_schedule_parameter.request, SetScheduleRequest)
+    assert heating_schedule_parameter.value == 5
+    assert heating_schedule_parameter.min_value == 0
+    assert heating_schedule_parameter.max_value == 30
+    assert heating_schedule_parameter.request.data == {
+        ATTR_TYPE: "heating",
+        ATTR_SWITCH: ecomax.data[f"heating_{ATTR_SCHEDULE_SWITCH}"],
+        ATTR_PARAMETER: ecomax.data[f"heating_{ATTR_SCHEDULE_PARAMETER}"],
+        ATTR_SCHEDULE: ecomax.data[ATTR_SCHEDULES]["heating"],
+    }
+
+    schedule_data = data[FrameType.RESPONSE_SCHEDULES][ATTR_SCHEDULES][0][1]
+    for index, weekday in enumerate(
+        ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
+    ):
+        schedule = getattr(heating_schedule, weekday)
+        assert schedule.intervals == schedule_data[index]
 
 
-async def test_deprecated(ecomax: EcoMAX) -> None:
-    """Test deprecated function warnings."""
-    mock_callback = AsyncMock(return_value=None)
-    deprecated: Tuple[str, ...] = ()
-
-    for func_name in deprecated:
-        with warnings.catch_warnings(record=True) as warn:
-            func = getattr(ecomax, func_name)
-            warnings.simplefilter("always")
-            func("test_sensor", mock_callback)
-            assert len(warn) == 1
-            assert issubclass(warn[-1].category, DeprecationWarning)
-            assert "deprecated" in str(warn[-1].message)
-
-
-async def test_subscribe(ecomax: EcoMAX) -> None:
+async def test_subscribe(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None:
     """Test callback registration."""
     mock_callback = AsyncMock(return_value=None)
-    ecomax.subscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 42.1}}))
+    ecomax.subscribe("heating_target", mock_callback)
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
     await ecomax.wait_until_done()
-    mock_callback.assert_awaited_once_with(42.1)
+    mock_callback.assert_awaited_once_with(41)
     mock_callback.reset_mock()
 
     # Test with change.
-    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 45}}))
+    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"heating_target": 45}}))
     await ecomax.wait_until_done()
     mock_callback.assert_awaited_once_with(45)
     mock_callback.reset_mock()
 
     # Remove the callback and make sure it doesn't fire again.
-    ecomax.unsubscribe("test_sensor", mock_callback)
-    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"test_sensor": 50}}))
+    ecomax.unsubscribe("heating_target", mock_callback)
+    ecomax.handle_frame(Response(data={ATTR_SENSORS: {"heating_target": 50}}))
     await ecomax.wait_until_done()
     mock_callback.assert_not_awaited()
 
@@ -361,7 +437,7 @@ async def test_get_value(ecomax: EcoMAX) -> None:
     """Test wait for device method."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
-        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
+        "pyplumio.devices.Device.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
         await ecomax.get_value("foo")
@@ -370,28 +446,46 @@ async def test_get_value(ecomax: EcoMAX) -> None:
     mock_event.wait.assert_awaited_once()
 
 
-async def test_set_value(ecomax: EcoMAX) -> None:
+@patch("pyplumio.helpers.parameter.Parameter.is_changed", False)
+async def test_set_value(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None:
     """Test setting parameter value via set_value helper."""
-    # Test with valid parameter.
-    mock_event = Mock(spec=asyncio.Event)
-    with pytest.raises(KeyError), patch(
-        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
-    ) as mock_create_event:
-        mock_event.wait = AsyncMock()
-        await ecomax.set_value("foo", 1)
+    ecomax.handle_frame(
+        EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
+    )
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
+    ecomax.handle_frame(
+        ThermostatParametersResponse(
+            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+        )
+    )
+    ecomax.handle_frame(
+        MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
+    )
+    assert ecomax.wait_until_done()
 
-    mock_create_event.assert_called_once_with("foo")
-    mock_event.wait.assert_awaited_once()
-    ecomax.data["foo"] = Mock(spec=Parameter)
-    await ecomax.set_value("foo", 2)
-    ecomax.data["foo"].set.assert_called_once_with(2)
+    # Test setting an ecomax parameter.
+    assert await ecomax.set_value("fuel_flow_kg_h", 13.0)
+    fuel_flow_kg_h = await ecomax.get_value("fuel_flow_kg_h")
+    assert fuel_flow_kg_h == 13.0
 
-    # Test without blocking.
+    # Test setting an ecomax parameter without blocking.
     with patch(
         "pyplumio.helpers.task_manager.TaskManager.create_task"
     ) as mock_create_task:
-        await ecomax.set_value("foo", 2, await_confirmation=False)
+        await ecomax.set_value("fuel_flow_kg_h", 10, await_confirmation=False)
         mock_create_task.assert_called_once()
+
+    # Test setting a thermostat parameter.
+    thermostat = ecomax.data[ATTR_THERMOSTATS][0]
+    assert await thermostat.set_value("party_target_temp", 21.0)
+    target_party_temp = await thermostat.get_value("party_target_temp")
+    assert target_party_temp == 21.0
+
+    # Test setting a mixer parameter.
+    mixer = ecomax.data[ATTR_MIXERS][0]
+    assert await mixer.set_value("mixer_target_temp", 35.0)
+    mixer_target_temp = await mixer.get_value("mixer_target_temp")
+    assert mixer_target_temp == 35.0
 
     # Test with invalid parameter.
     ecomax.data["bar"] = Mock()
@@ -403,7 +497,7 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     """Test getting parameter from device."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
-        "pyplumio.devices.BaseDevice.create_event", return_value=mock_event
+        "pyplumio.devices.Device.create_event", return_value=mock_event
     ) as mock_create_event:
         mock_event.wait = AsyncMock()
         await ecomax.get_parameter("foo")
@@ -437,19 +531,19 @@ async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
 
 @patch("pyplumio.devices.Mixer.shutdown")
 @patch("pyplumio.devices.Thermostat.shutdown")
-@patch("pyplumio.devices.BaseDevice.cancel_tasks")
-@patch("pyplumio.devices.BaseDevice.wait_until_done")
+@patch("pyplumio.devices.Device.cancel_tasks")
+@patch("pyplumio.devices.Device.wait_until_done")
 async def test_shutdown(
     mock_wait_until_done,
     mock_cancel_tasks,
     mock_thermostat_shutdown,
     mock_mixer_shutdown,
     ecomax: EcoMAX,
+    messages: Dict[int, bytearray],
 ) -> None:
     """Test device tasks shutdown."""
-    ecomax.handle_frame(Response(data={ATTR_MIXER_SENSORS: [(0, {"test_sensor": 42})]}))
     ecomax.handle_frame(
-        Response(data={ATTR_THERMOSTAT_SENSORS: [(0, {"test_sensors": 42})]})
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
     await ecomax.get_value(ATTR_MIXERS)
     await ecomax.get_value(ATTR_THERMOSTATS)

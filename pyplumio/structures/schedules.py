@@ -1,15 +1,28 @@
 """Contains schedule decoder."""
 
+from dataclasses import dataclass
 from functools import lru_cache
-from typing import Dict, Final, List, Optional, Sequence, Tuple, Union
+from itertools import chain
+from typing import TYPE_CHECKING, Final, List, Optional, Sequence, Tuple, Type, Union
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
+from pyplumio.devices import Addressable, Device
 from pyplumio.exceptions import FrameDataError
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.factory import factory
+from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
 from pyplumio.structures import Structure, ensure_device_data
 from pyplumio.util import unpack_parameter
 
+if TYPE_CHECKING:
+    from pyplumio.frames import Request
+else:
+    Request = object
+
 ATTR_SCHEDULES: Final = "schedules"
+ATTR_SCHEDULE_PARAMETERS: Final = "schedule_parameters"
+ATTR_SCHEDULE_SWITCH: Final = "schedule_switch"
+ATTR_SCHEDULE_PARAMETER: Final = "schedule_parameter"
 
 SCHEDULE_SIZE: Final = 42  # 6 bytes per day, 7 days total
 
@@ -55,6 +68,59 @@ SCHEDULES: Tuple[str, ...] = (
     "intake",
     "intake_summer",
 )
+
+
+class ScheduleParameter(Parameter):
+    """Represents schedule parameter."""
+
+    device: Addressable
+
+    @property
+    def request(self) -> Request:
+        """Return request to change the parameter."""
+        schedule_name, _ = self.description.name.split("_", 1)
+        return factory(
+            "frames.requests.SetScheduleRequest",
+            recipient=self.device.address,
+            data=collect_schedule_data(schedule_name, self.device),
+        )
+
+
+class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
+    """Represents schedule binary parameter."""
+
+
+@dataclass
+class ScheduleParameterDescription(ParameterDescription):
+    """Represent schedule parameter description."""
+
+    cls: Type[ScheduleParameter] = ScheduleParameter
+
+
+SCHEDULE_PARAMETERS: List[ScheduleParameterDescription] = list(
+    chain.from_iterable(
+        [
+            [
+                ScheduleParameterDescription(
+                    name=f"{name}_{ATTR_SCHEDULE_SWITCH}",
+                    cls=ScheduleBinaryParameter,
+                ),
+                ScheduleParameterDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
+            ]
+            for name in SCHEDULES
+        ]
+    )
+)
+
+
+def collect_schedule_data(name: str, device: Device) -> DeviceDataType:
+    """Return schedule data collected from the device."""
+    return {
+        ATTR_TYPE: name,
+        ATTR_SWITCH: device.data[f"{name}_{ATTR_SCHEDULE_SWITCH}"],
+        ATTR_PARAMETER: device.data[f"{name}_{ATTR_SCHEDULE_PARAMETER}"],
+        ATTR_SCHEDULE: device.data[ATTR_SCHEDULES][name],
+    }
 
 
 @lru_cache(maxsize=16)
@@ -127,14 +193,20 @@ class SchedulesStructure(Structure):
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         offset += 3
-        schedules: Dict[str, DeviceDataType] = {}
+        parameters: List[Tuple[int, ParameterDataType]] = []
+        schedules: List[Tuple[int, List[List[bool]]]] = []
         for _ in range(first_index, first_index + last_index):
-            schedule_type = message[offset]
-            name = SCHEDULES[schedule_type]
-            schedule: DeviceDataType = {}
-            schedule[ATTR_SWITCH] = (message[offset + 1], 0, 1)
-            schedule[ATTR_PARAMETER] = unpack_parameter(message, offset + 2)
-            schedule[ATTR_SCHEDULE], offset = _decode_schedule(message, offset + 5)
-            schedules[name] = schedule
+            index = message[offset]
+            switch = (message[offset + 1], 0, 1)
+            parameter = unpack_parameter(message, offset + 2)
+            schedule, offset = _decode_schedule(message, offset + 5)
+            schedules.append((index, schedule))
+            parameters.append((index * 2, switch))
+            parameters.append(((index * 2) + 1, parameter))
 
-        return ensure_device_data(data, {ATTR_SCHEDULES: schedules}), offset
+        return (
+            ensure_device_data(
+                data, {ATTR_SCHEDULES: schedules, ATTR_SCHEDULE_PARAMETERS: parameters}
+            ),
+            offset,
+        )

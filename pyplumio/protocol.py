@@ -6,7 +6,7 @@ import logging
 from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
 from pyplumio.const import DeviceType, FrameType
-from pyplumio.devices import Device, get_device_handler
+from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
     ReadError,
@@ -42,7 +42,7 @@ class Protocol(TaskManager):
 
     writer: Optional[FrameWriter]
     reader: Optional[FrameReader]
-    devices: Dict[str, Device]
+    devices: Dict[str, Addressable]
     connected: asyncio.Event
     _network: NetworkInfo
     _queues: Tuple[asyncio.Queue, asyncio.Queue]
@@ -187,7 +187,9 @@ class Protocol(TaskManager):
         if self.writer:
             await self.writer.close()
 
-    async def get_device(self, device: str, timeout: Optional[float] = None) -> Device:
+    async def get_device(
+        self, device: str, timeout: Optional[float] = None
+    ) -> Addressable:
         """Wait for device and return it once it's available."""
         if device not in self.devices:
             await asyncio.wait_for(self.create_event(device).wait(), timeout=timeout)

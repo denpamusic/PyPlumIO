@@ -9,8 +9,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.const import (
-    ATTR_EXTRA,
+    ATTR_DEVICE_INDEX,
     ATTR_INDEX,
+    ATTR_OFFSET,
     ATTR_PARAMETER,
     ATTR_PASSWORD,
     ATTR_SCHEDULE,
@@ -26,7 +27,7 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.product_info import ProductInfo, ProductType
+from pyplumio.helpers.product_info import ConnectedModules, ProductInfo, ProductType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
@@ -35,7 +36,7 @@ from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.network_info import ATTR_NETWORK
 from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.program_version import ATTR_VERSION
-from pyplumio.structures.schedules import ATTR_SCHEDULES
+from pyplumio.structures.schedules import ATTR_SCHEDULE_PARAMETERS, ATTR_SCHEDULES
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PROFILE,
@@ -131,10 +132,59 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         FrameType.RESPONSE_PASSWORD: {ATTR_PASSWORD: "0000"},
         FrameType.RESPONSE_ECOMAX_PARAMETERS: {
             ATTR_ECOMAX_PARAMETERS: [
-                (0, (80, 61, 100)),
-                (1, (60, 41, 76)),
+                (0, (61, 61, 100)),
+                (1, (60, 41, 60)),
                 (2, (40, 20, 59)),
-                (4, (20, 1, 250)),
+                (14, (20, 1, 250)),
+                (15, (3, 1, 30)),
+                (16, (1, 1, 30)),
+                (17, (5, 1, 30)),
+                (18, (1, 0, 1)),
+                (19, (0, 0, 60)),
+                (20, (60, 0, 100)),
+                (23, (20, 10, 100)),
+                (35, (30, 20, 100)),
+                (36, (4, 1, 30)),
+                (37, (0, 0, 100)),
+                (38, (8, 1, 250)),
+                (39, (50, 40, 85)),
+                (40, (10, 10, 30)),
+                (41, (30, 20, 50)),
+                (44, (10, 10, 240)),
+                (47, (15, 10, 20)),
+                (50, (50, 40, 150)),
+                (53, (2, 1, 15)),
+                (54, (3, 1, 10)),
+                (55, (40, 20, 60)),
+                (60, (60, 1, 250)),
+                (61, (30, 20, 50)),
+                (85, (125, 1, 250)),
+                (87, (2, 1, 100)),
+                (88, (47, 1, 250)),
+                (89, (10, 10, 30)),
+                (98, (65, 50, 80)),
+                (99, (50, 30, 80)),
+                (100, (80, 60, 90)),
+                (101, (50, 30, 80)),
+                (102, (0, 0, 99)),
+                (105, (5, 3, 15)),
+                (106, (0, 0, 1)),
+                (107, (13, 1, 40)),
+                (108, (20, 0, 40)),
+                (111, (0, 0, 1)),
+                (112, (5, 0, 30)),
+                (114, (90, 85, 95)),
+                (115, (60, 40, 90)),
+                (119, (51, 40, 70)),
+                (120, (40, 20, 55)),
+                (121, (70, 40, 80)),
+                (122, (2, 0, 2)),
+                (123, (10, 1, 30)),
+                (124, (0, 0, 1)),
+                (125, (0, 0, 2)),
+                (126, (16, 5, 30)),
+                (127, (10, 1, 15)),
+                (128, (3, 0, 99)),
             ]
         },
         FrameType.RESPONSE_MIXER_PARAMETERS: {
@@ -142,15 +192,19 @@ def fixture_data() -> Dict[int, DeviceDataType]:
                 (
                     0,
                     [
-                        (0, (30, 40, 60)),
+                        (0, (40, 30, 60)),
                         (1, (20, 30, 40)),
+                        (2, (80, 70, 90)),
+                        (3, (20, 10, 30)),
+                        (4, (1, 0, 1)),
+                        (5, (13, 10, 30)),
                     ],
                 )
             ]
         },
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: {
             ATTR_THERMOSTAT_COUNT: 3,
-            ATTR_THERMOSTAT_PROFILE: None,
+            ATTR_THERMOSTAT_PROFILE: (0, 0, 5),
             ATTR_THERMOSTAT_PARAMETERS: [
                 (
                     0,
@@ -186,13 +240,8 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ]
         },
         FrameType.RESPONSE_SCHEDULES: {
-            ATTR_SCHEDULES: {
-                "heating": {
-                    ATTR_SWITCH: (0, 0, 1),
-                    ATTR_PARAMETER: (5, 0, 30),
-                    ATTR_SCHEDULE: [TEST_SCHEDULE] * 7,
-                }
-            }
+            ATTR_SCHEDULES: [(0, [TEST_SCHEDULE] * 7)],
+            ATTR_SCHEDULE_PARAMETERS: [(0, (0, 0, 1)), (1, (5, 0, 30))],
         },
         FrameType.REQUEST_SET_ECOMAX_PARAMETER: {
             ATTR_INDEX: 0,
@@ -201,12 +250,12 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         FrameType.REQUEST_SET_MIXER_PARAMETER: {
             ATTR_INDEX: 0,
             ATTR_VALUE: 40,
-            ATTR_EXTRA: 0,
+            ATTR_DEVICE_INDEX: 0,
         },
         FrameType.REQUEST_SET_THERMOSTAT_PARAMETER: {
             ATTR_INDEX: 1,
             ATTR_VALUE: 42,
-            ATTR_EXTRA: 12,
+            ATTR_OFFSET: 12,
         },
         FrameType.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
         FrameType.REQUEST_SET_SCHEDULE: {
@@ -214,6 +263,80 @@ def fixture_data() -> Dict[int, DeviceDataType]:
             ATTR_SWITCH: 0,
             ATTR_PARAMETER: 5,
             ATTR_SCHEDULE: [TEST_SCHEDULE] * 7,
+        },
+        FrameType.MESSAGE_SENSOR_DATA: {
+            "sensors": {
+                "frame_versions": {
+                    85: 45559,
+                    84: 48672,
+                    86: 64152,
+                    54: 1,
+                    56: 2,
+                    57: 1,
+                    61: 12568,
+                },
+                "state": 0,
+                "fan": False,
+                "feeder": False,
+                "heating_pump": False,
+                "water_heater_pump": False,
+                "ciculation_pump": False,
+                "lighter": False,
+                "alarm": False,
+                "outer_boiler": False,
+                "fan2_exhaust": False,
+                "feeder2": False,
+                "outer_feeder": False,
+                "solar_pump": False,
+                "fireplace_pump": False,
+                "gcz_contact": False,
+                "blow_fan1": False,
+                "blow_fan2": False,
+                "heating_pump_flag": True,
+                "water_heater_pump_flag": True,
+                "circulation_pump_flag": True,
+                "solar_pump_flag": False,
+                "heating_temp": 22.384185791015625,
+                "optical_temp": 0.0,
+                "heating_target": 41,
+                "heating_status": 0,
+                "water_heater_target": 45,
+                "water_heater_status": 128,
+                "pending_alerts": 0,
+                "fuel_level": 32,
+                "transmission": 0,
+                "fan_power": 0.0,
+                "load": 0,
+                "power": 0.0,
+                "fuel_consumption": 0.0,
+                "thermostat": 1,
+                "modules": ConnectedModules(
+                    module_a="18.11.58.K1",
+                    module_b=None,
+                    module_c=None,
+                    module_lambda=None,
+                    module_ecoster=None,
+                    module_panel="18.10.72",
+                ),
+                "lambda_sensor": {"state": 1, "target": 2, "level": 40},
+                "thermostat_sensors": [
+                    (
+                        0,
+                        {
+                            "state": 3,
+                            "current_temp": 43.5,
+                            "target_temp": 50.0,
+                            "contacts": True,
+                            "schedule": False,
+                        },
+                    )
+                ],
+                "thermostat_count": 1,
+                "mixer_sensors": [
+                    (4, {"current_temp": 20.0, "target_temp": 40, "pump": False})
+                ],
+                "mixer_count": 5,
+            }
         },
     }
 
@@ -236,11 +359,24 @@ def fixture_messages() -> Dict[int, bytearray]:
         ),
         FrameType.RESPONSE_PASSWORD: bytearray.fromhex("0430303030"),
         FrameType.RESPONSE_ECOMAX_PARAMETERS: bytearray.fromhex(
-            "000005503D643C294C28143BFFFFFF1401FA"
+            """00008b3d3d643c293c28143bfffffffffffffffffffffffffffffffffffffffffffffffff
+fffffffffffffffff1401fa03011e01011e05011e01000100003c3c0064ffffffffffff140a64fffffffffff
+fffffffffffffffffffffffffffffffffffffffffffffffffffffff1e146404011e0000640801fa3228550a0
+a1e1e1432ffffffffffff0a0af0ffffffffffff0f0a14ffffffffffff322896ffffffffffff02010f03010a2
+8143cffffffffffffffffffffffff3c01fa1e1432fffffffffffffffffffffffffffffffffffffffffffffff
+ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+fff7d01faffffff0201642f01fa0a0a1effffffffffffffffffffffffffffffffffffffffffffffff4132503
+21e50503c5a321e50000063ffffffffffff05030f0000010d0128140028ffffffffffff00000105001efffff
+f5a555f3c285affffffffffffffffff3328462814374628500200020a011e00000100000210051e0a010f030
+063ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff""".replace(
+                "\n", ""
+            )
         ),
-        FrameType.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex("000002011E283C141E28"),
+        FrameType.RESPONSE_MIXER_PARAMETERS: bytearray.fromhex(
+            "00000601281E3C141E2850465A140A1E0100010D0A1E"
+        ),
         FrameType.RESPONSE_THERMOSTAT_PARAMETERS: bytearray.fromhex(
-            """000025FFFFFF000007DC0064005E01960064005E01643C8C02003C01003C01003C0A003C0
+            """000025000005000007DC0064005E01960064005E01643C8C02003C01003C01003C0A003C0
 90032DE0064005E01D40064005E015A0032002C01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
 FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF""".replace(

@@ -5,24 +5,12 @@ from collections.abc import Iterable, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 import math
-from typing import TYPE_CHECKING, Final, Iterator, List, Literal, Tuple
+from typing import Final, Iterator, List, Literal, Tuple
 
-from pyplumio.const import (
-    ATTR_PARAMETER,
-    ATTR_SCHEDULE,
-    ATTR_SWITCH,
-    ATTR_TYPE,
-    STATE_OFF,
-    STATE_ON,
-)
+from pyplumio.const import STATE_OFF, STATE_ON
+from pyplumio.devices import Addressable
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures.schedules import ATTR_SCHEDULES
-
-if TYPE_CHECKING:
-    from pyplumio.devices import Device
-else:
-    Device = object
+from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
 START_OF_DAY: Final = "00:00"
@@ -50,19 +38,6 @@ def _parse_interval(start: str, end: str) -> Tuple[int, int]:
     stop_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
 
     return start_index, stop_index
-
-
-def _collect_schedule_data(name: str, device: Device) -> DeviceDataType:
-    """Return schedule data collected from the device."""
-    switch_key = f"schedule_{name}_{ATTR_SWITCH}"
-    parameter_key = f"schedule_{name}_{ATTR_PARAMETER}"
-
-    return {
-        ATTR_TYPE: name,
-        ATTR_SWITCH: device.data[switch_key],
-        ATTR_PARAMETER: device.data[parameter_key],
-        ATTR_SCHEDULE: device.data[ATTR_SCHEDULES][name],
-    }
 
 
 class ScheduleDay(MutableMapping):
@@ -131,7 +106,7 @@ class Schedule(Iterable):
     """Represents weekly schedule."""
 
     name: str
-    device: Device
+    device: Addressable
     monday: ScheduleDay
     tuesday: ScheduleDay
     wednesday: ScheduleDay
@@ -158,6 +133,6 @@ class Schedule(Iterable):
             factory(
                 "frames.requests.SetScheduleRequest",
                 recipient=self.device.address,
-                data=_collect_schedule_data(self.name, self.device),
+                data=collect_schedule_data(self.name, self.device),
             )
         )

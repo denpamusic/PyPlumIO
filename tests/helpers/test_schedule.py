@@ -15,7 +15,11 @@ from pyplumio.const import (
 )
 from pyplumio.devices import Device, DeviceType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.structures.schedules import ATTR_SCHEDULES
+from pyplumio.structures.schedules import (
+    ATTR_SCHEDULE_PARAMETER,
+    ATTR_SCHEDULE_SWITCH,
+    ATTR_SCHEDULES,
+)
 
 
 @pytest.fixture(name="schedule_day")
@@ -87,8 +91,8 @@ def test_schedule_commit(mock_factory, schedule: Schedule) -> None:
     schedule.device = Mock(spec=Device)
     schedule.device.address = DeviceType.ECOMAX
     schedule.device.data = {
-        f"schedule_test_{ATTR_SWITCH}": 1,
-        f"schedule_test_{ATTR_PARAMETER}": 2,
+        f"test_{ATTR_SCHEDULE_SWITCH}": 1,
+        f"test_{ATTR_SCHEDULE_PARAMETER}": 2,
         ATTR_SCHEDULES: {"test": schedule},
     }
     schedule.device.queue = Mock(spec=asyncio.Queue)

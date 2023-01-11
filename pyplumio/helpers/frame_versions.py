@@ -8,7 +8,7 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.typing import VersionsInfoType
 
 if TYPE_CHECKING:
-    from pyplumio.devices import Device
+    from pyplumio.devices import Addressable
 
 DEFAULT_FRAME_VERSION: Final = 0
 
@@ -17,9 +17,9 @@ class FrameVersions:
     """Represents frame versions storage."""
 
     versions: VersionsInfoType
-    device: Device
+    device: Addressable
 
-    def __init__(self, device: Device):
+    def __init__(self, device: Addressable):
         """Initialize Frame Versions object."""
         self.versions = {}
         self.device = device

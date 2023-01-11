@@ -1,31 +1,14 @@
 """Contains device parameter representation."""
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 import asyncio
+from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Final
 
-from pyplumio.const import ATTR_EXTRA, ATTR_INDEX, ATTR_VALUE, STATE_OFF, STATE_ON
+from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import factory
-from pyplumio.helpers.product_info import ProductType
-from pyplumio.helpers.schedule import _collect_schedule_data
-from pyplumio.helpers.typing import ParameterDataType, ParameterValueType
-from pyplumio.structures.ecomax_parameters import (
-    ATTR_ECOMAX_CONTROL,
-    ECOMAX_I_PARAMETERS,
-    ECOMAX_P_PARAMETERS,
-)
-from pyplumio.structures.mixer_parameters import (
-    ECOMAX_I_MIXER_PARAMETERS,
-    ECOMAX_P_MIXER_PARAMETERS,
-)
-from pyplumio.structures.product_info import ATTR_PRODUCT
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PROFILE,
-    THERMOSTAT_PARAMETERS,
-)
+from pyplumio.helpers.typing import ParameterValueType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -47,48 +30,50 @@ def _normalize_parameter_value(value: ParameterValueType) -> int:
     return int(value)
 
 
-def is_binary_parameter(parameter: ParameterDataType) -> bool:
-    """Check if parameter is binary."""
-    _, min_value, max_value = parameter
-    return min_value == 0 and max_value == 1
+@dataclass
+class ParameterDescription:
+    """Represents parameter description."""
+
+    name: str
 
 
-class Parameter(ABC):
-    """Represents device parameter."""
+class Parameter:
+    """Represents a parameter."""
 
     device: Device
-    name: str
-    extra: Any
+    description: ParameterDescription
     _value: int
     _min_value: int
     _max_value: int
-    _change_pending: bool = False
+    _is_changed: bool = False
+    _index: int
 
     def __init__(
         self,
         device: Device,
-        name: str,
         value: ParameterValueType,
         min_value: ParameterValueType,
         max_value: ParameterValueType,
-        extra: Any = None,
+        description: ParameterDescription,
+        index: int = 0,
     ):
         """Initialize Parameter object."""
+        self.index = index
         self.device = device
-        self.name = name
-        self.extra = extra
+        self.description = description
         self._value = _normalize_parameter_value(value)
         self._min_value = _normalize_parameter_value(min_value)
         self._max_value = _normalize_parameter_value(max_value)
-        self._change_pending = False
+        self._is_changed = False
+        self._index = index
 
     def __repr__(self) -> str:
         """Returns serializable string representation."""
         return (
             self.__class__.__name__
-            + f"(device={self.device.__class__.__name__}, name={self.name}, "
-            + f"value={self.value}, min_value={self.min_value}, "
-            + f"max_value={self.max_value}, extra={self.extra})"
+            + f"(device={self.device.__class__.__name__}, "
+            + f"description={self.description}, value={self.value}, "
+            + f"min_value={self.min_value}, max_value={self.max_value})"
         )
 
     def _call_relational_method(self, method_to_call, other):
@@ -141,7 +126,7 @@ class Parameter(ABC):
 
     async def _confirm_parameter_change(self, parameter: Parameter) -> None:
         """Callback for when parameter change is confirmed on the device."""
-        self._change_pending = False
+        self._is_changed = False
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set parameter value."""
@@ -154,12 +139,19 @@ class Parameter(ABC):
             )
 
         self._value = value
-        self._change_pending = True
-        self.device.subscribe_once(self.name, self._confirm_parameter_change)
-        while self.change_pending:
+        self._is_changed = True
+        self.device.subscribe_once(
+            self.description.name, self._confirm_parameter_change
+        )
+        while self.is_changed:
             if retries <= 0:
-                _LOGGER.error("Timed out while trying to set '%s' parameter", self.name)
-                self.device.unsubscribe(self.name, self._confirm_parameter_change)
+                _LOGGER.error(
+                    "Timed out while trying to set '%s' parameter",
+                    self.description.name,
+                )
+                self.device.unsubscribe(
+                    self.description.name, self._confirm_parameter_change
+                )
                 return False
 
             await self.device.queue.put(self.request)
@@ -167,6 +159,11 @@ class Parameter(ABC):
             retries -= 1
 
         return True
+
+    @property
+    def is_changed(self) -> bool:
+        """Parameter change has not yet confirmed on the device."""
+        return self._is_changed
 
     @property
     def value(self) -> ParameterValueType:
@@ -184,18 +181,21 @@ class Parameter(ABC):
         return self._max_value
 
     @property
-    def change_pending(self) -> bool:
-        """Parameter change has not yet confirmed on the device."""
-        return self._change_pending
-
-    @property
-    @abstractmethod
     def request(self) -> Request:
         """Return request to change the parameter."""
+        raise NotImplementedError
 
 
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
+
+    async def turn_on(self) -> bool:
+        """Turn parameter on."""
+        return await self.set(STATE_ON)
+
+    async def turn_off(self) -> bool:
+        """Turn parameter off"""
+        return await self.set(STATE_OFF)
 
     @property
     def value(self) -> ParameterValueType:
@@ -211,151 +211,3 @@ class BinaryParameter(Parameter):
     def max_value(self) -> ParameterValueType:
         """Return maximum allowed value."""
         return STATE_ON
-
-    async def turn_on(self) -> bool:
-        """Turn parameter on."""
-        return await self.set(STATE_ON)
-
-    async def turn_off(self) -> bool:
-        """Turn parameter off"""
-        return await self.set(STATE_OFF)
-
-
-class EcomaxParameter(Parameter):
-    """Represents ecoMAX parameter."""
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-
-        if self.name == ATTR_ECOMAX_CONTROL:
-            return factory(
-                "frames.requests.EcomaxControlRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_VALUE: self._value,
-                },
-            )
-
-        if self.name == ATTR_THERMOSTAT_PROFILE:
-            return factory(
-                "frames.requests.SetThermostatParameterRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_INDEX: 0,
-                    ATTR_VALUE: self._value,
-                    ATTR_EXTRA: self.extra,
-                },
-            )
-
-        return factory(
-            "frames.requests.SetEcomaxParameterRequest",
-            recipient=self.device.address,
-            data={
-                ATTR_INDEX: (
-                    ECOMAX_P_PARAMETERS.index(self.name)
-                    if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
-                    else ECOMAX_I_PARAMETERS.index(self.name)
-                ),
-                ATTR_VALUE: self._value,
-            },
-        )
-
-
-class EcomaxBinaryParameter(EcomaxParameter, BinaryParameter):
-    """Represents ecoMAX binary parameter."""
-
-
-class MixerParameter(Parameter):
-    """Represents mixer parameter."""
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        return factory(
-            "frames.requests.SetMixerParameterRequest",
-            recipient=self.device.address,
-            data={
-                ATTR_INDEX: (
-                    ECOMAX_P_MIXER_PARAMETERS.index(self.name)
-                    if self.device.data[ATTR_PRODUCT].type == ProductType.ECOMAX_P
-                    else ECOMAX_I_MIXER_PARAMETERS.index(self.name)
-                ),
-                ATTR_VALUE: self._value,
-                ATTR_EXTRA: self.extra,
-            },
-        )
-
-
-class MixerBinaryParameter(MixerParameter, BinaryParameter):
-    """Represents mixer binary parameter."""
-
-
-class ThermostatParameter(Parameter):
-    """Represents thermostat parameter."""
-
-    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
-        if isinstance(value, (int, float)) and self.name.endswith("target_temp"):
-            value *= 10
-
-        return await super().set(value, retries)
-
-    @property
-    def value(self) -> ParameterValueType:
-        """Return parameter value."""
-        return self._value / 10 if self.name.endswith("target_temp") else self._value
-
-    @property
-    def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
-        return (
-            self._min_value / 10
-            if self.name.endswith("target_temp")
-            else self._min_value
-        )
-
-    @property
-    def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
-        return (
-            self._max_value / 10
-            if self.name.endswith("target_temp")
-            else self._max_value
-        )
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        return factory(
-            "frames.requests.SetThermostatParameterRequest",
-            recipient=self.device.address,
-            data={
-                # Increase the index by one to account for thermostat
-                # profile, which is being set at ecoMAX device level.
-                ATTR_INDEX: THERMOSTAT_PARAMETERS.index(self.name) + 1,
-                ATTR_VALUE: self._value,
-                ATTR_EXTRA: self.extra,
-            },
-        )
-
-
-class ThermostatBinaryParameter(MixerParameter, BinaryParameter):
-    """Represents thermostat binary parameter."""
-
-
-class ScheduleParameter(Parameter):
-    """Represents schedule parameter."""
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        return factory(
-            "frames.requests.SetScheduleRequest",
-            recipient=self.device.address,
-            data=_collect_schedule_data(self.extra, self.device),
-        )
-
-
-class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
-    """Represents schedule binary parameter."""

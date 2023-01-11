@@ -5,32 +5,20 @@ import asyncio
 from collections.abc import Sequence
 import logging
 import time
-from typing import ClassVar, Final, Optional, Tuple
+from typing import ClassVar, Final, List, Optional, Tuple
 
 from pyplumio.const import (
-    ATTR_PARAMETER,
-    ATTR_SCHEDULE,
     ATTR_SENSORS,
     ATTR_STATE,
-    ATTR_SWITCH,
+    STATE_OFF,
+    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import Device, Mixer, Thermostat
+from pyplumio.devices import Addressable, Mixer, Thermostat
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
-from pyplumio.helpers.parameter import (
-    EcomaxBinaryParameter,
-    EcomaxParameter,
-    MixerBinaryParameter,
-    MixerParameter,
-    ScheduleBinaryParameter,
-    ScheduleParameter,
-    ThermostatBinaryParameter,
-    ThermostatParameter,
-    is_binary_parameter,
-)
 from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
@@ -38,8 +26,11 @@ from pyplumio.structures import StructureDecoder
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
+    ECOMAX_CONTROL_PARAMETER,
     ECOMAX_I_PARAMETERS,
     ECOMAX_P_PARAMETERS,
+    THERMOSTAT_PROFILE_PARAMETER,
+    EcomaxParameter,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
@@ -51,7 +42,12 @@ from pyplumio.structures.mixer_parameters import (
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
-from pyplumio.structures.schedules import ATTR_SCHEDULES
+from pyplumio.structures.schedules import (
+    ATTR_SCHEDULE_PARAMETERS,
+    ATTR_SCHEDULES,
+    SCHEDULE_PARAMETERS,
+    SCHEDULES,
+)
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PARAMETERS_DECODER,
@@ -69,7 +65,7 @@ MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
 _LOGGER = logging.getLogger(__name__)
 
 
-class EcoMAX(Device):
+class EcoMAX(Addressable):
     """Represents ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
@@ -99,7 +95,8 @@ class EcoMAX(Device):
         self.subscribe(ATTR_REGDATA_DECODER, self._decode_regulator_data)
         self.subscribe(ATTR_MIXER_SENSORS, self._add_mixer_sensors)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
-        self.subscribe(ATTR_SCHEDULES, self._add_schedules_and_schedule_parameters)
+        self.subscribe(ATTR_SCHEDULES, self._add_schedules)
+        self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
         self.subscribe(ATTR_FRAME_VERSIONS, self._frame_versions.async_update)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._add_thermostat_sensors)
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
@@ -115,32 +112,30 @@ class EcoMAX(Device):
         requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
         return {**requirements, **frame_versions}
 
-    def _get_mixer(self, mixer_index: int, total_mixers: int) -> Mixer:
+    def _get_mixer(self, index: int, mixer_count: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
         mixers = self.data.setdefault(ATTR_MIXERS, [])
         try:
-            mixer = mixers[mixer_index]
+            mixer = mixers[index]
         except IndexError:
-            mixer = Mixer(mixer_index)
+            mixer = Mixer(self.queue, parent=self, index=index)
             mixers.append(mixer)
-            if len(mixers) == total_mixers:
+            if len(mixers) == mixer_count:
                 # All mixers were processed, notify callbacks and getters.
                 self.set_device_data(ATTR_MIXERS, mixers)
 
         return mixer
 
-    def _get_thermostat(
-        self, thermostat_index: int, total_thermostats: int
-    ) -> Thermostat:
+    def _get_thermostat(self, index: int, thermostat_count: int) -> Thermostat:
         """Get or create a new thermostat object and add it to the
         device."""
         thermostats = self.data.setdefault(ATTR_THERMOSTATS, [])
         try:
-            thermostat = thermostats[thermostat_index]
+            thermostat = thermostats[index]
         except IndexError:
-            thermostat = Thermostat(thermostat_index)
+            thermostat = Thermostat(self.queue, parent=self, index=index)
             thermostats.append(thermostat)
-            if len(thermostats) == total_thermostats:
+            if len(thermostats) == thermostat_count:
                 # All thermostats were processed, notify callbacks and getters.
                 self.set_device_data(ATTR_THERMOSTATS, thermostats)
 
@@ -158,23 +153,21 @@ class EcoMAX(Device):
     ) -> bool:
         """Add ecomax parameters to the device data."""
         product = await self.get_value(ATTR_PRODUCT)
-        for ecomax_parameter in parameters:
-            key, value = ecomax_parameter
-            cls = (
-                EcomaxBinaryParameter if is_binary_parameter(value) else EcomaxParameter
+        for index, value in parameters:
+            description = (
+                ECOMAX_P_PARAMETERS[index]
+                if product.type == ProductType.ECOMAX_P
+                else ECOMAX_I_PARAMETERS[index]
             )
-            parameter = cls(
+            parameter = description.cls(
                 device=self,
-                name=(
-                    ECOMAX_P_PARAMETERS[key]
-                    if product.type == ProductType.ECOMAX_P
-                    else ECOMAX_I_PARAMETERS[key]
-                ),
+                description=description,
+                index=index,
                 value=value[0],
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_set_device_data(parameter.name, parameter)
+            await self.async_set_device_data(description.name, parameter)
 
         return True
 
@@ -196,26 +189,21 @@ class EcoMAX(Device):
         product = await self.get_value(ATTR_PRODUCT)
         for mixer_index, mixer_parameters in parameters:
             mixer = self._get_mixer(mixer_index, len(parameters))
-            for mixer_parameter in mixer_parameters:
-                index, value = mixer_parameter
-                cls = (
-                    MixerBinaryParameter
-                    if is_binary_parameter(value)
-                    else MixerParameter
+            for index, value in mixer_parameters:
+                description = (
+                    ECOMAX_P_MIXER_PARAMETERS[index]
+                    if product.type == ProductType.ECOMAX_P
+                    else ECOMAX_I_MIXER_PARAMETERS[index]
                 )
-                parameter = cls(
-                    device=self,
-                    name=(
-                        ECOMAX_P_MIXER_PARAMETERS[index]
-                        if product.type == ProductType.ECOMAX_P
-                        else ECOMAX_I_MIXER_PARAMETERS[index]
-                    ),
+                parameter = description.cls(
+                    device=mixer,
+                    description=description,
+                    index=index,
                     value=value[0],
                     min_value=value[1],
                     max_value=value[2],
-                    extra=mixer_index,
                 )
-                await mixer.async_set_device_data(parameter.name, parameter)
+                await mixer.async_set_device_data(description.name, parameter)
 
         return True
 
@@ -236,22 +224,18 @@ class EcoMAX(Device):
         """Set thermostat parameters."""
         for thermostat_index, thermostat_parameters in parameters:
             thermostat = self._get_thermostat(thermostat_index, len(parameters))
-            for thermostat_parameter in thermostat_parameters:
-                index, value = thermostat_parameter
-                cls = (
-                    ThermostatBinaryParameter
-                    if is_binary_parameter(value)
-                    else ThermostatParameter
-                )
-                parameter = cls(
-                    device=self,
-                    name=THERMOSTAT_PARAMETERS[index],
+            for index, value in thermostat_parameters:
+                description = THERMOSTAT_PARAMETERS[index]
+                parameter = description.cls(
+                    device=thermostat,
+                    description=description,
+                    index=index,
                     value=value[0],
                     min_value=value[1],
                     max_value=value[2],
-                    extra=(thermostat_index * len(thermostat_parameters)),
+                    offset=(thermostat_index * len(thermostat_parameters)),
                 )
-                await thermostat.async_set_device_data(parameter.name, parameter)
+                await thermostat.async_set_device_data(description.name, parameter)
 
         return True
 
@@ -260,9 +244,9 @@ class EcoMAX(Device):
     ) -> Optional[EcomaxParameter]:
         """Add thermostat profile parameter to the device instance."""
         if parameter is not None:
-            return EcomaxParameter(
+            return THERMOSTAT_PROFILE_PARAMETER.cls(
                 device=self,
-                name=ATTR_THERMOSTAT_PROFILE,
+                description=THERMOSTAT_PROFILE_PARAMETER,
                 value=parameter[0],
                 min_value=parameter[1],
                 max_value=parameter[2],
@@ -283,14 +267,14 @@ class EcoMAX(Device):
 
     async def _add_ecomax_control_parameter(self, mode: int) -> None:
         """Add ecoMAX control parameter to the device instance."""
-        parameter = EcomaxBinaryParameter(
+        parameter = ECOMAX_CONTROL_PARAMETER.cls(
             device=self,
-            name=ATTR_ECOMAX_CONTROL,
+            description=ECOMAX_CONTROL_PARAMETER,
             value=(mode != DeviceState.OFF),
-            min_value=0,
-            max_value=1,
+            min_value=STATE_OFF,
+            max_value=STATE_ON,
         )
-        await self.async_set_device_data(ATTR_ECOMAX_CONTROL, parameter)
+        await self.async_set_device_data(ECOMAX_CONTROL_PARAMETER.name, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
@@ -318,43 +302,41 @@ class EcoMAX(Device):
 
         return True
 
-    async def _add_schedules_and_schedule_parameters(
-        self, schedules: DeviceDataType
-    ) -> DeviceDataType:
-        """Add schedules and schedule parameters."""
-        data: DeviceDataType = {}
-        for name, schedule in schedules.items():
-            for field in (ATTR_SWITCH, ATTR_PARAMETER):
-                key = f"{ATTR_SCHEDULE}_{name}_{field}"
-                value = schedule[field]
-                cls = (
-                    ScheduleBinaryParameter
-                    if is_binary_parameter(value)
-                    else ScheduleParameter
-                )
-                parameter = cls(
-                    device=self,
-                    name=key,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
-                    extra=name,
-                )
-                await self.async_set_device_data(key, parameter)
-
-            data[name] = Schedule(
-                name=name,
+    async def _add_schedule_parameters(
+        self, parameters: Sequence[Tuple[int, ParameterDataType]]
+    ) -> bool:
+        for index, value in parameters:
+            description = SCHEDULE_PARAMETERS[index]
+            parameter = description.cls(
                 device=self,
-                monday=ScheduleDay(schedule[ATTR_SCHEDULE][1]),
-                tuesday=ScheduleDay(schedule[ATTR_SCHEDULE][2]),
-                wednesday=ScheduleDay(schedule[ATTR_SCHEDULE][3]),
-                thursday=ScheduleDay(schedule[ATTR_SCHEDULE][4]),
-                friday=ScheduleDay(schedule[ATTR_SCHEDULE][5]),
-                saturday=ScheduleDay(schedule[ATTR_SCHEDULE][6]),
-                sunday=ScheduleDay(schedule[ATTR_SCHEDULE][0]),
+                description=description,
+                index=index,
+                value=value[0],
+                min_value=value[1],
+                max_value=value[2],
             )
+            await self.async_set_device_data(description.name, parameter)
 
-        return data
+        return True
+
+    async def _add_schedules(
+        self, schedules: List[Tuple[int, List[List[bool]]]]
+    ) -> DeviceDataType:
+        """Add schedules."""
+        return {
+            SCHEDULES[index]: Schedule(
+                name=SCHEDULES[index],
+                device=self,
+                monday=ScheduleDay(schedule[1]),
+                tuesday=ScheduleDay(schedule[2]),
+                wednesday=ScheduleDay(schedule[3]),
+                thursday=ScheduleDay(schedule[4]),
+                friday=ScheduleDay(schedule[5]),
+                saturday=ScheduleDay(schedule[6]),
+                sunday=ScheduleDay(schedule[0]),
+            )
+            for index, schedule in schedules
+        }
 
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""

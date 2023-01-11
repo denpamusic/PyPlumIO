@@ -100,13 +100,13 @@ asyncio.run(main())
 
 ### Values and Parameters
 Data can be immutable (Values) or mutable (Parameters). They can be accessed via 
-`BaseDevice.get_value(name: str, timeout: float | None = None)` and `BaseDevice.get_parameter(name: str, timeout: float | None = None)` methods.
+`Device.get_value(name: str, timeout: float | None = None)` and `Device.get_parameter(name: str, timeout: float | None = None)` methods.
 
-Each device supports different attributes and parameters, you can check all available values and parameters by looking at `BaseDevice.data` attribute.
+Each device supports different attributes and parameters, you can check all available values and parameters by looking at `Device.data` attribute.
 
 ### Reading
 Interaction with the device is mainly done through async getter methods.
-For example you can read current feed water temperature by awaiting for `BaseDevice.get_value("heating_temp")`.
+For example you can read current feed water temperature by awaiting for `Device.get_value("heating_temp")`.
 
 The following example will print out current feed water temperature and close the connection.
 ```python
@@ -122,8 +122,8 @@ asyncio.run(main())
 ```
 
 ### Writing
-You can change controller parameters by awaiting `BaseDevice.set_value(name: str, value: int, timeout: float | None = None)` or
-by getting parameter via `BaseDevice.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
+You can change controller parameters by awaiting `Device.set_value(name: str, value: int, timeout: float | None = None)` or
+by getting parameter via `Device.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
 In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
@@ -194,7 +194,7 @@ async def main():
 
 ### Callbacks
 It's possible to register a callback, that will be called every time a data with
-the certain name is received (e. g. heating_temp), using `BaseDevice.subscribe(name, callback)` function, register callback that will be called only once using `BaseDevice.subscribe_once(name, callback)` function or remove existing callback by calling `BaseDevice.unsubscribe(name, callback).`
+the certain name is received (e. g. heating_temp), using `Device.subscribe(name, callback)` function, register callback that will be called only once using `Device.subscribe_once(name, callback)` function or remove existing callback by calling `Device.unsubscribe(name, callback).`
 ```python
 import asyncio
 import pyplumio
@@ -259,11 +259,11 @@ async def main():
 
 ### Working with Sub-Devices
 If your ecoMAX controller has connected sub-devices such as mixers and/or thermostats,
-you can access them via respective properties through `BaseDevice.get_value("mixers")`
-or `BaseDevice.get_value("thermostats")` call.
+you can access them via respective properties through `Device.get_value("mixers")`
+or `Device.get_value("thermostats")` call.
 
 Result of this call will be a list of `Mixer` or `Thermostat` instances.
-Both classes inherit `BaseDevice` and provide access to getter/setter functions and
+Both classes inherit `Device` and provide access to getter/setter functions and
 callback support.
 
 Each device supports different attributes and parameters for sub-devices, you can check all
@@ -321,14 +321,14 @@ asyncio.run(main())
 You can set device schedule, enable/disable it and change associated parameter.
 
 To disable the schedule, turn off "schedule_{schedule_name}_switch" parameter, by using
-`BaseDevice.set_value` method, to enable it turn in on.
+`Device.set_value` method, to enable it turn in on.
 
 ```python
   await ecomax.set_value("schedule_heating_switch", "off")
   await ecomax.set_value("schedule_heating_switch", "on")
 ```
 
-To change associated parameter value, use `BaseDevice.set_value`
+To change associated parameter value, use `Device.set_value`
 function with "schedule_{schedule_name}_parameter".
 
 ```python
