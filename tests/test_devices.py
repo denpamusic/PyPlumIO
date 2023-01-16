@@ -31,7 +31,7 @@ from pyplumio.devices.ecomax import (
 )
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Response
+from pyplumio.frames import Request, Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
@@ -194,12 +194,14 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
 
 
 async def test_regdata_callbacks(
-    ecomax: EcoMAX, messages: Dict[int, bytearray]
+    ecomax: EcoMAX,
+    messages: Dict[int, bytearray],
 ) -> None:
     """Test callbacks that are fired on received regdata."""
     ecomax.handle_frame(
         DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     )
+    await ecomax.wait_until_done()
     ecomax.handle_frame(
         RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
@@ -213,13 +215,20 @@ async def test_regdata_callbacks(
 
 
 async def test_regdata_callbacks_without_schema(
-    ecomax: EcoMAX, messages: Dict[int, bytearray]
+    ecomax: EcoMAX, messages: Dict[int, bytearray], caplog
 ) -> None:
     """Test callbacks that are fired on received regdata."""
-    ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-    )
-    await ecomax.wait_until_done()
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.wait_for_data",
+        new_callable=AsyncMock,
+        side_effect=ValueError,
+    ):
+        ecomax.handle_frame(
+            RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
+        )
+        await ecomax.wait_until_done()
+
+    assert "Failed to decode regulator data" in caplog.text
     assert ATTR_FRAME_VERSIONS in ecomax.data
     assert ATTR_REGDATA not in ecomax.data
 
@@ -511,6 +520,26 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
         await ecomax.get_parameter("bar")
+
+
+async def test_wait_for_value(bypass_asyncio_sleep, ecomax: EcoMAX) -> None:
+    """Test waiting for value."""
+    mock_request = Mock(spec=Request)
+    ecomax.queue = Mock(spec=asyncio.Queue)
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.get_value",
+        side_effect=(asyncio.TimeoutError, True),
+    ):
+        assert await ecomax.wait_for_data("foo", retry_with=mock_request)
+
+    ecomax.queue.put_nowait.assert_called_once_with(mock_request.return_value)
+
+    # Test with value error.
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.get_value",
+        side_effect=(asyncio.TimeoutError, True),
+    ), pytest.raises(ValueError):
+        assert not await ecomax.wait_for_data("foo", retry_with=mock_request, retries=1)
 
 
 async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:

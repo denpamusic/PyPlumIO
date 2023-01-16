@@ -17,12 +17,14 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.devices import Addressable, Mixer, Thermostat
+from pyplumio.frames.requests import DataSchemaRequest
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
+from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
@@ -293,6 +295,11 @@ class EcoMAX(Addressable):
 
     async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
         """Decode regulator data."""
+        try:
+            await self.wait_for_data(ATTR_SCHEMA, retry_with=DataSchemaRequest)
+        except ValueError:
+            _LOGGER.error("Failed to decode regulator data without schema")
+
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
             try:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import ClassVar, Dict, List, Optional
+from typing import ClassVar, Dict, List, Optional, Type
 
 from pyplumio import util
 from pyplumio.const import DeviceType
@@ -96,6 +96,27 @@ class Device(TaskManager):
 
         self.create_task(parameter.set(value))
         return True
+
+    async def wait_for_data(
+        self,
+        name: str,
+        retry_with: Type[Frame],
+        retries: int = 3,
+        timeout: float = 5.0,
+        data: DeviceDataType = None,
+    ):
+        """Waits until value present in device data.
+        If value is not available before timeout, puts request for it
+        in the device queue."""
+        while retries > 0:
+            try:
+                return await self.get_value(name, timeout=timeout)
+            except asyncio.TimeoutError:
+                self.queue.put_nowait(retry_with(data=data))
+                await asyncio.sleep(timeout)
+                retries -= 1
+
+        raise ValueError
 
     def subscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Subscribe a callback to the value change event."""
