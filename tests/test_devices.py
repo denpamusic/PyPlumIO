@@ -282,6 +282,7 @@ async def test_thermostat_parameters_callbacks(
     party_target_temp = await thermostat.get_parameter("party_target_temp")
     assert isinstance(party_target_temp, ThermostatParameter)
     assert isinstance(party_target_temp.request, SetThermostatParameterRequest)
+    assert isinstance(party_target_temp.device, Thermostat)
     assert party_target_temp.value == 22.0
     assert party_target_temp.min_value == 10.0
     assert party_target_temp.max_value == 35.0
@@ -350,6 +351,7 @@ async def test_mixer_parameters_callbacks(
     mixer_target_temp = await mixer.get_parameter("mixer_target_temp")
     assert isinstance(mixer_target_temp, MixerParameter)
     assert isinstance(mixer_target_temp.request, SetMixerParameterRequest)
+    assert isinstance(mixer_target_temp.device, Mixer)
     assert mixer_target_temp.value == 40.0
     assert mixer_target_temp.min_value == 30.0
     assert mixer_target_temp.max_value == 60.0
