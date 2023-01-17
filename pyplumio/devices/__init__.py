@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import asyncio
-from typing import ClassVar, Dict, List, Optional, Type
+from typing import ClassVar, Dict, List, Optional
 
 from pyplumio import util
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Frame
+from pyplumio.frames import Frame, Request
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
@@ -100,10 +100,9 @@ class Device(TaskManager):
     async def wait_for_data(
         self,
         name: str,
-        retry_with: Type[Frame],
+        request: Request,
         retries: int = 3,
         timeout: float = 5.0,
-        data: DeviceDataType = None,
     ):
         """Waits until value present in device data.
         If value is not available before timeout, puts request for it
@@ -112,7 +111,7 @@ class Device(TaskManager):
             try:
                 return await self.get_value(name, timeout=timeout)
             except asyncio.TimeoutError:
-                self.queue.put_nowait(retry_with(data=data))
+                self.queue.put_nowait(request)
                 await asyncio.sleep(timeout)
                 retries -= 1
 

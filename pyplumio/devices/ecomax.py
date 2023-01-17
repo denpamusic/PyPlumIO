@@ -296,7 +296,9 @@ class EcoMAX(Addressable):
     async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
         """Decode regulator data."""
         try:
-            await self.wait_for_data(ATTR_SCHEMA, retry_with=DataSchemaRequest)
+            await self.wait_for_data(
+                ATTR_SCHEMA, request=DataSchemaRequest(recipient=self.address)
+            )
         except ValueError:
             _LOGGER.error("Failed to decode regulator data without schema")
 

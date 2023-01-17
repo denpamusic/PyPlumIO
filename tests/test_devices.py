@@ -530,7 +530,7 @@ async def test_wait_for_value(bypass_asyncio_sleep, ecomax: EcoMAX) -> None:
         "pyplumio.devices.ecomax.EcoMAX.get_value",
         side_effect=(asyncio.TimeoutError, True),
     ):
-        assert await ecomax.wait_for_data("foo", retry_with=mock_request)
+        assert await ecomax.wait_for_data("foo", request=mock_request.return_value)
 
     ecomax.queue.put_nowait.assert_called_once_with(mock_request.return_value)
 
@@ -539,7 +539,9 @@ async def test_wait_for_value(bypass_asyncio_sleep, ecomax: EcoMAX) -> None:
         "pyplumio.devices.ecomax.EcoMAX.get_value",
         side_effect=(asyncio.TimeoutError, True),
     ), pytest.raises(ValueError):
-        assert not await ecomax.wait_for_data("foo", retry_with=mock_request, retries=1)
+        assert not await ecomax.wait_for_data(
+            "foo", request=mock_request.return_value, retries=1
+        )
 
 
 async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
