@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Dict, Final, List, Optional, Tuple
 
 from pyplumio import util
+from pyplumio.const import AlertType
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -67,7 +68,12 @@ class AlertsStructure(StructureDecoder):
         offset += 3
         alerts: List[Alert] = []
         for _ in range(first_index, first_index + last_index):
-            code = message[offset]
+            try:
+                code = message[offset]
+                code = AlertType(code)
+            except ValueError:
+                pass
+
             from_ts = util.unpack_uint(message[offset + 1 : offset + 5])[0]
             from_dt = _convert_to_datetime(from_ts)
             to_dt = None

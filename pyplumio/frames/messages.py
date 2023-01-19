@@ -53,9 +53,10 @@ class SensorDataMessage(Message):
         """Decode frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         try:
-            sensors[ATTR_STATE] = DeviceState(message[offset])
-        except ValueError:
             sensors[ATTR_STATE] = message[offset]
+            sensors[ATTR_STATE] = DeviceState(sensors[ATTR_STATE])
+        except ValueError:
+            pass
 
         sensors, offset = OutputsStructure(self).decode(message, offset + 1, sensors)
         sensors, offset = OutputFlagsStructure(self).decode(message, offset, sensors)

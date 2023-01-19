@@ -45,6 +45,20 @@ class DeviceState(IntEnum):
 
 
 @unique
+class AlertType(IntEnum):
+    """Contains alert types."""
+
+    POWER_LOSS = 0
+    BOILER_TEMP_SENSOR_FAILURE = 1
+    MAX_BOILER_TEMP_EXCEEDED = 2
+    FEEDER_TEMP_SENSOR_FAILURE = 3
+    MAX_FEEDER_TEMP_EXCEEDED = 4
+    EXHAUST_TEMP_SENSOR_FAILURE = 5
+    KINDLING_FAILURE = 7
+    FAN_FAILURE = 11
+
+
+@unique
 class DeviceType(IntEnum):
     """Contains device addresses."""
 

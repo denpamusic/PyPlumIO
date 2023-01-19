@@ -18,6 +18,7 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
+    AlertType,
     FrameType,
 )
 from pyplumio.devices.ecomax import EcoMAX
@@ -228,12 +229,12 @@ def fixture_data() -> Dict[int, DeviceDataType]:
         FrameType.RESPONSE_ALERTS: {
             ATTR_ALERTS: [
                 Alert(
-                    code=0,
+                    code=26,
                     from_dt=datetime(2022, 7, 23, 16, 27),
                     to_dt=datetime(2022, 7, 23, 16, 32, 27),
                 ),
                 Alert(
-                    code=0,
+                    code=AlertType.POWER_LOSS,
                     from_dt=datetime(2022, 7, 22, 22, 33),
                     to_dt=datetime(2022, 7, 22, 22, 38, 11),
                 ),
@@ -408,7 +409,7 @@ A7A000A7B000A7C000A7D000A7E000A7F00048000048300048400049100049200049300049400049
             )
         ),
         FrameType.RESPONSE_ALERTS: bytearray.fromhex(
-            "640002005493382B9B94382B009C97372BD398372B"
+            "6400021a5493382B9B94382B009C97372BD398372B"
         ),
         FrameType.RESPONSE_SCHEDULES: bytearray.fromhex(
             """100101000005001E0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFF

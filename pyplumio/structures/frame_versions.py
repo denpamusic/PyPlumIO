@@ -22,8 +22,8 @@ class FrameVersionsStructure(StructureDecoder):
         frame_count = message[offset]
         offset += 1
         for _ in range(frame_count):
-            frame_type = message[offset]
             try:
+                frame_type = message[offset]
                 frame_type = FrameType(frame_type)
             except ValueError:
                 pass
