@@ -157,7 +157,7 @@ class MixerParametersStructure(StructureDecoder):
 
         if not mixer_parameters:
             # No mixer parameters detected.
-            return ensure_device_data(data), offset
+            return ensure_device_data(data, {ATTR_MIXER_PARAMETERS: None}), offset
 
         return (
             ensure_device_data(data, {ATTR_MIXER_PARAMETERS: mixer_parameters}),

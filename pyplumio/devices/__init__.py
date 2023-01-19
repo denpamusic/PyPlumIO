@@ -5,9 +5,10 @@ import asyncio
 from typing import ClassVar, Dict, List, Optional
 
 from pyplumio import util
-from pyplumio.const import DeviceType
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Frame, Request
+from pyplumio.frames import Frame, Request, get_frame_handler
+from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
@@ -97,26 +98,6 @@ class Device(TaskManager):
         self.create_task(parameter.set(value))
         return True
 
-    async def wait_for_data(
-        self,
-        name: str,
-        request: Request,
-        retries: int = 3,
-        timeout: float = 5.0,
-    ):
-        """Waits until value present in device data.
-        If value is not available before timeout, puts request for it
-        in the device queue."""
-        while retries > 0:
-            try:
-                return await self.get_value(name, timeout=timeout)
-            except asyncio.TimeoutError:
-                self.queue.put_nowait(request)
-                await asyncio.sleep(timeout)
-                retries -= 1
-
-        raise ValueError
-
     def subscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Subscribe a callback to the value change event."""
         if name not in self._callbacks:
@@ -128,11 +109,9 @@ class Device(TaskManager):
         """Subscribe a callback to the single value change event."""
 
         async def _callback(value):
-            """Unregister the callback once it was called."""
-            try:
-                return await callback(value)
-            finally:
-                self.unsubscribe(name, _callback)
+            """Unsubscribe the callback and call it."""
+            self.unsubscribe(name, _callback)
+            return await callback(value)
 
         self.subscribe(name, _callback)
 
@@ -172,6 +151,32 @@ class Addressable(Device):
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.set_device_data(name, value)
+
+    async def request_value(
+        self,
+        name: str,
+        frame_type: FrameType,
+        retries: int = 3,
+        timeout: float = 5.0,
+    ):
+        """Wait until value present in device data.
+        If value is not available before timeout, put request for it
+        in the device queue."""
+        request: Optional[Request] = None
+        while retries > 0:
+            try:
+                return await self.get_value(name, timeout=timeout)
+            except asyncio.TimeoutError:
+                if request is None:
+                    request = factory(
+                        get_frame_handler(frame_type), recipient=self.address
+                    )
+
+                self.queue.put_nowait(request)
+                await asyncio.sleep(timeout)
+                retries -= 1
+
+        raise ValueError
 
 
 class SubDevice(Device):

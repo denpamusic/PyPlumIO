@@ -27,7 +27,6 @@ from pyplumio.structures.network_info import ATTR_NETWORK
 _LOGGER = logging.getLogger(__name__)
 
 CONSUMERS_NUMBER: Final = 2
-WRITE_DELAY: Final = 0.1
 
 
 def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
@@ -80,16 +79,20 @@ class Protocol(TaskManager):
         raise AttributeError
 
     async def frame_producer(
-        self, read_queue: asyncio.Queue, lock: asyncio.Lock
+        self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
     ) -> None:
         """Handle frame reads."""
         await self.connected.wait()
         while self.connected.is_set():
-            await lock.acquire()
             try:
-                frame = await self.reader.read()
-                if frame is not None:
-                    read_queue.put_nowait(frame)
+                if write_queue.qsize() > 0:
+                    request = await write_queue.get()
+                    await self.writer.write(request)
+                    write_queue.task_done()
+
+                response = await self.reader.read()
+                if response is not None:
+                    read_queue.put_nowait(response)
             except UnknownFrameError as e:
                 _LOGGER.debug("Unknown frame type: %s", e)
             except ReadError as e:
@@ -101,26 +104,6 @@ class Protocol(TaskManager):
                 break
             except Exception as e:  # pylint: disable=broad-except
                 _LOGGER.exception(e)
-            finally:
-                lock.release()
-
-    async def write_consumer(
-        self, write_queue: asyncio.Queue, lock: asyncio.Lock
-    ) -> None:
-        """Handle frame writes."""
-        await self.connected.wait()
-        while self.connected.is_set():
-            frame = await write_queue.get()
-            await lock.acquire()
-            try:
-                await self.writer.write(frame)
-            except (OSError, asyncio.TimeoutError):
-                self.create_task(self.connection_lost())
-                break
-            finally:
-                write_queue.task_done()
-                lock.release()
-                await asyncio.sleep(WRITE_DELAY)
 
     async def frame_consumer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -159,11 +142,9 @@ class Protocol(TaskManager):
         """Start consumers and producer tasks."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
-        read_queue, write_queue = self.queues
+        write_queue = self.queues[1]
         write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
-        lock: asyncio.Lock = asyncio.Lock()
-        self.create_task(self.write_consumer(write_queue, lock))
-        self.create_task(self.frame_producer(read_queue, lock))
+        self.create_task(self.frame_producer(*self.queues))
         for _ in range(CONSUMERS_NUMBER):
             self.create_task(self.frame_consumer(*self.queues))
 

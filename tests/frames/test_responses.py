@@ -18,6 +18,7 @@ from pyplumio.frames.responses import (
 from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.data_schema import ATTR_SCHEMA, REGDATA_SCHEMA
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PARAMETERS_DECODER,
@@ -117,7 +118,7 @@ def test_mixer_parameters_response(
 
     # Test with empty parameters.
     frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
-    assert not frame1.data
+    assert frame1.data == {ATTR_MIXER_PARAMETERS: None}
 
 
 def test_thermostat_parameters_response(
@@ -137,7 +138,7 @@ def test_thermostat_parameters_response(
 
 
 def test_thermostat_parameters_response_with_no_parameters() -> None:
-    """Test parsing messaghe for thermosat parameters response
+    """Test parsing message for the thermosat parameters response
     with no parameters."""
     frame = ThermostatParametersResponse(
         message=bytearray.fromhex("00000300FFFFFFFFFFFFFFFFFF")
@@ -147,8 +148,11 @@ def test_thermostat_parameters_response_with_no_parameters() -> None:
         message=frame.message,
         data={ATTR_THERMOSTAT_COUNT: 2},
     )[0]
-    assert ATTR_THERMOSTAT_PROFILE not in frame_data
-    assert ATTR_THERMOSTAT_PARAMETERS not in frame_data
+    assert frame_data == {
+        ATTR_THERMOSTAT_COUNT: 2,
+        ATTR_THERMOSTAT_PROFILE: None,
+        ATTR_THERMOSTAT_PARAMETERS: None,
+    }
 
 
 def test_data_schema_response(messages: Dict[int, bytearray]) -> None:

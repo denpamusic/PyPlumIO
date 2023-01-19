@@ -27,26 +27,22 @@ from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
     ATTR_THERMOSTATS,
+    DATA_FRAME_TYPES,
     EcoMAX,
 )
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Request, Response
+from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
     DataSchemaRequest,
     EcomaxControlRequest,
-    EcomaxParametersRequest,
-    MixerParametersRequest,
-    PasswordRequest,
     SchedulesRequest,
     SetEcomaxParameterRequest,
     SetMixerParameterRequest,
     SetScheduleRequest,
     SetThermostatParameterRequest,
-    StartMasterRequest,
-    ThermostatParametersRequest,
     UIDRequest,
 )
 from pyplumio.frames.responses import (
@@ -56,7 +52,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.ecomax_parameters import (
@@ -65,7 +60,11 @@ from pyplumio.structures.ecomax_parameters import (
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
-from pyplumio.structures.mixer_parameters import MixerBinaryParameter, MixerParameter
+from pyplumio.structures.mixer_parameters import (
+    ATTR_MIXER_PARAMETERS,
+    MixerBinaryParameter,
+    MixerParameter,
+)
 from pyplumio.structures.regulator_data import ATTR_REGDATA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
@@ -77,6 +76,7 @@ from pyplumio.structures.schedules import (
 from pyplumio.structures.statuses import ATTR_HEATING_TARGET
 from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
 from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PROFILE,
     ThermostatParameter,
 )
@@ -99,43 +99,40 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
+@patch(
+    "pyplumio.devices.ecomax.EcoMAX.request_value",
+    side_effect=(ValueError, True, True, True, True, True, True, True),
+)
+async def test_async_init(
+    mock_request_value, messages: Dict[int, bytearray], caplog
+) -> None:
+    """Test async init."""
+    ecomax = EcoMAX(asyncio.Queue())
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    await ecomax.wait_until_done()
+    assert 'Failed to process "REQUEST_UID"' in caplog.text
+    assert mock_request_value.await_count == len(DATA_FRAME_TYPES)
+
+
 @patch("asyncio.Queue.put_nowait")
-async def test_frame_versions_update(mock_put_nowait, ecomax: EcoMAX) -> None:
+async def test_frame_versions_update(
+    mock_put_nowait, ecomax: EcoMAX, messages: Dict[int, bytearray]
+) -> None:
     """Test requesting updated frames."""
-    frame_versions = FrameVersions(device=ecomax)
-    await frame_versions.async_update(
-        {
-            FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
-            UNKNOWN_FRAME: DEFAULT_FRAME_VERSION,
-        }
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    await frame_versions.async_update(
-        {int(x): DEFAULT_FRAME_VERSION for x in ecomax.required_frames}
-    )
+    await ecomax.wait_until_done()
     mock_put_nowait.assert_has_calls(
         [
-            call(StartMasterRequest(recipient=DeviceType.ECOMAX)),
-            call(UIDRequest(recipient=DeviceType.ECOMAX)),
             call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
-            call(EcomaxParametersRequest(recipient=DeviceType.ECOMAX)),
-            call(MixerParametersRequest(recipient=DeviceType.ECOMAX)),
-            call(PasswordRequest(recipient=DeviceType.ECOMAX)),
-            call(AlertsRequest(recipient=DeviceType.ECOMAX)),
             call(SchedulesRequest(recipient=DeviceType.ECOMAX)),
-            call(ThermostatParametersRequest(recipient=DeviceType.ECOMAX)),
+            call(UIDRequest(recipient=DeviceType.ECOMAX)),
+            call(AlertsRequest(recipient=DeviceType.ECOMAX)),
         ]
     )
-    assert frame_versions.versions == {
-        FrameType.REQUEST_START_MASTER: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_UID: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_DATA_SCHEMA: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_ECOMAX_PARAMETERS: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_MIXER_PARAMETERS: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_PASSWORD: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_ALERTS: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_SCHEDULES: DEFAULT_FRAME_VERSION,
-        FrameType.REQUEST_THERMOSTAT_PARAMETERS: DEFAULT_FRAME_VERSION,
-    }
 
 
 async def test_ecomax_data_callbacks(
@@ -145,7 +142,7 @@ async def test_ecomax_data_callbacks(
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    assert ecomax.wait_until_done()
+    await ecomax.wait_until_done()
     heating_target = await ecomax.get_value("heating_target")
     assert heating_target == 41.0
 
@@ -184,8 +181,11 @@ async def test_ecomax_parameters_callbacks(
 @patch("time.time", side_effect=(0, 10, 600, 610))
 async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     """Test callbacks that are fired on received fuel consumption."""
-    ecomax = EcoMAX(asyncio.Queue())
+    with patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once"):
+        ecomax = EcoMAX(asyncio.Queue())
+
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+    await ecomax.wait_until_done()
     fuel_burned = await ecomax.get_value(ATTR_FUEL_BURNED)
     assert fuel_burned == 0.01
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
@@ -194,14 +194,12 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
 
 
 async def test_regdata_callbacks(
-    ecomax: EcoMAX,
-    messages: Dict[int, bytearray],
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on received regdata."""
     ecomax.handle_frame(
         DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     )
-    await ecomax.wait_until_done()
     ecomax.handle_frame(
         RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
@@ -215,20 +213,13 @@ async def test_regdata_callbacks(
 
 
 async def test_regdata_callbacks_without_schema(
-    ecomax: EcoMAX, messages: Dict[int, bytearray], caplog
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test callbacks that are fired on received regdata."""
-    with patch(
-        "pyplumio.devices.ecomax.EcoMAX.wait_for_data",
-        new_callable=AsyncMock,
-        side_effect=ValueError,
-    ):
-        ecomax.handle_frame(
-            RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-        )
-        await ecomax.wait_until_done()
-
-    assert "Failed to decode regulator data" in caplog.text
+    ecomax.handle_frame(
+        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
+    )
+    await ecomax.wait_until_done()
     assert ATTR_FRAME_VERSIONS in ecomax.data
     assert ATTR_REGDATA not in ecomax.data
 
@@ -306,7 +297,8 @@ async def test_thermostat_parameters_callbacks(
 async def test_thermostat_parameters_callbacks_without_thermostats(
     ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
-    """Test callbacks that are fired on receiving thermostat parameters."""
+    """Test callbacks that are fired on receiving thermostat parameters
+    without any thermostats."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 0}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
@@ -314,8 +306,9 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
         )
     )
     await ecomax.wait_until_done()
-    assert ATTR_THERMOSTAT_PROFILE not in ecomax.data
-    assert ATTR_THERMOSTATS not in ecomax.data
+    assert not await ecomax.get_value(ATTR_THERMOSTAT_PARAMETERS)
+    thermostat_profile = await ecomax.get_value(ATTR_THERMOSTAT_PROFILE)
+    assert thermostat_profile is None
 
 
 async def test_thermostat_profile_callbacks(
@@ -353,6 +346,7 @@ async def test_mixer_parameters_callbacks(
     ecomax.handle_frame(
         MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
     )
+    await ecomax.wait_until_done()
     mixers = await ecomax.get_value(ATTR_MIXERS)
     assert len(mixers) == 1
     mixer = mixers[0]
@@ -379,6 +373,13 @@ async def test_mixer_parameters_callbacks(
     assert heat_curve.value == 1.3
     assert heat_curve.min_value == 1.0
     assert heat_curve.max_value == 3.0
+
+
+async def test_mixer_parameters_callbacks_without_mixers(ecomax: EcoMAX) -> None:
+    """Test mixer parameters callbacks without any mixers."""
+    ecomax.handle_frame(MixerParametersResponse(data={ATTR_MIXER_PARAMETERS: None}))
+    await ecomax.wait_until_done()
+    assert not await ecomax.get_value(ATTR_MIXER_PARAMETERS)
 
 
 async def test_schedule_callback(
@@ -445,7 +446,7 @@ async def test_subscribe(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None
 
 
 async def test_get_value(ecomax: EcoMAX) -> None:
-    """Test wait for device method."""
+    """Test getting the value from device data."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
         "pyplumio.devices.Device.create_event", return_value=mock_event
@@ -455,6 +456,34 @@ async def test_get_value(ecomax: EcoMAX) -> None:
 
     mock_create_event.assert_called_once_with("foo")
     mock_event.wait.assert_awaited_once()
+
+
+@patch(
+    "pyplumio.devices.ecomax.EcoMAX.get_value",
+    side_effect=(asyncio.TimeoutError, True),
+)
+@patch("asyncio.Queue.put_nowait")
+async def test_request_value(
+    mock_put_nowait, mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
+) -> None:
+    """Test requesting the value."""
+    assert await ecomax.request_value("foo", FrameType.REQUEST_ALERTS, timeout=5)
+    mock_get_value.assert_awaited_with("foo", timeout=5)
+    mock_put_nowait.assert_called_once()
+    args, _ = mock_put_nowait.call_args
+    assert isinstance(args[0], AlertsRequest)
+
+
+@patch(
+    "pyplumio.devices.ecomax.EcoMAX.get_value",
+    side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
+)
+async def test_request_value_error(
+    mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
+) -> None:
+    """Test requesting the value with error."""
+    with pytest.raises(ValueError):
+        await ecomax.request_value("foo", FrameType.REQUEST_ALERTS, retries=1)
 
 
 @patch("pyplumio.helpers.parameter.Parameter.is_changed", False)
@@ -520,28 +549,6 @@ async def test_get_parameter(ecomax: EcoMAX) -> None:
     ecomax.data["bar"] = Mock()
     with pytest.raises(ParameterNotFoundError):
         await ecomax.get_parameter("bar")
-
-
-async def test_wait_for_value(bypass_asyncio_sleep, ecomax: EcoMAX) -> None:
-    """Test waiting for value."""
-    mock_request = Mock(spec=Request)
-    ecomax.queue = Mock(spec=asyncio.Queue)
-    with patch(
-        "pyplumio.devices.ecomax.EcoMAX.get_value",
-        side_effect=(asyncio.TimeoutError, True),
-    ):
-        assert await ecomax.wait_for_data("foo", request=mock_request.return_value)
-
-    ecomax.queue.put_nowait.assert_called_once_with(mock_request.return_value)
-
-    # Test with value error.
-    with patch(
-        "pyplumio.devices.ecomax.EcoMAX.get_value",
-        side_effect=(asyncio.TimeoutError, True),
-    ), pytest.raises(ValueError):
-        assert not await ecomax.wait_for_data(
-            "foo", request=mock_request.return_value, retries=1
-        )
 
 
 async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:

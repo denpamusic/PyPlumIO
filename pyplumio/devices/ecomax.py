@@ -8,6 +8,7 @@ import time
 from typing import ClassVar, Final, List, Optional, Tuple
 
 from pyplumio.const import (
+    ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
     STATE_OFF,
@@ -17,13 +18,14 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.devices import Addressable, Mixer, Thermostat
-from pyplumio.frames.requests import DataSchemaRequest
+from pyplumio.frames import DataFrameDescription, get_frame_handler, is_known_frame_type
+from pyplumio.helpers.factory import factory
 from pyplumio.helpers.filters import on_change
-from pyplumio.helpers.frame_versions import DEFAULT_FRAME_VERSION, FrameVersions
 from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
+from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
@@ -58,11 +60,34 @@ from pyplumio.structures.thermostat_parameters import (
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
+ATTR_LOADED: Final = "loaded"
 ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
+
+DATA_FRAME_TYPES: Tuple[DataFrameDescription, ...] = (
+    DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_DATA_SCHEMA, provides=ATTR_SCHEMA
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS, provides=ATTR_ECOMAX_PARAMETERS
+    ),
+    DataFrameDescription(frame_type=FrameType.REQUEST_ALERTS, provides=ATTR_ALERTS),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_SCHEDULES, provides=ATTR_SCHEDULES
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_MIXER_PARAMETERS, provides=ATTR_MIXER_PARAMETERS
+    ),
+    DataFrameDescription(frame_type=FrameType.REQUEST_PASSWORD, provides=ATTR_PASSWORD),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
+        provides=ATTR_THERMOSTAT_PARAMETERS,
+    ),
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,25 +96,14 @@ class EcoMAX(Addressable):
     """Represents ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
-    _frame_versions: FrameVersions
+    _frame_versions: VersionsInfoType
     _fuel_burned_timestamp: float = 0.0
-    _required_frames: Sequence[int] = (
-        FrameType.REQUEST_UID,
-        FrameType.REQUEST_DATA_SCHEMA,
-        FrameType.REQUEST_ECOMAX_PARAMETERS,
-        FrameType.REQUEST_MIXER_PARAMETERS,
-        FrameType.REQUEST_PASSWORD,
-        FrameType.REQUEST_ALERTS,
-        FrameType.REQUEST_SCHEDULES,
-        FrameType.REQUEST_THERMOSTAT_PARAMETERS,
-    )
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize new ecoMAX object."""
         super().__init__(queue)
-        self._frame_versions = FrameVersions(device=self)
+        self._frame_versions = {}
         self._fuel_burned_timestamp = time.time()
-        self.subscribe_once(ATTR_FRAME_VERSIONS, self._merge_required_frames)
         self.subscribe(ATTR_SENSORS, self._add_ecomax_sensors)
         self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
@@ -99,20 +113,41 @@ class EcoMAX(Addressable):
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules)
         self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
-        self.subscribe(ATTR_FRAME_VERSIONS, self._frame_versions.async_update)
+        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._add_thermostat_sensors)
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._add_thermostat_parameters)
         self.subscribe(
             ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
         )
+        self.subscribe_once(ATTR_FRAME_VERSIONS, self.async_init)
 
-    async def _merge_required_frames(
-        self, frame_versions: VersionsInfoType
-    ) -> VersionsInfoType:
-        """Merge required frames into version list."""
-        requirements = {int(x): DEFAULT_FRAME_VERSION for x in self.required_frames}
-        return {**requirements, **frame_versions}
+    async def async_init(self, versions: VersionsInfoType) -> None:
+        """Request initial data frames."""
+        for description in DATA_FRAME_TYPES:
+            try:
+                await self.request_value(
+                    description.provides, description.frame_type, timeout=2
+                )
+            except ValueError:
+                _LOGGER.warning(
+                    'Failed to process "%s". It might be unsupported by your device.',
+                    description.frame_type.name,
+                )
+
+        await self.async_set_device_data(ATTR_LOADED, True)
+
+    async def _update_frame_versions(self, versions: VersionsInfoType) -> None:
+        """Check versions and fetch outdated frames."""
+        for frame_type, version in versions.items():
+            if is_known_frame_type(frame_type) and (
+                frame_type not in self._frame_versions
+                or self._frame_versions[frame_type] != version
+            ):
+                # We don't have this frame or it's version has changed.
+                request = factory(get_frame_handler(frame_type), recipient=self.address)
+                self.queue.put_nowait(request)
+                self._frame_versions[frame_type] = version
 
     def _get_mixer(self, index: int, mixer_count: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
@@ -185,9 +220,15 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_mixer_parameters(
-        self, parameters: Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
+        self,
+        parameters: Optional[
+            Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
+        ],
     ) -> bool:
         """Set mixer parameters."""
+        if parameters is None:
+            return False
+
         product = await self.get_value(ATTR_PRODUCT)
         for mixer_index, mixer_parameters in parameters:
             mixer = self._get_mixer(mixer_index, len(parameters))
@@ -221,9 +262,15 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_thermostat_parameters(
-        self, parameters: Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
+        self,
+        parameters: Optional[
+            Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
+        ],
     ) -> bool:
         """Set thermostat parameters."""
+        if parameters is None:
+            return False
+
         for thermostat_index, thermostat_parameters in parameters:
             thermostat = self._get_thermostat(thermostat_index, len(parameters))
             for index, value in thermostat_parameters:
@@ -260,10 +307,7 @@ class EcoMAX(Addressable):
         """Decode thermostat parameters."""
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
-            try:
-                await self.async_set_device_data(field, data[field])
-            except KeyError:
-                continue
+            await self.async_set_device_data(field, data[field])
 
         return True
 
@@ -295,13 +339,6 @@ class EcoMAX(Addressable):
 
     async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
         """Decode regulator data."""
-        try:
-            await self.wait_for_data(
-                ATTR_SCHEMA, request=DataSchemaRequest(recipient=self.address)
-            )
-        except ValueError:
-            _LOGGER.error("Failed to decode regulator data without schema")
-
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
             try:
@@ -372,8 +409,3 @@ class EcoMAX(Addressable):
             await subdevice.shutdown()
 
         await super().shutdown()
-
-    @property
-    def required_frames(self) -> Sequence[int]:
-        """Return list of required frame types."""
-        return self._required_frames

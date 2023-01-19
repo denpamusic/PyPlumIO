@@ -54,6 +54,14 @@ def get_frame_handler(frame_type: int) -> str:
 
 
 @dataclass
+class DataFrameDescription:
+    """Describes what data is provided by the frame."""
+
+    frame_type: FrameType
+    provides: str
+
+
+@dataclass
 class FrameDataClass:
     """Data class mixin for the frame."""
 

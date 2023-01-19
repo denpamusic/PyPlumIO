@@ -133,7 +133,13 @@ class ThermostatParametersStructure(StructureDecoder):
         data = ensure_device_data(data)
         thermostat_count = data.get(ATTR_THERMOSTAT_COUNT, 0)
         if thermostat_count == 0:
-            return data, offset
+            return (
+                ensure_device_data(
+                    data,
+                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
+                ),
+                offset,
+            )
 
         first_index = message[offset + 1]
         last_index = message[offset + 2]
@@ -154,7 +160,13 @@ class ThermostatParametersStructure(StructureDecoder):
 
         if not thermostat_parameters:
             # No thermostat parameters detected.
-            return data, offset
+            return (
+                ensure_device_data(
+                    data,
+                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
+                ),
+                offset,
+            )
 
         return (
             ensure_device_data(
