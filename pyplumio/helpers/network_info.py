@@ -1,7 +1,7 @@
 """Contains network information dataclasses."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final
 
 WLAN_ENCRYPTION_UNKNOWN: Final = 0
@@ -44,6 +44,6 @@ class WirelessParameters(EthernetParameters):
 class NetworkInfo:
     """Represents network parameters."""
 
-    eth: EthernetParameters = EthernetParameters()
-    wlan: WirelessParameters = WirelessParameters()
+    eth: EthernetParameters = field(default_factory=EthernetParameters)
+    wlan: WirelessParameters = field(default_factory=WirelessParameters)
     server_status: bool = True
