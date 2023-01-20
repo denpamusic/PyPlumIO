@@ -127,7 +127,7 @@ class EcoMAX(Addressable):
         for description in DATA_FRAME_TYPES:
             try:
                 await self.request_value(
-                    description.provides, description.frame_type, timeout=2
+                    description.provides, description.frame_type, timeout=5
                 )
             except ValueError:
                 _LOGGER.warning(

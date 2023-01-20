@@ -159,20 +159,17 @@ class Addressable(Device):
         retries: int = 3,
         timeout: float = 5.0,
     ):
-        """Wait until value present in device data.
-        If value is not available before timeout, put request for it
-        in the device queue."""
-        request: Optional[Request] = None
+        """Send request for a data and wait for a value to become
+        available. If value is not available before timeout, retry
+        request."""
+        request: Request = factory(
+            get_frame_handler(frame_type), recipient=self.address
+        )
         while retries > 0:
             try:
+                self.queue.put_nowait(request)
                 return await self.get_value(name, timeout=timeout)
             except asyncio.TimeoutError:
-                if request is None:
-                    request = factory(
-                        get_frame_handler(frame_type), recipient=self.address
-                    )
-
-                self.queue.put_nowait(request)
                 await asyncio.sleep(timeout)
                 retries -= 1
 

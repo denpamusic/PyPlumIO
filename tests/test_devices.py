@@ -469,7 +469,7 @@ async def test_request_value(
     """Test requesting the value."""
     assert await ecomax.request_value("foo", FrameType.REQUEST_ALERTS, timeout=5)
     mock_get_value.assert_awaited_with("foo", timeout=5)
-    mock_put_nowait.assert_called_once()
+    assert mock_put_nowait.call_count == 2
     args, _ = mock_put_nowait.call_args
     assert isinstance(args[0], AlertsRequest)
 
