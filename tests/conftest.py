@@ -472,9 +472,7 @@ FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF28000800
 @pytest.fixture(name="ecomax")
 def fixture_ecomax() -> EcoMAX:
     """Return instance of ecomax."""
-    with patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once"):
-        ecomax = EcoMAX(asyncio.Queue())
-
+    ecomax = EcoMAX(asyncio.Queue())
     ecomax.data[ATTR_PRODUCT] = ProductInfo(
         type=ProductType.ECOMAX_P,
         product=90,

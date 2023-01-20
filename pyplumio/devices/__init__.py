@@ -173,7 +173,7 @@ class Addressable(Device):
                 await asyncio.sleep(timeout)
                 retries -= 1
 
-        raise ValueError
+        raise ValueError(f'could not request "{name}" with "{frame_type.name}"')
 
 
 class SubDevice(Device):

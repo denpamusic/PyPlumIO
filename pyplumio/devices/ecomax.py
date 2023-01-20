@@ -8,6 +8,7 @@ import time
 from typing import ClassVar, Final, List, Optional, Tuple
 
 from pyplumio.const import (
+    ATTR_LOADED,
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
@@ -60,7 +61,6 @@ from pyplumio.structures.thermostat_parameters import (
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
-ATTR_LOADED: Final = "loaded"
 ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
@@ -82,11 +82,11 @@ DATA_FRAME_TYPES: Tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_MIXER_PARAMETERS, provides=ATTR_MIXER_PARAMETERS
     ),
-    DataFrameDescription(frame_type=FrameType.REQUEST_PASSWORD, provides=ATTR_PASSWORD),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
         provides=ATTR_THERMOSTAT_PARAMETERS,
     ),
+    DataFrameDescription(frame_type=FrameType.REQUEST_PASSWORD, provides=ATTR_PASSWORD),
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -120,22 +120,23 @@ class EcoMAX(Addressable):
         self.subscribe(
             ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
         )
-        self.subscribe_once(ATTR_FRAME_VERSIONS, self.async_init)
+        self.subscribe_once(ATTR_LOADED, self._request_data_frames)
 
-    async def async_init(self, versions: VersionsInfoType) -> None:
+    async def _request_data_frames(self, loaded: bool) -> None:
         """Request initial data frames."""
-        for description in DATA_FRAME_TYPES:
-            try:
-                await self.request_value(
-                    description.provides, description.frame_type, timeout=5
-                )
-            except ValueError:
-                _LOGGER.warning(
-                    'Failed to process "%s". It might be unsupported by your device.',
-                    description.frame_type.name,
-                )
-
-        await self.async_set_device_data(ATTR_LOADED, True)
+        try:
+            await asyncio.gather(
+                *{
+                    self.create_task(
+                        self.request_value(
+                            description.provides, description.frame_type, timeout=5
+                        )
+                    )
+                    for description in DATA_FRAME_TYPES
+                }
+            )
+        except ValueError as e:
+            _LOGGER.error("Request failed: %s", e)
 
     async def _update_frame_versions(self, versions: VersionsInfoType) -> None:
         """Check versions and fetch outdated frames."""

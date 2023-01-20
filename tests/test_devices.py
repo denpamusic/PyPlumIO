@@ -9,6 +9,7 @@ import pytest
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
+    ATTR_LOADED,
     ATTR_OFFSET,
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
@@ -101,18 +102,14 @@ def test_ecoster(ecoster: EcoSTER) -> None:
 
 @patch(
     "pyplumio.devices.ecomax.EcoMAX.request_value",
-    side_effect=(ValueError, True, True, True, True, True, True, True),
+    side_effect=(ValueError("test"), True, True, True, True, True, True, True),
 )
-async def test_async_init(
-    mock_request_value, messages: Dict[int, bytearray], caplog
-) -> None:
-    """Test async init."""
+async def test_request_data_frames(mock_request_value, caplog) -> None:
+    """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue())
-    ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
-    )
+    ecomax.set_device_data(ATTR_LOADED, True)
     await ecomax.wait_until_done()
-    assert 'Failed to process "REQUEST_UID"' in caplog.text
+    assert "Request failed: test" in caplog.text
     assert mock_request_value.await_count == len(DATA_FRAME_TYPES)
 
 
@@ -181,9 +178,7 @@ async def test_ecomax_parameters_callbacks(
 @patch("time.time", side_effect=(0, 10, 600, 610))
 async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     """Test callbacks that are fired on received fuel consumption."""
-    with patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once"):
-        ecomax = EcoMAX(asyncio.Queue())
-
+    ecomax = EcoMAX(asyncio.Queue())
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get_value(ATTR_FUEL_BURNED)

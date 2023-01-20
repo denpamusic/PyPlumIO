@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
-from pyplumio.const import DeviceType, FrameType
+from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
 from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -120,7 +120,8 @@ class Protocol(TaskManager):
                 continue
 
             if name not in self.devices:
-                device = factory(handler, queue=write_queue)
+                device: Addressable = factory(handler, queue=write_queue)
+                device.set_device_data(ATTR_LOADED, True)
                 self.devices[name] = device
                 self.set_event(name)
 

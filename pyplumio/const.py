@@ -7,6 +7,7 @@ from typing import Final
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
 
+ATTR_LOADED: Final = "loaded"
 ATTR_INDEX: Final = "index"
 ATTR_VALUE: Final = "value"
 ATTR_STATE: Final = "state"
