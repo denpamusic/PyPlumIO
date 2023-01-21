@@ -11,7 +11,7 @@ async def test_task_manager(mock_gather) -> None:
     """Test task manager."""
     task_manager = TaskManager()
 
-    mock_coro = Mock(spec=asyncio.coroutine)
+    mock_coro = Mock()
     mock_task = Mock(spec=asyncio.Task)
     with patch("asyncio.create_task", return_value=mock_task) as create_task_mock:
         task_manager.create_task(mock_coro)
