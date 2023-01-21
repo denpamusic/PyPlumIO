@@ -152,7 +152,7 @@ class Addressable(Device):
             for name, value in frame.data.items():
                 self.set_device_data(name, value)
 
-    async def request_value(
+    async def make_request(
         self,
         name: str,
         frame_type: FrameType,
@@ -170,7 +170,6 @@ class Addressable(Device):
                 self.queue.put_nowait(request)
                 return await self.get_value(name, timeout=timeout)
             except asyncio.TimeoutError:
-                await asyncio.sleep(timeout)
                 retries -= 1
 
         raise ValueError(f'could not request "{name}" with "{frame_type.name}"')

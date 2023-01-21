@@ -101,16 +101,16 @@ def test_ecoster(ecoster: EcoSTER) -> None:
 
 
 @patch(
-    "pyplumio.devices.ecomax.EcoMAX.request_value",
+    "pyplumio.devices.ecomax.EcoMAX.make_request",
     side_effect=(ValueError("test"), True, True, True, True, True, True, True),
 )
-async def test_request_data_frames(mock_request_value, caplog) -> None:
+async def test_request_data_frames(mock_make_request, caplog) -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue())
     ecomax.set_device_data(ATTR_LOADED, True)
     await ecomax.wait_until_done()
     assert "Request failed: test" in caplog.text
-    assert mock_request_value.await_count == len(DATA_FRAME_TYPES)
+    assert mock_make_request.await_count == len(DATA_FRAME_TYPES)
 
 
 @patch("asyncio.Queue.put_nowait")
@@ -458,11 +458,11 @@ async def test_get_value(ecomax: EcoMAX) -> None:
     side_effect=(asyncio.TimeoutError, True),
 )
 @patch("asyncio.Queue.put_nowait")
-async def test_request_value(
+async def test_make_request(
     mock_put_nowait, mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
 ) -> None:
     """Test requesting the value."""
-    assert await ecomax.request_value("foo", FrameType.REQUEST_ALERTS, timeout=5)
+    assert await ecomax.make_request("foo", FrameType.REQUEST_ALERTS, timeout=5)
     mock_get_value.assert_awaited_with("foo", timeout=5)
     assert mock_put_nowait.call_count == 2
     args, _ = mock_put_nowait.call_args
@@ -473,12 +473,12 @@ async def test_request_value(
     "pyplumio.devices.ecomax.EcoMAX.get_value",
     side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
 )
-async def test_request_value_error(
+async def test_make_request_error(
     mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
 ) -> None:
     """Test requesting the value with error."""
     with pytest.raises(ValueError):
-        await ecomax.request_value("foo", FrameType.REQUEST_ALERTS, retries=1)
+        await ecomax.make_request("foo", FrameType.REQUEST_ALERTS, retries=1)
 
 
 @patch("pyplumio.helpers.parameter.Parameter.is_changed", False)
