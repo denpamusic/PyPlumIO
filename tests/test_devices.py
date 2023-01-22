@@ -229,7 +229,7 @@ async def test_mixer_sensors_callbacks(
     assert ecomax.wait_until_done()
     mixers = await ecomax.get_value(ATTR_MIXERS)
     assert len(mixers) == 1
-    mixer = mixers[0]
+    mixer = mixers[4]
     assert isinstance(mixer, Mixer)
     assert mixer.index == 4
     assert mixer.data == {"current_temp": 20.0, "target_temp": 40, "pump": False}

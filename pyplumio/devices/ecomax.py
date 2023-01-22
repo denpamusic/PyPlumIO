@@ -5,7 +5,7 @@ import asyncio
 from collections.abc import Sequence
 import logging
 import time
-from typing import ClassVar, Final, List, Optional, Tuple
+from typing import ClassVar, Dict, Final, List, Optional, Tuple
 
 from pyplumio.const import (
     ATTR_LOADED,
@@ -152,12 +152,12 @@ class EcoMAX(Addressable):
 
     def _get_mixer(self, index: int, mixer_count: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
-        mixers = self.data.setdefault(ATTR_MIXERS, [])
+        mixers: Dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
         try:
             mixer = mixers[index]
-        except IndexError:
+        except KeyError:
             mixer = Mixer(self.queue, parent=self, index=index)
-            mixers.append(mixer)
+            mixers[index] = mixer
             if len(mixers) == mixer_count:
                 # All mixers were processed, notify callbacks and getters.
                 self.set_device_data(ATTR_MIXERS, mixers)
@@ -167,12 +167,12 @@ class EcoMAX(Addressable):
     def _get_thermostat(self, index: int, thermostat_count: int) -> Thermostat:
         """Get or create a new thermostat object and add it to the
         device."""
-        thermostats = self.data.setdefault(ATTR_THERMOSTATS, [])
+        thermostats: Dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
         try:
             thermostat = thermostats[index]
-        except IndexError:
+        except KeyError:
             thermostat = Thermostat(self.queue, parent=self, index=index)
-            thermostats.append(thermostat)
+            thermostats[index] = thermostat
             if len(thermostats) == thermostat_count:
                 # All thermostats were processed, notify callbacks and getters.
                 self.set_device_data(ATTR_THERMOSTATS, thermostats)
@@ -403,10 +403,10 @@ class EcoMAX(Addressable):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks for root and sub devices."""
-        subdevices = []
-        subdevices.extend(self.data.get(ATTR_MIXERS, []))
-        subdevices.extend(self.data.get(ATTR_THERMOSTATS, []))
-        for subdevice in subdevices:
+        mixers = self.data.get(ATTR_MIXERS, {})
+        thermostats = self.data.get(ATTR_THERMOSTATS, {})
+        subdevices = {**mixers, **thermostats}
+        for subdevice in subdevices.values():
             await subdevice.shutdown()
 
         await super().shutdown()
