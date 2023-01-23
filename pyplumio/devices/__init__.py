@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from typing import ClassVar, Dict, List, Optional
+from warnings import warn
 
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
@@ -80,7 +81,7 @@ class Device(TaskManager):
         name: str,
         value: NumericType,
         timeout: Optional[float] = None,
-        await_confirmation: bool = True,
+        await_confirmation: Optional[bool] = None,
     ) -> bool:
         """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
@@ -92,11 +93,21 @@ class Device(TaskManager):
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
 
-        if await_confirmation:
-            return await parameter.set(value)
+        if await_confirmation is not None:
+            warn(
+                "Flag 'await_confirmation' for 'set_value' is deprecated. "
+                + "Use 'set_value_nowait' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
-        self.create_task(parameter.set(value))
-        return True
+        return await parameter.set(value)
+
+    async def set_value_nowait(
+        self, name: str, value: NumericType, timeout: Optional[float] = None
+    ) -> None:
+        """Set a parameter value without waiting for the result."""
+        self.create_task(self.set_value(name, value, timeout))
 
     def subscribe(self, name: str, callback: SensorCallbackType) -> None:
         """Subscribe a callback to the value change event."""

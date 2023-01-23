@@ -3,6 +3,7 @@
 import asyncio
 from typing import Dict
 from unittest.mock import AsyncMock, Mock, call, patch
+import warnings
 
 import pytest
 
@@ -507,8 +508,16 @@ async def test_set_value(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None
     with patch(
         "pyplumio.helpers.task_manager.TaskManager.create_task"
     ) as mock_create_task:
-        await ecomax.set_value("fuel_flow_kg_h", 10, await_confirmation=False)
+        await ecomax.set_value_nowait("fuel_flow_kg_h", 10)
         mock_create_task.assert_called_once()
+
+    # Test deprication warning on the await_confirmation binary flag.
+    with warnings.catch_warnings(record=True) as warn:
+        warnings.simplefilter("always")
+        assert await ecomax.set_value("fuel_flow_kg_h", 13.0, await_confirmation=False)
+        assert len(warn) == 1
+        assert issubclass(warn[-1].category, DeprecationWarning)
+        assert "deprecated" in str(warn[-1].message)
 
     # Test setting a thermostat parameter.
     thermostat = ecomax.data[ATTR_THERMOSTATS][0]
