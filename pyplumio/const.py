@@ -28,6 +28,17 @@ BYTE_UNDEFINED: Final = 0xFF
 
 
 @unique
+class EncryptionType(IntEnum):
+    """Contains wireless encryption types."""
+
+    UNKNOWN = 0
+    NONE = 1
+    WEP = 2
+    WPA = 3
+    WPA2 = 4
+
+
+@unique
 class DeviceState(IntEnum):
     """Contains device states."""
 

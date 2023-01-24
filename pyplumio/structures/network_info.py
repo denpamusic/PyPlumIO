@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Final, Optional, Tuple
 
 from pyplumio import util
+from pyplumio.const import EncryptionType
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -55,7 +56,7 @@ class NetworkInfoStructure(Structure):
                 ip=util.ip4_from_bytes(message[offset + 13 : offset + 17]),
                 netmask=util.ip4_from_bytes(message[offset + 17 : offset + 21]),
                 gateway=util.ip4_from_bytes(message[offset + 21 : offset + 25]),
-                encryption=int(message[offset + 26]),
+                encryption=EncryptionType(int(message[offset + 26])),
                 signal_quality=int(message[offset + 27]),
                 status=bool(message[offset + 28]),
                 ssid=util.unpack_string(message, offset + 33),

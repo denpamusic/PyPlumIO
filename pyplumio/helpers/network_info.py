@@ -4,18 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Final
 
-WLAN_ENCRYPTION_UNKNOWN: Final = 0
-WLAN_ENCRYPTION_NONE: Final = 1
-WLAN_ENCRYPTION_WEP: Final = 2
-WLAN_ENCRYPTION_WPA: Final = 3
-WLAN_ENCRYPTION_WPA2: Final = 4
-WLAN_ENCRYPTION: Final = (
-    WLAN_ENCRYPTION_UNKNOWN,
-    WLAN_ENCRYPTION_NONE,
-    WLAN_ENCRYPTION_WEP,
-    WLAN_ENCRYPTION_WPA,
-    WLAN_ENCRYPTION_WPA2,
-)
+from pyplumio.const import EncryptionType
 
 DEFAULT_IP: Final = "0.0.0.0"
 DEFAULT_NETMASK: Final = "255.255.255.0"
@@ -36,7 +25,7 @@ class WirelessParameters(EthernetParameters):
     """Represents wireless network parameters."""
 
     ssid: str = ""
-    encryption: int = WLAN_ENCRYPTION_NONE
+    encryption: EncryptionType = EncryptionType.NONE
     signal_quality: int = 100
 
 

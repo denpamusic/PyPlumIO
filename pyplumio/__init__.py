@@ -2,15 +2,7 @@
 from __future__ import annotations
 
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
-from pyplumio.helpers.network_info import (
-    WLAN_ENCRYPTION_NONE,
-    WLAN_ENCRYPTION_UNKNOWN,
-    WLAN_ENCRYPTION_WEP,
-    WLAN_ENCRYPTION_WPA,
-    WLAN_ENCRYPTION_WPA2,
-    EthernetParameters,
-    WirelessParameters,
-)
+from pyplumio.helpers.network_info import EthernetParameters, WirelessParameters
 from pyplumio.version import __version__
 
 
@@ -42,10 +34,5 @@ __all__ = [
     "open_tcp_connection",
     "ethernet_parameters",
     "wireless_parameters",
-    "WLAN_ENCRYPTION_NONE",
-    "WLAN_ENCRYPTION_UNKNOWN",
-    "WLAN_ENCRYPTION_WEP",
-    "WLAN_ENCRYPTION_WPA",
-    "WLAN_ENCRYPTION_WPA2",
     "__version__",
 ]

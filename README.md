@@ -408,6 +408,7 @@ You can send ethernet and wireless network information to the ecoMAX controller 
 LCD. It serves information purposes only and can be omitted.
 ```python
 import pyplumio
+from pyplumio.const import EncryptionType
 
 async def main():
   ethernet = pyplumio.ethernet_parameters(
@@ -420,7 +421,7 @@ async def main():
     netmask="255.255.255.0",
     gateway="10.10.2.1",
     ssid="My SSID",
-    encryption=pyplumio.WLAN_ENCRYPTION_WPA2,
+    encryption=EncryptionType.WPA2,
     signal_quality=100,
   )
   async with pyplumio.open_tcp_connection(

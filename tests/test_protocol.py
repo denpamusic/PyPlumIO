@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from pyplumio.const import DeviceType
+from pyplumio.const import DeviceType, EncryptionType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
 from pyplumio.frames.requests import (
@@ -15,7 +15,6 @@ from pyplumio.frames.requests import (
     StartMasterRequest,
 )
 from pyplumio.helpers.network_info import (
-    WLAN_ENCRYPTION_WPA2,
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
@@ -32,7 +31,7 @@ def fixture_protocol() -> Protocol:
         wireless_parameters=WirelessParameters(
             ssid="test_ssid",
             ip="2.2.2.2",
-            encryption=WLAN_ENCRYPTION_WPA2,
+            encryption=EncryptionType.WPA2,
             netmask="255.255.255.255",
             gateway="2.2.2.1",
             signal_quality=50,
@@ -197,7 +196,7 @@ async def test_frame_consumer(
                     gateway="2.2.2.1",
                     status=True,
                     ssid="test_ssid",
-                    encryption=4,
+                    encryption=EncryptionType.WPA2,
                     signal_quality=50,
                 ),
                 server_status=True,
