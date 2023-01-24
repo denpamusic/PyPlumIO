@@ -1,4 +1,4 @@
-"""Contains lambda structure decoder."""
+"""Contains lambda sensor structure decoder."""
 from __future__ import annotations
 
 import math

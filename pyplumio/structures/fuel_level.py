@@ -1,4 +1,4 @@
-"""Contains lambda structure decoder."""
+"""Contains fuel level structure decoder."""
 from __future__ import annotations
 
 from typing import Final, Optional, Tuple

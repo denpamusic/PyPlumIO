@@ -204,4 +204,4 @@ class Mixer(SubDevice):
 
 
 class Thermostat(SubDevice):
-    """Represent the thermostat sub-device."""
+    """Represents the thermostat sub-device."""

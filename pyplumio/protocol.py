@@ -81,7 +81,7 @@ class Protocol(TaskManager):
     async def frame_producer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
     ) -> None:
-        """Handle frame reads."""
+        """Handle frame reads and writes."""
         await self.connected.wait()
         while self.connected.is_set():
             try:
