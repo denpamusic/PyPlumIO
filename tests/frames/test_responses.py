@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-from pyplumio.const import ATTR_STATE, DeviceType, FrameType
+from pyplumio.const import DeviceType, FrameType
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -15,9 +15,8 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.helpers.data_types import Byte
 from pyplumio.helpers.typing import DeviceDataType
-from pyplumio.structures.data_schema import ATTR_SCHEMA, REGDATA_SCHEMA
+from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -160,11 +159,6 @@ def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
     frame = DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     assert ATTR_SCHEMA in frame.data
     assert len(frame.data[ATTR_SCHEMA]) == 257
-    matches = {
-        x[0]: x[1] for x in frame.data[ATTR_SCHEMA] if x[0] in REGDATA_SCHEMA.values()
-    }
-    assert list(matches.keys()).sort() == list(REGDATA_SCHEMA.values()).sort()
-    assert isinstance(matches[ATTR_STATE], Byte)
 
 
 def test_data_schema_response_with_no_parameters() -> None:

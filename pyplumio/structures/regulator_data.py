@@ -1,7 +1,7 @@
 """Contains regulator data structure decoder."""
 from __future__ import annotations
 
-from typing import Final, List, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.typing import BytesType, DeviceDataType
@@ -29,12 +29,12 @@ def _unpack_data(
 def _decode_regulator_data(
     message: bytearray,
     offset: int,
-    schema: List[Tuple[str, DataType]],
+    schema: List[Tuple[int, DataType]],
     boolean_index: int = 0,
-) -> DeviceDataType:
+) -> Dict[int, Any]:
     """Decode regulator data from the schema."""
-    data = ensure_device_data(None)
-    for (sensor_id, data_type) in schema:
+    data: Dict[int, Any] = {}
+    for sensor_id, data_type in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
             offset += 1
             boolean_index = 0

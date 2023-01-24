@@ -15,7 +15,6 @@ from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
     ATTR_SENSORS,
-    ATTR_STATE,
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
@@ -75,8 +74,6 @@ from pyplumio.structures.schedules import (
     ScheduleBinaryParameter,
     ScheduleParameter,
 )
-from pyplumio.structures.statuses import ATTR_HEATING_TARGET
-from pyplumio.structures.temperatures import ATTR_HEATING_TEMP
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PROFILE,
@@ -201,11 +198,11 @@ async def test_regdata_callbacks(
     )
     await ecomax.wait_until_done()
     regdata = await ecomax.get_value(ATTR_REGDATA)
-    assert regdata[ATTR_STATE] == 0
-    assert round(regdata[ATTR_HEATING_TEMP], 1) == 22.4
-    assert regdata[ATTR_HEATING_TARGET] == 41
-    assert regdata["183"] == "0.0.0.0"
-    assert regdata["184"] == "255.255.255.0"
+    assert regdata[1792] == 0
+    assert round(regdata[1024], 1) == 22.4
+    assert regdata[1280] == 41
+    assert regdata[183] == "0.0.0.0"
+    assert regdata[184] == "255.255.255.0"
 
 
 async def test_regdata_callbacks_without_schema(
