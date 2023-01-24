@@ -18,7 +18,11 @@ from pyplumio.structures.fan_power import ATTR_FAN_POWER
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.fuel_level import ATTR_FUEL_LEVEL
-from pyplumio.structures.lambda_sensor import ATTR_LAMBDA_SENSOR, ATTR_LEVEL
+from pyplumio.structures.lambda_sensor import (
+    ATTR_LAMBDA_LEVEL,
+    ATTR_LAMBDA_STATE,
+    ATTR_LAMBDA_TARGET,
+)
 from pyplumio.structures.load import ATTR_LOAD
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS, ATTR_PUMP
 from pyplumio.structures.modules import ATTR_MODULES
@@ -88,7 +92,7 @@ def test_sensor_data_decode_message(messages: Dict[int, bytearray]) -> None:
     assert data[ATTR_HEATING_STATUS] == 0
     assert data[ATTR_MODULES].module_a == "18.11.58.K1"
     assert data[ATTR_MODULES].module_panel == "18.10.72"
-    assert data[ATTR_LAMBDA_SENSOR][ATTR_LEVEL] == 40
+    assert data[ATTR_LAMBDA_LEVEL] == 40
     assert data[ATTR_PENDING_ALERTS] == 0
     assert data[ATTR_FUEL_LEVEL] == 32
     assert data[ATTR_MIXER_SENSORS] == [
@@ -145,7 +149,9 @@ def test_sensor_data_without_lambda_sensor(messages: Dict[int, bytearray]) -> No
         del test_message[INDEX_LAMBDA_SENSOR + byte]
 
     frame = SensorDataMessage(message=test_message)
-    assert ATTR_LAMBDA_SENSOR not in frame.data
+    assert ATTR_LAMBDA_STATE not in frame.data
+    assert ATTR_LAMBDA_TARGET not in frame.data
+    assert ATTR_LAMBDA_LEVEL not in frame.data
 
 
 def test_sensor_data_without_fan_power_and_fuel_consumption(
