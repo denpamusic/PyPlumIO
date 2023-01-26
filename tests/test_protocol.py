@@ -156,9 +156,7 @@ async def test_frame_producer(
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
 @patch("pyplumio.frames.requests.ProgramVersionRequest.response")
-@patch("pyplumio.protocol.Addressable.handle_frame")
 async def test_frame_consumer(
-    mock_handle_frame,
     mock_program_version_response,
     mock_device_available_response,
     bypass_asyncio_events,
@@ -212,7 +210,6 @@ async def test_frame_consumer(
         call(mock_program_version_response()),
     ]
     mock_write_queue.put_nowait.assert_has_calls(calls)
-    assert mock_handle_frame.call_count == 2
     assert mock_read_queue.task_done.call_count == 3
 
 
@@ -255,7 +252,7 @@ async def test_shutdown(
 
     protocol.writer = Mock()
     protocol.writer.close = AsyncMock()
-    protocol.devices["ecomax"] = EcoMAX(queue=asyncio.Queue())
+    protocol.devices["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
     mock_frame_consumer_task = Mock()
     mock_frame_producer_task = Mock()

@@ -472,7 +472,7 @@ FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF28000800
 @pytest.fixture(name="ecomax")
 def fixture_ecomax() -> EcoMAX:
     """Return instance of ecomax."""
-    ecomax = EcoMAX(asyncio.Queue())
+    ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
     ecomax.data[ATTR_PRODUCT] = ProductInfo(
         type=ProductType.ECOMAX_P,
         product=90,
@@ -487,7 +487,7 @@ def fixture_ecomax() -> EcoMAX:
 @pytest.fixture(name="ecoster")
 def fixture_ecoster() -> EcoSTER:
     """Return instance of ecoster."""
-    return EcoSTER(asyncio.Queue())
+    return EcoSTER(asyncio.Queue(), network=NetworkInfo())
 
 
 @pytest.fixture(name="bypass_asyncio_sleep")

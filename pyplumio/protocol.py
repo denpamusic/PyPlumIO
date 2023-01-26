@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
 
-from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
+from pyplumio.const import ATTR_LOADED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -22,7 +22,6 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.stream import FrameReader, FrameWriter
-from pyplumio.structures.network_info import ATTR_NETWORK
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -120,21 +119,14 @@ class Protocol(TaskManager):
                 continue
 
             if name not in self.devices:
-                device: Addressable = factory(handler, queue=write_queue)
+                device: Addressable = factory(
+                    handler, queue=write_queue, network=self._network
+                )
                 device.set_device_data(ATTR_LOADED, True)
                 self.devices[name] = device
                 self.set_event(name)
 
             self.devices[name].handle_frame(frame)
-
-            if frame.frame_type in (
-                FrameType.REQUEST_CHECK_DEVICE,
-                FrameType.REQUEST_PROGRAM_VERSION,
-            ):
-                write_queue.put_nowait(
-                    frame.response(data={ATTR_NETWORK: self._network})
-                )
-
             read_queue.task_done()
 
     def connection_established(

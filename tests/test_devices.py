@@ -53,6 +53,7 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
+from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.structures.ecomax_parameters import (
@@ -104,7 +105,7 @@ def test_ecoster(ecoster: EcoSTER) -> None:
 )
 async def test_request_data_frames(mock_make_request, caplog) -> None:
     """Test requesting initial data frames."""
-    ecomax = EcoMAX(asyncio.Queue())
+    ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
     ecomax.set_device_data(ATTR_LOADED, True)
     await ecomax.wait_until_done()
     assert "Request failed: test" in caplog.text
@@ -176,7 +177,7 @@ async def test_ecomax_parameters_callbacks(
 @patch("time.time", side_effect=(0, 10, 600, 610))
 async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     """Test callbacks that are fired on received fuel consumption."""
-    ecomax = EcoMAX(asyncio.Queue())
+    ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get_value(ATTR_FUEL_BURNED)

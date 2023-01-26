@@ -10,9 +10,11 @@ from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Frame, Request, get_frame_handler
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
+from pyplumio.structures.network_info import ATTR_NETWORK
 
 
 def _handler_class_path(device_type_name: str) -> str:
@@ -156,9 +158,21 @@ class Addressable(Device):
     """Represents the addressable device."""
 
     address: ClassVar[int]
+    _network: NetworkInfo
+
+    def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
+        """Initialize the addressable object."""
+        super().__init__(queue)
+        self._network = network
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
+        if isinstance(frame, Request) and frame.frame_type in (
+            FrameType.REQUEST_CHECK_DEVICE,
+            FrameType.REQUEST_PROGRAM_VERSION,
+        ):
+            self.queue.put_nowait(frame.response(data={ATTR_NETWORK: self._network}))
+
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.set_device_data(name, value)
