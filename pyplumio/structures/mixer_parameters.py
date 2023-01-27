@@ -89,7 +89,7 @@ ECOMAX_P_MIXER_PARAMETERS: Tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="insensitivity", multiplier=10),
     MixerParameterDescription(name="therm_operation"),
     MixerParameterDescription(name="therm_mode"),
-    MixerParameterDescription(name="off_therm_pump"),
+    MixerParameterDescription(name="off_therm_pump", cls=MixerBinaryParameter),
     MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
 )
 
