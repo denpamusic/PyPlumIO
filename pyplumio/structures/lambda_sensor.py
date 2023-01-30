@@ -34,7 +34,7 @@ class LambaSensorStructure(StructureDecoder):
                 {
                     ATTR_LAMBDA_STATE: state,
                     ATTR_LAMBDA_TARGET: target,
-                    ATTR_LAMBDA_LEVEL: None if math.isnan(level) else level,
+                    ATTR_LAMBDA_LEVEL: None if math.isnan(level) else (level / 10),
                 },
             ),
             offset + 4,
