@@ -38,13 +38,12 @@ class ThermostatSensorsStructure(StructureDecoder):
         thermostat_sensors: List[Tuple[int, DeviceDataType]] = []
         for index in range(thermostat_count):
             current_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-            if not math.isnan(current_temp):
+            target_temp = util.unpack_float(message[offset + 5 : offset + 9])[0]
+            if not math.isnan(current_temp) and target_temp > 0:
                 sensors: DeviceDataType = {}
                 sensors[ATTR_STATE] = message[offset]
                 sensors[ATTR_CURRENT_TEMP] = current_temp
-                sensors[ATTR_TARGET_TEMP] = util.unpack_float(
-                    message[offset + 5 : offset + 9]
-                )[0]
+                sensors[ATTR_TARGET_TEMP] = target_temp
                 sensors[ATTR_CONTACTS] = bool(contacts & contact_mask)
                 sensors[ATTR_SCHEDULE] = bool(contacts & schedule_mask)
                 thermostat_sensors.append((index, sensors))
