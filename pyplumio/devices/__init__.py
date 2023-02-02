@@ -105,7 +105,7 @@ class Device(TaskManager):
 
         return await parameter.set(value)
 
-    async def set_value_nowait(
+    def set_value_nowait(
         self, name: str, value: NumericType, timeout: Optional[float] = None
     ) -> None:
         """Set a parameter value without waiting for the result."""
