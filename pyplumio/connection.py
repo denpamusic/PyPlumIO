@@ -118,6 +118,9 @@ class Connection(ABC):
 class TcpConnection(Connection):
     """Represents TCP connection."""
 
+    host: str
+    port: int
+
     def __init__(self, host: str, port: int, **kwargs):
         """Initialize TCP connection object."""
         super().__init__(**kwargs)
@@ -142,6 +145,9 @@ class TcpConnection(Connection):
 
 class SerialConnection(Connection):
     """Represents Serial connection."""
+
+    device: str
+    baudrate: int
 
     def __init__(self, device: str, baudrate: int = 115200, **kwargs):
         """Initialize Serial connection object."""
