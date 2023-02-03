@@ -1,11 +1,11 @@
-from typing import Any, Dict
+from typing import Any
 
 import setuptools
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-pkg_vars: Dict[str, Any] = {}
+pkg_vars: dict[str, Any] = {}
 exec(open("pyplumio/version.py", encoding="utf-8").read(), pkg_vars)
 
 setuptools.setup(
@@ -28,7 +28,6 @@ setuptools.setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
