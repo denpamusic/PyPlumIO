@@ -1,6 +1,6 @@
 """Test PyPlumIO base frame."""
 
-from typing import ClassVar, Tuple
+from typing import ClassVar, Final, Tuple
 
 import pytest
 
@@ -15,6 +15,8 @@ from pyplumio.frames import (
     get_frame_handler,
 )
 from pyplumio.frames.responses import ProgramVersionResponse
+
+UNKNOWN_DEVICE: Final = 99
 
 
 class RequestFrame(Request):
@@ -53,6 +55,13 @@ def fixture_frames(
 def fixture_types() -> Tuple[int, int]:
     """Return request and response types as a tuple."""
     return (FrameType.REQUEST_PROGRAM_VERSION, FrameType.RESPONSE_PROGRAM_VERSION)
+
+
+def test_unknown_device_type() -> None:
+    """Test creating a frame with unknown device type."""
+    frame = RequestFrame(sender=UNKNOWN_DEVICE)
+    assert frame.sender == UNKNOWN_DEVICE
+    assert not isinstance(frame.sender, DeviceType)
 
 
 def test_decode_create_message(frames: Tuple[Request, Response]) -> None:

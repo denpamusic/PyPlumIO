@@ -89,44 +89,30 @@ class Protocol(TaskManager):
                     await self.writer.write(request)
                     write_queue.task_done()
 
-                response = await self.reader.read()
-                if response is not None:
-                    read_queue.put_nowait(response)
+                if (response := await self.reader.read()) is not None:
+                    device = self.setup_device_entry(response.sender)
+                    read_queue.put_nowait((device, response))
+
             except UnknownFrameError as e:
                 _LOGGER.debug("Unknown frame type: %s", e)
             except ReadError as e:
                 _LOGGER.debug("Read error: %s", e)
             except FrameError as e:
                 _LOGGER.warning("Can't process received frame: %s", e)
+            except UnknownDeviceError as e:
+                _LOGGER.debug("Unknown device: %s", e)
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
                 break
             except Exception as e:  # pylint: disable=broad-except
                 _LOGGER.exception(e)
 
-    async def frame_consumer(
-        self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
-    ) -> None:
+    async def frame_consumer(self, read_queue: asyncio.Queue) -> None:
         """Handle frame processing."""
         await self.connected.wait()
         while self.connected.is_set():
-            frame = await read_queue.get()
-            try:
-                handler, name = _get_device_handler_and_name(frame.sender)
-            except UnknownDeviceError as e:
-                _LOGGER.debug("Unknown device: %s", e)
-                read_queue.task_done()
-                continue
-
-            if name not in self.devices:
-                device: Addressable = factory(
-                    handler, queue=write_queue, network=self._network
-                )
-                device.set_device_data(ATTR_LOADED, True)
-                self.devices[name] = device
-                self.set_event(name)
-
-            self.devices[name].handle_frame(frame)
+            device, frame = await read_queue.get()
+            device.handle_frame(frame)
             read_queue.task_done()
 
     def connection_established(
@@ -135,11 +121,11 @@ class Protocol(TaskManager):
         """Start consumers and producer tasks."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
-        write_queue = self.queues[1]
+        read_queue, write_queue = self.queues
         write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
         self.create_task(self.frame_producer(*self.queues))
         for _ in range(CONSUMERS_NUMBER):
-            self.create_task(self.frame_consumer(*self.queues))
+            self.create_task(self.frame_consumer(read_queue))
 
         self.connected.set()
 
@@ -160,6 +146,20 @@ class Protocol(TaskManager):
 
         if self.writer:
             await self.writer.close()
+
+    def setup_device_entry(self, device_type: DeviceType) -> Addressable:
+        """Setup the device entry."""
+        handler, name = _get_device_handler_and_name(device_type)
+        write_queue: asyncio.Queue = self.queues[1]
+        if name not in self.devices:
+            device: Addressable = factory(
+                handler, queue=write_queue, network=self._network
+            )
+            device.set_device_data(ATTR_LOADED, True)
+            self.devices[name] = device
+            self.set_event(name)
+
+        return self.devices[name]
 
     async def get_device(
         self, device: str, timeout: Optional[float] = None

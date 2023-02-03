@@ -8,7 +8,13 @@ import pytest
 
 from pyplumio.const import DeviceType, EncryptionType
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.exceptions import FrameError, ReadError, UnknownFrameError
+from pyplumio.exceptions import (
+    FrameError,
+    ReadError,
+    UnknownDeviceError,
+    UnknownFrameError,
+)
+from pyplumio.frames import Response
 from pyplumio.frames.requests import (
     CheckDeviceRequest,
     ProgramVersionRequest,
@@ -110,13 +116,16 @@ def test_connection_established(
 @pytest.mark.usefixtures("bypass_asyncio_create_task")
 async def test_frame_producer(protocol: Protocol, caplog) -> None:
     """Test frame producer task."""
+    response = Response(sender=DeviceType.ECOMAX)
+
     # Create mock frame reader and writer.
     protocol.reader = AsyncMock(spec=FrameReader)
     protocol.reader.read = AsyncMock(
         side_effect=(
-            "test_response",
+            response,
             UnknownFrameError("test unknown frame error"),
             FrameError("test frame error"),
+            UnknownDeviceError("test unknown device error"),
             ReadError("test read error"),
             Exception("test generic error"),
             ConnectionError,
@@ -128,10 +137,10 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
     # Create mock queues.
     mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue = AsyncMock(spec=asyncio.Queue)
-    mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0))
+    mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0, 0))
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
-    with patch(
+    with patch("pyplumio.devices.ecomax.EcoMAX") as mock_device, patch(
         "pyplumio.protocol.Protocol.connection_lost", new_callable=Mock
     ) as mock_connection_lost, caplog.at_level(logging.DEBUG):
         await protocol.frame_producer(mock_read_queue, mock_write_queue)
@@ -150,6 +159,11 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
         (
             "pyplumio.protocol",
             logging.DEBUG,
+            "Unknown device: test unknown device error",
+        ),
+        (
+            "pyplumio.protocol",
+            logging.DEBUG,
             "Read error: test read error",
         ),
         (
@@ -161,11 +175,13 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
 
     protocol.writer.write.assert_awaited_once_with("test_request")
     mock_write_queue.task_done.assert_called_once()
-    mock_read_queue.put_nowait.assert_called_once_with("test_response")
+    mock_read_queue.put_nowait.assert_called_once_with(
+        (mock_device.return_value, response)
+    )
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
-    assert mock_write_queue.qsize.call_count == 6
-    assert protocol.reader.read.await_count == 6
+    assert mock_write_queue.qsize.call_count == 7
+    assert protocol.reader.read.await_count == 7
 
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
@@ -181,16 +197,22 @@ async def test_frame_consumer(
     mock_read_queue = Mock(spec=asyncio.Queue)
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
+
+    with patch(
+        "pyplumio.protocol.Protocol.queues",
+        return_value=(mock_read_queue, mock_write_queue),
+    ) as mock_queues:
+        ecomax = protocol.setup_device_entry(DeviceType.ECOMAX)
+
     mock_read_queue.get.side_effect = (
-        CheckDeviceRequest(sender=DeviceType.ECOMAX),
-        ProgramVersionRequest(sender=DeviceType.ECOMAX),
-        CheckDeviceRequest(sender=UNKNOWN_DEVICE),
+        (ecomax, CheckDeviceRequest()),
+        (ecomax, ProgramVersionRequest()),
     )
 
     with caplog.at_level(logging.DEBUG), patch(
-        "asyncio.Event.is_set", side_effect=(True, True, True, False)
+        "asyncio.Event.is_set", side_effect=(True, True, False)
     ):
-        await protocol.frame_consumer(mock_read_queue, mock_write_queue)
+        await protocol.frame_consumer(mock_read_queue)
 
     await protocol.shutdown()
 
@@ -218,16 +240,13 @@ async def test_frame_consumer(
         }
     )
 
-    # Check that unknown device exception was raised for device
-    # with address 99.
-    assert "Unknown device (99)" in caplog.text
-    mock_write_queue.put_nowait.assert_has_calls(
+    mock_queues[1].put_nowait.assert_has_calls(
         [
             call(mock_device_available_response()),
             call(mock_program_version_response()),
         ]
     )
-    assert mock_read_queue.task_done.call_count == 3
+    assert mock_read_queue.task_done.call_count == 2
 
 
 async def test_connection_lost() -> None:
