@@ -14,7 +14,7 @@ def ensure_device_data(data: DeviceDataType | None, *args) -> DeviceDataType:
         data = {}
 
     for new_data in args:
-        data = dict(data, **new_data)
+        data |= new_data
 
     return data
 

@@ -402,8 +402,7 @@ class EcoMAX(Addressable):
         """Cancel scheduled tasks for root and sub devices."""
         mixers = self.data.get(ATTR_MIXERS, {})
         thermostats = self.data.get(ATTR_THERMOSTATS, {})
-        subdevices = {**mixers, **thermostats}
-        for subdevice in subdevices.values():
+        for subdevice in (mixers | thermostats).values():
             await subdevice.shutdown()
 
         await super().shutdown()
