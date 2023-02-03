@@ -121,6 +121,21 @@ async def main():
 asyncio.run(main())
 ```
 
+In case you need to wait until certain data become available, without returning it, you can use `Device.wait_for(name: str, timeout: float | None = None)` method.
+```python
+import asyncio
+import pyplumio
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get_device("ecomax")
+    await ecomax.wait_for("heating_temp")
+    print("Heating temperature is available!")
+
+asyncio.run(main())
+```
+
+
 ### Writing
 You can change controller parameters by awaiting `Device.set_value(name: str, value: int, timeout: float | None = None)` or
 by getting parameter via `Device.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`.

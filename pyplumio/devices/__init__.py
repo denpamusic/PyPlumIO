@@ -57,21 +57,22 @@ class Device(TaskManager):
         self.queue = queue
         self._callbacks = {}
 
+    async def wait_for(self, name: str, timeout: float | None = None) -> None:
+        """Waits for a data."""
+        if name not in self.data:
+            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
+
     async def get_value(self, name: str, timeout: float | None = None):
         """Return a value. When used with parameter, only it's
         value will be returned. To get the parameter object,
         get_parameter() method must be used instead."""
-        if name not in self.data:
-            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
-
+        await self.wait_for(name, timeout)
         value = self.data[name]
         return value.value if isinstance(value, Parameter) else value
 
     async def get_parameter(self, name: str, timeout: float | None = None) -> Parameter:
         """Return a parameter."""
-        if name not in self.data:
-            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
-
+        await self.wait_for(name, timeout)
         parameter = self.data[name]
         if isinstance(parameter, Parameter):
             return parameter
@@ -84,9 +85,7 @@ class Device(TaskManager):
         """set a parameter value. Name should point
         to a valid parameter object, otherwise raises
         ParameterNotFoundError."""
-        if name not in self.data:
-            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
-
+        await self.wait_for(name, timeout)
         parameter = self.data[name]
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")

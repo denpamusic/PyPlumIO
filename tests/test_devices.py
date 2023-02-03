@@ -481,8 +481,8 @@ async def test_subscribe_once(ecomax: EcoMAX, messages: dict[int, bytearray]) ->
     mock_callback.assert_not_awaited()
 
 
-async def test_get_value(ecomax: EcoMAX) -> None:
-    """Test getting the value from device data."""
+async def test_wait_for(ecomax: EcoMAX) -> None:
+    """Test waiting for value."""
     mock_event = Mock(spec=asyncio.Event)
     with pytest.raises(KeyError), patch(
         "pyplumio.devices.Device.create_event", return_value=mock_event
@@ -492,6 +492,17 @@ async def test_get_value(ecomax: EcoMAX) -> None:
 
     mock_create_event.assert_called_once_with("foo")
     mock_event.wait.assert_awaited_once()
+
+
+async def test_get_value(ecomax: EcoMAX, messages: dict[int, bytearray]) -> None:
+    """Test getting the value from device data."""
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    await ecomax.wait_until_done()
+
+    heating_temp = await ecomax.get_value("heating_temp")
+    assert round(heating_temp, 1) == 22.4
 
 
 async def test_make_request(ecomax: EcoMAX) -> None:
