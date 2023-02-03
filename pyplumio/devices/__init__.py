@@ -2,18 +2,21 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import ClassVar
 
 from pyplumio import util
-from pyplumio.const import DeviceType, FrameType
+from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
-from pyplumio.frames import Frame, Request, get_frame_handler
+from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
 from pyplumio.structures.network_info import ATTR_NETWORK
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _handler_class_path(device_type_name: str) -> str:
@@ -144,6 +147,7 @@ class Addressable(Device):
 
     address: ClassVar[int]
     _network: NetworkInfo
+    _frame_types: tuple[DataFrameDescription, ...] = ()
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize the addressable object."""
@@ -162,12 +166,31 @@ class Addressable(Device):
             for name, value in frame.data.items():
                 self.set_device_data(name, value)
 
+    async def async_setup(self) -> bool:
+        """Request initial data frames."""
+        try:
+            await asyncio.gather(
+                *{
+                    self.create_task(
+                        self.make_request(description.provides, description.frame_type)
+                    )
+                    for description in self._frame_types
+                },
+                return_exceptions=False,
+            )
+            await self.async_set_device_data(ATTR_LOADED, True)
+            return True
+        except ValueError as e:
+            _LOGGER.error("Request failed: %s", e)
+            await self.async_set_device_data(ATTR_LOADED, False)
+            return False
+
     async def make_request(
         self,
         name: str,
         frame_type: FrameType,
         retries: int = 3,
-        timeout: float = 5.0,
+        timeout: float = 10,
     ):
         """Send request for a data and wait for a value to become
         available. If value is not available before timeout, retry

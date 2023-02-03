@@ -8,7 +8,6 @@ import time
 from typing import ClassVar, Final
 
 from pyplumio.const import (
-    ATTR_LOADED,
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
@@ -98,6 +97,7 @@ class EcoMAX(Addressable):
 
     address: ClassVar[int] = DeviceType.ECOMAX
     _frame_versions: VersionsInfoType
+    _frame_types: tuple[DataFrameDescription, ...] = DATA_FRAME_TYPES
     _fuel_burned_timestamp: float = 0.0
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
@@ -121,21 +121,6 @@ class EcoMAX(Addressable):
         self.subscribe(
             ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
         )
-        self.subscribe_once(ATTR_LOADED, self._request_data_frames)
-
-    async def _request_data_frames(self, loaded: bool) -> None:
-        """Request initial data frames."""
-        try:
-            await asyncio.gather(
-                *{
-                    self.create_task(
-                        self.make_request(description.provides, description.frame_type)
-                    )
-                    for description in DATA_FRAME_TYPES
-                }
-            )
-        except ValueError as e:
-            _LOGGER.error("Request failed: %s", e)
 
     async def _update_frame_versions(self, versions: VersionsInfoType) -> None:
         """Check versions and fetch outdated frames."""

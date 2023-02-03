@@ -103,18 +103,34 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
-async def test_request_data_frames(caplog) -> None:
+async def test_async_setup() -> None:
     """Test requesting initial data frames."""
+    ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
+
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.make_request",
+        side_effect=(True, True, True, True, True, True, True, True),
+    ) as mock_make_request:
+        await ecomax.async_setup()
+        await ecomax.wait_until_done()
+
+    assert await ecomax.get_value(ATTR_LOADED)
+    assert mock_make_request.await_count == len(DATA_FRAME_TYPES)
+
+
+async def test_async_setup_error(caplog) -> None:
+    """Test with error during requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
 
     with patch(
         "pyplumio.devices.ecomax.EcoMAX.make_request",
         side_effect=(ValueError("test"), True, True, True, True, True, True, True),
     ) as mock_make_request:
-        ecomax.set_device_data(ATTR_LOADED, True)
+        await ecomax.async_setup()
         await ecomax.wait_until_done()
 
-    assert "Request failed: test" in caplog.text
+    assert "Request failed" in caplog.text
+    assert not await ecomax.get_value(ATTR_LOADED)
     assert mock_make_request.await_count == len(DATA_FRAME_TYPES)
 
 
@@ -423,7 +439,7 @@ async def test_schedule_callback(
 
 
 async def test_subscribe(ecomax: EcoMAX, messages: dict[int, bytearray]) -> None:
-    """Test callback registration."""
+    """Test subscribing callback."""
     mock_callback = AsyncMock(return_value=None)
     ecomax.subscribe("heating_target", mock_callback)
     ecomax.handle_frame(
@@ -442,6 +458,25 @@ async def test_subscribe(ecomax: EcoMAX, messages: dict[int, bytearray]) -> None
     # Remove the callback and make sure it doesn't fire again.
     ecomax.unsubscribe("heating_target", mock_callback)
     ecomax.handle_frame(Response(data={ATTR_SENSORS: {"heating_target": 50}}))
+    await ecomax.wait_until_done()
+    mock_callback.assert_not_awaited()
+
+
+async def test_subscribe_once(ecomax: EcoMAX, messages: dict[int, bytearray]) -> None:
+    """Test subscribing callback once."""
+    mock_callback = AsyncMock(return_value=None)
+    ecomax.subscribe_once("heating_target", mock_callback)
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    await ecomax.wait_until_done()
+    mock_callback.assert_awaited_once_with(41)
+    mock_callback.reset_mock()
+
+    # Check that callback is not awaited on subsequent calls.
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
     await ecomax.wait_until_done()
     mock_callback.assert_not_awaited()
 
