@@ -86,6 +86,12 @@ UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
 
 
+@pytest.fixture(name="ecoster")
+def fixture_ecoster() -> EcoSTER:
+    """Return instance of ecoster."""
+    return EcoSTER(asyncio.Queue(), network=NetworkInfo())
+
+
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
     cls = get_device_handler(DeviceType.ECOMAX)
@@ -99,28 +105,31 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
-@patch(
-    "pyplumio.devices.ecomax.EcoMAX.make_request",
-    side_effect=(ValueError("test"), True, True, True, True, True, True, True),
-)
-async def test_request_data_frames(mock_make_request, caplog) -> None:
+async def test_request_data_frames(caplog) -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
-    ecomax.set_device_data(ATTR_LOADED, True)
-    await ecomax.wait_until_done()
+
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.make_request",
+        side_effect=(ValueError("test"), True, True, True, True, True, True, True),
+    ) as mock_make_request:
+        ecomax.set_device_data(ATTR_LOADED, True)
+        await ecomax.wait_until_done()
+
     assert "Request failed: test" in caplog.text
     assert mock_make_request.await_count == len(DATA_FRAME_TYPES)
 
 
-@patch("asyncio.Queue.put_nowait")
 async def test_frame_versions_update(
-    mock_put_nowait, ecomax: EcoMAX, messages: Dict[int, bytearray]
+    ecomax: EcoMAX, messages: Dict[int, bytearray]
 ) -> None:
     """Test requesting updated frames."""
-    ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
-    )
-    await ecomax.wait_until_done()
+    with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
+        ecomax.handle_frame(
+            SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+        )
+        await ecomax.wait_until_done()
+
     mock_put_nowait.assert_has_calls(
         [
             call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
@@ -156,7 +165,7 @@ async def test_ecomax_parameters_callbacks(
     ecomax.handle_frame(
         EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
     )
-    assert ecomax.wait_until_done()
+    await ecomax.wait_until_done()
     fuzzy_logic = await ecomax.get_parameter("fuzzy_logic")
     assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
     assert isinstance(fuzzy_logic.request, SetEcomaxParameterRequest)
@@ -225,7 +234,7 @@ async def test_mixer_sensors_callbacks(
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    assert ecomax.wait_until_done()
+    await ecomax.wait_until_done()
     mixers = await ecomax.get_value(ATTR_MIXERS)
     assert len(mixers) == 1
     mixer = mixers[4]
@@ -241,7 +250,7 @@ async def test_thermostat_sensors_callbacks(
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    assert ecomax.wait_until_done()
+    await ecomax.wait_until_done()
     thermostats = await ecomax.get_value(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
     thermostat = thermostats[0]
@@ -452,31 +461,27 @@ async def test_get_value(ecomax: EcoMAX) -> None:
     mock_event.wait.assert_awaited_once()
 
 
-@patch(
-    "pyplumio.devices.ecomax.EcoMAX.get_value",
-    side_effect=(asyncio.TimeoutError, True),
-)
-@patch("asyncio.Queue.put_nowait")
-async def test_make_request(
-    mock_put_nowait, mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
-) -> None:
+async def test_make_request(ecomax: EcoMAX) -> None:
     """Test requesting the value."""
-    assert await ecomax.make_request("foo", FrameType.REQUEST_ALERTS, timeout=5)
+
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.get_value",
+        side_effect=(asyncio.TimeoutError, True),
+    ) as mock_get_value, patch("asyncio.Queue.put_nowait") as mock_put_nowait:
+        assert await ecomax.make_request("foo", FrameType.REQUEST_ALERTS, timeout=5)
+
     mock_get_value.assert_awaited_with("foo", timeout=5)
     assert mock_put_nowait.call_count == 2
     args, _ = mock_put_nowait.call_args
     assert isinstance(args[0], AlertsRequest)
 
 
-@patch(
-    "pyplumio.devices.ecomax.EcoMAX.get_value",
-    side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
-)
-async def test_make_request_error(
-    mock_get_value, bypass_asyncio_sleep, ecomax: EcoMAX
-) -> None:
+async def test_make_request_error(ecomax: EcoMAX) -> None:
     """Test requesting the value with error."""
-    with pytest.raises(ValueError):
+    with patch(
+        "pyplumio.devices.ecomax.EcoMAX.get_value",
+        side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
+    ), pytest.raises(ValueError):
         await ecomax.make_request("foo", FrameType.REQUEST_ALERTS, retries=1)
 
 
@@ -495,7 +500,6 @@ async def test_set_value(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None
     ecomax.handle_frame(
         MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
     )
-    assert ecomax.wait_until_done()
 
     # Test setting an ecomax parameter.
     assert await ecomax.set_value("fuel_flow_kg_h", 13.0)
@@ -503,11 +507,12 @@ async def test_set_value(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None
     assert fuel_flow_kg_h == 13.0
 
     # Test setting an ecomax parameter without blocking.
-    with patch(
+    with patch("pyplumio.devices.Device.set_value", new_callable=Mock), patch(
         "pyplumio.helpers.task_manager.TaskManager.create_task"
     ) as mock_create_task:
-        await ecomax.set_value_nowait("fuel_flow_kg_h", 10)
-        mock_create_task.assert_called_once()
+        ecomax.set_value_nowait("fuel_flow_kg_h", 10)
+
+    mock_create_task.assert_called_once()
 
     # Test deprication warning on the await_confirmation binary flag.
     with warnings.catch_warnings(record=True) as warn:
@@ -571,25 +576,22 @@ async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
     ecomax.data[ATTR_ECOMAX_CONTROL].turn_off.assert_awaited_once()
 
 
-@patch("pyplumio.devices.Mixer.shutdown")
-@patch("pyplumio.devices.Thermostat.shutdown")
-@patch("pyplumio.devices.Device.cancel_tasks")
-@patch("pyplumio.devices.Device.wait_until_done")
-async def test_shutdown(
-    mock_wait_until_done,
-    mock_cancel_tasks,
-    mock_thermostat_shutdown,
-    mock_mixer_shutdown,
-    ecomax: EcoMAX,
-    messages: Dict[int, bytearray],
-) -> None:
+async def test_shutdown(ecomax: EcoMAX, messages: Dict[int, bytearray]) -> None:
     """Test device tasks shutdown."""
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
-    await ecomax.get_value(ATTR_MIXERS)
-    await ecomax.get_value(ATTR_THERMOSTATS)
-    await ecomax.shutdown()
+    await ecomax.wait_until_done()
+
+    with patch("pyplumio.devices.Mixer.shutdown") as mock_mixer_shutdown, patch(
+        "pyplumio.devices.Thermostat.shutdown"
+    ) as mock_thermostat_shutdown, patch(
+        "pyplumio.devices.Device.cancel_tasks"
+    ) as mock_cancel_tasks, patch(
+        "pyplumio.devices.Device.wait_until_done"
+    ) as mock_wait_until_done:
+        await ecomax.shutdown()
+
     mock_wait_until_done.assert_awaited_once()
     mock_cancel_tasks.assert_called_once()
     mock_thermostat_shutdown.assert_awaited_once()

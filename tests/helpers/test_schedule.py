@@ -52,7 +52,7 @@ def test_schedule_day(schedule_day: ScheduleDay) -> None:
     assert len(schedule_day) == 48
 
     # Test with incorrect interval.
-    for (start, end) in (("01:00", "00:30"), ("00:foo", "bar")):
+    for start, end in (("01:00", "00:30"), ("00:foo", "bar")):
         with pytest.raises(ValueError):
             schedule_day.set_state(STATE_ON, start, end)
 

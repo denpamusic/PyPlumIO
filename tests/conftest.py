@@ -1,10 +1,9 @@
 """Fixtures for PyPlumIO test suite."""
 
 import asyncio
-from asyncio import StreamReader, StreamWriter
 from datetime import datetime
-from typing import Dict, Generator, List
-from unittest.mock import AsyncMock, patch
+from typing import Dict, List
+from unittest.mock import patch
 
 import pytest
 
@@ -22,7 +21,6 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
@@ -476,7 +474,7 @@ def fixture_ecomax() -> EcoMAX:
     ecomax.data[ATTR_PRODUCT] = ProductInfo(
         type=ProductType.ECOMAX_P,
         product=90,
-        uid="D251PAKR3GCPZ1K8G05G0",
+        uid="TEST",
         logo=23040,
         image=2816,
         model="EM350P2-ZF",
@@ -484,67 +482,8 @@ def fixture_ecomax() -> EcoMAX:
     return ecomax
 
 
-@pytest.fixture(name="ecoster")
-def fixture_ecoster() -> EcoSTER:
-    """Return instance of ecoster."""
-    return EcoSTER(asyncio.Queue(), network=NetworkInfo())
-
-
-@pytest.fixture(name="bypass_asyncio_sleep")
-def fixture_bypass_asyncio_sleep():
+@pytest.fixture(autouse=True)
+def bypass_asyncio_sleep():
     """Bypass asyncio sleep."""
     with patch("asyncio.sleep"):
         yield
-
-
-@pytest.fixture(name="bypass_asyncio_create_task")
-def fixture_bypass_asyncio_create_task():
-    """Bypass asyncio create task."""
-    with patch("asyncio.create_task"):
-        yield
-
-
-@pytest.fixture(name="bypass_asyncio_events")
-def fixture_bypass_asyncio_events():
-    """Do not wait for asyncio events."""
-    with patch("asyncio.Event.wait", new_callable=AsyncMock), patch(
-        "asyncio.Event.is_set", return_value=True
-    ):
-        yield
-
-
-@pytest.fixture(name="stream_writer")
-def fixture_stream_writer() -> Generator[StreamWriter, None, None]:
-    """Return mock of asyncio stream writer."""
-    with patch("asyncio.StreamWriter", autospec=True) as stream_writer:
-        yield stream_writer
-
-
-@pytest.fixture(name="stream_reader")
-def fixture_stream_reader() -> Generator[StreamReader, None, None]:
-    """Return mock of asyncio stream reader."""
-    with patch("asyncio.StreamReader", autospec=True) as stream_reader:
-        yield stream_reader
-
-
-@pytest.fixture(name="open_tcp_connection")
-def fixture_open_tcp_connection(
-    stream_reader: StreamReader, stream_writer: StreamWriter
-) -> Generator:
-    """Bypass opening asyncio connection."""
-    with patch(
-        "asyncio.open_connection", return_value=(stream_reader, stream_writer)
-    ) as connection:
-        yield connection
-
-
-@pytest.fixture(name="open_serial_connection")
-def fixture_open_serial_connection(
-    stream_reader: StreamReader, stream_writer: StreamWriter
-) -> Generator:
-    """Bypass opening serial_asyncio connection."""
-    with patch(
-        "serial_asyncio.open_serial_connection",
-        return_value=(stream_reader, stream_writer),
-    ) as connection:
-        yield connection

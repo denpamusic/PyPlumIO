@@ -21,7 +21,24 @@ from pyplumio.helpers.network_info import (
 )
 from pyplumio.protocol import Protocol
 from pyplumio.stream import FrameReader, FrameWriter
-from tests.test_devices import UNKNOWN_DEVICE
+
+UNKNOWN_DEVICE: int = 99
+
+
+@pytest.fixture()
+def bypass_asyncio_create_task():
+    """Bypass asyncio create task."""
+    with patch("asyncio.create_task"):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def bypass_asyncio_events():
+    """Bypass asyncio events."""
+    with patch("asyncio.Event.wait", new_callable=AsyncMock), patch(
+        "asyncio.Event.is_set", return_value=True
+    ):
+        yield
 
 
 @pytest.fixture(name="protocol")
@@ -90,14 +107,8 @@ def test_connection_established(
     assert mock_create_task.call_count == 3
 
 
-@patch("pyplumio.protocol.Protocol.connection_lost", new_callable=Mock)
-async def test_frame_producer(
-    mock_connection_lost,
-    bypass_asyncio_create_task,
-    bypass_asyncio_events,
-    protocol: Protocol,
-    caplog,
-) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_create_task")
+async def test_frame_producer(protocol: Protocol, caplog) -> None:
     """Test frame producer task."""
     # Create mock frame reader and writer.
     protocol.reader = AsyncMock(spec=FrameReader)
@@ -120,7 +131,9 @@ async def test_frame_producer(
     mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0))
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
-    with caplog.at_level(logging.DEBUG):
+    with patch(
+        "pyplumio.protocol.Protocol.connection_lost", new_callable=Mock
+    ) as mock_connection_lost, caplog.at_level(logging.DEBUG):
         await protocol.frame_producer(mock_read_queue, mock_write_queue)
 
     assert caplog.record_tuples == [
@@ -149,6 +162,7 @@ async def test_frame_producer(
     protocol.writer.write.assert_awaited_once_with("test_request")
     mock_write_queue.task_done.assert_called_once()
     mock_read_queue.put_nowait.assert_called_once_with("test_response")
+    mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
     assert mock_write_queue.qsize.call_count == 6
     assert protocol.reader.read.await_count == 6
@@ -159,7 +173,6 @@ async def test_frame_producer(
 async def test_frame_consumer(
     mock_program_version_response,
     mock_device_available_response,
-    bypass_asyncio_events,
     protocol: Protocol,
     caplog,
 ) -> None:
@@ -172,11 +185,14 @@ async def test_frame_consumer(
         CheckDeviceRequest(sender=DeviceType.ECOMAX),
         ProgramVersionRequest(sender=DeviceType.ECOMAX),
         CheckDeviceRequest(sender=UNKNOWN_DEVICE),
-        RuntimeError("break loop"),
     )
 
-    with pytest.raises(RuntimeError), caplog.at_level(logging.DEBUG):
+    with caplog.at_level(logging.DEBUG), patch(
+        "asyncio.Event.is_set", side_effect=(True, True, True, False)
+    ):
         await protocol.frame_consumer(mock_read_queue, mock_write_queue)
+
+    await protocol.shutdown()
 
     # Check that network settings is correctly set.
     mock_device_available_response.assert_called_once_with(
@@ -205,15 +221,16 @@ async def test_frame_consumer(
     # Check that unknown device exception was raised for device
     # with address 99.
     assert "Unknown device (99)" in caplog.text
-    calls = [
-        call(mock_device_available_response()),
-        call(mock_program_version_response()),
-    ]
-    mock_write_queue.put_nowait.assert_has_calls(calls)
+    mock_write_queue.put_nowait.assert_has_calls(
+        [
+            call(mock_device_available_response()),
+            call(mock_program_version_response()),
+        ]
+    )
     assert mock_read_queue.task_done.call_count == 3
 
 
-async def test_connection_lost(bypass_asyncio_events) -> None:
+async def test_connection_lost() -> None:
     """Test connection lost callback."""
     # Create mock queues.
     mock_read_queue = Mock(spec=asyncio.Queue)
@@ -242,7 +259,6 @@ async def test_shutdown(
     mock_cancel_tasks,
     mock_gather,
     mock_wait,
-    bypass_asyncio_create_task,
     protocol: Protocol,
 ) -> None:
     """Test protocol shutdown."""
@@ -269,7 +285,6 @@ async def test_shutdown(
         ],
         new_callable=PropertyMock,
     ):
-
         await protocol.shutdown()
 
     mock_shutdown.assert_awaited_once()

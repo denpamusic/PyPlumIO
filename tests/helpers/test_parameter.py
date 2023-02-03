@@ -13,6 +13,8 @@ from pyplumio.helpers.typing import ParameterDataType
 class TestParameter(Parameter):
     """Concrete implementation of the parameter class."""
 
+    __test__: bool = False
+
     @property
     def request(self) -> Request:
         """Return request to change the parameter."""
@@ -136,9 +138,10 @@ async def test_parameter_request_with_unchanged_value(
     assert not await parameter.set(5, retries=3)
     assert parameter.is_changed
     assert mock_put.await_count == 3
+    mock_put.reset_mock()
     assert "Timed out while trying to set 'test_parameter' parameter" in caplog.text
     await parameter.set(5)
-    mock_put.not_awaited()
+    mock_put.assert_not_awaited()
 
 
 @patch("pyplumio.helpers.parameter.Parameter.set")
