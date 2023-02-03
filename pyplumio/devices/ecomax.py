@@ -129,9 +129,7 @@ class EcoMAX(Addressable):
             await asyncio.gather(
                 *{
                     self.create_task(
-                        self.make_request(
-                            description.provides, description.frame_type, timeout=3
-                        )
+                        self.make_request(description.provides, description.frame_type)
                     )
                     for description in DATA_FRAME_TYPES
                 }
