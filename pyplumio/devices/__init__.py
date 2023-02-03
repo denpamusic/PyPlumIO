@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from typing import ClassVar, Dict, List, Optional
-from warnings import warn
 
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
@@ -79,11 +78,7 @@ class Device(TaskManager):
         raise ParameterNotFoundError(f"Parameter not found ({name})")
 
     async def set_value(
-        self,
-        name: str,
-        value: NumericType,
-        timeout: Optional[float] = None,
-        await_confirmation: Optional[bool] = None,
+        self, name: str, value: NumericType, timeout: Optional[float] = None
     ) -> bool:
         """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
@@ -94,14 +89,6 @@ class Device(TaskManager):
         parameter = self.data[name]
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
-
-        if await_confirmation is not None:
-            warn(
-                "Flag 'await_confirmation' for 'set_value' is deprecated. "
-                + "Use 'set_value_nowait' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
 
         return await parameter.set(value)
 
