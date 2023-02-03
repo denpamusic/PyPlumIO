@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import ClassVar, Dict, List, Optional
+from typing import ClassVar
 
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
@@ -24,9 +24,9 @@ def _handler_class_path(device_type_name: str) -> str:
     return f"{device_type_name.lower()}.{device_type_name}"
 
 
-# Dictionary of device handler classes indexed by device types.
+# dictionary of device handler classes indexed by device types.
 # example: "69: ecomax.EcoMAX"
-DEVICE_TYPES: Dict[int, str] = {
+DEVICE_TYPES: dict[int, str] = {
     device_type.value: _handler_class_path(device_type.name)
     for device_type in DeviceType
 }
@@ -45,7 +45,7 @@ class Device(TaskManager):
 
     queue: asyncio.Queue
     data: DeviceDataType
-    _callbacks: Dict[str, List[SensorCallbackType]]
+    _callbacks: dict[str, list[SensorCallbackType]]
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize the device object."""
@@ -54,7 +54,7 @@ class Device(TaskManager):
         self.queue = queue
         self._callbacks = {}
 
-    async def get_value(self, name: str, timeout: Optional[float] = None):
+    async def get_value(self, name: str, timeout: float | None = None):
         """Return a value. When used with parameter, only it's
         value will be returned. To get the parameter object,
         get_parameter() method must be used instead."""
@@ -64,9 +64,7 @@ class Device(TaskManager):
         value = self.data[name]
         return value.value if isinstance(value, Parameter) else value
 
-    async def get_parameter(
-        self, name: str, timeout: Optional[float] = None
-    ) -> Parameter:
+    async def get_parameter(self, name: str, timeout: float | None = None) -> Parameter:
         """Return a parameter."""
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
@@ -78,9 +76,9 @@ class Device(TaskManager):
         raise ParameterNotFoundError(f"Parameter not found ({name})")
 
     async def set_value(
-        self, name: str, value: NumericType, timeout: Optional[float] = None
+        self, name: str, value: NumericType, timeout: float | None = None
     ) -> bool:
-        """Set a parameter value. Name should point
+        """set a parameter value. Name should point
         to a valid parameter object, otherwise raises
         ParameterNotFoundError."""
         if name not in self.data:
@@ -93,9 +91,9 @@ class Device(TaskManager):
         return await parameter.set(value)
 
     def set_value_nowait(
-        self, name: str, value: NumericType, timeout: Optional[float] = None
+        self, name: str, value: NumericType, timeout: float | None = None
     ) -> None:
-        """Set a parameter value without waiting for the result."""
+        """set a parameter value without waiting for the result."""
         self.create_task(self.set_value(name, value, timeout))
 
     def subscribe(self, name: str, callback: SensorCallbackType) -> None:

@@ -1,7 +1,7 @@
 """Contains regulator data structure decoder."""
 from __future__ import annotations
 
-from typing import Any, Dict, Final, List, Optional, Tuple
+from typing import Any, Final
 
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.typing import BytesType, DeviceDataType
@@ -17,7 +17,7 @@ REGDATA_VERSION: Final = "1.0"
 
 def _unpack_data(
     data_type: DataType, data: BytesType, boolean_index: int = 0
-) -> Tuple[DataType, int]:
+) -> tuple[DataType, int]:
     """Unpack data into the data type."""
     data_type.unpack(data)
     if isinstance(data_type, Boolean):
@@ -29,11 +29,11 @@ def _unpack_data(
 def _decode_regulator_data(
     message: bytearray,
     offset: int,
-    schema: List[Tuple[int, DataType]],
+    schema: list[tuple[int, DataType]],
     boolean_index: int = 0,
-) -> Dict[int, Any]:
+) -> dict[int, Any]:
     """Decode regulator data from the schema."""
-    data: Dict[int, Any] = {}
+    data: dict[int, Any] = {}
     for sensor_id, data_type in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
             offset += 1
@@ -52,8 +52,8 @@ class RegulatorDataStructure(StructureDecoder):
     """Represents regulator data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         schema = data.get(ATTR_SCHEMA, [])

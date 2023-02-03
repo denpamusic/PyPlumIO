@@ -1,7 +1,7 @@
 """Contains data schema structure decoder."""
 from __future__ import annotations
 
-from typing import Final, List, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
@@ -15,15 +15,15 @@ class DataSchemaStructure(StructureDecoder):
     """Represent data schema structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         blocks_count = util.unpack_ushort(message[offset : offset + 2])
         offset += 2
         if blocks_count == 0:
             return ensure_device_data(data), offset
 
-        schema: List[Tuple[int, DataType]] = []
+        schema: list[tuple[int, DataType]] = []
         for _ in range(blocks_count):
             param_type = message[offset]
             param_id = util.unpack_ushort(message[offset + 1 : offset + 3])

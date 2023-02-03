@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum, unique
-from typing import Optional
 
 
 @unique
@@ -30,9 +29,9 @@ class ProductInfo:
 class ConnectedModules:
     """Represents firmware version info."""
 
-    module_a: Optional[str] = None
-    module_b: Optional[str] = None
-    module_c: Optional[str] = None
-    module_lambda: Optional[str] = None
-    module_ecoster: Optional[str] = None
-    module_panel: Optional[str] = None
+    module_a: str | None = None
+    module_b: str | None = None
+    module_c: str | None = None
+    module_lambda: str | None = None
+    module_ecoster: str | None = None
+    module_panel: str | None = None

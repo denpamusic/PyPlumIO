@@ -1,6 +1,6 @@
 """Test PyPlumIO base frame."""
 
-from typing import ClassVar, Final, Tuple
+from typing import ClassVar, Final
 
 import pytest
 
@@ -46,13 +46,13 @@ def fixture_response_frame() -> Response:
 @pytest.fixture(name="frames")
 def fixture_frames(
     request_frame: Request, response_frame: Response
-) -> Tuple[Request, Response]:
+) -> tuple[Request, Response]:
     """Return request and response frames as a tuple."""
     return (request_frame, response_frame)
 
 
 @pytest.fixture(name="types")
-def fixture_types() -> Tuple[int, int]:
+def fixture_types() -> tuple[int, int]:
     """Return request and response types as a tuple."""
     return (FrameType.REQUEST_PROGRAM_VERSION, FrameType.RESPONSE_PROGRAM_VERSION)
 
@@ -64,7 +64,7 @@ def test_unknown_device_type() -> None:
     assert not isinstance(frame.sender, DeviceType)
 
 
-def test_decode_create_message(frames: Tuple[Request, Response]) -> None:
+def test_decode_create_message(frames: tuple[Request, Response]) -> None:
     """Test creating and decoding message."""
     for frame in frames:
         assert frame.create_message(data={}) == bytearray()
@@ -79,14 +79,14 @@ def test_get_frame_handler() -> None:
 
 
 def test_passing_frame_type(
-    frames: Tuple[Request, Response], types: Tuple[int, int]
+    frames: tuple[Request, Response], types: tuple[int, int]
 ) -> None:
     """Test getting frame type."""
     for index, frame in enumerate(frames):
         assert frame.frame_type == types[index]
 
 
-def test_default_params(frames: Tuple[Request, Response]) -> None:
+def test_default_params(frames: tuple[Request, Response]) -> None:
     """Test frame attributes."""
     for frame in frames:
         assert frame.recipient == DeviceType.ALL
@@ -96,14 +96,14 @@ def test_default_params(frames: Tuple[Request, Response]) -> None:
         assert frame.econet_version == ECONET_VERSION
 
 
-def test_frame_length_without_data(frames: Tuple[Request, Response]) -> None:
+def test_frame_length_without_data(frames: tuple[Request, Response]) -> None:
     """Test frame length without any data."""
     for frame in frames:
         assert frame.length == HEADER_SIZE + 3
         assert len(frame) == HEADER_SIZE + 3
 
 
-def test_get_header(frames: Tuple[Request, Response]) -> None:
+def test_get_header(frames: tuple[Request, Response]) -> None:
     """Test getting frame header as bytes."""
     for frame in frames:
         assert frame.header == b"\x68\x0a\x00\x00\x56\x30\x05"

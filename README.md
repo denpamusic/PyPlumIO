@@ -489,7 +489,7 @@ Both broadcast `RegulatorDataMessage[type=8]` and unicast `SensorDataMessage[typ
 
 This data can be represented with following dictionary:
 ```python
-frame_versions: Dict[int, int] = {
+frame_versions: dict[int, int] = {
   49: 37,
   50: 37,
   54: 1,
@@ -507,7 +507,7 @@ frame `ParametersRequest[type=49]` has version 37. If we change any parameters e
 on the controller itself, version number will increase, so PyPlumIO will be able to tell that it's
 need to request list of parameters again to obtain changes.
 ```python
-frame_versions: Dict[int, int] = {
+frame_versions: dict[int, int] = {
   49: 38,  # Note the version number change.
   50: 37,
   54: 1,

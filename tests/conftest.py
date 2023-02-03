@@ -2,7 +2,6 @@
 
 import asyncio
 from datetime import datetime
-from typing import Dict, List
 from unittest.mock import patch
 
 import pytest
@@ -42,7 +41,7 @@ from pyplumio.structures.thermostat_parameters import (
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
-TEST_SCHEDULE: List[bool] = [
+TEST_SCHEDULE: list[bool] = [
     False,
     False,
     False,
@@ -95,7 +94,7 @@ TEST_SCHEDULE: List[bool] = [
 
 
 @pytest.fixture(name="data")
-def fixture_data() -> Dict[int, DeviceDataType]:
+def fixture_data() -> dict[int, DeviceDataType]:
     """Return response data keyed by frame type."""
     return {
         FrameType.RESPONSE_PROGRAM_VERSION: {
@@ -341,7 +340,7 @@ def fixture_data() -> Dict[int, DeviceDataType]:
 
 
 @pytest.fixture(name="messages")
-def fixture_messages() -> Dict[int, bytearray]:
+def fixture_messages() -> dict[int, bytearray]:
     """Return response messages keyed by frame type."""
     return {
         FrameType.RESPONSE_PROGRAM_VERSION: bytearray.fromhex(

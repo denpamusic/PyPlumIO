@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, List, Optional, Tuple, Type
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_VALUE
@@ -29,7 +29,7 @@ class EcomaxParameter(Parameter):
     description: EcomaxParameterDescription
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """set parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
 
@@ -92,11 +92,11 @@ class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
 class EcomaxParameterDescription(ParameterDescription):
     """Represent thermostat parameter description."""
 
-    cls: Type[EcomaxParameter] = EcomaxParameter
+    cls: type[EcomaxParameter] = EcomaxParameter
     multiplier: int = 1
 
 
-ECOMAX_P_PARAMETERS: Tuple[EcomaxParameterDescription, ...] = (
+ECOMAX_P_PARAMETERS: tuple[EcomaxParameterDescription, ...] = (
     EcomaxParameterDescription(name="airflow_power_100"),
     EcomaxParameterDescription(name="airflow_power_50"),
     EcomaxParameterDescription(name="airflow_power_30"),
@@ -242,7 +242,7 @@ ECOMAX_P_PARAMETERS: Tuple[EcomaxParameterDescription, ...] = (
     EcomaxParameterDescription(name="buffer_load_stop"),
 )
 
-ECOMAX_I_PARAMETERS: Tuple[EcomaxParameterDescription, ...] = (
+ECOMAX_I_PARAMETERS: tuple[EcomaxParameterDescription, ...] = (
     EcomaxParameterDescription(name="water_heater_target_temp"),
     EcomaxParameterDescription(name="water_heater_priority", cls=EcomaxBinaryParameter),
     EcomaxParameterDescription(name="water_heater_support"),
@@ -303,13 +303,13 @@ class EcomaxParametersStructure(StructureDecoder):
     """Represents ecoMAX parameters data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         offset += 3
-        ecomax_parameters: List[Tuple[int, ParameterDataType]] = []
+        ecomax_parameters: list[tuple[int, ParameterDataType]] = []
         for index in range(first_index, first_index + last_index):
             parameter = util.unpack_parameter(message, offset)
             if parameter is not None:

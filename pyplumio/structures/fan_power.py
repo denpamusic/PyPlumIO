@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
@@ -15,8 +15,8 @@ class FanPowerStructure(StructureDecoder):
     """Represents fan power sensor data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         fan_power = util.unpack_float(message[offset : offset + 4])[0]
         offset += 4

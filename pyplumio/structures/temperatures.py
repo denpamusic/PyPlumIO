@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
@@ -25,7 +25,7 @@ ATTR_HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
 ATTR_EXCHANGER_TEMP: Final = "exchanger_temp"
 ATTR_AIR_IN_TEMP: Final = "air_in_temp"
 ATTR_AIR_OUT_TEMP: Final = "air_out_temp"
-TEMPERATURES: Tuple[str, ...] = (
+TEMPERATURES: tuple[str, ...] = (
     ATTR_HEATING_TEMP,
     ATTR_FEEDER_TEMP,
     ATTR_WATER_HEATER_TEMP,
@@ -50,8 +50,8 @@ class TemperaturesStructure(StructureDecoder):
     """Represents temperatures data structures."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         temp_count = message[offset]

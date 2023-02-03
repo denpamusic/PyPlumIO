@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import MutableMapping
 import logging
-from typing import Any, Final, Tuple
+from typing import Any, Final
 
 from serial import SerialException
 import serial_asyncio
@@ -111,7 +111,7 @@ class Connection(ABC):
     @abstractmethod
     async def _open_connection(
         self,
-    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
 
 
@@ -136,7 +136,7 @@ class TcpConnection(Connection):
     @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
-    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
         return await asyncio.open_connection(
             host=self.host, port=self.port, **self._kwargs
@@ -165,7 +165,7 @@ class SerialConnection(Connection):
     @timeout(CONNECT_TIMEOUT)
     async def _open_connection(
         self,
-    ) -> Tuple[asyncio.StreamReader, asyncio.StreamWriter]:
+    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
         return await serial_asyncio.open_serial_connection(
             url=self.device,

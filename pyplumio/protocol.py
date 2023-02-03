@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Awaitable, Callable, Dict, Final, Optional, Tuple
+from typing import Awaitable, Callable, Final
 
 from pyplumio.const import ATTR_LOADED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
@@ -28,7 +28,7 @@ _LOGGER = logging.getLogger(__name__)
 CONSUMERS_NUMBER: Final = 2
 
 
-def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
+def _get_device_handler_and_name(address: int) -> tuple[str, str]:
     """Get device handler full path and lowercased class name."""
     handler = get_device_handler(address)
     _, class_name = handler.rsplit(".", 1)
@@ -38,19 +38,19 @@ def _get_device_handler_and_name(address: int) -> Tuple[str, str]:
 class Protocol(TaskManager):
     """Represents protocol."""
 
-    writer: Optional[FrameWriter]
-    reader: Optional[FrameReader]
-    devices: Dict[str, Addressable]
+    writer: FrameWriter | None
+    reader: FrameReader | None
+    devices: dict[str, Addressable]
     connected: asyncio.Event
     _network: NetworkInfo
-    _queues: Tuple[asyncio.Queue, asyncio.Queue]
-    _connection_lost_callback: Optional[Callable[[], Awaitable[None]]]
+    _queues: tuple[asyncio.Queue, asyncio.Queue]
+    _connection_lost_callback: Callable[[], Awaitable[None]] | None
 
     def __init__(
         self,
-        connection_lost_callback: Optional[Callable[[], Awaitable[None]]] = None,
-        ethernet_parameters: Optional[EthernetParameters] = None,
-        wireless_parameters: Optional[WirelessParameters] = None,
+        connection_lost_callback: Callable[[], Awaitable[None]] | None = None,
+        ethernet_parameters: EthernetParameters | None = None,
+        wireless_parameters: WirelessParameters | None = None,
     ):
         """Initialize new Protocol object."""
         super().__init__()
@@ -148,7 +148,7 @@ class Protocol(TaskManager):
             await self.writer.close()
 
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
-        """Setup the device entry."""
+        """setup the device entry."""
         handler, name = _get_device_handler_and_name(device_type)
         write_queue: asyncio.Queue = self.queues[1]
         if name not in self.devices:
@@ -162,7 +162,7 @@ class Protocol(TaskManager):
         return self.devices[name]
 
     async def get_device(
-        self, device: str, timeout: Optional[float] = None
+        self, device: str, timeout: float | None = None
     ) -> Addressable:
         """Wait for device and return it once it's available."""
         if device not in self.devices:
@@ -171,6 +171,6 @@ class Protocol(TaskManager):
         return self.devices[device]
 
     @property
-    def queues(self) -> Tuple[asyncio.Queue, asyncio.Queue]:
+    def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
         """Return protocol queues."""
         return self._queues

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.typing import DeviceDataType
@@ -24,7 +24,7 @@ ATTR_FIREPLACE_PUMP: Final = "fireplace_pump"
 ATTR_GCZ_CONTACT: Final = "gcz_contact"
 ATTR_BLOW_FAN1: Final = "blow_fan1"
 ATTR_BLOW_FAN2: Final = "blow_fan2"
-OUTPUTS: Tuple[str, ...] = (
+OUTPUTS: tuple[str, ...] = (
     ATTR_FAN,
     ATTR_FEEDER,
     ATTR_HEATING_PUMP,
@@ -48,8 +48,8 @@ class OutputsStructure(StructureDecoder):
     """Represent outputs data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         outputs = util.unpack_ushort(message[offset : offset + 4])
         data = ensure_device_data(data)

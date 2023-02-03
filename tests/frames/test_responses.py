@@ -1,7 +1,5 @@
 """Test PyPlumIO response frames."""
 
-from typing import Dict
-
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.frames.responses import (
     AlertsResponse,
@@ -44,7 +42,7 @@ def test_responses_type() -> None:
 
 
 def test_program_version_response(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test creating program version message."""
     frame1 = ProgramVersionResponse(data=data[FrameType.RESPONSE_PROGRAM_VERSION])
@@ -56,8 +54,8 @@ def test_program_version_response(
 
 
 def test_device_available_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test creating device available message."""
     frame1 = DeviceAvailableResponse(data=data[FrameType.RESPONSE_DEVICE_AVAILABLE])
@@ -69,8 +67,8 @@ def test_device_available_response(
 
 
 def test_uid_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test parsing UID message."""
     frame1 = UIDResponse(message=messages[FrameType.RESPONSE_UID])
@@ -80,8 +78,8 @@ def test_uid_response(
 
 
 def test_password_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test parsing password message."""
     frame1 = PasswordResponse(message=messages[FrameType.RESPONSE_PASSWORD])
@@ -91,8 +89,8 @@ def test_password_response(
 
 
 def test_ecomax_parameters_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test parsing ecoMAX parameters message."""
     frame1 = EcomaxParametersResponse(
@@ -104,8 +102,8 @@ def test_ecomax_parameters_response(
 
 
 def test_mixer_parameters_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test parsing message for mixer parameters response."""
     frame1 = MixerParametersResponse(
@@ -121,8 +119,8 @@ def test_mixer_parameters_response(
 
 
 def test_thermostat_parameters_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test parsing message for thermostat parameters response."""
     frame = ThermostatParametersResponse(
@@ -154,7 +152,7 @@ def test_thermostat_parameters_response_with_no_parameters() -> None:
     }
 
 
-def test_data_schema_response(messages: Dict[int, bytearray]) -> None:
+def test_data_schema_response(messages: dict[int, bytearray]) -> None:
     """Test parsing message for data schema response."""
     frame = DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     assert ATTR_SCHEMA in frame.data
@@ -168,8 +166,8 @@ def test_data_schema_response_with_no_parameters() -> None:
 
 
 def test_alerts_response(
-    data: Dict[int, DeviceDataType],
-    messages: Dict[int, bytearray],
+    data: dict[int, DeviceDataType],
+    messages: dict[int, bytearray],
 ) -> None:
     """Test alert response."""
     frame1 = AlertsResponse(message=messages[FrameType.RESPONSE_ALERTS])
@@ -179,7 +177,7 @@ def test_alerts_response(
 
 
 def test_schedule_response(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test schedule response."""
     frame1 = SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])

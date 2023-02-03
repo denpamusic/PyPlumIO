@@ -1,9 +1,10 @@
 """Contains schedule decoder."""
+from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import lru_cache
 from itertools import chain
-from typing import TYPE_CHECKING, Final, List, Optional, Sequence, Tuple, Type, Union
+from typing import TYPE_CHECKING, Final, Sequence
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import Addressable, Device
@@ -26,7 +27,7 @@ ATTR_SCHEDULE_PARAMETER: Final = "schedule_parameter"
 
 SCHEDULE_SIZE: Final = 42  # 6 bytes per day, 7 days total
 
-SCHEDULES: Tuple[str, ...] = (
+SCHEDULES: tuple[str, ...] = (
     "heating",
     "water_heater",
     "circulation_pump",
@@ -94,10 +95,10 @@ class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
 class ScheduleParameterDescription(ParameterDescription):
     """Represent schedule parameter description."""
 
-    cls: Type[ScheduleParameter] = ScheduleParameter
+    cls: type[ScheduleParameter] = ScheduleParameter
 
 
-SCHEDULE_PARAMETERS: List[ScheduleParameterDescription] = list(
+SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
     chain.from_iterable(
         [
             [
@@ -124,7 +125,7 @@ def collect_schedule_data(name: str, device: Device) -> DeviceDataType:
 
 
 @lru_cache(maxsize=16)
-def _split_byte(byte: int) -> List[bool]:
+def _split_byte(byte: int) -> list[bool]:
     """Split single byte into an eight bits."""
     bits = []
     for bit in reversed(range(8)):
@@ -133,7 +134,7 @@ def _split_byte(byte: int) -> List[bool]:
     return bits
 
 
-def _join_byte(bits: Sequence[Union[int, bool]]) -> int:
+def _join_byte(bits: Sequence[int | bool]) -> int:
     """Join eight bits into a single byte."""
     result = 0
     for bit in bits:
@@ -142,10 +143,10 @@ def _join_byte(bits: Sequence[Union[int, bool]]) -> int:
     return result
 
 
-def _decode_schedule(message: bytearray, offset: int) -> Tuple[List[List[bool]], int]:
+def _decode_schedule(message: bytearray, offset: int) -> tuple[list[list[bool]], int]:
     """Return schedule data and offset."""
-    schedule: List[List[bool]] = []
-    day: List[bool] = []
+    schedule: list[list[bool]] = []
+    day: list[bool] = []
 
     last_offset = offset + SCHEDULE_SIZE
     while offset < last_offset:
@@ -187,14 +188,14 @@ class SchedulesStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         offset += 3
-        parameters: List[Tuple[int, ParameterDataType]] = []
-        schedules: List[Tuple[int, List[List[bool]]]] = []
+        parameters: list[tuple[int, ParameterDataType]] = []
+        schedules: list[tuple[int, list[list[bool]]]] = []
         for _ in range(first_index, first_index + last_index):
             index = message[offset]
             switch = (message[offset + 1], 0, 1)

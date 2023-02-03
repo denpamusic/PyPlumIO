@@ -1,7 +1,5 @@
 """Test PyPlumIO request frames."""
 
-from typing import Dict
-
 import pytest
 
 from pyplumio.const import DeviceType, FrameType
@@ -67,14 +65,14 @@ def test_check_device_response_recipient_and_type() -> None:
     assert frame.response().recipient == DeviceType.ECONET
 
 
-def test_parameters(messages: Dict[int, bytearray]) -> None:
+def test_parameters(messages: dict[int, bytearray]) -> None:
     """Test parameters request bytes."""
     frame = EcomaxParametersRequest()
     assert frame.message == messages[FrameType.REQUEST_ECOMAX_PARAMETERS]
 
 
 def test_set_parameter(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test set parameter request bytes."""
     frame = SetEcomaxParameterRequest(data=data[FrameType.REQUEST_SET_ECOMAX_PARAMETER])
@@ -88,7 +86,7 @@ def test_set_parameter_with_no_data() -> None:
 
 
 def test_set_mixer_parameter(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test set mixer parameter request bytes."""
     frame = SetMixerParameterRequest(data=data[FrameType.REQUEST_SET_MIXER_PARAMETER])
@@ -102,7 +100,7 @@ def test_set_mixer_parameter_with_no_data() -> None:
 
 
 def test_set_thermostat_parameter(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test set thermostat parameter request bytes."""
     frame = SetThermostatParameterRequest(
@@ -118,7 +116,7 @@ def test_set_thermostat_parameter_with_no_data() -> None:
 
 
 def test_ecomax_control(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test ecoMAX control parameter request bytes."""
     frame = EcomaxControlRequest(data=data[FrameType.REQUEST_ECOMAX_CONTROL])
@@ -132,7 +130,7 @@ def test_ecomax_control_with_no_data() -> None:
 
 
 def test_set_schedule(
-    data: Dict[int, DeviceDataType], messages: Dict[int, bytearray]
+    data: dict[int, DeviceDataType], messages: dict[int, bytearray]
 ) -> None:
     """Test set schedule request bytes."""
     frame = SetScheduleRequest(data=data[FrameType.REQUEST_SET_SCHEDULE])

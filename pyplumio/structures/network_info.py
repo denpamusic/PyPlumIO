@@ -1,7 +1,7 @@
 """Contains network info structure decoder."""
 from __future__ import annotations
 
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import EncryptionType
@@ -42,8 +42,8 @@ class NetworkInfoStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         network_info = NetworkInfo(
             eth=EthernetParameters(

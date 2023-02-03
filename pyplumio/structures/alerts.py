@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Final, List, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import AlertType
@@ -21,7 +21,7 @@ ATTR_SECOND: Final = "second"
 
 def _convert_to_datetime(seconds: int) -> datetime:
     """Converts timestamp to datetime."""
-    intervals: Tuple[Tuple[str, int], ...] = (
+    intervals: tuple[tuple[str, int], ...] = (
         (ATTR_YEAR, 32140800),  # 60sec * 60min * 24h * 31d * 12m
         (ATTR_MONTH, 2678400),  # 60sec * 60min * 24h * 31d
         (ATTR_DAY, 86400),  # 60sec * 60min * 24h
@@ -30,7 +30,7 @@ def _convert_to_datetime(seconds: int) -> datetime:
         (ATTR_SECOND, 1),
     )
 
-    result: Dict[str, int] = {}
+    result: dict[str, int] = {}
 
     for name, count in intervals:
         value = seconds // count
@@ -53,20 +53,20 @@ class Alert:
 
     code: int
     from_dt: datetime
-    to_dt: Optional[datetime]
+    to_dt: datetime | None
 
 
 class AlertsStructure(StructureDecoder):
     """Represents alerts data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         offset += 3
-        alerts: List[Alert] = []
+        alerts: list[Alert] = []
         for _ in range(first_index, first_index + last_index):
             try:
                 code = message[offset]

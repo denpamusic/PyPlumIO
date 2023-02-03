@@ -1,7 +1,7 @@
 """Contains frame versions structure decoder."""
 from __future__ import annotations
 
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import FrameType
@@ -15,8 +15,8 @@ class FrameVersionsStructure(StructureDecoder):
     """Represents frame version data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         frame_versions: VersionsInfoType = {}
         frame_count = message[offset]

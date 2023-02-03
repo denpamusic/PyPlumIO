@@ -2,14 +2,14 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Coroutine, Dict, Set
+from typing import Any, Coroutine
 
 
 class TaskManager:
     """Helper class for working with asyncio tasks and futures."""
 
-    _tasks: Set[asyncio.Task]
-    _events: Dict[str, asyncio.Event]
+    _tasks: set[asyncio.Task]
+    _events: dict[str, asyncio.Event]
 
     def __init__(self):
         self._tasks = set()
@@ -41,18 +41,18 @@ class TaskManager:
         return event
 
     def set_event(self, name: str) -> None:
-        """Set the event."""
+        """set the event."""
         if name in self.events:
             event = self.events[name]
             if not event.is_set():
                 event.set()
 
     @property
-    def tasks(self) -> Set[asyncio.Task]:
+    def tasks(self) -> set[asyncio.Task]:
         """Return set of task references."""
         return self._tasks
 
     @property
-    def events(self) -> Dict[str, asyncio.Event]:
+    def events(self) -> dict[str, asyncio.Event]:
         """Return events."""
         return self._events

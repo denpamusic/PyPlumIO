@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Iterable, List, Optional, Tuple, Type
+from typing import Final, Iterable
 
 from pyplumio import util
 from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE
@@ -27,7 +27,7 @@ class MixerParameter(Parameter):
     description: MixerParameterDescription
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """set parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
             value -= self.description.offset
@@ -71,12 +71,12 @@ class MixerBinaryParameter(BinaryParameter, MixerParameter):
 class MixerParameterDescription(ParameterDescription):
     """Represent mixer parameter description."""
 
-    cls: Type[MixerParameter] = MixerParameter
+    cls: type[MixerParameter] = MixerParameter
     multiplier: int = 1
     offset: int = 0
 
 
-ECOMAX_P_MIXER_PARAMETERS: Tuple[MixerParameterDescription, ...] = (
+ECOMAX_P_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="mixer_target_temp"),
     MixerParameterDescription(name="min_target_temp"),
     MixerParameterDescription(name="max_target_temp"),
@@ -93,7 +93,7 @@ ECOMAX_P_MIXER_PARAMETERS: Tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
 )
 
-ECOMAX_I_MIXER_PARAMETERS: Tuple[MixerParameterDescription, ...] = (
+ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="work_mode"),
     MixerParameterDescription(name="mixer_target_temp"),
     MixerParameterDescription(name="day_target_temp"),
@@ -120,9 +120,9 @@ ECOMAX_I_MIXER_PARAMETERS: Tuple[MixerParameterDescription, ...] = (
 
 def _decode_mixer_parameters(
     message: bytearray, offset: int, indexes: Iterable
-) -> Tuple[List[Tuple[int, ParameterDataType]], int]:
+) -> tuple[list[tuple[int, ParameterDataType]], int]:
     """Decode parameters for a single mixer."""
-    parameters: List[Tuple[int, ParameterDataType]] = []
+    parameters: list[tuple[int, ParameterDataType]] = []
     for index in indexes:
         parameter = util.unpack_parameter(message, offset)
         if parameter is not None:
@@ -137,15 +137,15 @@ class MixerParametersStructure(StructureDecoder):
     """Represent mixer parameters data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]
         mixer_count = message[offset + 3]
         parameter_count_per_mixer = first_index + last_index
         offset += 4
-        mixer_parameters: List[Tuple[int, List[Tuple[int, ParameterDataType]]]] = []
+        mixer_parameters: list[tuple[int, list[tuple[int, ParameterDataType]]]] = []
         for index in range(mixer_count):
             parameters, offset = _decode_mixer_parameters(
                 message,

@@ -129,7 +129,7 @@ class Parameter:
         self._is_changed = False
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """set parameter value."""
         if (value := _normalize_parameter_value(value)) == self._value:
             return True
 

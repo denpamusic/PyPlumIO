@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import ClassVar, Dict, Final, Optional
+from typing import ClassVar, Final
 
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
@@ -28,9 +28,9 @@ def _handler_class_path(frame_type_name: str) -> str:
     return f"{module.lower()}s.{type_name}{module.capitalize()}"
 
 
-# Dictionary of frame handler classes indexed by frame types.
+# dictionary of frame handler classes indexed by frame types.
 # example: "24: requests.StopMasterRequest"
-FRAME_TYPES: Dict[int, str] = {
+FRAME_TYPES: dict[int, str] = {
     frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
 }
 
@@ -162,7 +162,7 @@ class Request(Frame):
         """Decode frame message."""
         return {}
 
-    def response(self, **args) -> Optional[Response]:
+    def response(self, **args) -> Response | None:
         """Return response object for current request."""
         return None
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from asyncio import IncompleteReadError, StreamReader, StreamWriter
 import logging
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import DeviceType
@@ -54,7 +54,7 @@ class FrameReader:
         """Initialize new Frame Reader object."""
         self._reader = reader
 
-    async def _read_header(self) -> Tuple[bytes, int, int, int, int, int]:
+    async def _read_header(self) -> tuple[bytes, int, int, int, int, int]:
         """Locate and read frame header."""
         while buffer := await self._reader.read(1):
             if FRAME_START not in buffer:
@@ -85,7 +85,7 @@ class FrameReader:
         raise OSError("No data can be read, RS485 connection broken")
 
     @timeout(READER_TIMEOUT)
-    async def read(self) -> Optional[Frame]:
+    async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object."""
         (
             header,

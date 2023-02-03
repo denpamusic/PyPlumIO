@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import BYTE_UNDEFINED
@@ -18,8 +18,8 @@ class LambaSensorStructure(StructureDecoder):
     """Represents lambda sensor data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1

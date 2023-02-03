@@ -5,7 +5,7 @@ import asyncio
 from collections.abc import Sequence
 import logging
 import time
-from typing import ClassVar, Dict, Final, List, Optional, Tuple
+from typing import ClassVar, Final
 
 from pyplumio.const import (
     ATTR_LOADED,
@@ -68,7 +68,7 @@ ATTR_FUEL_BURNED: Final = "fuel_burned"
 
 MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
 
-DATA_FRAME_TYPES: Tuple[DataFrameDescription, ...] = (
+DATA_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_DATA_SCHEMA, provides=ATTR_SCHEMA
@@ -151,7 +151,7 @@ class EcoMAX(Addressable):
 
     def _get_mixer(self, index: int, mixer_count: int) -> Mixer:
         """Get or create a new mixer object and add it to the device."""
-        mixers: Dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
+        mixers: dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
         try:
             mixer = mixers[index]
         except KeyError:
@@ -166,7 +166,7 @@ class EcoMAX(Addressable):
     def _get_thermostat(self, index: int, thermostat_count: int) -> Thermostat:
         """Get or create a new thermostat object and add it to the
         device."""
-        thermostats: Dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
+        thermostats: dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
         try:
             thermostat = thermostats[index]
         except KeyError:
@@ -186,7 +186,7 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_ecomax_parameters(
-        self, parameters: Sequence[Tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
         """Add ecomax parameters to the device data."""
         product = await self.get_value(ATTR_PRODUCT)
@@ -209,9 +209,9 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_mixer_sensors(
-        self, sensors: Sequence[Tuple[int, DeviceDataType]]
+        self, sensors: Sequence[tuple[int, DeviceDataType]]
     ) -> bool:
-        """Set sensor values for the mixer."""
+        """set sensor values for the mixer."""
         for mixer_index, mixer_sensors in sensors:
             mixer = self._get_mixer(mixer_index, len(sensors))
             for name, value in mixer_sensors.items():
@@ -221,11 +221,10 @@ class EcoMAX(Addressable):
 
     async def _add_mixer_parameters(
         self,
-        parameters: Optional[
-            Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
-        ],
+        parameters: Sequence[tuple[int, Sequence[tuple[int, ParameterDataType]]]]
+        | None,
     ) -> bool:
-        """Set mixer parameters."""
+        """set mixer parameters."""
         if parameters is None:
             return False
 
@@ -251,9 +250,9 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_thermostat_sensors(
-        self, sensors: Sequence[Tuple[int, DeviceDataType]]
+        self, sensors: Sequence[tuple[int, DeviceDataType]]
     ) -> bool:
-        """Set sensor values for the thermostat."""
+        """set sensor values for the thermostat."""
         for thermostat_index, thermostat_sensors in sensors:
             thermostat = self._get_thermostat(thermostat_index, len(sensors))
             for name, value in thermostat_sensors.items():
@@ -263,11 +262,10 @@ class EcoMAX(Addressable):
 
     async def _add_thermostat_parameters(
         self,
-        parameters: Optional[
-            Sequence[Tuple[int, Sequence[Tuple[int, ParameterDataType]]]]
-        ],
+        parameters: Sequence[tuple[int, Sequence[tuple[int, ParameterDataType]]]]
+        | None,
     ) -> bool:
-        """Set thermostat parameters."""
+        """set thermostat parameters."""
         if parameters is None:
             return False
 
@@ -290,7 +288,7 @@ class EcoMAX(Addressable):
 
     async def _add_thermostat_profile_parameter(
         self, parameter: ParameterDataType
-    ) -> Optional[EcomaxParameter]:
+    ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the device instance."""
         if parameter is not None:
             return THERMOSTAT_PROFILE_PARAMETER.cls(
@@ -349,7 +347,7 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_schedule_parameters(
-        self, parameters: Sequence[Tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
         for index, value in parameters:
             description = SCHEDULE_PARAMETERS[index]
@@ -366,7 +364,7 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_schedules(
-        self, schedules: List[Tuple[int, List[List[bool]]]]
+        self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> DeviceDataType:
         """Add schedules."""
         return {

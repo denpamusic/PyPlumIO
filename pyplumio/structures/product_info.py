@@ -1,7 +1,8 @@
 """Contains product info structure decoder."""
+from __future__ import annotations
 
 import struct
-from typing import Final, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.product_info import ProductInfo, ProductType
@@ -16,8 +17,8 @@ class ProductInfoStructure(StructureDecoder):
     """Represents product info data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         product_type, name = struct.unpack_from("<BH", message)
         uid = unpack_uid(message, offset)

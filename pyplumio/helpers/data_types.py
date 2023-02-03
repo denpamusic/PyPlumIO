@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Type
+from typing import Type
 
 from pyplumio import util
 from pyplumio.helpers.typing import BytesType
@@ -13,7 +13,7 @@ class DataType(ABC):
 
     _data: BytesType = bytearray()
 
-    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
+    def __init__(self, data: BytesType | None = None, size: int | None = None):
         """Initialize new Data Type object."""
         if size is None:
             size = self.size
@@ -189,7 +189,7 @@ class Boolean(DataType):
 
     _index: int = 0
 
-    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
+    def __init__(self, data: BytesType | None = None, size: int | None = None):
         """Initialize new Boolean object."""
         self._index = 0
         super().__init__(data, size=1)
@@ -273,7 +273,7 @@ class IPv6(DataType):
 class String(DataType):
     """Represents string data type."""
 
-    def __init__(self, data: Optional[BytesType] = None, size: Optional[int] = None):
+    def __init__(self, data: BytesType | None = None, size: int | None = None):
         """Initialize new String object."""
         super().__init__(data, size=-1)
 
@@ -300,7 +300,7 @@ class String(DataType):
         return len(self.value) + 1
 
 
-DATA_TYPES: Tuple[Type[DataType], ...] = (
+DATA_TYPES: tuple[Type[DataType], ...] = (
     Undefined0,
     SignedChar,
     Short,

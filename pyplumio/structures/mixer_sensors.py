@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, List, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
@@ -18,12 +18,12 @@ class MixerSensorsStructure(StructureDecoder):
     """Represents mixers data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         mixer_count = message[offset]
         offset += 1
-        mixer_sensors: List[Tuple[int, DeviceDataType]] = []
+        mixer_sensors: list[tuple[int, DeviceDataType]] = []
         for index in range(mixer_count):
             current_temp = util.unpack_float(message[offset : offset + 4])[0]
             if not math.isnan(current_temp):

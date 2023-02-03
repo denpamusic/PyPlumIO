@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, List, Optional, Tuple
+from typing import Final
 
 from pyplumio import util
 from pyplumio.const import (
@@ -24,8 +24,8 @@ class ThermostatSensorsStructure(StructureDecoder):
     """Represents thermostats data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1
@@ -35,7 +35,7 @@ class ThermostatSensorsStructure(StructureDecoder):
         offset += 2
         contact_mask = 1
         schedule_mask = 1 << 3
-        thermostat_sensors: List[Tuple[int, DeviceDataType]] = []
+        thermostat_sensors: list[tuple[int, DeviceDataType]] = []
         for index in range(thermostat_count):
             current_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
             target_temp = util.unpack_float(message[offset + 5 : offset + 9])[0]

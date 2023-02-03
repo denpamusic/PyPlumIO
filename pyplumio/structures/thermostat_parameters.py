@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final, Iterable, List, Optional, Tuple, Type
+from typing import Final, Iterable
 
 from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_VALUE
@@ -36,7 +36,7 @@ class ThermostatParameter(Parameter):
         super().__init__(*args, **kwargs)
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """set parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
 
@@ -81,12 +81,12 @@ class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
 class ThermostatParameterDescription(ParameterDescription):
     """Represents thermostat parameter description."""
 
-    cls: Type[ThermostatParameter] = ThermostatParameter
+    cls: type[ThermostatParameter] = ThermostatParameter
     multiplier: int = 1
     size: int = 1
 
 
-THERMOSTAT_PARAMETERS: Tuple[ThermostatParameterDescription, ...] = (
+THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatParameterDescription(name="mode"),
     ThermostatParameterDescription(name="party_target_temp", size=2, multiplier=10),
     ThermostatParameterDescription(name="holidays_target_temp", size=2, multiplier=10),
@@ -109,9 +109,9 @@ THERMOSTAT_PARAMETERS: Tuple[ThermostatParameterDescription, ...] = (
 
 def _decode_thermostat_parameters(
     message: bytearray, offset: int, indexes: Iterable
-) -> Tuple[List[Tuple[int, ParameterDataType]], int]:
+) -> tuple[list[tuple[int, ParameterDataType]], int]:
     """Decode parameters for a single thermostat."""
-    parameters: List[Tuple[int, ParameterDataType]] = []
+    parameters: list[tuple[int, ParameterDataType]] = []
     for index in indexes:
         description = THERMOSTAT_PARAMETERS[index]
         parameter = util.unpack_parameter(message, offset, size=description.size)
@@ -127,8 +127,8 @@ class ThermostatParametersStructure(StructureDecoder):
     """Represent thermostat parameters data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: Optional[DeviceDataType] = None
-    ) -> Tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
+    ) -> tuple[DeviceDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         thermostat_count = data.get(ATTR_THERMOSTAT_COUNT, 0)
@@ -146,8 +146,8 @@ class ThermostatParametersStructure(StructureDecoder):
         thermostat_profile = util.unpack_parameter(message, offset + 3)
         parameter_count_per_thermostat = (first_index + last_index) // thermostat_count
         offset += 6
-        thermostat_parameters: List[
-            Tuple[int, List[Tuple[int, ParameterDataType]]]
+        thermostat_parameters: list[
+            tuple[int, list[tuple[int, ParameterDataType]]]
         ] = []
         for index in range(thermostat_count):
             parameters, offset = _decode_thermostat_parameters(

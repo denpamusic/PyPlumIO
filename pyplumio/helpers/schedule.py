@@ -5,7 +5,7 @@ from collections.abc import Iterable, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 import math
-from typing import Final, Iterator, List, Literal, Tuple
+from typing import Final, Iterator, Literal
 
 from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.devices import Addressable
@@ -20,7 +20,7 @@ STATE_NIGHT: Final = STATE_OFF
 STATE_DAY: Final = STATE_ON
 
 
-def _parse_interval(start: str, end: str) -> Tuple[int, int]:
+def _parse_interval(start: str, end: str) -> tuple[int, int]:
     """Parse interval string."""
     start_dt = dt.datetime.strptime(start, TIME_FORMAT)
     end_dt = dt.datetime.strptime(end, TIME_FORMAT)
@@ -43,9 +43,9 @@ def _parse_interval(start: str, end: str) -> Tuple[int, int]:
 class ScheduleDay(MutableMapping):
     """Represents single day of schedule."""
 
-    _intervals: List[bool]
+    _intervals: list[bool]
 
-    def __init__(self, intervals: List[bool]):
+    def __init__(self, intervals: list[bool]):
         """Initialize new schedule day object."""
         self._intervals = intervals
 
@@ -81,22 +81,22 @@ class ScheduleDay(MutableMapping):
         start: str = START_OF_DAY,
         end: str = END_OF_DAY,
     ) -> None:
-        """Set state for interval."""
+        """set state for interval."""
         index, stop_index = _parse_interval(start, end)
         while index < stop_index:
             self._intervals[index] = state == STATE_ON
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set on state for interval."""
+        """set on state for interval."""
         self.set_state(STATE_ON, start, end)
 
     def set_off(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set off state for interval."""
+        """set off state for interval."""
         self.set_state(STATE_OFF, start, end)
 
     @property
-    def intervals(self) -> List[bool]:
+    def intervals(self) -> list[bool]:
         """Return intervals."""
         return self._intervals
 

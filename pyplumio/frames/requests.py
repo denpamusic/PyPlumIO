@@ -1,7 +1,7 @@
 """Contains request frames."""
 from __future__ import annotations
 
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
@@ -22,7 +22,7 @@ class ProgramVersionRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_PROGRAM_VERSION
 
-    def response(self, **kwargs) -> Optional[Response]:
+    def response(self, **kwargs) -> Response | None:
         """Return response frame object."""
         return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
@@ -32,7 +32,7 @@ class CheckDeviceRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_CHECK_DEVICE
 
-    def response(self, **kwargs) -> Optional[Response]:
+    def response(self, **kwargs) -> Response | None:
         """Return response frame object."""
         return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 

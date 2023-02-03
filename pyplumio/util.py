@@ -4,7 +4,6 @@ from __future__ import annotations
 import functools
 import socket
 import struct
-from typing import Dict, Optional
 
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.typing import ParameterDataType
@@ -40,7 +39,7 @@ def unpack_string(data: bytearray, offset: int = 0) -> str:
 
 def unpack_parameter(
     data: bytearray, offset: int = 0, size: int = 1
-) -> Optional[ParameterDataType]:
+) -> ParameterDataType | None:
     """Unpack a device parameter."""
     if not check_parameter(data[offset : offset + size * 3]):
         return None
@@ -77,7 +76,7 @@ def ip6_from_bytes(data: bytes) -> str:
     return socket.inet_ntop(socket.AF_INET6, data)
 
 
-def to_camelcase(text: str, overrides: Dict[str, str] = None) -> str:
+def to_camelcase(text: str, overrides: dict[str, str] = None) -> str:
     """Convert snake_case to CamelCase."""
     if overrides is None:
         return "".join((x.capitalize() or "_") for x in text.split("_"))

@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import math
 import time
-from typing import Any, Final, Optional
+from typing import Any, Final
 
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import NumericType, SensorCallbackType
@@ -57,14 +57,14 @@ class Filter(ABC):
 
     @abstractmethod
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
 
 
 class _OnChange(Filter):
     """Provides changed functionality to the callback."""
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._value = new_value
             return await self._callback(new_value)
@@ -88,7 +88,7 @@ class _Debounce(Filter):
         self._min_calls = min_calls
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._calls += 1
         else:
@@ -108,7 +108,7 @@ def debounce(callback: SensorCallbackType, min_calls) -> _Debounce:
 class _Throttle(Filter):
     """Provides throttle functionality to the callback."""
 
-    _last_called: Optional[float]
+    _last_called: float | None
     _timeout: float
 
     def __init__(self, callback: SensorCallbackType, seconds: float):
@@ -118,7 +118,7 @@ class _Throttle(Filter):
         self._timeout = seconds
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
         current_timestamp = time.time()
         if (
             self._last_called is None
@@ -137,7 +137,7 @@ class _Delta(Filter):
     """Provides ability to pass call difference to the callback."""
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
         old_value = self._value
         if _significantly_changed(old_value, new_value):
             self._value = new_value
@@ -155,7 +155,7 @@ class _Aggregate(Filter):
     to the callback."""
 
     _sum: NumericType
-    _last_update: Optional[float]
+    _last_update: float | None
     _timeout: float
 
     def __init__(self, callback: SensorCallbackType, seconds: float):
@@ -166,7 +166,7 @@ class _Aggregate(Filter):
         self._sum = 0.0
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """set new value for the callback."""
         if not isinstance(new_value, (int, float)):
             raise ValueError("Aggregate filter can't be used for non-numeric values")
 
