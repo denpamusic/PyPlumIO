@@ -2,15 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import IntEnum, unique
-
-
-@unique
-class ProductType(IntEnum):
-    """Contains product types."""
-
-    ECOMAX_P = 0
-    ECOMAX_I = 1
 
 
 @dataclass

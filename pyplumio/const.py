@@ -57,6 +57,14 @@ class DeviceState(IntEnum):
 
 
 @unique
+class ProductType(IntEnum):
+    """Contains product types."""
+
+    ECOMAX_P = 0
+    ECOMAX_I = 1
+
+
+@unique
 class AlertType(IntEnum):
     """Contains alert types."""
 

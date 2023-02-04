@@ -16,13 +16,13 @@ from pyplumio.const import (
     DeviceState,
     DeviceType,
     FrameType,
+    ProductType,
 )
 from pyplumio.devices import Addressable, Mixer, Thermostat
 from pyplumio.frames import DataFrameDescription, get_frame_handler, is_known_frame_type
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.network_info import NetworkInfo
-from pyplumio.helpers.product_info import ProductType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder

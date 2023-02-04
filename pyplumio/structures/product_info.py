@@ -5,7 +5,8 @@ import struct
 from typing import Final
 
 from pyplumio import util
-from pyplumio.helpers.product_info import ProductInfo, ProductType
+from pyplumio.const import ProductType
+from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, ensure_device_data

@@ -18,6 +18,7 @@ from pyplumio.const import (
     ATTR_VALUE,
     AlertType,
     FrameType,
+    ProductType,
 )
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.helpers.network_info import (
@@ -25,7 +26,7 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.product_info import ConnectedModules, ProductInfo, ProductType
+from pyplumio.helpers.product_info import ConnectedModules, ProductInfo
 from pyplumio.helpers.typing import DeviceDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
