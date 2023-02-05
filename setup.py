@@ -35,5 +35,5 @@ setuptools.setup(
         "Topic :: Home Automation",
     ],
     packages=setuptools.find_packages(exclude=["tests", "tests.*"]),
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )
