@@ -189,7 +189,7 @@ class Addressable(Device):
         name: str,
         frame_type: FrameType,
         retries: int = 3,
-        timeout: float = 10,
+        timeout: float = 5.0,
     ):
         """Send request for a data and wait for a value to become
         available. If value is not available before timeout, retry
