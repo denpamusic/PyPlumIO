@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Final, Iterable
 
 from pyplumio import util
-from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_VALUE
+from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
 from pyplumio.devices import Thermostat
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
@@ -40,7 +40,7 @@ class ThermostatParameter(Parameter):
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
 
-        return await super().set(value, retries)
+        return await super().set(int(value), retries)
 
     @property
     def value(self) -> ParameterValueType:
@@ -69,6 +69,7 @@ class ThermostatParameter(Parameter):
                 ATTR_INDEX: self._index + 1,
                 ATTR_VALUE: self._value,
                 ATTR_OFFSET: self.offset,
+                ATTR_SIZE: self.description.size,
             },
         )
 

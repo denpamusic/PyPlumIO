@@ -13,6 +13,7 @@ from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
     ATTR_SENSORS,
+    ATTR_SIZE,
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
@@ -308,6 +309,7 @@ async def test_thermostat_parameters_callbacks(
         ATTR_INDEX: 2,
         ATTR_VALUE: 220,
         ATTR_OFFSET: 0,
+        ATTR_SIZE: 2,
     }
 
 
@@ -348,6 +350,7 @@ async def test_thermostat_profile_callbacks(
         ATTR_INDEX: 0,
         ATTR_VALUE: 0,
         ATTR_OFFSET: 0,
+        ATTR_SIZE: 1,
     }
 
     # Test when thermostat profile is none.

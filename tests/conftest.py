@@ -13,6 +13,7 @@ from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_PASSWORD,
     ATTR_SCHEDULE,
+    ATTR_SIZE,
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
@@ -255,6 +256,7 @@ def fixture_data() -> dict[int, DeviceDataType]:
             ATTR_INDEX: 1,
             ATTR_VALUE: 42,
             ATTR_OFFSET: 12,
+            ATTR_SIZE: 2,
         },
         FrameType.REQUEST_ECOMAX_CONTROL: {ATTR_VALUE: 1},
         FrameType.REQUEST_SET_SCHEDULE: {
@@ -441,7 +443,7 @@ F00000000200000000000404000403F124B010000000000000000000000020201000000000000000
         FrameType.REQUEST_ECOMAX_PARAMETERS: bytearray.fromhex("FF00"),
         FrameType.REQUEST_SET_ECOMAX_PARAMETER: bytearray.fromhex("0050"),
         FrameType.REQUEST_SET_MIXER_PARAMETER: bytearray.fromhex("000028"),
-        FrameType.REQUEST_SET_THERMOSTAT_PARAMETER: bytearray.fromhex("0d2a"),
+        FrameType.REQUEST_SET_THERMOSTAT_PARAMETER: bytearray.fromhex("0d2a00"),
         FrameType.REQUEST_ECOMAX_CONTROL: bytearray.fromhex("01"),
         FrameType.REQUEST_SET_SCHEDULE: bytearray.fromhex(
             """010000050000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000F

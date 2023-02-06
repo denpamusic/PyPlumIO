@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Final
 
 from pyplumio import util
-from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_VALUE
+from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
 from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
@@ -71,6 +71,7 @@ class EcomaxParameter(Parameter):
                     ATTR_INDEX: self._index,
                     ATTR_VALUE: self._value,
                     ATTR_OFFSET: 0,
+                    ATTR_SIZE: 1,
                 },
             )
 

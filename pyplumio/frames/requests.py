@@ -7,6 +7,7 @@ from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
     ATTR_OFFSET,
+    ATTR_SIZE,
     ATTR_VALUE,
     FrameType,
 )
@@ -142,10 +143,11 @@ class SetThermostatParameterRequest(Request):
         try:
             message = bytearray()
             index = data[ATTR_INDEX]
-            value = data[ATTR_VALUE]
+            value: int = data[ATTR_VALUE]
             offset = data[ATTR_OFFSET]
+            size = data[ATTR_SIZE]
             message.append(index if offset is None else index + offset)
-            message.append(value)
+            message += value.to_bytes(length=size, byteorder="little")
             return message
         except (KeyError, ValueError) as e:
             raise FrameDataError from e

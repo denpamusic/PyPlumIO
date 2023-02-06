@@ -26,6 +26,7 @@ ATTR_THERMOSTAT: Final = "thermostat"
 ATTR_TRANSMISSION: Final = "transmission"
 ATTR_TYPE: Final = "type"
 ATTR_VALUE: Final = "value"
+ATTR_SIZE: Final = "size"
 
 # Bytes.
 BYTE_UNDEFINED: Final = 0xFF
