@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Awaitable, Callable, Final
 
-from pyplumio.const import DeviceType
+from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
     FrameError,
@@ -127,12 +127,19 @@ class Protocol(TaskManager):
         for _ in range(CONSUMERS_NUMBER):
             self.create_task(self.frame_consumer(read_queue))
 
+        for device in self.devices.values():
+            device.set_device_data(ATTR_CONNECTED, True)
+
         self.connected.set()
 
     async def connection_lost(self):
         """Shutdown consumers and call connection lost callback."""
         if self.connected.is_set():
             self.connected.clear()
+            for device in self.devices.values():
+                # Notify devices about connection loss.
+                await device.async_set_device_data(ATTR_CONNECTED, False)
+
             if self._connection_lost_callback is not None:
                 await self._connection_lost_callback()
 
@@ -159,8 +166,9 @@ class Protocol(TaskManager):
             device: Addressable = factory(
                 handler, queue=write_queue, network=self._network
             )
-            self.devices[name] = device
+            device.set_device_data(ATTR_CONNECTED, True)
             self.create_task(device.async_setup())
+            self.devices[name] = device
             self.set_event(name)
 
         return self.devices[name]

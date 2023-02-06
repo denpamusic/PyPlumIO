@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 import pytest
 
-from pyplumio.const import DeviceType, EncryptionType
+from pyplumio.const import ATTR_CONNECTED, DeviceType, EncryptionType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import (
     FrameError,
@@ -92,6 +92,10 @@ def test_connection_established(
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_put_nowait = mock_write_queue.put_nowait
 
+    # Create ecoMAX device mock and add it to the protocol.
+    mock_ecomax = Mock(spec=EcoMAX, new_callable=Mock)
+    protocol.devices = {"ecomax": mock_ecomax}
+
     # Test connection established.
     with patch(
         "pyplumio.protocol.Protocol.queues",
@@ -111,6 +115,9 @@ def test_connection_established(
     assert mock_frame_consumer.call_count == 2
     mock_frame_producer.assert_called_once()
     assert mock_create_task.call_count == 3
+
+    # Check that devices were notified.
+    mock_ecomax.set_device_data.assert_called_once_with(ATTR_CONNECTED, True)
 
 
 @pytest.mark.usefixtures("bypass_asyncio_create_task")
@@ -259,6 +266,10 @@ async def test_connection_lost() -> None:
     mock_connection_lost_callback = AsyncMock()
     protocol = Protocol(connection_lost_callback=mock_connection_lost_callback)
 
+    # Create ecoMAX device mock and add it to the protocol.
+    mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
+    protocol.devices = {"ecomax": mock_ecomax}
+
     with patch(
         "pyplumio.protocol.Protocol.queues",
         return_value=(mock_read_queue, mock_write_queue),
@@ -266,6 +277,8 @@ async def test_connection_lost() -> None:
     ):
         await protocol.connection_lost()
 
+    # Check that devices were notified and callback was called.
+    mock_ecomax.async_set_device_data.assert_called_once_with(ATTR_CONNECTED, False)
     mock_connection_lost_callback.assert_called_once()
 
 
