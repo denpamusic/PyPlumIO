@@ -145,7 +145,11 @@ class Protocol(TaskManager):
             await device.shutdown()
 
         if self.writer:
-            await self.writer.close()
+            try:
+                await self.writer.close()
+            except (OSError, asyncio.TimeoutError):
+                # Ignore any connection errors when shutting down.
+                pass
 
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
         """setup the device entry."""

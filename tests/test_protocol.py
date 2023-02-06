@@ -286,7 +286,7 @@ async def test_shutdown(
     mock_write_queue = Mock()
 
     protocol.writer = Mock()
-    protocol.writer.close = AsyncMock()
+    protocol.writer.close = AsyncMock(side_effect=OSError)
     protocol.devices["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
     mock_frame_consumer_task = Mock()
