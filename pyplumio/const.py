@@ -4,9 +4,11 @@ from __future__ import annotations
 from enum import IntEnum, unique
 from typing import Final
 
+# Binary states.
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
 
+# General attributes.
 ATTR_CONNECTED: Final = "connected"
 ATTR_CURRENT_TEMP: Final = "current_temp"
 ATTR_DEVICE_INDEX: Final = "device_index"
@@ -25,6 +27,7 @@ ATTR_TRANSMISSION: Final = "transmission"
 ATTR_TYPE: Final = "type"
 ATTR_VALUE: Final = "value"
 
+# Bytes.
 BYTE_UNDEFINED: Final = 0xFF
 
 
