@@ -104,6 +104,18 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
+async def test_getattr(ecomax: EcoMAX, messages: dict[int, bytearray]) -> None:
+    """Test getting value from the data."""
+    ecomax.handle_frame(
+        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+    )
+    await ecomax.wait_until_done()
+    assert hasattr(ecomax, "heating_temp")
+    assert hasattr(ecomax, "data")
+    assert ecomax.heating_temp == ecomax.data["heating_temp"]
+    assert not hasattr(ecomax, "nonexistent")
+
+
 async def test_async_setup() -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())

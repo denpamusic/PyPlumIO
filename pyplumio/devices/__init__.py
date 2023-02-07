@@ -57,6 +57,13 @@ class Device(TaskManager):
         self.queue = queue
         self._callbacks = {}
 
+    def __getattr__(self, name: str):
+        """Return attributes from the underlying data."""
+        try:
+            return self.data[name]
+        except KeyError as e:
+            raise AttributeError from e
+
     async def wait_for(self, name: str, timeout: float | None = None) -> None:
         """Waits for a data."""
         if name not in self.data:
