@@ -96,7 +96,7 @@ TEST_SCHEDULE: list[bool] = [
 
 
 @pytest.fixture(name="data")
-def fixture_data() -> dict[int, DeviceDataType]:
+def fixture_data() -> dict[FrameType, DeviceDataType]:
     """Return response data keyed by frame type."""
     return {
         FrameType.RESPONSE_PROGRAM_VERSION: {
@@ -343,7 +343,7 @@ def fixture_data() -> dict[int, DeviceDataType]:
 
 
 @pytest.fixture(name="messages")
-def fixture_messages() -> dict[int, bytearray]:
+def fixture_messages() -> dict[FrameType, bytearray]:
     """Return response messages keyed by frame type."""
     return {
         FrameType.RESPONSE_PROGRAM_VERSION: bytearray.fromhex(

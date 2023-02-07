@@ -58,7 +58,7 @@ def test_messages_type() -> None:
         assert isinstance(frame, response)
 
 
-def test_regdata_decode_message(messages: dict[int, bytearray]) -> None:
+def test_regdata_decode_message(messages: dict[FrameType, bytearray]) -> None:
     """Test parsing of regdata message."""
     frame = RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     decoder = frame.data[ATTR_REGDATA_DECODER]
@@ -67,7 +67,7 @@ def test_regdata_decode_message(messages: dict[int, bytearray]) -> None:
 
 
 def test_regdata_decode_message_with_unknown_version(
-    messages: dict[int, bytearray]
+    messages: dict[FrameType, bytearray]
 ) -> None:
     """Test parsing of regdata message with unknown message version."""
     test_message = messages[FrameType.MESSAGE_REGULATOR_DATA]
@@ -77,7 +77,7 @@ def test_regdata_decode_message_with_unknown_version(
     assert not decoder.decode(frame.message)[0]
 
 
-def test_sensor_data_decode_message(messages: dict[int, bytearray]) -> None:
+def test_sensor_data_decode_message(messages: dict[FrameType, bytearray]) -> None:
     """Test parsing sensor data message."""
     test_message = messages[FrameType.MESSAGE_SENSOR_DATA]
     frame = SensorDataMessage(message=test_message)
@@ -125,7 +125,7 @@ def test_sensor_data_decode_message(messages: dict[int, bytearray]) -> None:
 
 
 def test_sensor_data_without_fuel_level_and_load(
-    messages: dict[int, bytearray]
+    messages: dict[FrameType, bytearray]
 ) -> None:
     """Test that fuel level and load keys are not present in the device data
     if they are unavailable.
@@ -139,7 +139,9 @@ def test_sensor_data_without_fuel_level_and_load(
     assert ATTR_LOAD not in frame.data
 
 
-def test_sensor_data_without_lambda_sensor(messages: dict[int, bytearray]) -> None:
+def test_sensor_data_without_lambda_sensor(
+    messages: dict[FrameType, bytearray]
+) -> None:
     """Test that lambda sensor dict are not present in the device data
     if it is unavailable.
     """
@@ -155,7 +157,7 @@ def test_sensor_data_without_lambda_sensor(messages: dict[int, bytearray]) -> No
 
 
 def test_sensor_data_without_fan_power_and_fuel_consumption(
-    messages: dict[int, bytearray]
+    messages: dict[FrameType, bytearray]
 ) -> None:
     """Test that power, fan power and fuel consumption keys are not
     present in the device data if they are unavailable.
