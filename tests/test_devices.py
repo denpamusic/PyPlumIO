@@ -67,7 +67,7 @@ from pyplumio.structures.mixer_parameters import (
     MixerBinaryParameter,
     MixerParameter,
 )
-from pyplumio.structures.regulator_data import ATTR_REGDATA
+from pyplumio.structures.regulator_data import ATTR_REGDATA, RegulatorData
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
@@ -280,11 +280,12 @@ async def test_regdata_callbacks(
     )
     await ecomax.wait_until_done()
     regdata = await ecomax.get(ATTR_REGDATA)
-    assert regdata[1792] == 0
-    assert round(regdata[1024], 1) == 22.4
-    assert regdata[1280] == 41
-    assert regdata[183] == "0.0.0.0"
-    assert regdata[184] == "255.255.255.0"
+    assert isinstance(regdata, RegulatorData)
+    assert regdata.data[1792] == 0
+    assert round(regdata.data[1024], 1) == 22.4
+    assert regdata.data[1280] == 41
+    assert regdata.data[183] == "0.0.0.0"
+    assert regdata.data[184] == "255.255.255.0"
 
 
 async def test_regdata_callbacks_without_schema(

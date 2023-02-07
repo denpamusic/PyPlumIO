@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Boolean, DataType
+from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import BytesType, EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.data_schema import ATTR_SCHEMA
@@ -13,6 +14,10 @@ ATTR_REGDATA: Final = "regdata"
 ATTR_REGDATA_DECODER: Final = "regdata_decoder"
 
 REGDATA_VERSION: Final = "1.0"
+
+
+class RegulatorData(EventManager):
+    """Represents regulator data."""
 
 
 def _unpack_data(
@@ -69,4 +74,8 @@ class RegulatorDataStructure(StructureDecoder):
         if not sensors:
             return ensure_device_data(data), offset
 
-        return ensure_device_data(data, {ATTR_REGDATA: sensors}), offset
+        regdata = data.setdefault(ATTR_REGDATA, RegulatorData())
+        for key, value in sensors.items():
+            regdata.dispatch(key, value)
+
+        return ensure_device_data(data, {ATTR_REGDATA: regdata}), offset
