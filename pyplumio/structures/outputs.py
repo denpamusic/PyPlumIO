@@ -5,7 +5,7 @@ import math
 from typing import Final
 
 from pyplumio import util
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_FAN: Final = "fan"
@@ -48,8 +48,8 @@ class OutputsStructure(StructureDecoder):
     """Represent outputs data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         outputs = util.unpack_ushort(message[offset : offset + 4])
         data = ensure_device_data(data)

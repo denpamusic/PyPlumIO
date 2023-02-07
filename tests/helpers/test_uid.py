@@ -1,4 +1,4 @@
-"""Contains tests for UID decoder."""
+"""Contains tests for the UID decoder."""
 
 from pyplumio.helpers.uid import unpack_uid
 

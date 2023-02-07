@@ -5,7 +5,7 @@ from typing import Final
 
 from pyplumio import util
 from pyplumio.helpers.data_types import DATA_TYPES, DataType
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_SCHEMA: Final = "schema"
@@ -15,8 +15,8 @@ class DataSchemaStructure(StructureDecoder):
     """Represent data schema structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         blocks_count = util.unpack_ushort(message[offset : offset + 2])
         offset += 2

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Boolean, DataType
-from pyplumio.helpers.typing import BytesType, DeviceDataType
+from pyplumio.helpers.typing import BytesType, EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
@@ -52,8 +52,8 @@ class RegulatorDataStructure(StructureDecoder):
     """Represents regulator data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         schema = data.get(ATTR_SCHEMA, [])

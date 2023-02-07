@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Final
 
 from pyplumio import util
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
@@ -17,8 +17,8 @@ class OutputFlagsStructure(StructureDecoder):
     """Represents output flags structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         output_flags = util.unpack_ushort(message[offset : offset + 4])
         return (

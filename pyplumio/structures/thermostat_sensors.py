@@ -12,7 +12,7 @@ from pyplumio.const import (
     ATTR_TARGET_TEMP,
     BYTE_UNDEFINED,
 )
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
@@ -24,8 +24,8 @@ class ThermostatSensorsStructure(StructureDecoder):
     """Represents thermostats data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1
@@ -35,12 +35,12 @@ class ThermostatSensorsStructure(StructureDecoder):
         offset += 2
         contact_mask = 1
         schedule_mask = 1 << 3
-        thermostat_sensors: list[tuple[int, DeviceDataType]] = []
+        thermostat_sensors: list[tuple[int, EventDataType]] = []
         for index in range(thermostat_count):
             current_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
             target_temp = util.unpack_float(message[offset + 5 : offset + 9])[0]
             if not math.isnan(current_temp) and target_temp > 0:
-                sensors: DeviceDataType = {}
+                sensors: EventDataType = {}
                 sensors[ATTR_STATE] = message[offset]
                 sensors[ATTR_CURRENT_TEMP] = current_temp
                 sensors[ATTR_TARGET_TEMP] = target_temp

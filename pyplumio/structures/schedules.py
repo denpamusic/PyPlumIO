@@ -11,7 +11,7 @@ from pyplumio.devices import Addressable, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import DeviceDataType, ParameterDataType
+from pyplumio.helpers.typing import EventDataType, ParameterDataType
 from pyplumio.structures import Structure, ensure_device_data
 from pyplumio.util import unpack_parameter
 
@@ -114,7 +114,7 @@ SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
 )
 
 
-def collect_schedule_data(name: str, device: Device) -> DeviceDataType:
+def collect_schedule_data(name: str, device: Device) -> EventDataType:
     """Return schedule data collected from the device."""
     return {
         ATTR_TYPE: name,
@@ -165,7 +165,7 @@ def _decode_schedule(message: bytearray, offset: int) -> tuple[list[list[bool]],
 class SchedulesStructure(Structure):
     """Represents schedule data structure."""
 
-    def encode(self, data: DeviceDataType) -> bytearray:
+    def encode(self, data: EventDataType) -> bytearray:
         """Encode device data to bytearray message."""
         message = bytearray()
         message.append(1)
@@ -188,8 +188,8 @@ class SchedulesStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]

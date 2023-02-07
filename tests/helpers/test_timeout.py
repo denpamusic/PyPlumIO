@@ -1,4 +1,4 @@
-"""Contains tests for timeout decorator."""
+"""Contains tests for the timeout decorator."""
 
 import asyncio
 import logging

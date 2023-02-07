@@ -24,7 +24,7 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.filters import on_change
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import DeviceDataType, ParameterDataType, VersionsInfoType
+from pyplumio.helpers.typing import EventDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
@@ -122,6 +122,11 @@ class EcoMAX(Addressable):
             ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
         )
 
+    async def async_setup(self) -> bool:
+        """Setup addressable device object."""
+        await self.wait_for(ATTR_SENSORS)
+        return await super().async_setup()
+
     async def _update_frame_versions(self, versions: VersionsInfoType) -> None:
         """Check versions and fetch outdated frames."""
         for frame_type, version in versions.items():
@@ -144,7 +149,7 @@ class EcoMAX(Addressable):
             mixers[index] = mixer
             if len(mixers) == mixer_count:
                 # All mixers were processed, notify callbacks and getters.
-                self.set_device_data(ATTR_MIXERS, mixers)
+                self.dispatch(ATTR_MIXERS, mixers)
 
         return mixer
 
@@ -159,14 +164,14 @@ class EcoMAX(Addressable):
             thermostats[index] = thermostat
             if len(thermostats) == thermostat_count:
                 # All thermostats were processed, notify callbacks and getters.
-                self.set_device_data(ATTR_THERMOSTATS, thermostats)
+                self.dispatch(ATTR_THERMOSTATS, thermostats)
 
         return thermostat
 
-    async def _add_ecomax_sensors(self, sensors: DeviceDataType) -> bool:
+    async def _add_ecomax_sensors(self, sensors: EventDataType) -> bool:
         """Add ecomax sensor values to the device data."""
         for name, value in sensors.items():
-            await self.async_set_device_data(name, value)
+            await self.async_dispatch(name, value)
 
         return True
 
@@ -174,7 +179,7 @@ class EcoMAX(Addressable):
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
         """Add ecomax parameters to the device data."""
-        product = await self.get_value(ATTR_PRODUCT)
+        product = await self.get(ATTR_PRODUCT)
         for index, value in parameters:
             description = (
                 ECOMAX_P_PARAMETERS[index]
@@ -189,18 +194,18 @@ class EcoMAX(Addressable):
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_set_device_data(description.name, parameter)
+            await self.async_dispatch(description.name, parameter)
 
         return True
 
     async def _add_mixer_sensors(
-        self, sensors: Sequence[tuple[int, DeviceDataType]]
+        self, sensors: Sequence[tuple[int, EventDataType]]
     ) -> bool:
         """set sensor values for the mixer."""
         for mixer_index, mixer_sensors in sensors:
             mixer = self._get_mixer(mixer_index, len(sensors))
             for name, value in mixer_sensors.items():
-                await mixer.async_set_device_data(name, value)
+                await mixer.async_dispatch(name, value)
 
         return True
 
@@ -213,7 +218,7 @@ class EcoMAX(Addressable):
         if parameters is None:
             return False
 
-        product = await self.get_value(ATTR_PRODUCT)
+        product = await self.get(ATTR_PRODUCT)
         for mixer_index, mixer_parameters in parameters:
             mixer = self._get_mixer(mixer_index, len(parameters))
             for index, value in mixer_parameters:
@@ -230,18 +235,18 @@ class EcoMAX(Addressable):
                     min_value=value[1],
                     max_value=value[2],
                 )
-                await mixer.async_set_device_data(description.name, parameter)
+                await mixer.async_dispatch(description.name, parameter)
 
         return True
 
     async def _add_thermostat_sensors(
-        self, sensors: Sequence[tuple[int, DeviceDataType]]
+        self, sensors: Sequence[tuple[int, EventDataType]]
     ) -> bool:
         """set sensor values for the thermostat."""
         for thermostat_index, thermostat_sensors in sensors:
             thermostat = self._get_thermostat(thermostat_index, len(sensors))
             for name, value in thermostat_sensors.items():
-                await thermostat.async_set_device_data(name, value)
+                await thermostat.async_dispatch(name, value)
 
         return True
 
@@ -267,7 +272,7 @@ class EcoMAX(Addressable):
                     max_value=value[2],
                     offset=(thermostat_index * len(thermostat_parameters)),
                 )
-                await thermostat.async_set_device_data(description.name, parameter)
+                await thermostat.async_dispatch(description.name, parameter)
 
         return True
 
@@ -290,7 +295,7 @@ class EcoMAX(Addressable):
         """Decode thermostat parameters."""
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
-            await self.async_set_device_data(field, data[field])
+            await self.async_dispatch(field, data[field])
 
         return True
 
@@ -303,7 +308,7 @@ class EcoMAX(Addressable):
             min_value=STATE_OFF,
             max_value=STATE_ON,
         )
-        await self.async_set_device_data(ECOMAX_CONTROL_PARAMETER.name, parameter)
+        await self.async_dispatch(ECOMAX_CONTROL_PARAMETER.name, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
@@ -311,7 +316,7 @@ class EcoMAX(Addressable):
         seconds_passed = current_timestamp - self._fuel_burned_timestamp
         if 0 <= seconds_passed < MAX_TIME_SINCE_LAST_FUEL_DATA:
             fuel_burned = (fuel_consumption / 3600) * seconds_passed
-            await self.async_set_device_data(ATTR_FUEL_BURNED, fuel_burned)
+            await self.async_dispatch(ATTR_FUEL_BURNED, fuel_burned)
         else:
             _LOGGER.warning(
                 "Skipping outdated fuel consumption data, was %i seconds old",
@@ -325,7 +330,7 @@ class EcoMAX(Addressable):
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
             try:
-                await self.async_set_device_data(field, data[field])
+                await self.async_dispatch(field, data[field])
             except KeyError:
                 continue
 
@@ -344,13 +349,13 @@ class EcoMAX(Addressable):
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_set_device_data(description.name, parameter)
+            await self.async_dispatch(description.name, parameter)
 
         return True
 
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
-    ) -> DeviceDataType:
+    ) -> EventDataType:
         """Add schedules."""
         return {
             SCHEDULES[index]: Schedule(
@@ -389,5 +394,10 @@ class EcoMAX(Addressable):
         thermostats = self.data.get(ATTR_THERMOSTATS, {})
         for subdevice in (mixers | thermostats).values():
             await subdevice.shutdown()
+
+        try:
+            await self.regdata.shutdown()
+        except AttributeError:
+            pass
 
         await super().shutdown()

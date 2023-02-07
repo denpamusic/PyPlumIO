@@ -24,7 +24,7 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 
 
 def test_base_class_response() -> None:
@@ -72,7 +72,7 @@ def test_parameters(messages: dict[FrameType, bytearray]) -> None:
 
 
 def test_set_parameter(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test set parameter request bytes."""
     frame = SetEcomaxParameterRequest(data=data[FrameType.REQUEST_SET_ECOMAX_PARAMETER])
@@ -86,7 +86,7 @@ def test_set_parameter_with_no_data() -> None:
 
 
 def test_set_mixer_parameter(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test set mixer parameter request bytes."""
     frame = SetMixerParameterRequest(data=data[FrameType.REQUEST_SET_MIXER_PARAMETER])
@@ -100,7 +100,7 @@ def test_set_mixer_parameter_with_no_data() -> None:
 
 
 def test_set_thermostat_parameter(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test set thermostat parameter request bytes."""
     frame = SetThermostatParameterRequest(
@@ -116,7 +116,7 @@ def test_set_thermostat_parameter_with_no_data() -> None:
 
 
 def test_ecomax_control(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test ecoMAX control parameter request bytes."""
     frame = EcomaxControlRequest(data=data[FrameType.REQUEST_ECOMAX_CONTROL])
@@ -130,7 +130,7 @@ def test_ecomax_control_with_no_data() -> None:
 
 
 def test_set_schedule(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test set schedule request bytes."""
     frame = SetScheduleRequest(data=data[FrameType.REQUEST_SET_SCHEDULE])

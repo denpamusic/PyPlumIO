@@ -13,7 +13,7 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.thermostat_parameters import (
@@ -42,7 +42,7 @@ def test_responses_type() -> None:
 
 
 def test_program_version_response(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test creating program version message."""
     frame1 = ProgramVersionResponse(data=data[FrameType.RESPONSE_PROGRAM_VERSION])
@@ -54,7 +54,7 @@ def test_program_version_response(
 
 
 def test_device_available_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test creating device available message."""
@@ -67,7 +67,7 @@ def test_device_available_response(
 
 
 def test_uid_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test parsing UID message."""
@@ -78,7 +78,7 @@ def test_uid_response(
 
 
 def test_password_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test parsing password message."""
@@ -89,7 +89,7 @@ def test_password_response(
 
 
 def test_ecomax_parameters_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test parsing ecoMAX parameters message."""
@@ -102,7 +102,7 @@ def test_ecomax_parameters_response(
 
 
 def test_mixer_parameters_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test parsing message for mixer parameters response."""
@@ -119,7 +119,7 @@ def test_mixer_parameters_response(
 
 
 def test_thermostat_parameters_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test parsing message for thermostat parameters response."""
@@ -166,7 +166,7 @@ def test_data_schema_response_with_no_parameters() -> None:
 
 
 def test_alerts_response(
-    data: dict[FrameType, DeviceDataType],
+    data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
     """Test alert response."""
@@ -177,7 +177,7 @@ def test_alerts_response(
 
 
 def test_schedule_response(
-    data: dict[FrameType, DeviceDataType], messages: dict[FrameType, bytearray]
+    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
 ) -> None:
     """Test schedule response."""
     frame1 = SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])

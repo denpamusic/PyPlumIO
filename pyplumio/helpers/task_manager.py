@@ -9,7 +9,7 @@ class TaskManager:
     """Helper class for working with asyncio tasks and futures."""
 
     _tasks: set[asyncio.Task]
-    _events: dict[str, asyncio.Event]
+    _events: dict[str | int, asyncio.Event]
 
     def __init__(self):
         self._tasks = set()
@@ -31,7 +31,7 @@ class TaskManager:
         """Wait for all task to complete."""
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 
-    def create_event(self, name: str) -> asyncio.Event:
+    def create_event(self, name: str | int) -> asyncio.Event:
         """Create the event."""
         if name in self.events:
             return self.events[name]
@@ -40,7 +40,7 @@ class TaskManager:
         self._events[name] = event
         return event
 
-    def set_event(self, name: str) -> None:
+    def set_event(self, name: str | int) -> None:
         """set the event."""
         if name in self.events:
             event = self.events[name]
@@ -53,6 +53,6 @@ class TaskManager:
         return self._tasks
 
     @property
-    def events(self) -> dict[str, asyncio.Event]:
+    def events(self) -> dict[str | int, asyncio.Event]:
         """Return events."""
         return self._events

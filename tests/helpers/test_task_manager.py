@@ -1,33 +1,55 @@
-"""Contains tests for task manager."""
+"""Contains tests for the task manager."""
 
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+
 from pyplumio.helpers.task_manager import TaskManager
 
 
-@patch("asyncio.gather", new_callable=AsyncMock)
-async def test_task_manager(mock_gather) -> None:
-    """Test task manager."""
+@pytest.fixture(name="task_manager")
+async def fixture_task_manager() -> TaskManager:
+    """Return the task manager."""
     task_manager = TaskManager()
+    with patch("asyncio.create_task"):
+        task_manager.create_task(Mock())
 
+    return task_manager
+
+
+def test_create_task(task_manager: TaskManager) -> None:
+    """Test create task."""
     mock_coro = Mock()
     mock_task = Mock(spec=asyncio.Task)
     with patch("asyncio.create_task", return_value=mock_task) as create_task_mock:
         task_manager.create_task(mock_coro)
 
-    create_task_mock.assert_called_once_with(mock_coro)
     mock_task.add_done_callback.assert_called_once()
+    create_task_mock.assert_called_once_with(mock_coro)
 
-    # Check that task get cancelled.
+
+def test_cancel_task(task_manager: TaskManager) -> None:
+    """Test cancel task."""
+    mock_coro = Mock()
+    mock_task = Mock(spec=asyncio.Task)
+    with patch("asyncio.create_task", return_value=mock_task):
+        task_manager.create_task(mock_coro)
+
     task_manager.cancel_tasks()
     mock_task.cancel.assert_called_once()
 
-    # Check awaiting tasks.
-    await task_manager.wait_until_done()
+
+async def test_wait_until_done(task_manager: TaskManager) -> None:
+    """Test wait until done."""
+    with patch("asyncio.gather", new_callable=AsyncMock) as mock_gather:
+        await task_manager.wait_until_done()
+
     mock_gather.assert_awaited_once_with(*task_manager.tasks, return_exceptions=True)
 
-    # Test creating event.
+
+async def test_create_event(task_manager: TaskManager) -> None:
+    """Test create event."""
     event = task_manager.create_event("test")
     assert event == task_manager.create_event("test")
     assert "test" in task_manager.events

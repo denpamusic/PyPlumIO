@@ -6,12 +6,12 @@ from pyplumio.helpers.network_info import EthernetParameters, WirelessParameters
 from pyplumio.version import __version__
 
 
-def open_serial_connection(*args, **kwargs) -> SerialConnection:
+def serial(*args, **kwargs) -> SerialConnection:
     """Helper function for Serial connection."""
     return SerialConnection(*args, **kwargs)
 
 
-def open_tcp_connection(*args, **kwargs) -> TcpConnection:
+def tcp(*args, **kwargs) -> TcpConnection:
     """Helper function for TCP connection."""
     return TcpConnection(*args, **kwargs)
 
@@ -30,8 +30,8 @@ __all__ = [
     "Connection",
     "SerialConnection",
     "TcpConnection",
-    "open_serial_connection",
-    "open_tcp_connection",
+    "serial",
+    "tcp",
     "ethernet_parameters",
     "wireless_parameters",
     "__version__",

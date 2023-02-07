@@ -14,13 +14,13 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames.requests import StartMasterRequest
+from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import (
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,12 +35,11 @@ def _get_device_handler_and_name(address: int) -> tuple[str, str]:
     return handler, class_name.lower()
 
 
-class Protocol(TaskManager):
+class Protocol(EventManager):
     """Represents protocol."""
 
     writer: FrameWriter | None
     reader: FrameReader | None
-    devices: dict[str, Addressable]
     connected: asyncio.Event
     _network: NetworkInfo
     _queues: tuple[asyncio.Queue, asyncio.Queue]
@@ -56,7 +55,7 @@ class Protocol(TaskManager):
         super().__init__()
         self.writer = None
         self.reader = None
-        self.devices = {}
+        self.data = {}
         self.connected = asyncio.Event()
         read_queue: asyncio.Queue = asyncio.Queue()
         write_queue: asyncio.Queue = asyncio.Queue()
@@ -69,13 +68,6 @@ class Protocol(TaskManager):
             wireless_parameters = WirelessParameters()
 
         self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
-
-    def __getattr__(self, name: str):
-        """Return attributes from the underlying devices table."""
-        if name in self.devices:
-            return self.devices[name]
-
-        raise AttributeError
 
     async def frame_producer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -127,8 +119,8 @@ class Protocol(TaskManager):
         for _ in range(CONSUMERS_NUMBER):
             self.create_task(self.frame_consumer(read_queue))
 
-        for device in self.devices.values():
-            device.set_device_data(ATTR_CONNECTED, True)
+        for device in self.data.values():
+            device.dispatch(ATTR_CONNECTED, True)
 
         self.connected.set()
 
@@ -136,9 +128,9 @@ class Protocol(TaskManager):
         """Shutdown consumers and call connection lost callback."""
         if self.connected.is_set():
             self.connected.clear()
-            for device in self.devices.values():
+            for device in self.data.values():
                 # Notify devices about connection loss.
-                await device.async_set_device_data(ATTR_CONNECTED, False)
+                await device.async_dispatch(ATTR_CONNECTED, False)
 
             if self._connection_lost_callback is not None:
                 await self._connection_lost_callback()
@@ -146,9 +138,9 @@ class Protocol(TaskManager):
     async def shutdown(self):
         """Shutdown protocol tasks."""
         await asyncio.gather(*[queue.join() for queue in self.queues])
-        self.cancel_tasks()
-        await self.wait_until_done()
-        for device in self.devices.values():
+        await super().shutdown()
+
+        for device in self.data.values():
             await device.shutdown()
 
         if self.writer:
@@ -162,25 +154,16 @@ class Protocol(TaskManager):
         """setup the device entry."""
         handler, name = _get_device_handler_and_name(device_type)
         write_queue: asyncio.Queue = self.queues[1]
-        if name not in self.devices:
+        if name not in self.data:
             device: Addressable = factory(
                 handler, queue=write_queue, network=self._network
             )
-            device.set_device_data(ATTR_CONNECTED, True)
+            device.dispatch(ATTR_CONNECTED, True)
             self.create_task(device.async_setup())
-            self.devices[name] = device
+            self.data[name] = device
             self.set_event(name)
 
-        return self.devices[name]
-
-    async def get_device(
-        self, device: str, timeout: float | None = None
-    ) -> Addressable:
-        """Wait for device and return it once it's available."""
-        if device not in self.devices:
-            await asyncio.wait_for(self.create_event(device).wait(), timeout=timeout)
-
-        return self.devices[device]
+        return self.data[name]
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:

@@ -10,7 +10,7 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure, ensure_device_data
 
 ATTR_NETWORK: Final = "network"
@@ -19,7 +19,7 @@ ATTR_NETWORK: Final = "network"
 class NetworkInfoStructure(Structure):
     """Represents network info data structure."""
 
-    def encode(self, data: DeviceDataType) -> bytearray:
+    def encode(self, data: EventDataType) -> bytearray:
         """Encode data and return bytearray."""
         message = bytearray()
         message += b"\x01"
@@ -42,8 +42,8 @@ class NetworkInfoStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         network_info = NetworkInfo(
             eth=EthernetParameters(

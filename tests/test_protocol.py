@@ -94,7 +94,7 @@ def test_connection_established(
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=Mock)
-    protocol.devices = {"ecomax": mock_ecomax}
+    protocol.data = {"ecomax": mock_ecomax}
 
     # Test connection established.
     with patch(
@@ -117,7 +117,7 @@ def test_connection_established(
     assert mock_create_task.call_count == 3
 
     # Check that devices were notified.
-    mock_ecomax.set_device_data.assert_called_once_with(ATTR_CONNECTED, True)
+    mock_ecomax.dispatch.assert_called_once_with(ATTR_CONNECTED, True)
 
 
 @pytest.mark.usefixtures("bypass_asyncio_create_task")
@@ -268,7 +268,7 @@ async def test_connection_lost() -> None:
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
-    protocol.devices = {"ecomax": mock_ecomax}
+    protocol.data = {"ecomax": mock_ecomax}
 
     with patch(
         "pyplumio.protocol.Protocol.queues",
@@ -278,7 +278,7 @@ async def test_connection_lost() -> None:
         await protocol.connection_lost()
 
     # Check that devices were notified and callback was called.
-    mock_ecomax.async_set_device_data.assert_called_once_with(ATTR_CONNECTED, False)
+    mock_ecomax.async_dispatch.assert_called_once_with(ATTR_CONNECTED, False)
     mock_connection_lost_callback.assert_called_once()
 
 
@@ -300,7 +300,7 @@ async def test_shutdown(
 
     protocol.writer = Mock()
     protocol.writer.close = AsyncMock(side_effect=OSError)
-    protocol.devices["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
+    protocol.data["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
     mock_frame_consumer_task = Mock()
     mock_frame_producer_task = Mock()
@@ -328,26 +328,3 @@ async def test_shutdown(
     ]
     mock_gather.assert_has_awaits(calls)
     protocol.writer.close.assert_awaited_once()
-
-
-async def test_get_device(protocol: Protocol):
-    """Test wait for device method."""
-    # Test that event is being created on get device call.
-    mock_ecomax = AsyncMock(spec=EcoMAX)
-    mock_event = AsyncMock(spec=asyncio.Event)
-    with pytest.raises(KeyError), patch(
-        "pyplumio.protocol.Protocol.create_event",
-        return_value=mock_event,
-    ) as mock_create_event:
-        mock_create_event.wait = AsyncMock()
-        await protocol.get_device("ecomax")
-
-    mock_create_event.assert_called_once_with("ecomax")
-    mock_event.wait.assert_awaited_once()
-
-    protocol.devices["ecomax"] = mock_ecomax
-    assert protocol.ecomax == mock_ecomax
-
-    # Check that exception is raised on nonexistent device.
-    with pytest.raises(AttributeError):
-        assert not protocol.nonexistent

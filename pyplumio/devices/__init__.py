@@ -9,11 +9,11 @@ from pyplumio import util
 from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
+from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.typing import DeviceDataType, NumericType, SensorCallbackType
+from pyplumio.helpers.typing import NumericType
 from pyplumio.structures.network_info import ATTR_NETWORK
 
 _LOGGER = logging.getLogger(__name__)
@@ -43,109 +43,34 @@ def get_device_handler(device_type: int) -> str:
     raise UnknownDeviceError(f"Unknown device ({device_type})")
 
 
-class Device(TaskManager):
+class Device(EventManager):
     """Represents a device."""
 
     queue: asyncio.Queue
-    data: DeviceDataType
-    _callbacks: dict[str, list[SensorCallbackType]]
 
     def __init__(self, queue: asyncio.Queue):
         """Initialize the device object."""
         super().__init__()
-        self.data = {}
         self.queue = queue
-        self._callbacks = {}
 
-    def __getattr__(self, name: str):
-        """Return attributes from the underlying data."""
-        try:
-            return self.data[name]
-        except KeyError as e:
-            raise AttributeError from e
-
-    async def wait_for(self, name: str, timeout: float | None = None) -> None:
-        """Waits for a data."""
-        if name not in self.data:
-            await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
-
-    async def get_value(self, name: str, timeout: float | None = None):
-        """Return a value. When used with parameter, only it's
-        value will be returned. To get the parameter object,
-        get_parameter() method must be used instead."""
-        await self.wait_for(name, timeout)
-        value = self.data[name]
-        return value.value if isinstance(value, Parameter) else value
-
-    async def get_parameter(self, name: str, timeout: float | None = None) -> Parameter:
-        """Return a parameter."""
-        await self.wait_for(name, timeout)
-        parameter = self.data[name]
-        if isinstance(parameter, Parameter):
-            return parameter
-
-        raise ParameterNotFoundError(f"Parameter not found ({name})")
-
-    async def set_value(
+    async def set(
         self, name: str, value: NumericType, timeout: float | None = None
     ) -> bool:
-        """set a parameter value. Name should point
+        """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
         ParameterNotFoundError."""
         await self.wait_for(name, timeout)
-        parameter = self.data[name]
+        parameter = self.get_nowait(name)
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
 
         return await parameter.set(value)
 
-    def set_value_nowait(
+    def set_nowait(
         self, name: str, value: NumericType, timeout: float | None = None
     ) -> None:
-        """set a parameter value without waiting for the result."""
-        self.create_task(self.set_value(name, value, timeout))
-
-    def subscribe(self, name: str, callback: SensorCallbackType) -> None:
-        """Subscribe a callback to the value change event."""
-        if name not in self._callbacks:
-            self._callbacks[name] = []
-
-        self._callbacks[name].append(callback)
-
-    def subscribe_once(self, name: str, callback: SensorCallbackType) -> None:
-        """Subscribe a callback to the single value change event."""
-
-        async def _callback(value):
-            """Unsubscribe the callback and call it."""
-            self.unsubscribe(name, _callback)
-            return await callback(value)
-
-        self.subscribe(name, _callback)
-
-    def unsubscribe(self, name: str, callback: SensorCallbackType) -> None:
-        """Usubscribe a callback from the value change event."""
-        if name in self._callbacks and callback in self._callbacks[name]:
-            self._callbacks[name].remove(callback)
-
-    async def async_set_device_data(self, name: str, value) -> None:
-        """Asynchronously call registered callbacks on value change."""
-        if name in self._callbacks:
-            callbacks = self._callbacks[name].copy()
-            for callback in callbacks:
-                return_value = await callback(value)
-                value = return_value if return_value is not None else value
-
-        self.data[name] = value
-        self.set_event(name)
-
-    def set_device_data(self, *args, **kwargs) -> None:
-        """Call registered callbacks on value change."""
-        self.create_task(self.async_set_device_data(*args, **kwargs))
-
-    async def shutdown(self) -> None:
-        """Cancel scheduled tasks."""
-        self.cancel_tasks()
-        await self.wait_until_done()
+        """Set a parameter value without waiting for the result."""
+        self.create_task(self.set(name, value, timeout))
 
 
 class Addressable(Device):
@@ -170,28 +95,28 @@ class Addressable(Device):
 
         if frame.data is not None:
             for name, value in frame.data.items():
-                self.set_device_data(name, value)
+                self.dispatch(name, value)
 
     async def async_setup(self) -> bool:
-        """Request initial data frames."""
+        """Setup addressable device object."""
         try:
             await asyncio.gather(
                 *{
                     self.create_task(
-                        self.make_request(description.provides, description.frame_type)
+                        self.request(description.provides, description.frame_type)
                     )
                     for description in self._frame_types
                 },
                 return_exceptions=False,
             )
-            await self.async_set_device_data(ATTR_LOADED, True)
+            await self.async_dispatch(ATTR_LOADED, True)
             return True
         except ValueError as e:
             _LOGGER.error("Request failed: %s", e)
-            await self.async_set_device_data(ATTR_LOADED, False)
+            await self.async_dispatch(ATTR_LOADED, False)
             return False
 
-    async def make_request(
+    async def request(
         self,
         name: str,
         frame_type: FrameType,
@@ -207,7 +132,7 @@ class Addressable(Device):
         while retries > 0:
             try:
                 self.queue.put_nowait(request)
-                return await self.get_value(name, timeout=timeout)
+                return await self.get(name, timeout=timeout)
             except asyncio.TimeoutError:
                 retries -= 1
 

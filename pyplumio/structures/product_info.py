@@ -7,7 +7,7 @@ from typing import Final
 from pyplumio import util
 from pyplumio.const import ProductType
 from pyplumio.helpers.product_info import ProductInfo
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -18,8 +18,8 @@ class ProductInfoStructure(StructureDecoder):
     """Represents product info data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         product_type, name = struct.unpack_from("<BH", message)
         uid = unpack_uid(message, offset)

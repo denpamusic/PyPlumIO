@@ -5,7 +5,7 @@ import math
 from typing import Final
 
 from pyplumio import util
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_HEATING_TEMP: Final = "heating_temp"
@@ -50,8 +50,8 @@ class TemperaturesStructure(StructureDecoder):
     """Represents temperatures data structures."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         temp_count = message[offset]

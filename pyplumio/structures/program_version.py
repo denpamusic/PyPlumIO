@@ -4,7 +4,7 @@ from __future__ import annotations
 import struct
 from typing import Final
 
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures import Structure, ensure_device_data
 
@@ -14,7 +14,7 @@ ATTR_VERSION: Final = "version"
 class ProgramVersionStructure(Structure):
     """Represents program version data structure."""
 
-    def encode(self, data: DeviceDataType) -> bytearray:
+    def encode(self, data: EventDataType) -> bytearray:
         """Encode device data to bytearray message."""
         message = bytearray(15)
         version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
@@ -32,8 +32,8 @@ class ProgramVersionStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         version_info = VersionInfo()
         [

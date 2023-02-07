@@ -10,11 +10,7 @@ from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import (
-    DeviceDataType,
-    ParameterDataType,
-    ParameterValueType,
-)
+from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
@@ -304,8 +300,8 @@ class EcomaxParametersStructure(StructureDecoder):
     """Represents ecoMAX parameters data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]

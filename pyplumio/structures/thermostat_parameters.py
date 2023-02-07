@@ -10,11 +10,7 @@ from pyplumio.devices import Thermostat
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import (
-    DeviceDataType,
-    ParameterDataType,
-    ParameterValueType,
-)
+from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
@@ -128,8 +124,8 @@ class ThermostatParametersStructure(StructureDecoder):
     """Represent thermostat parameters data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
         thermostat_count = data.get(ATTR_THERMOSTAT_COUNT, 0)

@@ -28,7 +28,7 @@ from pyplumio.helpers.network_info import (
     WirelessParameters,
 )
 from pyplumio.helpers.product_info import ConnectedModules, ProductInfo
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
@@ -96,7 +96,7 @@ TEST_SCHEDULE: list[bool] = [
 
 
 @pytest.fixture(name="data")
-def fixture_data() -> dict[FrameType, DeviceDataType]:
+def fixture_data() -> dict[FrameType, EventDataType]:
     """Return response data keyed by frame type."""
     return {
         FrameType.RESPONSE_PROGRAM_VERSION: {

@@ -6,8 +6,8 @@ from typing import Any, Awaitable, Callable, Literal, Union
 NumericType = Union[int, float]
 ParameterDataType = tuple[int, int, int]
 ParameterValueType = Union[NumericType, bool, Literal["off"], Literal["on"]]
-DeviceDataType = dict[str, Any]
-SensorCallbackType = Callable[[Any], Awaitable[Any]]
+EventDataType = dict[Union[str, int], Any]
+EventCallbackType = Callable[[Any], Awaitable[Any]]
 VersionsInfoType = dict[int, int]
 BytesType = Union[bytes, bytearray]
 MessageType = bytearray

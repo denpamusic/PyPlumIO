@@ -7,7 +7,7 @@ from typing import Final
 
 from pyplumio import util
 from pyplumio.const import AlertType
-from pyplumio.helpers.typing import DeviceDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_ALERTS: Final = "alerts"
@@ -60,8 +60,8 @@ class AlertsStructure(StructureDecoder):
     """Represents alerts data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: DeviceDataType | None = None
-    ) -> tuple[DeviceDataType, int]:
+        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
+    ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         first_index = message[offset + 1]
         last_index = message[offset + 2]

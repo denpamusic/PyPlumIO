@@ -40,7 +40,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [License](#license)
 
 ## Usage
-To interact with devices, you must first initialize connection by utilizing `pyplumio.open_tcp_connection()` or `pyplumio.open_serial_connection()` methods.
+To interact with devices, you must first initialize connection by utilizing `pyplumio.tcp()` or `pyplumio.serial()` methods.
 
 You can find examples for each supported connection type below.
 
@@ -53,8 +53,8 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
     # Do something.
 	
 asyncio.run(main())
@@ -71,10 +71,10 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 async def main():
-  async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
-    # You can also use optional timeout parameter of get_device method.
+  async with pyplumio.serial("/dev/ttyUSB0", baudrate=115200) as connection:
+    # You can also use optional timeout parameter of get method.
     try:
-      ecomax = await connection.get_device("ecomax", timeout=10)
+      ecomax = await connection.get("ecomax", timeout=10)
       # Do something.
     except asyncio.TimeoutError:
       _LOGGER.error("Failed to get device within 10 seconds")
@@ -89,9 +89,9 @@ import asyncio
 import pyplumio
 
 async def main():
-  connection = pyplumio.open_tcp_connection("localhost", 8899)
+  connection = pyplumio.tcp("localhost", 8899)
   await connection.connect()
-  ecomax = await connection.get_device("ecomax")
+  ecomax = await connection.get("ecomax")
   # Do something.
   await connection.close()
 	
@@ -100,13 +100,13 @@ asyncio.run(main())
 
 ### Values and Parameters
 Data can be immutable (Values) or mutable (Parameters). They can be accessed via 
-`Device.get_value(name: str, timeout: float | None = None)` and `Device.get_parameter(name: str, timeout: float | None = None)` methods.
+`Device.get(name: str, timeout: float | None = None)` and `Device.get_nowait(name: str, timeout: float | None = None)` methods.
 
 Each device supports different attributes and parameters, you can check all available values and parameters by looking at `Device.data` attribute.
 
 ### Reading
 Interaction with the device is mainly done through async getter methods.
-For example you can read current feed water temperature by awaiting for `Device.get_value("heating_temp")`.
+For example you can read current feed water temperature by awaiting for `Device.get("heating_temp")`.
 
 The following example will print out current feed water temperature and close the connection.
 ```python
@@ -114,9 +114,9 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    print(await ecomax.get_value("heating_temp"))
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    print(await ecomax.get("heating_temp"))
     
 asyncio.run(main())
 ```
@@ -127,8 +127,8 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
     await ecomax.wait_for("heating_temp")
     print("Heating temperature is available!")
 
@@ -137,25 +137,25 @@ asyncio.run(main())
 
 
 ### Writing
-You can change controller parameters by awaiting `Device.set_value(name: str, value: int, timeout: float | None = None)` or
-by getting parameter via `Device.get_parameter(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
+You can change controller parameters by awaiting `Device.set(name: str, value: int, timeout: float | None = None)` or
+by getting parameter via `Device.get(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
 In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    result = await ecomax.set_value("heating_target_temp", 65)
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    result = await ecomax.set("heating_target_temp", 65)
 ```
 
 ```python
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    target_temp = await ecomax.get_parameter("heating_target_temp")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    target_temp = await ecomax.get("heating_target_temp")
     result = await target_temp.set(65)
     if result:
       print("Parameter value was successfully set.")
@@ -169,18 +169,18 @@ literals "on", "off" or use `turn_on()`, `turn_off()` methods of the parameter i
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    result = await ecomax.set_value("ecomax_control", "on")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    result = await ecomax.set("ecomax_control", "on")
 ```
 
 ```python
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    ecomax_switch = await ecomax.get_parameter("ecomax_control")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    ecomax_switch = await ecomax.get("ecomax_control")
     result = await ecomax_switch.turn_on()  # or await ecomax_switch.turn_off()
 ```
 
@@ -189,8 +189,8 @@ In addition to this, ecoMAX device class has a handy shortcut to turn the contro
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
     await ecomax.turn_on()  # or await ecomax.turn_off()
 ```
 
@@ -200,9 +200,9 @@ You can check allowed range by reading `min_value` and `max_value` attributes of
 import pyplumio
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    target_temp = await ecomax.get_parameter("heating_target_temp")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    target_temp = await ecomax.get("heating_target_temp")
     print(target_temp.min_value)  # Prints minimum allowed target temperature.
     print(target_temp.max_value)  # Prints maximum allowed target temperature.
 ```
@@ -218,8 +218,8 @@ async def my_callback(value) -> None:
   print(f"Heating Temperature: {value}")
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
     ecomax.subscribe("heating_temp", my_callback)
 
     # Wait until disconnected (forever)
@@ -238,8 +238,8 @@ import pyplumio
 from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
     
     # Callback "first_callback" will be awaited on every received frame
     # that contains "heating_temp" regardless of whether value is
@@ -274,8 +274,8 @@ async def main():
 
 ### Working with Sub-Devices
 If your ecoMAX controller has connected sub-devices such as mixers and/or thermostats,
-you can access them via respective properties through `Device.get_value("mixers")`
-or `Device.get_value("thermostats")` call.
+you can access them via respective properties through awaiting `Device.get("mixers")`
+or `Device.get("thermostats")`.
 
 Result of this call will be a list of `Mixer` or `Thermostat` instances.
 Both classes inherit `Device` and provide access to getter/setter functions and
@@ -300,18 +300,18 @@ async def my_thermostat_callback(thermostat_state: int) -> None:
 
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    mixers = await ecomax.get_value("mixers", timeout=10)
-    thermostats = await ecomax.get_value("thermostats", timeout=10)
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    mixers = await ecomax.get("mixers", timeout=10)
+    thermostats = await ecomax.get("thermostats", timeout=10)
     # If any of these call fail with timeout,
     # check that you have thermostats connected to your controller and
     # temperature probe connected for at least one mixer.
 
     # Get single mixer from the list.
     mixer = mixers[0]
-    mixer_temp = await mixer.get_value("current_temp")
-    await mixer.set_value("mixer_target_temp", 50)
+    mixer_temp = await mixer.get("current_temp")
+    await mixer.set("mixer_target_temp", 50)
     mixer.subscribe("pump", on_change(my_mixer_callback))
 
     # Print all available mixer data.
@@ -319,8 +319,8 @@ async def main():
 
     # Get single thermostat from the list.
     thermostat = thermostats[0]
-    thermostat_temp = await thermostat.get_value("current_temp")
-    await thermostat.set_value("day_target_temp", 20)
+    thermostat_temp = await thermostat.get("current_temp")
+    await thermostat.set("day_target_temp", 20)
     thermostat.subscribe("state", on_change(my_thermostat_callback))
 
     # Print all available thermostat data.
@@ -336,18 +336,18 @@ asyncio.run(main())
 You can set device schedule, enable/disable it and change associated parameter.
 
 To disable the schedule, turn off "schedule_{schedule_name}_switch" parameter, by using
-`Device.set_value` method, to enable it turn in on.
+`Device.set` method, to enable it turn in on.
 
 ```python
-  await ecomax.set_value("schedule_heating_switch", "off")
-  await ecomax.set_value("schedule_heating_switch", "on")
+  await ecomax.set("schedule_heating_switch", "off")
+  await ecomax.set("schedule_heating_switch", "on")
 ```
 
-To change associated parameter value, use `Device.set_value`
+To change associated parameter value, use `Device.set`
 function with "schedule_{schedule_name}_parameter".
 
 ```python
-  await ecomax.set_value("schedule_heating_parameter", 10)
+  await ecomax.set("schedule_heating_parameter", 10)
 ```
 
 To set the schedule, you can use `set_state`, `set_on` or `set_off` functions and call
@@ -357,7 +357,7 @@ This example sets nighttime mode for Monday from 00:00 to 07:00 and switches bac
 mode from 07:00 to 00:00.
 
 ```python
-heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+heating_schedule = (await ecomax.get("schedules"))["heating"]
 heating_schedule.monday.set_off(start="00:00", end="07:00")
 heating_schedule.monday.set_on(start="07:00", end="00:00")
 heating_schedule.commit()
@@ -379,7 +379,7 @@ This can be used to set state for a whole day: `heating_schedule.monday.set_on()
 
 To set schedule for all days you can iterate through Schedule object:
 ```python
-heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+heating_schedule = (await ecomax.get("schedules"))["heating"]
 
 for weekday in heating_schedule:
   weekday.set_on("00:00", "07:00")
@@ -395,15 +395,15 @@ import pyplumio
 from pyplumio.helpers.schedule import STATE_DAY, STATE_NIGHT
 
 async def main():
-  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-    ecomax = await connection.get_device("ecomax")
-    heating_schedule = (await ecomax.get_value("schedules"))["heating"]
+  async with pyplumio.tcp("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    heating_schedule = (await ecomax.get("schedules"))["heating"]
 
     # Turn heating schedule on.
-    await ecomax.set_value("schedule_heating_switch", "on")
+    await ecomax.set("schedule_heating_switch", "on")
 
     # Drop heating temperature by 10 degrees during nighttime.
-    await ecomax.set_value("schedule_heating_parameter", 10)
+    await ecomax.set("schedule_heating_parameter", 10)
 
     for weekday in heating_schedule:
       weekday.set_state(STATE_DAY, "00:00", "00:30")
@@ -439,7 +439,7 @@ async def main():
     encryption=EncryptionType.WPA2,
     signal_quality=100,
   )
-  async with pyplumio.open_tcp_connection(
+  async with pyplumio.tcp(
     host="localhost",
     port=8899,
     ethernet_parameters=ethernet,

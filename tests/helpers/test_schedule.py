@@ -1,6 +1,5 @@
 """Contains test for schedule helpers."""
 
-
 import asyncio
 from unittest.mock import Mock, patch
 
