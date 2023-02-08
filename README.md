@@ -235,7 +235,7 @@ Callbacks can be improved by using built-in filters `aggregate(callback, seconds
 You can find examples on how to use them below:
 ```python
 import pyplumio
-from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
+from pyplumio.filters import aggregate, debounce, delta, on_change, throttle
 
 async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
@@ -288,7 +288,7 @@ available values and parameters by looking at `Mixer.data` or `Thermostat.data` 
 import asyncio
 import pyplumio
 
-from pyplumio.helpers.filters import on_change
+from pyplumio.filters import on_change
 
 
 async def my_mixer_callback(pump_state: bool) -> None:
