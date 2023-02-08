@@ -73,3 +73,13 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     event_manager.dispatch("test_key2", "test_value2")
     await event_manager.wait_until_done()
     callback.assert_not_awaited()
+
+
+async def test_create_event(event_manager: EventManager) -> None:
+    """Test create event."""
+    event = event_manager.create_event("test")
+    assert event == event_manager.create_event("test")
+    assert "test" in event_manager.events
+    assert not event_manager.events["test"].is_set()
+    event_manager.set_event("test")
+    assert event_manager.events["test"].is_set()

@@ -11,12 +11,14 @@ class EventManager(TaskManager):
     """Represents an event manager."""
 
     data: EventDataType
+    _events: dict[str | int, asyncio.Event]
     _callbacks: dict[str | int, list[EventCallbackType]]
 
     def __init__(self):
         """Initialize the event manager object."""
         super().__init__()
         self.data = {}
+        self._events = {}
         self._callbacks = {}
 
     def __getattr__(self, name: str):
@@ -82,7 +84,28 @@ class EventManager(TaskManager):
         """Call registered callbacks on value change."""
         self.create_task(self.async_dispatch(*args, **kwargs))
 
+    def create_event(self, name: str | int) -> asyncio.Event:
+        """Create the event."""
+        if name in self.events:
+            return self.events[name]
+
+        event = asyncio.Event()
+        self._events[name] = event
+        return event
+
+    def set_event(self, name: str | int) -> None:
+        """set the event."""
+        if name in self.events:
+            event = self.events[name]
+            if not event.is_set():
+                event.set()
+
     async def shutdown(self) -> None:
         """Cancel scheduled tasks."""
         self.cancel_tasks()
         await self.wait_until_done()
+
+    @property
+    def events(self) -> dict[str | int, asyncio.Event]:
+        """Return events."""
+        return self._events

@@ -6,14 +6,12 @@ from typing import Any, Coroutine
 
 
 class TaskManager:
-    """Helper class for working with asyncio tasks and futures."""
+    """Represents task manager."""
 
     _tasks: set[asyncio.Task]
-    _events: dict[str | int, asyncio.Event]
 
     def __init__(self):
         self._tasks = set()
-        self._events = {}
 
     def create_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
         """Create asyncio Task and store it's reference."""
@@ -31,28 +29,7 @@ class TaskManager:
         """Wait for all task to complete."""
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 
-    def create_event(self, name: str | int) -> asyncio.Event:
-        """Create the event."""
-        if name in self.events:
-            return self.events[name]
-
-        event = asyncio.Event()
-        self._events[name] = event
-        return event
-
-    def set_event(self, name: str | int) -> None:
-        """set the event."""
-        if name in self.events:
-            event = self.events[name]
-            if not event.is_set():
-                event.set()
-
     @property
     def tasks(self) -> set[asyncio.Task]:
         """Return set of task references."""
         return self._tasks
-
-    @property
-    def events(self) -> dict[str | int, asyncio.Event]:
-        """Return events."""
-        return self._events

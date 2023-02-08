@@ -46,13 +46,3 @@ async def test_wait_until_done(task_manager: TaskManager) -> None:
         await task_manager.wait_until_done()
 
     mock_gather.assert_awaited_once_with(*task_manager.tasks, return_exceptions=True)
-
-
-async def test_create_event(task_manager: TaskManager) -> None:
-    """Test create event."""
-    event = task_manager.create_event("test")
-    assert event == task_manager.create_event("test")
-    assert "test" in task_manager.events
-    assert not task_manager.events["test"].is_set()
-    task_manager.set_event("test")
-    assert task_manager.events["test"].is_set()
