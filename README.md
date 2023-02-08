@@ -40,7 +40,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
 - [License](#license)
 
 ## Usage
-To interact with devices, you must first initialize connection by utilizing `pyplumio.tcp()` or `pyplumio.serial()` methods.
+To interact with devices, you must first initialize connection by utilizing `pyplumio.open_tcp_connection()` or `pyplumio.open_serial_connection()` methods.
 
 You can find examples for each supported connection type below.
 
@@ -53,7 +53,7 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     # Do something.
 	
@@ -71,7 +71,7 @@ import logging
 _LOGGER = logging.getLogger(__name__)
 
 async def main():
-  async with pyplumio.serial("/dev/ttyUSB0", baudrate=115200) as connection:
+  async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as connection:
     # You can also use optional timeout parameter of get method.
     try:
       ecomax = await connection.get("ecomax", timeout=10)
@@ -89,7 +89,7 @@ import asyncio
 import pyplumio
 
 async def main():
-  connection = pyplumio.tcp("localhost", 8899)
+  connection = pyplumio.open_tcp_connection("localhost", 8899)
   await connection.connect()
   ecomax = await connection.get("ecomax")
   # Do something.
@@ -114,7 +114,7 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     print(await ecomax.get("heating_temp"))
     
@@ -127,7 +127,7 @@ import asyncio
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     await ecomax.wait_for("heating_temp")
     print("Heating temperature is available!")
@@ -144,7 +144,7 @@ In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 deg
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     result = await ecomax.set("heating_target_temp", 65)
 ```
@@ -153,7 +153,7 @@ async def main():
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     target_temp = await ecomax.get("heating_target_temp")
     result = await target_temp.set(65)
@@ -169,7 +169,7 @@ literals "on", "off" or use `turn_on()`, `turn_off()` methods of the parameter i
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     result = await ecomax.set("ecomax_control", "on")
 ```
@@ -178,7 +178,7 @@ async def main():
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     ecomax_switch = await ecomax.get("ecomax_control")
     result = await ecomax_switch.turn_on()  # or await ecomax_switch.turn_off()
@@ -189,7 +189,7 @@ In addition to this, ecoMAX device class has a handy shortcut to turn the contro
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     await ecomax.turn_on()  # or await ecomax.turn_off()
 ```
@@ -200,7 +200,7 @@ You can check allowed range by reading `min_value` and `max_value` attributes of
 import pyplumio
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     target_temp = await ecomax.get("heating_target_temp")
     print(target_temp.min_value)  # Prints minimum allowed target temperature.
@@ -218,7 +218,7 @@ async def my_callback(value) -> None:
   print(f"Heating Temperature: {value}")
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     ecomax.subscribe("heating_temp", my_callback)
 
@@ -238,7 +238,7 @@ import pyplumio
 from pyplumio.helpers.filters import aggregate, debounce, delta, on_change, throttle
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     
     # Callback "first_callback" will be awaited on every received frame
@@ -300,7 +300,7 @@ async def my_thermostat_callback(thermostat_state: int) -> None:
 
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     mixers = await ecomax.get("mixers", timeout=10)
     thermostats = await ecomax.get("thermostats", timeout=10)
@@ -395,7 +395,7 @@ import pyplumio
 from pyplumio.helpers.schedule import STATE_DAY, STATE_NIGHT
 
 async def main():
-  async with pyplumio.tcp("localhost", 8899) as connection:
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     heating_schedule = (await ecomax.get("schedules"))["heating"]
 
@@ -439,7 +439,7 @@ async def main():
     encryption=EncryptionType.WPA2,
     signal_quality=100,
   )
-  async with pyplumio.tcp(
+  async with pyplumio.open_tcp_connection(
     host="localhost",
     port=8899,
     ethernet_parameters=ethernet,

@@ -44,7 +44,9 @@ def fixture_asyncio_open_connection(
 
 
 @pytest.fixture(name="serial_asyncio_open_serial_connection")
-def fixture_asyncio_serial(stream_reader: StreamReader, stream_writer: StreamWriter):
+def fixture_serial_asyncio_open_serial_connection(
+    stream_reader: StreamReader, stream_writer: StreamWriter
+):
     """Bypass opening serial_asyncio connection."""
     with patch(
         "serial_asyncio.open_serial_connection",

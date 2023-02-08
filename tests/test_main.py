@@ -15,7 +15,9 @@ async def test_main(capsys) -> None:
     mock_connection.get_device.return_value = mock_device
     main_fn = mock_asyncio_run.call_args[0][0]
 
-    with patch("pyplumio.serial", return_value=mock_connection) as mock_serial:
+    with patch(
+        "pyplumio.open_serial_connection", return_value=mock_connection
+    ) as mock_serial:
         await main_fn
 
     assert main.__name__ == main_fn.__name__
