@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import ClassVar
+from warnings import warn
 
 from pyplumio import util
 from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
@@ -52,6 +53,58 @@ class Device(EventManager):
         """Initialize the device object."""
         super().__init__()
         self.queue = queue
+
+    async def get_value(self, name: str, timeout: float | None = None):
+        """Return a value."""
+        warn(
+            "get_value() is deprecated and will be removed in v0.4.1. "
+            + "Please use get() or get_nowait().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        value = await self.get(name, timeout)
+        if isinstance(value, Parameter):
+            return value.value
+
+        return value
+
+    async def get_parameter(self, name: str, timeout: float | None = None):
+        """Return a parameter."""
+        warn(
+            "get_parameter() is deprecated and will be removed in v0.4.1. "
+            + "Please use get() or get_nowait().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return await self.get(name, timeout)
+
+    async def set_value(
+        self, name: str, value: NumericType, timeout: float | None = None
+    ) -> bool:
+        """Sets a value."""
+        warn(
+            "set_value() is deprecated and will be removed in v0.4.1. "
+            + "Please use set().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return await self.set(name, value, timeout)
+
+    def set_value_nowait(
+        self, name: str, value: NumericType, timeout: float | None = None
+    ) -> None:
+        """Sets a value without waiting."""
+        warn(
+            "set_value_nowait() is deprecated and will be removed in v0.4.1. "
+            + "Please use set_nowait().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        self.set_nowait(name, value, timeout)
 
     async def set(
         self, name: str, value: NumericType, timeout: float | None = None

@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
+import warnings
 
 import pytest
 
@@ -280,6 +281,19 @@ async def test_connection_lost() -> None:
     # Check that devices were notified and callback was called.
     mock_ecomax.async_dispatch.assert_called_once_with(ATTR_CONNECTED, False)
     mock_connection_lost_callback.assert_called_once()
+
+
+async def test_deprecated_get_device(protocol: Protocol) -> None:
+    """Test deprecated get_device method."""
+    with patch(
+        "pyplumio.protocol.Protocol.get", new_callable=AsyncMock
+    ) as mock_get, warnings.catch_warnings(record=True) as warn:
+        warnings.simplefilter("always")
+        await protocol.get_device("test")
+        assert len(warn) == 1
+        assert issubclass(warn[-1].category, DeprecationWarning)
+        assert "deprecated" in str(warn[-1].message)
+        mock_get.assert_awaited_once_with("test", None)
 
 
 @patch("asyncio.wait")

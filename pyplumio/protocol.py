@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import Awaitable, Callable, Final
+from warnings import warn
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
@@ -164,6 +165,17 @@ class Protocol(EventManager):
             self.set_event(name)
 
         return self.data[name]
+
+    async def get_device(self, name: str, timeout: float | None = None):
+        """Return a device."""
+        warn(
+            "get_device() is deprecated and will be removed in v0.4.1. "
+            + "Please use get() or get_nowait().",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+        return await self.get(name, timeout)
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
