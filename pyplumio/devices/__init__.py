@@ -112,8 +112,7 @@ class Device(EventManager):
         """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
         ParameterNotFoundError."""
-        await self.wait_for(name, timeout)
-        parameter = self.get_nowait(name)
+        parameter = await self.get(name)
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
 
