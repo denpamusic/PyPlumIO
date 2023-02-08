@@ -75,6 +75,18 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     callback.assert_not_awaited()
 
 
+async def test_load(event_manager: EventManager) -> None:
+    """Test load."""
+    callback = AsyncMock(return_value=True)
+    callback2 = AsyncMock(return_value=True)
+    event_manager.subscribe("test_key1", callback)
+    event_manager.subscribe("test_key2", callback2)
+    event_manager.load({"test_key2": "test_value2"})
+    await event_manager.wait_until_done()
+    callback.assert_not_awaited()
+    callback2.assert_awaited_once_with("test_value2")
+
+
 async def test_create_event(event_manager: EventManager) -> None:
     """Test create event."""
     event = event_manager.create_event("test")

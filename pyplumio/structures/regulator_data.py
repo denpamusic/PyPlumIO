@@ -1,7 +1,7 @@
 """Contains regulator data structure decoder."""
 from __future__ import annotations
 
-from typing import Any, Final
+from typing import Final
 
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.event_manager import EventManager
@@ -36,9 +36,9 @@ def _decode_regulator_data(
     offset: int,
     schema: list[tuple[int, DataType]],
     boolean_index: int = 0,
-) -> dict[int, Any]:
+) -> EventDataType:
     """Decode regulator data from the schema."""
-    data: dict[int, Any] = {}
+    data: EventDataType = {}
     for sensor_id, data_type in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
             offset += 1
@@ -74,8 +74,5 @@ class RegulatorDataStructure(StructureDecoder):
         if not sensors:
             return ensure_device_data(data), offset
 
-        regdata = data.setdefault(ATTR_REGDATA, RegulatorData())
-        for key, value in sensors.items():
-            regdata.dispatch(key, value)
-
-        return ensure_device_data(data, {ATTR_REGDATA: regdata}), offset
+        data.setdefault(ATTR_REGDATA, RegulatorData()).load(sensors)
+        return ensure_device_data(data), offset

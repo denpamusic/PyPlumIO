@@ -84,6 +84,16 @@ class EventManager(TaskManager):
         """Call registered callbacks on value change."""
         self.create_task(self.async_dispatch(*args, **kwargs))
 
+    def load(self, data: EventDataType) -> None:
+        """Load event data."""
+
+        async def _dispatch_events(data: EventDataType) -> None:
+            for key, value in data.items():
+                await self.async_dispatch(key, value)
+
+        self.data = data
+        self.create_task(_dispatch_events(data))
+
     def create_event(self, name: str | int) -> asyncio.Event:
         """Create the event."""
         if name in self.events:
