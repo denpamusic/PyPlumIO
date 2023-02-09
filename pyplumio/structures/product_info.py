@@ -18,7 +18,7 @@ ATTR_PRODUCT: Final = "product"
 class ProductInfo:
     """Represents product info provided by UID response."""
 
-    type: int
+    type: ProductType
     id: int
     uid: str
     logo: int
