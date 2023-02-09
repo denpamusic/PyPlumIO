@@ -122,7 +122,7 @@ def fixture_data() -> dict[FrameType, EventDataType]:
         FrameType.RESPONSE_UID: {
             ATTR_PRODUCT: ProductInfo(
                 type=ProductType.ECOMAX_P,
-                product=90,
+                id=90,
                 uid="D251PAKR3GCPZ1K8G05G0",
                 logo=23040,
                 image=2816,
@@ -475,7 +475,7 @@ def fixture_ecomax() -> EcoMAX:
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
     ecomax.data[ATTR_PRODUCT] = ProductInfo(
         type=ProductType.ECOMAX_P,
-        product=90,
+        id=90,
         uid="TEST",
         logo=23040,
         image=2816,

@@ -23,6 +23,7 @@ good-names = [
     "v",
     "ip",
     "dt",
+    "id",
 ]
 
 [tool.pylint."MESSAGES CONTROL"]
