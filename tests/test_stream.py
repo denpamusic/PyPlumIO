@@ -1,7 +1,7 @@
 """Contains tests for frame reader and writer."""
 
 import asyncio
-from typing import Generator
+from collections.abc import Generator
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -1,11 +1,11 @@
 """Contains schedule helpers."""
 
 
-from collections.abc import Iterable, MutableMapping
+from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 import math
-from typing import Final, Iterator, Literal
+from typing import Final, Literal
 
 from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.devices import Addressable

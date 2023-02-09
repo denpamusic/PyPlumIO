@@ -1,10 +1,11 @@
 """Contains schedule decoder."""
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from itertools import chain
-from typing import TYPE_CHECKING, Final, Sequence
+from typing import TYPE_CHECKING, Final
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import Addressable, Device

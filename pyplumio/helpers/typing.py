@@ -1,7 +1,8 @@
 """Contains type aliases."""
 from __future__ import annotations
 
-from typing import Any, Awaitable, Callable, Literal, Union
+from collections.abc import Awaitable, Callable
+from typing import Any, Literal, Union
 
 NumericType = Union[int, float]
 ParameterDataType = tuple[int, int, int]

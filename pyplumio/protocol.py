@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
 import logging
-from typing import Awaitable, Callable, Final
+from typing import Final
 from warnings import warn
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
