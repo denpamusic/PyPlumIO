@@ -91,7 +91,7 @@ def test_sensor_data_decode_message(messages: dict[FrameType, bytearray]) -> Non
     assert not data[ATTR_HEATING_PUMP]
     assert data[ATTR_HEATING_STATUS] == 0
     assert data[ATTR_MODULES].module_a == "18.11.58.K1"
-    assert data[ATTR_MODULES].module_panel == "18.10.72"
+    assert data[ATTR_MODULES].panel == "18.10.72"
     assert data[ATTR_LAMBDA_LEVEL] == 4.0
     assert data[ATTR_PENDING_ALERTS] == 0
     assert data[ATTR_FUEL_LEVEL] == 32

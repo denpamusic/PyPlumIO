@@ -1,17 +1,29 @@
 """Contains product info structure decoder."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 import struct
 from typing import Final
 
 from pyplumio import util
 from pyplumio.const import ProductType
-from pyplumio.helpers.product_info import ProductInfo
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_PRODUCT: Final = "product"
+
+
+@dataclass
+class ProductInfo:
+    """Represents product info provided by UID response."""
+
+    type: int
+    product: int
+    uid: str
+    logo: int
+    image: int
+    model: str
 
 
 class ProductInfoStructure(StructureDecoder):

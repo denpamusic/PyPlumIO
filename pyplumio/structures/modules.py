@@ -1,11 +1,11 @@
 """Contains modules structure decoder."""
 from __future__ import annotations
 
+from dataclasses import dataclass
 import struct
 from typing import Final
 
 from pyplumio.const import BYTE_UNDEFINED
-from pyplumio.helpers.product_info import ConnectedModules
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -13,17 +13,29 @@ ATTR_MODULES: Final = "modules"
 ATTR_MODULE_A: Final = "module_a"
 ATTR_MODULE_B: Final = "module_b"
 ATTR_MODULE_C: Final = "module_c"
-ATTR_MODULE_LAMBDA: Final = "module_lambda"
-ATTR_MODULE_ECOSTER: Final = "module_ecoster"
-ATTR_MODULE_PANEL: Final = "module_panel"
+ATTR_ECOLAMBDA: Final = "ecolambda"
+ATTR_ECOSTER: Final = "ecoster"
+ATTR_PANEL: Final = "panel"
 MODULES: tuple[str, ...] = (
     ATTR_MODULE_A,
     ATTR_MODULE_B,
     ATTR_MODULE_C,
-    ATTR_MODULE_LAMBDA,
-    ATTR_MODULE_ECOSTER,
-    ATTR_MODULE_PANEL,
+    ATTR_ECOLAMBDA,
+    ATTR_ECOSTER,
+    ATTR_PANEL,
 )
+
+
+@dataclass
+class ConnectedModules:
+    """Represents firmware version info for connected module."""
+
+    module_a: str | None = None
+    module_b: str | None = None
+    module_c: str | None = None
+    ecolambda: str | None = None
+    ecoster: str | None = None
+    panel: str | None = None
 
 
 def _get_module_version(

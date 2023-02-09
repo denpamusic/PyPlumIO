@@ -27,14 +27,14 @@ from pyplumio.helpers.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.helpers.product_info import ConnectedModules, ProductInfo
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
+from pyplumio.structures.modules import ConnectedModules
 from pyplumio.structures.network_info import ATTR_NETWORK
-from pyplumio.structures.product_info import ATTR_PRODUCT
+from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.program_version import ATTR_VERSION
 from pyplumio.structures.schedules import ATTR_SCHEDULE_PARAMETERS, ATTR_SCHEDULES
 from pyplumio.structures.thermostat_parameters import (
@@ -315,9 +315,9 @@ def fixture_data() -> dict[FrameType, EventDataType]:
                     module_a="18.11.58.K1",
                     module_b=None,
                     module_c=None,
-                    module_lambda=None,
-                    module_ecoster=None,
-                    module_panel="18.10.72",
+                    ecolambda=None,
+                    ecoster=None,
+                    panel="18.10.72",
                 ),
                 "lambda_sensor": {"state": 1, "target": 2, "level": 40},
                 "thermostat_sensors": [
