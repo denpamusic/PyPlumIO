@@ -390,8 +390,8 @@ class EcoMAX(Addressable):
 
     async def shutdown(self) -> None:
         """Cancel scheduled tasks for root and sub devices."""
-        mixers = self.data.get(ATTR_MIXERS, {})
-        thermostats = self.data.get(ATTR_THERMOSTATS, {})
+        mixers = self.get_nowait(ATTR_MIXERS, {})
+        thermostats = self.get_nowait(ATTR_THERMOSTATS, {})
         for subdevice in (mixers | thermostats).values():
             await subdevice.shutdown()
 
