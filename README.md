@@ -27,6 +27,7 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Writing](#writing)
   - [Callbacks](#callbacks)
   - [Filters](#filters)
+  - [Working with Regulator Data](#working-with-regulator-data)
   - [Working with Sub-Devices](#working-with-sub-devices)
   - [Working with Schedules](#working-with-schedules)
   - [Network Information](#network-information)
@@ -137,8 +138,7 @@ asyncio.run(main())
 
 
 ### Writing
-You can change controller parameters by awaiting `Device.set(name: str, value: int, timeout: float | None = None)` or
-by getting parameter via `Device.get(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
+You can change controller parameters via awaiting `Device.set(name: str, value: int | float, timeout: float | None = None)`, calling `Device.set_nowait(name: str, value: int | float)` or by getting parameter via `Device.get(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
 In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
 ```python
 import pyplumio
@@ -270,6 +270,50 @@ async def main():
     # sooner that 5 seconds.
     ecomax.subscribe("heating_temp", throttle(on_change(seventh_callback), seconds=5))
 
+```
+
+### Working with Regulator Data
+Regulator Data or, as manufacturer calls it, RegData, messages are broadcasted by the ecoMAX controller once per second and allow access to some device-specific information that isn't available elsewhere. It's represented by a dictionary mapped with numerical keys.
+
+In PyPlumIO, RegData can be accessed via `regdata` property. This property contains `RegulatorData` class which inherited from `EventManager` and supports `get()`, `get_nowait()`, `subscribe()`, `subscribe_once()`, `unsubscribe()` methods, much like ecoMAX device itself.
+
+To see every value stored in the RegulatorData object, you can check out `RegulatorData.data` property.
+
+```python
+import asyncio
+import pyplumio
+
+from pyplumio.filters import on_change
+
+
+async def my_regdata_callback(heating_target: int) -> None:
+  print(f"Heating target temperature is set to {heating_target} degrees Celsius.")
+
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    regdata = await ecomax.get("regdata")
+    
+    # Will print out regdata value under 1280 key.
+    #
+    # 1280 can be safely assumed as heating target temperature across
+    # all devices but other keys are device specific.
+    #
+    # Note that all regdata values are processed at the same time
+    # so there's usually no reason to wait for values.
+    heating_target = regdata.get_nowait(1280)
+    
+    # Print all available regdata values.
+    print(regdata.data)
+    
+    # Subscriptions and filters work as well.
+    regdata.subscribe(1280, on_change(my_regdata_callback))
+    
+    # Wait until disconnected (forever)
+    await connection.wait_until_done()
+
+asyncio.run(main())
 ```
 
 ### Working with Sub-Devices
