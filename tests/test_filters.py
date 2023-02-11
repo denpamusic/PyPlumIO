@@ -48,7 +48,7 @@ async def test_debounce() -> None:
     test_callback.assert_awaited_once_with(2)
 
 
-@patch("time.time", side_effect=(0, 1, 5, 6))
+@patch("time.monotonic", side_effect=(0, 1, 5, 6))
 async def test_throttle(mock_time) -> None:
     """Test throttle filter."""
     test_callback = AsyncMock()
@@ -100,7 +100,7 @@ async def test_delta() -> None:
     test_callback.assert_not_awaited()
 
 
-@patch("time.time", side_effect=(0, 0, 1, 5, 6))
+@patch("time.monotonic", side_effect=(0, 0, 1, 5, 6, 7))
 async def test_aggregate(mock_time) -> None:
     """Test aggregate filter."""
     test_callback = AsyncMock()

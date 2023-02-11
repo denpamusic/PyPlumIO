@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import decimal
 import math
 import time
 from typing import Any, Final
@@ -11,14 +12,18 @@ from pyplumio.helpers.typing import EventCallbackType, NumericType
 
 TOLERANCE: Final = 0.1
 
+decimal.getcontext().prec = 12
+
 
 def _significantly_changed(old_value, new_value) -> bool:
     """Check if value is significantly changed."""
     if old_value is None or (isinstance(old_value, Parameter) and old_value.is_changed):
         return True
 
-    if isinstance(old_value, (int, float)) and isinstance(new_value, (int, float)):
+    try:
         return not math.isclose(old_value, new_value, abs_tol=TOLERANCE)
+    except TypeError:
+        pass
 
     return old_value != new_value
 
@@ -57,14 +62,14 @@ class Filter(ABC):
 
     @abstractmethod
     async def __call__(self, new_value):
-        """set new value for the callback."""
+        """Set new value for the callback."""
 
 
 class _OnChange(Filter):
     """Provides changed functionality to the callback."""
 
     async def __call__(self, new_value):
-        """set new value for the callback."""
+        """Set new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._value = new_value
             return await self._callback(new_value)
@@ -88,7 +93,7 @@ class _Debounce(Filter):
         self._min_calls = min_calls
 
     async def __call__(self, new_value):
-        """set new value for the callback."""
+        """Set new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._calls += 1
         else:
@@ -119,7 +124,7 @@ class _Throttle(Filter):
 
     async def __call__(self, new_value):
         """set new value for the callback."""
-        current_timestamp = time.time()
+        current_timestamp = time.monotonic()
         if (
             self._last_called is None
             or (current_timestamp - self._last_called) >= self._timeout
@@ -161,21 +166,24 @@ class _Aggregate(Filter):
     def __init__(self, callback: EventCallbackType, seconds: float):
         """Initialize Aggregate object."""
         super().__init__(callback)
-        self._last_update = time.time()
+        self._last_update = time.monotonic()
         self._timeout = seconds
-        self._sum = 0.0
+        self._sum = decimal.Decimal()
 
     async def __call__(self, new_value):
-        """set new value for the callback."""
-        if not isinstance(new_value, (int, float)):
-            raise ValueError("Aggregate filter can't be used for non-numeric values")
+        """Set new value for the callback."""
+        current_timestamp = time.monotonic()
+        try:
+            self._sum += decimal.Decimal(new_value)
+        except decimal.InvalidOperation as e:
+            raise ValueError(
+                "Aggregate filter can only be used with numeric values"
+            ) from e
 
-        current_timestamp = time.time()
-        self._sum += new_value
         if current_timestamp - self._last_update >= self._timeout:
             result = await self._callback(self._sum)
             self._last_update = current_timestamp
-            self._sum = 0
+            self._sum = decimal.Decimal()
             return result
 
 

@@ -14,7 +14,7 @@ from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import NumericType
+from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures.network_info import ATTR_NETWORK
 
 _LOGGER = logging.getLogger(__name__)
@@ -81,7 +81,7 @@ class Device(EventManager):
         return await self.get(name, timeout)
 
     async def set_value(
-        self, name: str, value: NumericType, timeout: float | None = None
+        self, name: str, value: ParameterValueType, timeout: float | None = None
     ) -> bool:
         """Sets a value."""
         warn(
@@ -94,7 +94,7 @@ class Device(EventManager):
         return await self.set(name, value, timeout)
 
     def set_value_nowait(
-        self, name: str, value: NumericType, timeout: float | None = None
+        self, name: str, value: ParameterValueType, timeout: float | None = None
     ) -> None:
         """Sets a value without waiting."""
         warn(
@@ -107,7 +107,7 @@ class Device(EventManager):
         self.set_nowait(name, value, timeout)
 
     async def set(
-        self, name: str, value: NumericType, timeout: float | None = None
+        self, name: str, value: ParameterValueType, timeout: float | None = None
     ) -> bool:
         """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
@@ -119,7 +119,7 @@ class Device(EventManager):
         return await parameter.set(value)
 
     def set_nowait(
-        self, name: str, value: NumericType, timeout: float | None = None
+        self, name: str, value: ParameterValueType, timeout: float | None = None
     ) -> None:
         """Set a parameter value without waiting for the result."""
         self.create_task(self.set(name, value, timeout))
