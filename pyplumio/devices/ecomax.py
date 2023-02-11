@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
+from decimal import Decimal, getcontext
 import logging
 import time
 from typing import ClassVar, Final
@@ -65,7 +66,7 @@ ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
-MAX_TIME_SINCE_LAST_FUEL_DATA: Final = 300
+MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * 1000000000
 
 DATA_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
@@ -98,13 +99,13 @@ class EcoMAX(Addressable):
     address: ClassVar[int] = DeviceType.ECOMAX
     _frame_versions: VersionsInfoType
     _frame_types: tuple[DataFrameDescription, ...] = DATA_FRAME_TYPES
-    _fuel_burned_timestamp: float = 0.0
+    _fuel_burned_timestamp_ns: int = 0
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize new ecoMAX object."""
         super().__init__(queue, network)
         self._frame_versions = {}
-        self._fuel_burned_timestamp = time.time()
+        self._fuel_burned_timestamp_ns = time.perf_counter_ns()
         self.subscribe(ATTR_SENSORS, self._add_ecomax_sensors)
         self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
@@ -312,18 +313,21 @@ class EcoMAX(Addressable):
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
-        current_timestamp = time.time()
-        seconds_passed = current_timestamp - self._fuel_burned_timestamp
-        if 0 <= seconds_passed < MAX_TIME_SINCE_LAST_FUEL_DATA:
-            fuel_burned = (fuel_consumption / 3600) * seconds_passed
+        getcontext().prec = 12
+        current_timestamp_ns = time.perf_counter_ns()
+        time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
+        if time_passed_ns < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
+            fuel_burned = (
+                Decimal(fuel_consumption) / Decimal(3600 * 1000000000)
+            ) * Decimal(time_passed_ns)
             await self.async_dispatch(ATTR_FUEL_BURNED, fuel_burned)
         else:
             _LOGGER.warning(
                 "Skipping outdated fuel consumption data, was %i seconds old",
-                seconds_passed,
+                time_passed_ns / 1000000000,
             )
 
-        self._fuel_burned_timestamp = current_timestamp
+        self._fuel_burned_timestamp_ns = current_timestamp_ns
 
     async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
         """Decode regulator data."""
