@@ -23,7 +23,6 @@ from pyplumio.const import (
 )
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
@@ -35,7 +34,7 @@ from pyplumio.structures.network_info import (
     WirelessParameters,
 )
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
-from pyplumio.structures.program_version import ATTR_VERSION
+from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 from pyplumio.structures.schedules import ATTR_SCHEDULE_PARAMETERS, ATTR_SCHEDULES
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
