@@ -171,7 +171,7 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     await ecomax.wait_for("heating_target_temp")
-    result = ecomax.heating_target_temp.set(65)
+    result = await ecomax.heating_target_temp.set(65)
     ...
 ```
 
