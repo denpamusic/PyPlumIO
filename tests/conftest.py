@@ -22,18 +22,18 @@ from pyplumio.const import (
     ProductType,
 )
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.helpers.network_info import (
-    EthernetParameters,
-    NetworkInfo,
-    WirelessParameters,
-)
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.version_info import VersionInfo
 from pyplumio.structures.alerts import ATTR_ALERTS, Alert
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.modules import ConnectedModules
-from pyplumio.structures.network_info import ATTR_NETWORK
+from pyplumio.structures.network_info import (
+    ATTR_NETWORK,
+    EthernetParameters,
+    NetworkInfo,
+    WirelessParameters,
+)
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.program_version import ATTR_VERSION
 from pyplumio.structures.schedules import ATTR_SCHEDULE_PARAMETERS, ATTR_SCHEDULES

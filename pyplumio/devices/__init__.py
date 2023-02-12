@@ -12,10 +12,9 @@ from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
-from pyplumio.structures.network_info import ATTR_NETWORK
+from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 
 _LOGGER = logging.getLogger(__name__)
 

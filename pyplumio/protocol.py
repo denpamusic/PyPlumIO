@@ -18,12 +18,12 @@ from pyplumio.exceptions import (
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.network_info import (
+from pyplumio.stream import FrameReader, FrameWriter
+from pyplumio.structures.network_info import (
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.stream import FrameReader, FrameWriter
 
 _LOGGER = logging.getLogger(__name__)
 

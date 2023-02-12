@@ -21,13 +21,13 @@ from pyplumio.frames.requests import (
     ProgramVersionRequest,
     StartMasterRequest,
 )
-from pyplumio.helpers.network_info import (
+from pyplumio.protocol import Protocol
+from pyplumio.stream import FrameReader, FrameWriter
+from pyplumio.structures.network_info import (
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
 )
-from pyplumio.protocol import Protocol
-from pyplumio.stream import FrameReader, FrameWriter
 
 UNKNOWN_DEVICE: int = 99
 

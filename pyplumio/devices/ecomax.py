@@ -23,7 +23,6 @@ from pyplumio.devices import Addressable, Mixer, Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, get_frame_handler, is_known_frame_type
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import EventDataType, ParameterDataType, VersionsInfoType
 from pyplumio.structures import StructureDecoder
@@ -46,6 +45,7 @@ from pyplumio.structures.mixer_parameters import (
     ECOMAX_P_MIXER_PARAMETERS,
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
+from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
 from pyplumio.structures.schedules import (

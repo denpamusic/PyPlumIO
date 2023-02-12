@@ -53,7 +53,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.network_info import NetworkInfo
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import EventDataType
@@ -68,6 +67,7 @@ from pyplumio.structures.mixer_parameters import (
     MixerBinaryParameter,
     MixerParameter,
 )
+from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.regulator_data import ATTR_REGDATA, RegulatorData
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,

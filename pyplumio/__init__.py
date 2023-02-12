@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
-from pyplumio.helpers.network_info import EthernetParameters, WirelessParameters
+from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 from pyplumio.version import __version__
 
 

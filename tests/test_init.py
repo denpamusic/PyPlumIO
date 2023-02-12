@@ -10,7 +10,7 @@ from pyplumio import (
     open_tcp_connection,
     wireless_parameters,
 )
-from pyplumio.helpers.network_info import EthernetParameters
+from pyplumio.structures.network_info import EthernetParameters
 
 DEVICE: Final = "/dev/ttyUSB0"
 IP: Final = "1.1.1.1"
