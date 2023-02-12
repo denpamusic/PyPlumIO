@@ -122,7 +122,7 @@ class Protocol(EventManager):
             self.create_task(self.frame_consumer(read_queue))
 
         for device in self.data.values():
-            device.dispatch(ATTR_CONNECTED, True)
+            device.dispatch_nowait(ATTR_CONNECTED, True)
 
         self.connected.set()
 
@@ -132,7 +132,7 @@ class Protocol(EventManager):
             self.connected.clear()
             for device in self.data.values():
                 # Notify devices about connection loss.
-                await device.async_dispatch(ATTR_CONNECTED, False)
+                await device.dispatch(ATTR_CONNECTED, False)
 
             if self._connection_lost_callback is not None:
                 await self._connection_lost_callback()
@@ -160,7 +160,7 @@ class Protocol(EventManager):
             device: Addressable = factory(
                 handler, queue=write_queue, network=self._network
             )
-            device.dispatch(ATTR_CONNECTED, True)
+            device.dispatch_nowait(ATTR_CONNECTED, True)
             self.create_task(device.async_setup())
             self.data[name] = device
             self.set_event(name)

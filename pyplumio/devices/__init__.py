@@ -155,7 +155,7 @@ class Addressable(Device):
 
         if frame.data is not None:
             for name, value in frame.data.items():
-                self.dispatch(name, value)
+                self.dispatch_nowait(name, value)
 
     async def async_setup(self) -> bool:
         """Setup addressable device object."""
@@ -169,11 +169,11 @@ class Addressable(Device):
                 },
                 return_exceptions=False,
             )
-            await self.async_dispatch(ATTR_LOADED, True)
+            await self.dispatch(ATTR_LOADED, True)
             return True
         except ValueError as e:
             _LOGGER.error("Request failed: %s", e)
-            await self.async_dispatch(ATTR_LOADED, False)
+            await self.dispatch(ATTR_LOADED, False)
             return False
 
     async def request(

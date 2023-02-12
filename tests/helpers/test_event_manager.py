@@ -49,8 +49,8 @@ async def test_subscribe(event_manager: EventManager) -> None:
     """Test subscribe."""
     callback = AsyncMock(return_value=True)
     event_manager.subscribe("test_key2", callback)
-    event_manager.dispatch("test_key2", "test_value2")
-    event_manager.dispatch("test_key2", "test_value3")
+    event_manager.dispatch_nowait("test_key2", "test_value2")
+    event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
     callback.assert_has_awaits([call("test_value2"), call("test_value3")])
 
@@ -59,8 +59,8 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     """Test subscribe once."""
     callback = AsyncMock(return_value=True)
     event_manager.subscribe_once("test_key2", callback)
-    event_manager.dispatch("test_key2", "test_value2")
-    event_manager.dispatch("test_key2", "test_value3")
+    event_manager.dispatch_nowait("test_key2", "test_value2")
+    event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
     callback.assert_awaited_once_with("test_value2")
 
@@ -70,7 +70,7 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     callback = AsyncMock(return_value=True)
     event_manager.subscribe("test_key2", callback)
     event_manager.unsubscribe("test_key2", callback)
-    event_manager.dispatch("test_key2", "test_value2")
+    event_manager.dispatch_nowait("test_key2", "test_value2")
     await event_manager.wait_until_done()
     callback.assert_not_awaited()
 

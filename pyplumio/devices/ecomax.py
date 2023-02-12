@@ -150,7 +150,7 @@ class EcoMAX(Addressable):
             mixers[index] = mixer
             if len(mixers) == mixer_count:
                 # All mixers were processed, notify callbacks and getters.
-                self.dispatch(ATTR_MIXERS, mixers)
+                self.dispatch_nowait(ATTR_MIXERS, mixers)
 
         return mixer
 
@@ -165,14 +165,14 @@ class EcoMAX(Addressable):
             thermostats[index] = thermostat
             if len(thermostats) == thermostat_count:
                 # All thermostats were processed, notify callbacks and getters.
-                self.dispatch(ATTR_THERMOSTATS, thermostats)
+                self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
         return thermostat
 
     async def _add_ecomax_sensors(self, sensors: EventDataType) -> bool:
         """Add ecomax sensor values to the device data."""
         for name, value in sensors.items():
-            await self.async_dispatch(name, value)
+            await self.dispatch(name, value)
 
         return True
 
@@ -195,7 +195,7 @@ class EcoMAX(Addressable):
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_dispatch(description.name, parameter)
+            await self.dispatch(description.name, parameter)
 
         return True
 
@@ -206,7 +206,7 @@ class EcoMAX(Addressable):
         for mixer_index, mixer_sensors in sensors:
             mixer = self._get_mixer(mixer_index, len(sensors))
             for name, value in mixer_sensors.items():
-                await mixer.async_dispatch(name, value)
+                await mixer.dispatch(name, value)
 
         return True
 
@@ -236,7 +236,7 @@ class EcoMAX(Addressable):
                     min_value=value[1],
                     max_value=value[2],
                 )
-                await mixer.async_dispatch(description.name, parameter)
+                await mixer.dispatch(description.name, parameter)
 
         return True
 
@@ -247,7 +247,7 @@ class EcoMAX(Addressable):
         for thermostat_index, thermostat_sensors in sensors:
             thermostat = self._get_thermostat(thermostat_index, len(sensors))
             for name, value in thermostat_sensors.items():
-                await thermostat.async_dispatch(name, value)
+                await thermostat.dispatch(name, value)
 
         return True
 
@@ -273,7 +273,7 @@ class EcoMAX(Addressable):
                     max_value=value[2],
                     offset=(thermostat_index * len(thermostat_parameters)),
                 )
-                await thermostat.async_dispatch(description.name, parameter)
+                await thermostat.dispatch(description.name, parameter)
 
         return True
 
@@ -296,7 +296,7 @@ class EcoMAX(Addressable):
         """Decode thermostat parameters."""
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
-            await self.async_dispatch(field, data[field])
+            await self.dispatch(field, data[field])
 
         return True
 
@@ -309,7 +309,7 @@ class EcoMAX(Addressable):
             min_value=STATE_OFF,
             max_value=STATE_ON,
         )
-        await self.async_dispatch(ECOMAX_CONTROL_PARAMETER.name, parameter)
+        await self.dispatch(ECOMAX_CONTROL_PARAMETER.name, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
@@ -320,7 +320,7 @@ class EcoMAX(Addressable):
             fuel_burned = (
                 Decimal(fuel_consumption) / Decimal(3600 * 1000000000)
             ) * Decimal(time_passed_ns)
-            await self.async_dispatch(ATTR_FUEL_BURNED, fuel_burned)
+            await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
         else:
             _LOGGER.warning(
                 "Skipping outdated fuel consumption data, was %i seconds old",
@@ -334,7 +334,7 @@ class EcoMAX(Addressable):
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
             try:
-                await self.async_dispatch(field, data[field])
+                await self.dispatch(field, data[field])
             except KeyError:
                 continue
 
@@ -353,7 +353,7 @@ class EcoMAX(Addressable):
                 min_value=value[1],
                 max_value=value[2],
             )
-            await self.async_dispatch(description.name, parameter)
+            await self.dispatch(description.name, parameter)
 
         return True
 

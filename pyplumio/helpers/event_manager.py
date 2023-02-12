@@ -67,7 +67,7 @@ class EventManager(TaskManager):
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
-    async def async_dispatch(self, name: str | int, value) -> None:
+    async def dispatch(self, name: str | int, value) -> None:
         """Call registered callbacks and dispatch event."""
         if name in self._callbacks:
             callbacks = self._callbacks[name].copy()
@@ -78,16 +78,16 @@ class EventManager(TaskManager):
         self.data[name] = value
         self.set_event(name)
 
-    def dispatch(self, *args, **kwargs) -> None:
+    def dispatch_nowait(self, *args, **kwargs) -> None:
         """Call registered callbacks and dispatch event without waiting."""
-        self.create_task(self.async_dispatch(*args, **kwargs))
+        self.create_task(self.dispatch(*args, **kwargs))
 
     def load(self, data: EventDataType) -> None:
         """Load the event data."""
 
         async def _dispatch_events(data: EventDataType) -> None:
             for key, value in data.items():
-                await self.async_dispatch(key, value)
+                await self.dispatch(key, value)
 
         self.data = data
         self.create_task(_dispatch_events(data))

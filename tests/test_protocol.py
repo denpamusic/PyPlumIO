@@ -118,7 +118,7 @@ def test_connection_established(
     assert mock_create_task.call_count == 3
 
     # Check that devices were notified.
-    mock_ecomax.dispatch.assert_called_once_with(ATTR_CONNECTED, True)
+    mock_ecomax.dispatch_nowait.assert_called_once_with(ATTR_CONNECTED, True)
 
 
 @pytest.mark.usefixtures("bypass_asyncio_create_task")
@@ -279,7 +279,7 @@ async def test_connection_lost() -> None:
         await protocol.connection_lost()
 
     # Check that devices were notified and callback was called.
-    mock_ecomax.async_dispatch.assert_called_once_with(ATTR_CONNECTED, False)
+    mock_ecomax.dispatch.assert_called_once_with(ATTR_CONNECTED, False)
     mock_connection_lost_callback.assert_called_once()
 
 
