@@ -1,9 +1,9 @@
 """Contains connection shortcuts and version information."""
 from __future__ import annotations
 
+from pyplumio._version import __version__, __version_tuple__
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
-from pyplumio.version import __version__
 
 
 def open_serial_connection(
@@ -37,4 +37,5 @@ __all__ = [
     "ethernet_parameters",
     "wireless_parameters",
     "__version__",
+    "__version_tuple__",
 ]

@@ -31,15 +31,15 @@ dynamic = ["version"]
 "Bug Tracker" = "https://github.com/denpamusic/PyPlumIO/issues"
 
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 platforms = ["any"]
 packages = ["pyplumio"]
 
-[tool.setuptools.dynamic]
-version = {attr = "pyplumio.version.__version__"}
+[tool.setuptools_scm]
+write_to = "pyplumio/_version.py"
 
 [tool.black]
 target-version = ["py39"]
@@ -65,6 +65,7 @@ noqa-require-code = true
 py-version = "3.9"
 ignore = [
     "tests",
+    "_version.py",
 ]
 jobs = 2
 

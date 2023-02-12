@@ -5,17 +5,16 @@ from dataclasses import dataclass
 import struct
 from typing import Final
 
+from pyplumio._version import __version_tuple__
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure, ensure_device_data
-from pyplumio.version import __version__
 
 ATTR_VERSION: Final = "version"
 
 
-def _formated_version(version=__version__) -> str:
-    """Format version for program version response."""
-    version_parts = version.split(".")
-    return ".".join(version_parts[0:3])
+def _formated_version(version_tuple=__version_tuple__) -> str:
+    """Format version tuple for program version response."""
+    return ".".join(str(x) for x in version_tuple[0:3])
 
 
 @dataclass
