@@ -29,33 +29,31 @@ class EventManager(TaskManager):
             raise AttributeError from e
 
     async def wait_for(self, name: str | int, timeout: float | None = None) -> None:
-        """Waits for a data."""
+        """Wait for the value."""
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
     async def get(self, name: str | int, timeout: float | None = None):
-        """Return a value. When used with parameter, only it's
-        value will be returned. To get the parameter object,
-        get() method must be used instead."""
-        await self.wait_for(name, timeout)
+        """Get the value."""
+        await self.wait_for(name, timeout=timeout)
         return self.data[name]
 
     def get_nowait(self, name: str | int, default=None):
-        """Get a value without waiting."""
+        """Get the value without waiting."""
         try:
             return self.data[name]
         except KeyError:
             return default
 
     def subscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe a callback to the value change event."""
+        """Subscribe callback to the value change event."""
         if name not in self._callbacks:
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
 
     def subscribe_once(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe a callback to the single value change event."""
+        """Subscribe callback to the single value change event."""
 
         async def _callback(value):
             """Unsubscribe the callback and call it."""
@@ -65,12 +63,12 @@ class EventManager(TaskManager):
         self.subscribe(name, _callback)
 
     def unsubscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Usubscribe a callback from the value change event."""
+        """Usubscribe callback from the value change event."""
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
     async def async_dispatch(self, name: str | int, value) -> None:
-        """Asynchronously call registered callbacks on value change."""
+        """Call registered callbacks and dispatch event."""
         if name in self._callbacks:
             callbacks = self._callbacks[name].copy()
             for callback in callbacks:
@@ -81,11 +79,11 @@ class EventManager(TaskManager):
         self.set_event(name)
 
     def dispatch(self, *args, **kwargs) -> None:
-        """Call registered callbacks on value change."""
+        """Call registered callbacks and dispatch event without waiting."""
         self.create_task(self.async_dispatch(*args, **kwargs))
 
     def load(self, data: EventDataType) -> None:
-        """Load event data."""
+        """Load the event data."""
 
         async def _dispatch_events(data: EventDataType) -> None:
             for key, value in data.items():
@@ -104,7 +102,7 @@ class EventManager(TaskManager):
         return event
 
     def set_event(self, name: str | int) -> None:
-        """set the event."""
+        """Set the event."""
         if name in self.events:
             event = self.events[name]
             if not event.is_set():
