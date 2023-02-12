@@ -1,5 +1,5 @@
 """Contains tests for the parameter helper class."""
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -86,6 +86,16 @@ async def test_parameter_set(
         assert await parameter.set(3)
 
     assert parameter == 3
+
+
+@patch("pyplumio.devices.Device.create_task")
+@patch("pyplumio.helpers.parameter.Parameter.set", new_callable=Mock)
+async def test_parameter_set_nowait(mock_set, mock_create_task, parameter: Parameter):
+    """Test setting parameter without waiting for result."""
+    parameter.set_nowait(1)
+    await parameter.device.wait_until_done()
+    mock_create_task.assert_called_once()
+    mock_set.assert_called_once_with(1, 5)
 
 
 async def test_parameter_set_out_of_range(parameter: Parameter) -> None:

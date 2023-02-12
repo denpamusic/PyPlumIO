@@ -129,7 +129,7 @@ class Parameter:
         self._is_changed = False
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """set parameter value."""
+        """Set parameter value."""
         if (value := _normalize_parameter_value(value)) == self._value:
             return True
 
@@ -159,6 +159,10 @@ class Parameter:
             retries -= 1
 
         return True
+
+    def set_nowait(self, value: ParameterValueType, retries: int = 5) -> None:
+        """Set parameter value without waiting for result"""
+        self.device.create_task(self.set(value, retries))
 
     @property
     def is_changed(self) -> bool:
