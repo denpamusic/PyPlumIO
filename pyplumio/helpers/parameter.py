@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 SET_TIMEOUT: Final = 5
+SET_RETRIES: Final = 5
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
@@ -128,7 +129,7 @@ class Parameter:
         """Callback for when parameter change is confirmed on the device."""
         self._is_changed = False
 
-    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
+    async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
         """Set parameter value."""
         if (value := _normalize_parameter_value(value)) == self._value:
             return True
@@ -160,7 +161,7 @@ class Parameter:
 
         return True
 
-    def set_nowait(self, value: ParameterValueType, retries: int = 5) -> None:
+    def set_nowait(self, value: ParameterValueType, retries: int = SET_RETRIES) -> None:
         """Set parameter value without waiting for result"""
         self.device.create_task(self.set(value, retries))
 

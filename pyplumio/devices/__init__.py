@@ -13,7 +13,7 @@ from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_hand
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.network_info import NetworkInfo
-from pyplumio.helpers.parameter import Parameter
+from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures.network_info import ATTR_NETWORK
 
@@ -107,22 +107,30 @@ class Device(EventManager):
         self.set_nowait(name, value, timeout)
 
     async def set(
-        self, name: str, value: ParameterValueType, timeout: float | None = None
+        self,
+        name: str,
+        value: ParameterValueType,
+        timeout: float | None = None,
+        retries: int = SET_RETRIES,
     ) -> bool:
         """Set a parameter value. Name should point
         to a valid parameter object, otherwise raises
         ParameterNotFoundError."""
-        parameter = await self.get(name)
+        parameter = await self.get(name, timeout=timeout)
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
 
-        return await parameter.set(value)
+        return await parameter.set(value, retries=retries)
 
     def set_nowait(
-        self, name: str, value: ParameterValueType, timeout: float | None = None
+        self,
+        name: str,
+        value: ParameterValueType,
+        timeout: float | None = None,
+        retries: int = SET_RETRIES,
     ) -> None:
         """Set a parameter value without waiting for the result."""
-        self.create_task(self.set(name, value, timeout))
+        self.create_task(self.set(name, value, timeout, retries))
 
 
 class Addressable(Device):
