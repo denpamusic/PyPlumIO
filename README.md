@@ -131,15 +131,24 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     await ecomax.wait_for("heating_temp")
-    print("Heating temperature is available!")
+    print(f"Heating temperature is available. It's {ecomax.heating_temp} degrees Celsius.")
 
 asyncio.run(main())
 ```
 
 
 ### Writing
-You can change controller parameters via awaiting `Device.set(name: str, value: int | float, timeout: float | None = None)`, calling `Device.set_nowait(name: str, value: int | float)` or by getting parameter via `Device.get(name: str, timeout: float | None = None)` method and calling `set(name, value)`.
-In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using both methods.
+You can change controller parameters either via Device class:
+- `Device.set(name: str, value: ParameterValueType, timeout: float | None = None, retries: int = 5)`
+- `Device.set_nowait(name: str, value: ParameterValueType, timeout: float | None = None, retries: int = 5)`
+
+or by getting the Parameter instance via `Device.get(name: str, timeout: float | None = None)` first and then calling it's setters:
+- `Parameter.set(name: str, value: ParameterValueType, retries: int = 5)`
+- `Parameter.set_nowait(name: str, value: ParameterValueType, retries: int = 5)`
+
+In examples below, we'll set target temperature to 65 degrees Celsius (~ 150 degrees Fahrenheit) using these methods in no particular order.
+
+#### Using Device.set
 ```python
 import pyplumio
 
@@ -147,8 +156,26 @@ async def main():
   async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
     ecomax = await connection.get("ecomax")
     result = await ecomax.set("heating_target_temp", 65)
+    if result:
+      print("Parameter value was successfully set.")
+    else:
+      print("Error while trying to set parameter value.")
+    ...
 ```
 
+#### Using Device.wait_for and attribute access
+```python
+import pyplumio
+
+async def main():
+  async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
+    ecomax = await connection.get("ecomax")
+    await ecomax.wait_for("heating_target_temp")
+    result = ecomax.heating_target_temp.set(65)
+    ...
+```
+
+#### Using Parameter.set
 ```python
 import pyplumio
 
@@ -157,10 +184,7 @@ async def main():
     ecomax = await connection.get("ecomax")
     target_temp = await ecomax.get("heating_target_temp")
     result = await target_temp.set(65)
-    if result:
-      print("Parameter value was successfully set.")
-    else:
-      print("Error while trying to set parameter value.")
+    ...
 ```
 
 For a binary parameters, that can only have "0" or "1" value, you can also use string
