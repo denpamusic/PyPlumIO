@@ -78,9 +78,9 @@ class EventManager(TaskManager):
         self.data[name] = value
         self.set_event(name)
 
-    def dispatch_nowait(self, *args, **kwargs) -> None:
+    def dispatch_nowait(self, name: str | int, value) -> None:
         """Call registered callbacks and dispatch event without waiting."""
-        self.create_task(self.dispatch(*args, **kwargs))
+        self.create_task(self.dispatch(name, value))
 
     def load(self, data: EventDataType) -> None:
         """Load the event data."""
