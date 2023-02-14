@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
-from decimal import Decimal, getcontext
 import logging
 import time
 from typing import ClassVar, Final
@@ -313,13 +312,10 @@ class EcoMAX(Addressable):
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Add burned fuel counter."""
-        getcontext().prec = 12
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
         if time_passed_ns < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
-            fuel_burned = (
-                Decimal(fuel_consumption) / Decimal(3600 * 1000000000)
-            ) * Decimal(time_passed_ns)
+            fuel_burned = fuel_consumption / (3600 * 1000000000) * time_passed_ns
             await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
         else:
             _LOGGER.warning(

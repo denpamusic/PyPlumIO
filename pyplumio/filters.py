@@ -2,17 +2,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import decimal
 import math
 import time
 from typing import Any, Final
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import EventCallbackType, NumericType
+from pyplumio.helpers.typing import EventCallbackType
 
 TOLERANCE: Final = 0.1
-
-decimal.getcontext().prec = 12
 
 
 def _significantly_changed(old_value, new_value) -> bool:
@@ -159,7 +156,7 @@ class _Aggregate(Filter):
     """Provides ability to sum value for some time before sending them
     to the callback."""
 
-    _sum: NumericType
+    _sum: complex
     _last_update: float | None
     _timeout: float
 
@@ -168,14 +165,14 @@ class _Aggregate(Filter):
         super().__init__(callback)
         self._last_update = time.monotonic()
         self._timeout = seconds
-        self._sum = decimal.Decimal()
+        self._sum = 0.0
 
     async def __call__(self, new_value):
         """Set new value for the callback."""
         current_timestamp = time.monotonic()
         try:
-            self._sum += decimal.Decimal(new_value)
-        except decimal.InvalidOperation as e:
+            self._sum += new_value
+        except TypeError as e:
             raise ValueError(
                 "Aggregate filter can only be used with numeric values"
             ) from e
@@ -183,7 +180,7 @@ class _Aggregate(Filter):
         if current_timestamp - self._last_update >= self._timeout:
             result = await self._callback(self._sum)
             self._last_update = current_timestamp
-            self._sum = decimal.Decimal()
+            self._sum = 0.0
             return result
 
 

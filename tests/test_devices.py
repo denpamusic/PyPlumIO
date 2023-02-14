@@ -1,7 +1,6 @@
 """Contains tests for devices."""
 
 import asyncio
-from decimal import Decimal
 from unittest.mock import AsyncMock, Mock, call, patch
 import warnings
 
@@ -266,7 +265,7 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
-    assert fuel_burned == Decimal("0.01")
+    assert fuel_burned == 0.01
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
     assert "Skipping outdated fuel consumption" in caplog.text
