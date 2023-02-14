@@ -154,16 +154,40 @@ async def test_parameter_request_with_unchanged_value(
     mock_put.assert_not_awaited()
 
 
-@patch("pyplumio.helpers.parameter.Parameter.set")
-async def test_binary_parameter_turn_on_off(
+@patch("pyplumio.helpers.parameter.BinaryParameter.set")
+async def test_binary_parameter_turn_on(
     mock_set, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that binary parameter can be turned on and off."""
+    """Test that binary parameter can be turned on."""
     await binary_parameter.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
-    mock_set.reset_mock()
+
+
+@patch("pyplumio.helpers.parameter.BinaryParameter.set")
+async def test_binary_parameter_turn_off(
+    mock_set, binary_parameter: BinaryParameter
+) -> None:
+    """Test that binary parameter can be turned off."""
     await binary_parameter.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)
+
+
+@patch("pyplumio.helpers.parameter.BinaryParameter.set_nowait")
+async def test_binary_parameter_turn_on_nowait(
+    mock_set_nowait, binary_parameter: BinaryParameter
+) -> None:
+    """Test that binary parameter can be turned on without waiting."""
+    binary_parameter.turn_on_nowait()
+    mock_set_nowait.assert_called_once_with(STATE_ON)
+
+
+@patch("pyplumio.helpers.parameter.BinaryParameter.set_nowait")
+async def test_binary_parameter_turn_off_nowait(
+    mock_set_nowait, binary_parameter: BinaryParameter
+) -> None:
+    """Test that binary parameter can be turned off without waiting."""
+    binary_parameter.turn_off_nowait()
+    mock_set_nowait.assert_called_once_with(STATE_OFF)
 
 
 async def test_binary_parameter_values(binary_parameter: BinaryParameter) -> None:

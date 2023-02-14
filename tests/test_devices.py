@@ -573,22 +573,42 @@ async def test_set(ecomax: EcoMAX, messages: dict[FrameType, bytearray]) -> None
         await ecomax.set("bar", 1)
 
 
-async def test_turn_on_off(ecomax: EcoMAX, caplog) -> None:
-    """Test turning the controller on/off."""
-    # Test turning on.
+async def test_turn_on(ecomax: EcoMAX, caplog) -> None:
+    """Test turning the controller on."""
     assert not await ecomax.turn_on()
     assert "ecoMAX control is not available" in caplog.text
     ecomax.data[ATTR_ECOMAX_CONTROL] = AsyncMock()
     assert await ecomax.turn_on()
     ecomax.data[ATTR_ECOMAX_CONTROL].turn_on.assert_awaited_once()
 
-    # Test turning off.
-    del ecomax.data[ATTR_ECOMAX_CONTROL]
+
+async def test_turn_off(ecomax: EcoMAX, caplog) -> None:
+    """Test turning the controller off."""
     await ecomax.turn_off()
     assert "ecoMAX control is not available" in caplog.text
     ecomax.data[ATTR_ECOMAX_CONTROL] = AsyncMock()
     await ecomax.turn_off()
     ecomax.data[ATTR_ECOMAX_CONTROL].turn_off.assert_awaited_once()
+
+
+@patch("pyplumio.devices.ecomax.EcoMAX.create_task")
+@patch("pyplumio.devices.ecomax.EcoMAX.turn_on", new_callable=Mock)
+async def test_turn_on_nowait(mock_create_task, mock_turn_on, ecomax: EcoMAX) -> None:
+    """Test turning the controller on without waiting."""
+    ecomax.turn_on_nowait()
+    await ecomax.wait_until_done()
+    mock_create_task.assert_called_once()
+    mock_turn_on.assert_called_once()
+
+
+@patch("pyplumio.devices.ecomax.EcoMAX.create_task")
+@patch("pyplumio.devices.ecomax.EcoMAX.turn_off", new_callable=Mock)
+async def test_turn_off_nowait(mock_create_task, mock_turn_off, ecomax: EcoMAX) -> None:
+    """Test turning the controller on without waiting."""
+    ecomax.turn_off_nowait()
+    await ecomax.wait_until_done()
+    mock_create_task.assert_called_once()
+    mock_turn_off.assert_called_once()
 
 
 async def test_shutdown(ecomax: EcoMAX, messages: dict[FrameType, bytearray]) -> None:

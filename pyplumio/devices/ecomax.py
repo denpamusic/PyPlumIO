@@ -388,6 +388,14 @@ class EcoMAX(Addressable):
             _LOGGER.error("ecoMAX control is not available, please try later")
             return False
 
+    def turn_on_nowait(self) -> None:
+        """Turn on the ecoMAX controller without waiting."""
+        self.create_task(self.turn_on())
+
+    def turn_off_nowait(self) -> None:
+        """Turn off the ecoMAX controller without waiting."""
+        self.create_task(self.turn_off())
+
     async def shutdown(self) -> None:
         """Cancel scheduled tasks for root and sub devices."""
         mixers = self.get_nowait(ATTR_MIXERS, {})
