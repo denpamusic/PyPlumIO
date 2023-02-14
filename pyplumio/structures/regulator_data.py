@@ -5,7 +5,7 @@ from typing import Final
 
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.event_manager import EventManager
-from pyplumio.helpers.typing import BytesType, EventDataType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
@@ -21,7 +21,7 @@ class RegulatorData(EventManager):
 
 
 def _unpack_data(
-    data_type: DataType, data: BytesType, boolean_index: int = 0
+    data_type: DataType, data: bytes, boolean_index: int = 0
 ) -> tuple[DataType, int]:
     """Unpack data into the data type."""
     data_type.unpack(data)

@@ -23,7 +23,7 @@ from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, get_frame_handler, is_known_frame_type
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import EventDataType, ParameterDataType, VersionsInfoType
+from pyplumio.helpers.typing import EventDataType, ParameterDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
@@ -96,7 +96,7 @@ class EcoMAX(Addressable):
     """Represents ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
-    _frame_versions: VersionsInfoType
+    _frame_versions: dict[int, int]
     _frame_types: tuple[DataFrameDescription, ...] = DATA_FRAME_TYPES
     _fuel_burned_timestamp_ns: int = 0
 
@@ -127,7 +127,7 @@ class EcoMAX(Addressable):
         await self.wait_for(ATTR_SENSORS)
         return await super().async_setup()
 
-    async def _update_frame_versions(self, versions: VersionsInfoType) -> None:
+    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
         """Check versions and fetch outdated frames."""
         for frame_type, version in versions.items():
             if is_known_frame_type(frame_type) and (

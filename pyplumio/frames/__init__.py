@@ -8,7 +8,7 @@ from typing import ClassVar, Final
 from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.typing import EventDataType, MessageType
+from pyplumio.helpers.typing import EventDataType
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -69,7 +69,7 @@ class FrameDataClass:
     sender: int = DeviceType.ECONET
     sender_type: int = ECONET_TYPE
     econet_version: int = ECONET_VERSION
-    message: MessageType = field(default_factory=bytearray)
+    message: bytearray = field(default_factory=bytearray)
     data: EventDataType = field(default_factory=dict)
 
 
@@ -105,11 +105,11 @@ class Frame(ABC, FrameDataClass):
         return self.bytes.hex(*args, **kwargs)
 
     @abstractmethod
-    def create_message(self, data: EventDataType) -> MessageType:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create frame message."""
 
     @abstractmethod
-    def decode_message(self, message: MessageType) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode frame message."""
 
     @property
@@ -154,11 +154,11 @@ class Frame(ABC, FrameDataClass):
 class Request(Frame):
     """Represents request frame."""
 
-    def create_message(self, data: EventDataType) -> MessageType:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create frame message."""
         return bytearray()
 
-    def decode_message(self, message: MessageType) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode frame message."""
         return {}
 
@@ -170,11 +170,11 @@ class Request(Frame):
 class Response(Frame):
     """Represents response frame."""
 
-    def create_message(self, data: EventDataType) -> MessageType:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create frame message."""
         return bytearray()
 
-    def decode_message(self, message: MessageType) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode frame message."""
         return {}
 

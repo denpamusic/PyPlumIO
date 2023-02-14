@@ -5,15 +5,14 @@ from abc import ABC, abstractmethod
 from typing import Type
 
 from pyplumio import util
-from pyplumio.helpers.typing import BytesType
 
 
 class DataType(ABC):
     """Represents base data type."""
 
-    _data: BytesType = bytearray()
+    _data: bytes = bytearray()
 
-    def __init__(self, data: BytesType | None = None, size: int | None = None):
+    def __init__(self, data: bytes | None = None, size: int | None = None):
         """Initialize new Data Type object."""
         if size is None:
             size = self.size
@@ -29,7 +28,7 @@ class DataType(ABC):
         """Return serializable string representation of the class."""
         return f"{self.__class__.__name__}(data={self._data!r}, size={self.size})"
 
-    def unpack(self, data: BytesType):
+    def unpack(self, data: bytes):
         """Unpack data to a given type."""
         self._data = data[0 : self.size]
 
@@ -189,7 +188,7 @@ class Boolean(DataType):
 
     _index: int = 0
 
-    def __init__(self, data: BytesType | None = None, size: int | None = None):
+    def __init__(self, data: bytes | None = None, size: int | None = None):
         """Initialize new Boolean object."""
         self._index = 0
         super().__init__(data, size=1)
@@ -199,7 +198,7 @@ class Boolean(DataType):
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
-    def unpack(self, data: BytesType) -> None:
+    def unpack(self, data: bytes) -> None:
         """Unpack data to with given type."""
         self._data = data[0:1]
 
@@ -273,11 +272,11 @@ class IPv6(DataType):
 class String(DataType):
     """Represents string data type."""
 
-    def __init__(self, data: BytesType | None = None, size: int | None = None):
+    def __init__(self, data: bytes | None = None, size: int | None = None):
         """Initialize new String object."""
         super().__init__(data, size=-1)
 
-    def unpack(self, data: BytesType):
+    def unpack(self, data: bytes):
         """Unpack data to a given type."""
         self._data = data
         super().unpack(self._data)

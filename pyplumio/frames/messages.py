@@ -12,7 +12,7 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.frames import Message
-from pyplumio.helpers.typing import EventDataType, MessageType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.fan_power import FanPowerStructure
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.fuel_consumption import FuelConsumptionStructure
@@ -39,7 +39,7 @@ class RegulatorDataMessage(Message):
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
-    def decode_message(self, message: MessageType) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode frame message."""
         return {ATTR_REGDATA_DECODER: RegulatorDataStructure(self)}
 
@@ -49,7 +49,7 @@ class SensorDataMessage(Message):
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_SENSOR_DATA
 
-    def decode_message(self, message: MessageType) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         try:
