@@ -280,7 +280,7 @@ def fixture_data() -> dict[FrameType, EventDataType]:
                 "feeder": False,
                 "heating_pump": False,
                 "water_heater_pump": False,
-                "ciculation_pump": False,
+                "circulation_pump": False,
                 "lighter": False,
                 "alarm": False,
                 "outer_boiler": False,
