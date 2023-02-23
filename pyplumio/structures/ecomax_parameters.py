@@ -28,23 +28,24 @@ class EcomaxParameter(Parameter):
         """set parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
+            value -= self.description.offset
 
         return await super().set(value, retries)
 
     @property
     def value(self) -> ParameterValueType:
         """Return parameter value."""
-        return self._value / self.description.multiplier
+        return (self._value + self.description.offset) / self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Return minimum allowed value."""
-        return self._min_value / self.description.multiplier
+        return (self._min_value + self.description.offset) / self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Return maximum allowed value."""
-        return self._max_value / self.description.multiplier
+        return (self._max_value + self.description.offset) / self.description.multiplier
 
     @property
     def request(self) -> Request:
@@ -91,6 +92,7 @@ class EcomaxParameterDescription(ParameterDescription):
 
     cls: type[EcomaxParameter] = EcomaxParameter
     multiplier: int = 1
+    offset: int = 0
 
 
 ECOMAX_P_PARAMETERS: tuple[EcomaxParameterDescription, ...] = (
@@ -204,7 +206,7 @@ ECOMAX_P_PARAMETERS: tuple[EcomaxParameterDescription, ...] = (
         name="heating_weather_control", cls=EcomaxBinaryParameter
     ),
     EcomaxParameterDescription(name="heating_heat_curve", multiplier=10),
-    EcomaxParameterDescription(name="heating_heat_curve_shift", multiplier=10),
+    EcomaxParameterDescription(name="heating_heat_curve_shift", offset=-20),
     EcomaxParameterDescription(name="weather_factor"),
     EcomaxParameterDescription(name="term_boiler_operation"),
     EcomaxParameterDescription(name="term_boiler_mode", cls=EcomaxBinaryParameter),

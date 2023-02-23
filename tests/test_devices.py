@@ -249,10 +249,33 @@ async def test_ecomax_parameters_callbacks(
         ATTR_VALUE: 1,
     }
 
-    airflow_power_50 = await ecomax.get("airflow_power_50")
-    assert airflow_power_50.value == 60.0
-    assert airflow_power_50.min_value == 41.0
-    assert airflow_power_50.max_value == 60.0
+    # Test parameter with the multiplier (heating_heat_curve)
+    heating_heat_curve = await ecomax.get("heating_heat_curve")
+    assert heating_heat_curve.value == 1.3
+    assert heating_heat_curve.min_value == 0.1
+    assert heating_heat_curve.max_value == 4.0
+
+    # Test setting parameter with the multiplier.
+    with patch(
+        "pyplumio.structures.ecomax_parameters.Parameter.set", new_callable=AsyncMock
+    ) as mock_set:
+        await heating_heat_curve.set(2.5)
+
+    mock_set.assert_awaited_once_with(25, 5)
+
+    # Test parameter with the offset (heating_heat_curve_shift)
+    heating_heat_curve_shift = await ecomax.get("heating_heat_curve_shift")
+    assert heating_heat_curve_shift.value == 0.0
+    assert heating_heat_curve_shift.min_value == -20.0
+    assert heating_heat_curve_shift.max_value == 20.0
+
+    # Test setting the parameter with the offset.
+    with patch(
+        "pyplumio.structures.ecomax_parameters.Parameter.set", new_callable=AsyncMock
+    ) as mock_set:
+        await heating_heat_curve_shift.set(1)
+
+    mock_set.assert_awaited_once_with(21, 5)
 
 
 @patch(
