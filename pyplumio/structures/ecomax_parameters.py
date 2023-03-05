@@ -88,7 +88,7 @@ class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
 
 @dataclass
 class EcomaxParameterDescription(ParameterDescription):
-    """Represent thermostat parameter description."""
+    """Represent ecoMAX parameter description."""
 
     cls: type[EcomaxParameter] = EcomaxParameter
     multiplier: int = 1

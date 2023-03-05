@@ -22,7 +22,7 @@ from pyplumio.const import (
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import Mixer, Thermostat, get_device_handler
+from pyplumio.devices import get_device_handler
 from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
@@ -31,6 +31,8 @@ from pyplumio.devices.ecomax import (
     EcoMAX,
 )
 from pyplumio.devices.ecoster import EcoSTER
+from pyplumio.devices.mixer import Mixer
+from pyplumio.devices.thermostat import Thermostat
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
@@ -339,7 +341,12 @@ async def test_mixer_sensors_callbacks(
     mixer = mixers[4]
     assert isinstance(mixer, Mixer)
     assert mixer.index == 4
-    assert mixer.data == {"current_temp": 20.0, "target_temp": 40, "pump": False}
+    assert mixer.data == {
+        "current_temp": 20.0,
+        "target_temp": 40,
+        "pump": False,
+        "mixer_sensors": True,
+    }
 
 
 async def test_thermostat_sensors_callbacks(
@@ -361,6 +368,7 @@ async def test_thermostat_sensors_callbacks(
         "target_temp": 50.0,
         "contacts": True,
         "schedule": False,
+        "thermostat_sensors": True,
     }
     thermostat_count = await ecomax.get(ATTR_THERMOSTAT_COUNT)
     assert thermostat_count == 1
@@ -380,7 +388,7 @@ async def test_thermostat_parameters_callbacks(
     thermostats = await ecomax.get(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
     thermostat = thermostats[0]
-    assert len(thermostat.data) == 12
+    assert len(thermostat.data) == 13
     party_target_temp = await thermostat.get("party_target_temp")
     assert isinstance(party_target_temp, ThermostatParameter)
     assert isinstance(party_target_temp.request, SetThermostatParameterRequest)
@@ -454,7 +462,7 @@ async def test_mixer_parameters_callbacks(
     mixers = await ecomax.get(ATTR_MIXERS)
     assert len(mixers) == 1
     mixer = mixers[0]
-    assert len(mixer.data) == 6
+    assert len(mixer.data) == 7
     mixer_target_temp = await mixer.get("mixer_target_temp")
     assert isinstance(mixer_target_temp, MixerParameter)
     assert isinstance(mixer_target_temp.request, SetMixerParameterRequest)
@@ -641,8 +649,8 @@ async def test_shutdown(ecomax: EcoMAX, messages: dict[FrameType, bytearray]) ->
     )
     await ecomax.wait_until_done()
 
-    with patch("pyplumio.devices.Mixer.shutdown") as mock_mixer_shutdown, patch(
-        "pyplumio.devices.Thermostat.shutdown"
+    with patch("pyplumio.devices.mixer.Mixer.shutdown") as mock_mixer_shutdown, patch(
+        "pyplumio.devices.thermostat.Thermostat.shutdown"
     ) as mock_thermostat_shutdown, patch(
         "pyplumio.devices.Device.cancel_tasks"
     ) as mock_cancel_tasks, patch(

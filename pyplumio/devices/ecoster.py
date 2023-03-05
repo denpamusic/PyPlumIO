@@ -8,6 +8,6 @@ from pyplumio.devices import Addressable
 
 
 class EcoSTER(Addressable):
-    """Represents ecoSTER thermostat."""
+    """Represents the ecoSTER thermostat."""
 
     address: ClassVar[int] = DeviceType.ECOSTER

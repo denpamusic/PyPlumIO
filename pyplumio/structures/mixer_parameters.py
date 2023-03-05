@@ -3,16 +3,18 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pyplumio import util
 from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE
-from pyplumio.devices import Mixer
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
 from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder, ensure_device_data
+
+if TYPE_CHECKING:
+    from pyplumio.devices.mixer import Mixer
 
 ATTR_MIXER_PARAMETERS: Final = "mixer_parameters"
 
@@ -142,7 +144,7 @@ class MixerParametersStructure(StructureDecoder):
         mixer_count = message[offset + 3]
         parameter_count_per_mixer = first_index + last_index
         offset += 4
-        mixer_parameters: list[tuple[int, list[tuple[int, ParameterDataType]]]] = []
+        mixer_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
         for index in range(mixer_count):
             parameters, offset = _decode_mixer_parameters(
                 message,
@@ -150,7 +152,7 @@ class MixerParametersStructure(StructureDecoder):
                 range(first_index, parameter_count_per_mixer),
             )
             if parameters:
-                mixer_parameters.append((index, parameters))
+                mixer_parameters[index] = parameters
 
         if not mixer_parameters:
             # No mixer parameters detected.

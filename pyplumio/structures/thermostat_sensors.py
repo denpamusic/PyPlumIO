@@ -35,7 +35,7 @@ class ThermostatSensorsStructure(StructureDecoder):
         offset += 2
         contact_mask = 1
         schedule_mask = 1 << 3
-        thermostat_sensors: list[tuple[int, EventDataType]] = []
+        thermostat_sensors: dict[int, EventDataType] = {}
         for index in range(thermostat_count):
             current_temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
             target_temp = util.unpack_float(message[offset + 5 : offset + 9])[0]
@@ -46,7 +46,7 @@ class ThermostatSensorsStructure(StructureDecoder):
                 sensors[ATTR_TARGET_TEMP] = target_temp
                 sensors[ATTR_CONTACTS] = bool(contacts & contact_mask)
                 sensors[ATTR_SCHEDULE] = bool(contacts & schedule_mask)
-                thermostat_sensors.append((index, sensors))
+                thermostat_sensors[index] = sensors
 
             contact_mask = contact_mask << 1
             schedule_mask = schedule_mask << 1

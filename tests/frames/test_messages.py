@@ -95,28 +95,22 @@ def test_sensor_data_decode_message(messages: dict[FrameType, bytearray]) -> Non
     assert data[ATTR_LAMBDA_LEVEL] == 4.0
     assert data[ATTR_PENDING_ALERTS] == 0
     assert data[ATTR_FUEL_LEVEL] == 32
-    assert data[ATTR_MIXER_SENSORS] == [
-        (
-            4,
-            {
-                ATTR_CURRENT_TEMP: 20.0,
-                ATTR_TARGET_TEMP: 40,
-                ATTR_PUMP: False,
-            },
-        )
-    ]
-    assert data[ATTR_THERMOSTAT_SENSORS] == [
-        (
-            0,
-            {
-                ATTR_STATE: 3,
-                ATTR_CURRENT_TEMP: 43.5,
-                ATTR_TARGET_TEMP: 50.0,
-                ATTR_CONTACTS: True,
-                ATTR_SCHEDULE: False,
-            },
-        )
-    ]
+    assert data[ATTR_MIXER_SENSORS] == {
+        4: {
+            ATTR_CURRENT_TEMP: 20.0,
+            ATTR_TARGET_TEMP: 40,
+            ATTR_PUMP: False,
+        },
+    }
+    assert data[ATTR_THERMOSTAT_SENSORS] == {
+        0: {
+            ATTR_STATE: 3,
+            ATTR_CURRENT_TEMP: 43.5,
+            ATTR_TARGET_TEMP: 50.0,
+            ATTR_CONTACTS: True,
+            ATTR_SCHEDULE: False,
+        },
+    }
 
     # Test with the unknown state.
     test_message[INDEX_STATE] = 12

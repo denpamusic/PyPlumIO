@@ -14,7 +14,7 @@ from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
-from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
+from pyplumio.structures.network_info import NetworkInfo
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -136,8 +136,8 @@ class Addressable(Device):
     """Represents the addressable device."""
 
     address: ClassVar[int]
-    _network: NetworkInfo
     _frame_types: tuple[DataFrameDescription, ...] = ()
+    _network: NetworkInfo
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize the addressable object."""
@@ -146,12 +146,6 @@ class Addressable(Device):
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle received frame."""
-        if isinstance(frame, Request) and frame.frame_type in (
-            FrameType.REQUEST_CHECK_DEVICE,
-            FrameType.REQUEST_PROGRAM_VERSION,
-        ):
-            self.queue.put_nowait(frame.response(data={ATTR_NETWORK: self._network}))
-
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)
@@ -209,11 +203,3 @@ class SubDevice(Device):
         super().__init__(queue)
         self.parent = parent
         self.index = index
-
-
-class Mixer(SubDevice):
-    """Represents the mixer sub-device."""
-
-
-class Thermostat(SubDevice):
-    """Represents the thermostat sub-device."""

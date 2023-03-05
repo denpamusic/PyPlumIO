@@ -23,7 +23,7 @@ class MixerSensorsStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         mixer_count = message[offset]
         offset += 1
-        mixer_sensors: list[tuple[int, EventDataType]] = []
+        mixer_sensors: dict[int, EventDataType] = {}
         for index in range(mixer_count):
             current_temp = util.unpack_float(message[offset : offset + 4])[0]
             if not math.isnan(current_temp):
@@ -32,7 +32,7 @@ class MixerSensorsStructure(StructureDecoder):
                 sensors[ATTR_TARGET_TEMP] = message[offset + 4]
                 outputs = message[offset + 6]
                 sensors[ATTR_PUMP] = bool(outputs & 0x01)
-                mixer_sensors.append((index, sensors))
+                mixer_sensors[index] = sensors
 
             offset += 8
 

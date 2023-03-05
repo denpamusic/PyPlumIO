@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Generator, Iterable, Sequence
 import logging
 import time
 from typing import ClassVar, Final
@@ -18,9 +18,17 @@ from pyplumio.const import (
     FrameType,
     ProductType,
 )
-from pyplumio.devices import Addressable, Mixer, Thermostat
+from pyplumio.devices import Addressable
+from pyplumio.devices.mixer import Mixer
+from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
-from pyplumio.frames import DataFrameDescription, get_frame_handler, is_known_frame_type
+from pyplumio.frames import (
+    DataFrameDescription,
+    Frame,
+    Request,
+    get_frame_handler,
+    is_known_frame_type,
+)
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import EventDataType, ParameterDataType
@@ -38,13 +46,9 @@ from pyplumio.structures.ecomax_parameters import (
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
-from pyplumio.structures.mixer_parameters import (
-    ATTR_MIXER_PARAMETERS,
-    ECOMAX_I_MIXER_PARAMETERS,
-    ECOMAX_P_MIXER_PARAMETERS,
-)
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
-from pyplumio.structures.network_info import NetworkInfo
+from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
 from pyplumio.structures.schedules import (
@@ -57,7 +61,6 @@ from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PARAMETERS_DECODER,
     ATTR_THERMOSTAT_PROFILE,
-    THERMOSTAT_PARAMETERS,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
@@ -93,7 +96,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EcoMAX(Addressable):
-    """Represents ecoMAX controller."""
+    """Represents the ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
     _frame_versions: dict[int, int]
@@ -127,6 +130,16 @@ class EcoMAX(Addressable):
         await self.wait_for(ATTR_SENSORS)
         return await super().async_setup()
 
+    def handle_frame(self, frame: Frame) -> None:
+        """Handle received frame."""
+        if isinstance(frame, Request) and frame.frame_type in (
+            FrameType.REQUEST_CHECK_DEVICE,
+            FrameType.REQUEST_PROGRAM_VERSION,
+        ):
+            self.queue.put_nowait(frame.response(data={ATTR_NETWORK: self._network}))
+
+        super().handle_frame(frame)
+
     async def _update_frame_versions(self, versions: dict[int, int]) -> None:
         """Check versions and fetch outdated frames."""
         for frame_type, version in versions.items():
@@ -139,37 +152,36 @@ class EcoMAX(Addressable):
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
 
-    def _get_mixer(self, index: int, mixer_count: int) -> Mixer:
-        """Get or create a new mixer object and add it to the device."""
-        mixers: dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
-        try:
-            mixer = mixers[index]
-        except KeyError:
-            mixer = Mixer(self.queue, parent=self, index=index)
-            mixers[index] = mixer
-            if len(mixers) == mixer_count:
-                # All mixers were processed, notify callbacks and getters.
-                self.dispatch_nowait(ATTR_MIXERS, mixers)
+    def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer, None, None]:
+        """Iterates through the mixer indexes. For each index,
+        returns or creates instance of Mixer class.
+        Once done, dispatches the event.
+        """
+        mixers = self.data.setdefault(ATTR_MIXERS, {})
+        for index in indexes:
+            if index not in mixers:
+                mixers[index] = Mixer(self.queue, parent=self, index=index)
 
-        return mixer
+            yield mixers[index]
 
-    def _get_thermostat(self, index: int, thermostat_count: int) -> Thermostat:
-        """Get or create a new thermostat object and add it to the
-        device."""
-        thermostats: dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
-        try:
-            thermostat = thermostats[index]
-        except KeyError:
-            thermostat = Thermostat(self.queue, parent=self, index=index)
-            thermostats[index] = thermostat
-            if len(thermostats) == thermostat_count:
-                # All thermostats were processed, notify callbacks and getters.
-                self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
+        return self.dispatch_nowait(ATTR_MIXERS, mixers)
 
-        return thermostat
+    def _thermostats(self, indexes: Iterable[int]) -> Generator[Thermostat, None, None]:
+        """Iterates through the thermostat indexes. For each index,
+        returns or creates instance of Thermostat class.
+        Once done, dispatches the event.
+        """
+        thermostats = self.data.setdefault(ATTR_THERMOSTATS, {})
+        for index in indexes:
+            if index not in thermostats:
+                thermostats[index] = Thermostat(self.queue, parent=self, index=index)
+
+            yield thermostats[index]
+
+        return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
     async def _add_ecomax_sensors(self, sensors: EventDataType) -> bool:
-        """Add ecomax sensor values to the device data."""
+        """Add ecomax sensors."""
         for name, value in sensors.items():
             await self.dispatch(name, value)
 
@@ -178,7 +190,7 @@ class EcoMAX(Addressable):
     async def _add_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
-        """Add ecomax parameters to the device data."""
+        """Add ecomax parameters."""
         product = await self.get(ATTR_PRODUCT)
         for index, value in parameters:
             description = (
@@ -198,81 +210,47 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_mixer_sensors(
-        self, sensors: Sequence[tuple[int, EventDataType]]
-    ) -> bool:
-        """set sensor values for the mixer."""
-        for mixer_index, mixer_sensors in sensors:
-            mixer = self._get_mixer(mixer_index, len(sensors))
-            for name, value in mixer_sensors.items():
-                await mixer.dispatch(name, value)
+    async def _add_mixer_sensors(self, sensors: dict[int, EventDataType]) -> bool:
+        """Pass mixer sensors to mixer instances."""
+        for mixer in self._mixers(sensors.keys()):
+            await mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
 
         return True
 
     async def _add_mixer_parameters(
         self,
-        parameters: Sequence[tuple[int, Sequence[tuple[int, ParameterDataType]]]]
-        | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
-        """set mixer parameters."""
+        """Pass mixer parameters to mixer instances."""
         if parameters is None:
             return False
 
-        product = await self.get(ATTR_PRODUCT)
-        for mixer_index, mixer_parameters in parameters:
-            mixer = self._get_mixer(mixer_index, len(parameters))
-            for index, value in mixer_parameters:
-                description = (
-                    ECOMAX_P_MIXER_PARAMETERS[index]
-                    if product.type == ProductType.ECOMAX_P
-                    else ECOMAX_I_MIXER_PARAMETERS[index]
-                )
-                parameter = description.cls(
-                    device=mixer,
-                    description=description,
-                    index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
-                )
-                await mixer.dispatch(description.name, parameter)
+        for mixer in self._mixers(parameters.keys()):
+            await mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
 
         return True
 
-    async def _add_thermostat_sensors(
-        self, sensors: Sequence[tuple[int, EventDataType]]
-    ) -> bool:
-        """set sensor values for the thermostat."""
-        for thermostat_index, thermostat_sensors in sensors:
-            thermostat = self._get_thermostat(thermostat_index, len(sensors))
-            for name, value in thermostat_sensors.items():
-                await thermostat.dispatch(name, value)
+    async def _add_thermostat_sensors(self, sensors: dict[int, EventDataType]) -> bool:
+        """Pass sensors to thermostat instances."""
+        for thermostat in self._thermostats(sensors.keys()):
+            await thermostat.dispatch(
+                ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
+            )
 
         return True
 
     async def _add_thermostat_parameters(
         self,
-        parameters: Sequence[tuple[int, Sequence[tuple[int, ParameterDataType]]]]
-        | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
         """set thermostat parameters."""
         if parameters is None:
             return False
 
-        for thermostat_index, thermostat_parameters in parameters:
-            thermostat = self._get_thermostat(thermostat_index, len(parameters))
-            for index, value in thermostat_parameters:
-                description = THERMOSTAT_PARAMETERS[index]
-                parameter = description.cls(
-                    device=thermostat,
-                    description=description,
-                    index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
-                    offset=(thermostat_index * len(thermostat_parameters)),
-                )
-                await thermostat.dispatch(description.name, parameter)
+        for thermostat in self._thermostats(parameters.keys()):
+            await thermostat.dispatch(
+                ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
+            )
 
         return True
 
@@ -339,6 +317,7 @@ class EcoMAX(Addressable):
     async def _add_schedule_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
+        """Add schedule parameter."""
         for index, value in parameters:
             description = SCHEDULE_PARAMETERS[index]
             parameter = description.cls(

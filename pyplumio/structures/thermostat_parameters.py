@@ -3,11 +3,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
-from pyplumio.devices import Thermostat
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
@@ -18,6 +17,9 @@ from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"
 ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
 ATTR_THERMOSTAT_PARAMETERS_DECODER: Final = "thermostat_parameters_decoder"
+
+if TYPE_CHECKING:
+    from pyplumio.devices.thermostat import Thermostat
 
 
 class ThermostatParameter(Parameter):
@@ -144,9 +146,7 @@ class ThermostatParametersStructure(StructureDecoder):
         thermostat_profile = util.unpack_parameter(message, offset + 3)
         parameter_count_per_thermostat = (first_index + last_index) // thermostat_count
         offset += 6
-        thermostat_parameters: list[
-            tuple[int, list[tuple[int, ParameterDataType]]]
-        ] = []
+        thermostat_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
         for index in range(thermostat_count):
             parameters, offset = _decode_thermostat_parameters(
                 message,
@@ -154,7 +154,7 @@ class ThermostatParametersStructure(StructureDecoder):
                 range(first_index, parameter_count_per_thermostat),
             )
             if parameters:
-                thermostat_parameters.append((index, parameters))
+                thermostat_parameters[index] = parameters
 
         if not thermostat_parameters:
             # No thermostat parameters detected.
