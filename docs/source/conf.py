@@ -1,3 +1,5 @@
+from importlib.metadata import version as pkg_version
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -9,7 +11,8 @@
 project = "PyPlumIO"
 copyright = "2023, Denis Paavilainen"
 author = "Denis Paavilainen"
-release = "0.3.5"
+release = pkg_version("pyplumio")
+version = ".".join(release.split(".")[:2])
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
