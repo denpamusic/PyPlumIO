@@ -50,7 +50,7 @@ force_sort_within_sections = true
 combine_as_imports = true
 
 [tool.flake8]
-exclude = ".git,.tox,.mypy_cache,build"
+exclude = ".git,.tox,.mypy_cache,build,docs"
 max-complexity = 25
 ignore = [
     "E501",
@@ -96,12 +96,13 @@ disable = [
 score = false
 
 [tool.codespell]
-skip = ".git,.tox,.mypy_cache,build"
+skip = ".git,.tox,.mypy_cache,build,docs"
 
 [tool.mypy]
 ignore_missing_imports = true
 no_strict_optional = true
 exclude = [
+    "docs",
     "build",
     ".tox",
     ".git",
