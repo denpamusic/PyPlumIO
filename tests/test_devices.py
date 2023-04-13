@@ -2,7 +2,6 @@
 
 import asyncio
 from unittest.mock import AsyncMock, Mock, call, patch
-import warnings
 
 import pytest
 
@@ -54,7 +53,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.ecomax_parameters import (
@@ -105,62 +103,6 @@ def test_device_handler() -> None:
 def test_ecoster(ecoster: EcoSTER) -> None:
     """Test ecoster instance."""
     assert isinstance(ecoster, EcoSTER)
-
-
-async def test_deprecated_get_value(ecomax: EcoMAX) -> None:
-    """Test deprecated get_value method."""
-    mock_parameter = Mock(spec=Parameter)
-    with patch(
-        "pyplumio.devices.Device.get",
-        new_callable=AsyncMock,
-        side_effect=(None, mock_parameter),
-    ) as mock_get, warnings.catch_warnings(record=True) as warn:
-        warnings.simplefilter("always")
-        assert await ecomax.get_value("test") is None
-        assert await ecomax.get_value("test") == mock_parameter.value
-        assert len(warn) == 2
-        assert issubclass(warn[-1].category, DeprecationWarning)
-        assert "deprecated" in str(warn[-1].message)
-        mock_get.assert_any_await("test", None)
-
-
-async def test_deprecated_get_parameter(ecomax: EcoMAX) -> None:
-    """Test deprecated get_parameter method."""
-    with patch(
-        "pyplumio.devices.Device.get", new_callable=AsyncMock
-    ) as mock_get, warnings.catch_warnings(record=True) as warn:
-        warnings.simplefilter("always")
-        await ecomax.get_parameter("test")
-        assert len(warn) == 1
-        assert issubclass(warn[-1].category, DeprecationWarning)
-        assert "deprecated" in str(warn[-1].message)
-        mock_get.assert_awaited_once_with("test", None)
-
-
-async def test_deprecated_set_value(ecomax: EcoMAX) -> None:
-    """Test deprecated set_value method."""
-    with patch(
-        "pyplumio.devices.Device.set", new_callable=AsyncMock
-    ) as mock_set, warnings.catch_warnings(record=True) as warn:
-        warnings.simplefilter("always")
-        await ecomax.set_value("test", 1)
-        assert len(warn) == 1
-        assert issubclass(warn[-1].category, DeprecationWarning)
-        assert "deprecated" in str(warn[-1].message)
-        mock_set.assert_awaited_once_with("test", 1, None)
-
-
-def test_deprecated_set_value_nowait(ecomax: EcoMAX) -> None:
-    """Test deprecated set_value_nowait method."""
-    with patch(
-        "pyplumio.devices.Device.set_nowait"
-    ) as mock_set_nowait, warnings.catch_warnings(record=True) as warn:
-        warnings.simplefilter("always")
-        ecomax.set_value_nowait("test", 1)
-        assert len(warn) == 1
-        assert issubclass(warn[-1].category, DeprecationWarning)
-        assert "deprecated" in str(warn[-1].message)
-        mock_set_nowait.assert_called_once_with("test", 1, None)
 
 
 async def test_async_setup() -> None:
