@@ -27,7 +27,7 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-"Documentation" = "https://pypulmio.denpa.pro"
+"Documentation" = "https://pyplumio.denpa.pro"
 "Source Code" = "https://github.com/denpamusic/PyPlumIO"
 "Bug Tracker" = "https://github.com/denpamusic/PyPlumIO/issues"
 
