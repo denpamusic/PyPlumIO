@@ -1,7 +1,6 @@
 """Contains mixer parameter structure decoder."""
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
@@ -116,49 +115,44 @@ ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="thermostat_decrease_temp"),
 )
 
-
-def _decode_mixer_parameters(
-    message: bytearray, offset: int, indexes: Iterable
-) -> tuple[list[tuple[int, ParameterDataType]], int]:
-    """Decode parameters for a single mixer."""
-    parameters: list[tuple[int, ParameterDataType]] = []
-    for index in indexes:
-        parameter = util.unpack_parameter(message, offset)
-        if parameter is not None:
-            parameters.append((index, parameter))
-
-        offset += 3
-
-    return parameters, offset
+MIXER_PARAMETER_SIZE: Final = 3
 
 
 class MixerParametersStructure(StructureDecoder):
     """Represent mixer parameters data structure."""
 
+    _offset: int
+
+    def _mixer_parameter(self, message: bytearray, start: int, end: int):
+        """Yields mixer parameters."""
+        for index in range(start, start + end):
+            if (parameter := util.unpack_parameter(message, self._offset)) is not None:
+                yield (index, parameter)
+
+            self._offset += MIXER_PARAMETER_SIZE
+
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_index = message[offset + 1]
-        last_index = message[offset + 2]
-        mixer_count = message[offset + 3]
-        parameter_count_per_mixer = first_index + last_index
-        offset += 4
-        mixer_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
-        for index in range(mixer_count):
-            parameters, offset = _decode_mixer_parameters(
-                message,
-                offset,
-                range(first_index, parameter_count_per_mixer),
-            )
-            if parameters:
-                mixer_parameters[index] = parameters
+        start = message[offset + 1]
+        end = message[offset + 2]
+        mixers = message[offset + 3]
+        self._offset = offset + 4
 
-        if not mixer_parameters:
-            # No mixer parameters detected.
-            return ensure_device_data(data, {ATTR_MIXER_PARAMETERS: None}), offset
+        mixer_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
+        for mixer in range(mixers):
+            if parameters := list(self._mixer_parameter(message, start, end)):
+                mixer_parameters[mixer] = parameters
 
         return (
-            ensure_device_data(data, {ATTR_MIXER_PARAMETERS: mixer_parameters}),
-            offset,
+            ensure_device_data(
+                data,
+                {
+                    ATTR_MIXER_PARAMETERS: (
+                        None if not mixer_parameters else mixer_parameters
+                    )
+                },
+            ),
+            self._offset,
         )

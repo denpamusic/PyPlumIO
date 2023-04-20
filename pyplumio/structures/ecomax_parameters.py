@@ -10,7 +10,7 @@ from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
+from pyplumio.helpers.typing import EventDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
@@ -297,26 +297,39 @@ ECOMAX_CONTROL_PARAMETER = EcomaxParameterDescription(
 
 THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_PROFILE)
 
+ECOMAX_PARAMETER_SIZE: Final = 3
+
 
 class EcomaxParametersStructure(StructureDecoder):
     """Represents ecoMAX parameters data structure."""
+
+    _offset: int
+
+    def _ecomax_parameter(self, message: bytearray, start: int, end: int):
+        """Yields ecoMAX parameters."""
+        for index in range(start, start + end):
+            if parameter := util.unpack_parameter(message, self._offset):
+                yield (index, parameter)
+
+            self._offset += ECOMAX_PARAMETER_SIZE
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_index = message[offset + 1]
-        last_index = message[offset + 2]
-        offset += 3
-        ecomax_parameters: list[tuple[int, ParameterDataType]] = []
-        for index in range(first_index, first_index + last_index):
-            parameter = util.unpack_parameter(message, offset)
-            if parameter is not None:
-                ecomax_parameters.append((index, parameter))
 
-            offset += 3
+        start = message[offset + 1]
+        end = message[offset + 2]
+        self._offset = offset + 3
 
         return (
-            ensure_device_data(data, {ATTR_ECOMAX_PARAMETERS: ecomax_parameters}),
-            offset,
+            ensure_device_data(
+                data,
+                {
+                    ATTR_ECOMAX_PARAMETERS: list(
+                        self._ecomax_parameter(message, start, end)
+                    )
+                },
+            ),
+            self._offset,
         )

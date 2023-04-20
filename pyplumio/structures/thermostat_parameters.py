@@ -1,7 +1,6 @@
 """Contains thermostat parameter structure decoder."""
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
@@ -106,73 +105,71 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatParameterDescription(name="off_timer"),
 )
 
+THERMOSTAT_PARAMETER_SIZE: Final = 3
 
-def _decode_thermostat_parameters(
-    message: bytearray, offset: int, indexes: Iterable
-) -> tuple[list[tuple[int, ParameterDataType]], int]:
-    """Decode parameters for a single thermostat."""
-    parameters: list[tuple[int, ParameterDataType]] = []
-    for index in indexes:
-        description = THERMOSTAT_PARAMETERS[index]
-        parameter = util.unpack_parameter(message, offset, size=description.size)
-        if parameter is not None:
-            parameters.append((index, parameter))
 
-        offset += 3 * description.size
-
-    return parameters, offset
+def _empty_response(
+    offset: int, data: EventDataType | None = None
+) -> tuple[EventDataType, int]:
+    """Return empty response."""
+    return (
+        ensure_device_data(
+            data,
+            {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
+        ),
+        offset,
+    )
 
 
 class ThermostatParametersStructure(StructureDecoder):
     """Represent thermostat parameters data structure."""
+
+    _offset: int
+
+    def _thermostat_parameter(
+        self, message: bytearray, thermostats: int, start: int, end: int
+    ):
+        """Yields thermostat parameters."""
+        for index in range(start, (start + end) // thermostats):
+            description = THERMOSTAT_PARAMETERS[index]
+            if (
+                parameter := util.unpack_parameter(
+                    message, self._offset, size=description.size
+                )
+            ) is not None:
+                yield (index, parameter)
+
+            self._offset += THERMOSTAT_PARAMETER_SIZE * description.size
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
-        thermostat_count = data.get(ATTR_THERMOSTAT_COUNT, 0)
-        if thermostat_count == 0:
-            return (
-                ensure_device_data(
-                    data,
-                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
-                ),
-                offset,
-            )
+        thermostats = data.get(ATTR_THERMOSTAT_COUNT, 0)
+        if thermostats == 0:
+            return _empty_response(offset, data)
 
-        first_index = message[offset + 1]
-        last_index = message[offset + 2]
+        start = message[offset + 1]
+        end = message[offset + 2]
         thermostat_profile = util.unpack_parameter(message, offset + 3)
-        parameter_count_per_thermostat = (first_index + last_index) // thermostat_count
-        offset += 6
+        self._offset = offset + 6
         thermostat_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
-        for index in range(thermostat_count):
-            parameters, offset = _decode_thermostat_parameters(
-                message,
-                offset,
-                range(first_index, parameter_count_per_thermostat),
-            )
-            if parameters:
-                thermostat_parameters[index] = parameters
-
-        if not thermostat_parameters:
-            # No thermostat parameters detected.
-            return (
-                ensure_device_data(
-                    data,
-                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
-                ),
-                offset,
-            )
+        for thermostat in range(thermostats):
+            if parameters := list(
+                self._thermostat_parameter(message, thermostats, start, end)
+            ):
+                thermostat_parameters[thermostat] = parameters
 
         return (
             ensure_device_data(
                 data,
                 {
                     ATTR_THERMOSTAT_PROFILE: thermostat_profile,
-                    ATTR_THERMOSTAT_PARAMETERS: thermostat_parameters,
+                    ATTR_THERMOSTAT_PARAMETERS: None
+                    if not thermostat_parameters
+                    else thermostat_parameters,
                 },
             ),
-            offset,
+            self._offset,
         )
