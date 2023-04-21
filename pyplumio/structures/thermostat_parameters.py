@@ -13,12 +13,15 @@ from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterV
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
+if TYPE_CHECKING:
+    from pyplumio.devices.thermostat import Thermostat
+
+
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"
 ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
 ATTR_THERMOSTAT_PARAMETERS_DECODER: Final = "thermostat_parameters_decoder"
 
-if TYPE_CHECKING:
-    from pyplumio.devices.thermostat import Thermostat
+THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
 class ThermostatParameter(Parameter):
@@ -104,8 +107,6 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatParameterDescription(name="heating_timer"),
     ThermostatParameterDescription(name="off_timer"),
 )
-
-THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
 def _empty_response(

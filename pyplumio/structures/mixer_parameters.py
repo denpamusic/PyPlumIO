@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 
 ATTR_MIXER_PARAMETERS: Final = "mixer_parameters"
 
+MIXER_PARAMETER_SIZE: Final = 3
+
 
 class MixerParameter(Parameter):
     """Represents mixer parameter."""
@@ -114,8 +116,6 @@ ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
     MixerParameterDescription(name="thermostat_function"),
     MixerParameterDescription(name="thermostat_decrease_temp"),
 )
-
-MIXER_PARAMETER_SIZE: Final = 3
 
 
 class MixerParametersStructure(StructureDecoder):

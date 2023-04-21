@@ -17,6 +17,8 @@ from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
 ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
 
+ECOMAX_PARAMETER_SIZE: Final = 3
+
 
 class EcomaxParameter(Parameter):
     """Represents ecoMAX parameter."""
@@ -296,8 +298,6 @@ ECOMAX_CONTROL_PARAMETER = EcomaxParameterDescription(
 )
 
 THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_PROFILE)
-
-ECOMAX_PARAMETER_SIZE: Final = 3
 
 
 class EcomaxParametersStructure(StructureDecoder):
