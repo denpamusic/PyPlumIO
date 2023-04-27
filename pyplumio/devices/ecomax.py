@@ -8,6 +8,7 @@ import time
 from typing import ClassVar, Final
 
 from pyplumio.const import (
+    ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
@@ -147,11 +148,17 @@ class EcoMAX(Addressable):
             and self._frame_versions[frame_type] == version
         )
 
+    def _frame_is_supported(self, frame_type: FrameType | int) -> bool:
+        """Check if frame is supported by the device."""
+        return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
+
     async def _update_frame_versions(self, versions: dict[int, int]) -> None:
         """Check versions and fetch outdated frames."""
         for frame_type, version in versions.items():
-            if is_known_frame_type(frame_type) and not self._has_frame_version(
-                frame_type, version
+            if (
+                is_known_frame_type(frame_type)
+                and self._frame_is_supported(frame_type)
+                and not self._has_frame_version(frame_type, version)
             ):
                 # We don't have this frame or it's version has changed.
                 request = factory(get_frame_handler(frame_type), recipient=self.address)

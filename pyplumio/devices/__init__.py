@@ -6,7 +6,7 @@ import logging
 from typing import ClassVar
 
 from pyplumio import util
-from pyplumio.const import ATTR_LOADED, DeviceType, FrameType
+from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
 from pyplumio.helpers.event_manager import EventManager
@@ -99,22 +99,23 @@ class Addressable(Device):
 
     async def async_setup(self) -> bool:
         """Setup addressable device object."""
-        try:
-            await asyncio.gather(
-                *{
-                    self.create_task(
-                        self.request(description.provides, description.frame_type)
-                    )
-                    for description in self._frame_types
-                },
-                return_exceptions=False,
-            )
-            await self.dispatch(ATTR_LOADED, True)
-            return True
-        except ValueError as e:
-            _LOGGER.error("Request failed: %s", e)
-            await self.dispatch(ATTR_LOADED, False)
-            return False
+        results = await asyncio.gather(
+            *{
+                self.create_task(
+                    self.request(description.provides, description.frame_type)
+                )
+                for description in self._frame_types
+            },
+            return_exceptions=True,
+        )
+
+        errors = [
+            result.args[1] for result in results if isinstance(result, ValueError)
+        ]
+
+        await self.dispatch(ATTR_FRAME_ERRORS, errors)
+        await self.dispatch(ATTR_LOADED, True)
+        return True
 
     async def request(
         self,
@@ -136,7 +137,7 @@ class Addressable(Device):
             except asyncio.TimeoutError:
                 retries -= 1
 
-        raise ValueError(f'could not request "{name}" with "{frame_type.name}"')
+        raise ValueError(f'could not request "{name}"', frame_type)
 
 
 class SubDevice(Device):

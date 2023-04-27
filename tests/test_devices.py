@@ -7,6 +7,7 @@ import pytest
 
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
+    ATTR_FRAME_ERRORS,
     ATTR_INDEX,
     ATTR_LOADED,
     ATTR_OFFSET,
@@ -117,6 +118,7 @@ async def test_async_setup() -> None:
         await ecomax.wait_until_done()
 
     assert await ecomax.get(ATTR_LOADED)
+    assert not ecomax.data[ATTR_FRAME_ERRORS]
     assert mock_request.await_count == len(DATA_FRAME_TYPES)
 
 
@@ -126,13 +128,22 @@ async def test_async_setup_error(caplog) -> None:
 
     with patch("pyplumio.devices.ecomax.EcoMAX.wait_for"), patch(
         "pyplumio.devices.ecomax.EcoMAX.request",
-        side_effect=(ValueError("test"), True, True, True, True, True, True, True),
+        side_effect=(
+            ValueError("test", FrameType.REQUEST_ALERTS),
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+        ),
     ) as mock_request:
         await ecomax.async_setup()
         await ecomax.wait_until_done()
 
-    assert "Request failed" in caplog.text
-    assert not await ecomax.get(ATTR_LOADED)
+    assert await ecomax.get(ATTR_LOADED)
+    assert ecomax.data[ATTR_FRAME_ERRORS][0] == FrameType.REQUEST_ALERTS
     assert mock_request.await_count == len(DATA_FRAME_TYPES)
 
 
