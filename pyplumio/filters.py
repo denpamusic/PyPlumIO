@@ -25,7 +25,7 @@ def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
 
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
-    if old == UNDEFINED or (isinstance(old, Parameter) and old.is_changed):
+    if old == UNDEFINED or (hasattr(old, "is_changed") and old.is_changed):
         return True
 
     if isinstance(old, Parameter) and isinstance(new, Parameter):
