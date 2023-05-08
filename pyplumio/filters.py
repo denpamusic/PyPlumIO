@@ -6,6 +6,7 @@ import math
 import time
 from typing import Any, Final, SupportsFloat, SupportsIndex, overload
 
+from pyplumio.const import UNDEFINED
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import EventCallbackType, SupportsSubtraction
 
@@ -26,7 +27,7 @@ def _significantly_changed(
 
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
-    if old is None:
+    if old == UNDEFINED:
         return True
 
     if isinstance(old, Parameter) and old.is_changed:
@@ -59,6 +60,9 @@ def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> lis
 
 def _diffence_between(old, new):
     """Return the difference between values."""
+    if old == UNDEFINED:
+        return True
+
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
 
@@ -72,12 +76,12 @@ class Filter(ABC):
     """Represents base for value callback modifiers."""
 
     _callback: Any
-    _value: Any
+    _value: Any = UNDEFINED
 
     def __init__(self, callback: EventCallbackType):
         """Initialize new Filter object."""
         self._callback = callback
-        self._value = None
+        self._value = UNDEFINED
 
     def __eq__(self, other) -> bool:
         """Compare debounced callbacks."""

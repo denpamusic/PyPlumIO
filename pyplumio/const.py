@@ -4,6 +4,8 @@ from __future__ import annotations
 from enum import IntEnum, unique
 from typing import Final
 
+UNDEFINED: Final = "undefined"
+
 # Binary states.
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
