@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import math
 import time
-from typing import Any, Final, SupportsFloat, SupportsIndex, overload
+from typing import Any, Final, SupportsFloat, overload
 
 from pyplumio.const import UNDEFINED
 from pyplumio.helpers.parameter import Parameter
@@ -19,9 +19,7 @@ def _significantly_changed(old: Parameter, new: Parameter) -> bool:
 
 
 @overload
-def _significantly_changed(
-    old: SupportsFloat | SupportsIndex, new: SupportsFloat | SupportsIndex
-) -> bool:
+def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
     """Check if float value is significantly changed."""
 
 
