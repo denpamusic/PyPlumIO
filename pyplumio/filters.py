@@ -61,7 +61,7 @@ def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> lis
 def _diffence_between(old, new):
     """Return the difference between values."""
     if old == UNDEFINED:
-        return True
+        return None
 
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
@@ -132,7 +132,7 @@ class _Debounce(Filter):
         else:
             self._calls = 0
 
-        if self._calls >= self._min_calls or self._value is None:
+        if self._value == UNDEFINED or self._calls >= self._min_calls:
             self._value = new_value
             self._calls = 0
             return await self._callback(new_value)
@@ -176,8 +176,8 @@ class _Delta(Filter):
 
     async def __call__(self, new_value):
         """Set new value for the callback."""
-        old_value = self._value
-        if _significantly_changed(old_value, new_value):
+        if _significantly_changed(self._value, new_value):
+            old_value = self._value
             self._value = new_value
             if (difference := _diffence_between(old_value, new_value)) is not None:
                 return await self._callback(difference)
