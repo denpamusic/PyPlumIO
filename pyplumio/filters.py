@@ -27,10 +27,7 @@ def _significantly_changed(
 
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
-    if old == UNDEFINED:
-        return True
-
-    if isinstance(old, Parameter) and old.is_changed:
+    if old == UNDEFINED or (isinstance(old, Parameter) and old.is_changed):
         return True
 
     if isinstance(old, Parameter) and isinstance(new, Parameter):
@@ -41,11 +38,11 @@ def _significantly_changed(old, new) -> bool:
         )
 
     try:
-        return not math.isclose(old, new, abs_tol=TOLERANCE)
+        result = not math.isclose(old, new, abs_tol=TOLERANCE)
     except TypeError:
-        pass
+        result = old != new
 
-    return old != new
+    return result
 
 
 @overload
