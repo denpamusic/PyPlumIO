@@ -7,7 +7,7 @@ import time
 from typing import Any, Final, SupportsFloat, SupportsIndex, overload
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import EventCallbackType, SupportsSubstraction
+from pyplumio.helpers.typing import EventCallbackType, SupportsSubtraction
 
 TOLERANCE: Final = 0.1
 
@@ -53,7 +53,7 @@ def _diffence_between(old: list, new: list) -> list:
 
 
 @overload
-def _diffence_between(old: SupportsSubstraction, new: SupportsSubstraction) -> list:
+def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> list:
     """Return the difference between lists."""
 
 

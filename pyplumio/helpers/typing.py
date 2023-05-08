@@ -10,7 +10,7 @@ EventDataType = dict[Union[str, int], Any]
 EventCallbackType = Callable[[Any], Awaitable[Any]]
 
 
-class SupportsSubstraction(Protocol):
+class SupportsSubtraction(Protocol):
     """Supports subtraction operation."""
 
     def __sub__(self, other):
