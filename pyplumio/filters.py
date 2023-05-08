@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import math
 import time
-from typing import Any, Final
+from typing import Any, Final, SupportsFloat, SupportsIndex, overload
 
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import EventCallbackType
@@ -12,17 +12,39 @@ from pyplumio.helpers.typing import EventCallbackType
 TOLERANCE: Final = 0.1
 
 
-def _significantly_changed(old_value, new_value) -> bool:
+@overload
+def _significantly_changed(old: Parameter | None, new: Parameter | None) -> bool:
+    """Check if parameter is significantly changed."""
+
+
+@overload
+def _significantly_changed(
+    old: SupportsFloat | SupportsIndex, new: SupportsFloat | SupportsIndex
+) -> bool:
+    """Check if numeric value is significantly changed."""
+
+
+def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
-    if old_value is None or (isinstance(old_value, Parameter) and old_value.is_changed):
+    if old is None:
         return True
 
+    if isinstance(old, Parameter) and old.is_changed:
+        return True
+
+    if isinstance(old, Parameter) and isinstance(new, Parameter):
+        return (
+            old.value != new.value
+            or old.min_value != new.min_value
+            or old.max_value != new.max_value
+        )
+
     try:
-        return not math.isclose(old_value, new_value, abs_tol=TOLERANCE)
+        return not math.isclose(old, new, abs_tol=TOLERANCE)
     except TypeError:
         pass
 
-    return old_value != new_value
+    return old != new
 
 
 def _diffence_between(old_value, new_value):

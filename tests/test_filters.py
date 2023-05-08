@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.filters import aggregate, debounce, delta, on_change, throttle
+from pyplumio.helpers.parameter import Parameter
 from pyplumio.structures.alerts import Alert
 
 
@@ -29,6 +30,63 @@ async def test_on_change() -> None:
     assert wrapped_callback == on_change(test_callback)
     with pytest.raises(TypeError):
         _ = wrapped_callback == "you shall not pass"
+
+
+async def test_on_change_parameter() -> None:
+    """Test on change filter with parameters."""
+    test_callback = AsyncMock()
+    test_parameter = AsyncMock(spec=Parameter)
+    test_parameter.value = 0
+    test_parameter.min_value = 0
+    test_parameter.max_value = 1
+    test_parameter.is_changed = False
+    wrapped_callback = on_change(test_callback)
+    await wrapped_callback(test_parameter)
+    test_callback.assert_awaited_once_with(test_parameter)
+    test_callback.reset_mock()
+
+    # Check that callback is not awaited with no change.
+    await wrapped_callback(test_parameter)
+    test_callback.assert_not_awaited()
+
+    # Check that callback is awaited on local value change.
+    test_parameter = AsyncMock(spec=Parameter)
+    test_parameter.value = 1
+    test_parameter.min_value = 0
+    test_parameter.max_value = 1
+    test_parameter.is_changed = True
+    await wrapped_callback(test_parameter)
+    test_callback.assert_awaited_once_with(test_parameter)
+    test_callback.reset_mock()
+
+    # Check that callback is awaited on value change.
+    test_parameter = AsyncMock(spec=Parameter)
+    test_parameter.value = 1
+    test_parameter.min_value = 0
+    test_parameter.max_value = 1
+    test_parameter.is_changed = False
+    await wrapped_callback(test_parameter)
+    test_callback.assert_awaited_once_with(test_parameter)
+    test_callback.reset_mock()
+
+    # Check that callback is awaited on min value change.
+    test_parameter = AsyncMock(spec=Parameter)
+    test_parameter.value = 1
+    test_parameter.min_value = 1
+    test_parameter.max_value = 1
+    test_parameter.is_changed = False
+    await wrapped_callback(test_parameter)
+    test_callback.assert_awaited_once_with(test_parameter)
+    test_callback.reset_mock()
+
+    # Check that callback is awaited on max value change.
+    test_parameter = AsyncMock(spec=Parameter)
+    test_parameter.value = 1
+    test_parameter.min_value = 1
+    test_parameter.max_value = 2
+    test_parameter.is_changed = False
+    await wrapped_callback(test_parameter)
+    test_callback.assert_awaited_once_with(test_parameter)
 
 
 async def test_debounce() -> None:
