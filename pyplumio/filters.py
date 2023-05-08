@@ -13,7 +13,7 @@ TOLERANCE: Final = 0.1
 
 
 @overload
-def _significantly_changed(old: Parameter | None, new: Parameter | None) -> bool:
+def _significantly_changed(old: Parameter, new: Parameter) -> bool:
     """Check if parameter is significantly changed."""
 
 
@@ -21,7 +21,7 @@ def _significantly_changed(old: Parameter | None, new: Parameter | None) -> bool
 def _significantly_changed(
     old: SupportsFloat | SupportsIndex, new: SupportsFloat | SupportsIndex
 ) -> bool:
-    """Check if numeric value is significantly changed."""
+    """Check if float value is significantly changed."""
 
 
 def _significantly_changed(old, new) -> bool:
@@ -91,21 +91,21 @@ class Filter(ABC):
 
     @abstractmethod
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """Set a new value for the callback."""
 
 
 class _OnChange(Filter):
     """Provides changed functionality to the callback."""
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """Set a new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._value = new_value
             return await self._callback(new_value)
 
 
 def on_change(callback: EventCallbackType) -> _OnChange:
-    """Helper for change callback filter."""
+    """Helper for a change callback filter."""
     return _OnChange(callback)
 
 
@@ -122,7 +122,7 @@ class _Debounce(Filter):
         self._min_calls = min_calls
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """Set a new value for the callback."""
         if _significantly_changed(self._value, new_value):
             self._calls += 1
         else:
@@ -135,7 +135,7 @@ class _Debounce(Filter):
 
 
 def debounce(callback: EventCallbackType, min_calls) -> _Debounce:
-    """Helper method for debounce callback filter."""
+    """Helper method for a debounce callback filter."""
     return _Debounce(callback, min_calls)
 
 
@@ -152,7 +152,7 @@ class _Throttle(Filter):
         self._timeout = seconds
 
     async def __call__(self, new_value):
-        """set new value for the callback."""
+        """Set a new value for the callback."""
         current_timestamp = time.monotonic()
         if (
             self._last_called is None
@@ -163,7 +163,7 @@ class _Throttle(Filter):
 
 
 def throttle(callback: EventCallbackType, seconds: float) -> _Throttle:
-    """Helper method for throttle callback filter."""
+    """Helper method for a throttle callback filter."""
     return _Throttle(callback, seconds)
 
 
@@ -171,7 +171,7 @@ class _Delta(Filter):
     """Provides ability to pass call difference to the callback."""
 
     async def __call__(self, new_value):
-        """set new value for the callback."""
+        """Set new value for the callback."""
         old_value = self._value
         if _significantly_changed(old_value, new_value):
             self._value = new_value
@@ -180,7 +180,7 @@ class _Delta(Filter):
 
 
 def delta(callback: EventCallbackType) -> _Delta:
-    """Helper method for delta callback filter."""
+    """Helper method for a delta callback filter."""
     return _Delta(callback)
 
 
@@ -200,7 +200,7 @@ class _Aggregate(Filter):
         self._sum = 0.0
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """Set a new value for the callback."""
         current_timestamp = time.monotonic()
         try:
             self._sum += new_value
@@ -217,5 +217,5 @@ class _Aggregate(Filter):
 
 
 def aggregate(callback: EventCallbackType, seconds: float) -> _Aggregate:
-    """Helper method for total callback filter."""
+    """Helper method for a total callback filter."""
     return _Aggregate(callback, seconds)
