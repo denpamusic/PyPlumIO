@@ -7,7 +7,7 @@ import time
 from typing import Any, Final, SupportsFloat, SupportsIndex, overload
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import EventCallbackType
+from pyplumio.helpers.typing import EventCallbackType, SupportsSubstraction
 
 TOLERANCE: Final = 0.1
 
@@ -47,13 +47,23 @@ def _significantly_changed(old, new) -> bool:
     return old != new
 
 
-def _diffence_between(old_value, new_value):
-    """Return the difference between values."""
-    if isinstance(old_value, list) and isinstance(new_value, list):
-        return [x for x in new_value if x not in old_value]
+@overload
+def _diffence_between(old: list, new: list) -> list:
+    """Return the difference between lists."""
 
-    if hasattr(old_value, "__sub__") and hasattr(new_value, "__sub__"):
-        return new_value - old_value
+
+@overload
+def _diffence_between(old: SupportsSubstraction, new: SupportsSubstraction) -> list:
+    """Return the difference between lists."""
+
+
+def _diffence_between(old, new):
+    """Return the difference between values."""
+    if isinstance(old, list) and isinstance(new, list):
+        return [x for x in new if x not in old]
+
+    if hasattr(old, "__sub__") and hasattr(new, "__sub__"):
+        return new - old
 
     return None
 
