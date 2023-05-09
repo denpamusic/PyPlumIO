@@ -285,7 +285,7 @@ object.
 
 .. code-block:: python
 
-    ecomax_control = ecomax.get("ecomax_control")
+    ecomax_control = await ecomax.get("ecomax_control")
     result = await ecomax_control.turn_on()
 
 ecoMAX control
