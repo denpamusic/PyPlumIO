@@ -133,6 +133,7 @@ class Protocol(EventManager):
                 # Notify devices about connection loss.
                 await device.dispatch(ATTR_CONNECTED, False)
 
+            await self._remove_writer()
             if self._connection_lost_callback is not None:
                 await self._connection_lost_callback()
 
@@ -144,12 +145,7 @@ class Protocol(EventManager):
         for device in self.data.values():
             await device.shutdown()
 
-        if self.writer:
-            try:
-                await self.writer.close()
-            except (OSError, asyncio.TimeoutError):
-                # Ignore any connection errors when shutting down.
-                pass
+        await self._remove_writer()
 
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
         """Setup the device entry."""
@@ -165,6 +161,17 @@ class Protocol(EventManager):
             self.set_event(name)
 
         return self.data[name]
+
+    async def _remove_writer(self):
+        """Attempt to gracefully remove the frame writer."""
+        if self.writer:
+            try:
+                await self.writer.close()
+            except (OSError, asyncio.TimeoutError):
+                # Ignore any connection errors when closing the writer.
+                pass
+            finally:
+                self.writer = None
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:

@@ -268,7 +268,11 @@ async def test_connection_lost() -> None:
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
+    mock_writer = AsyncMock()
+    mock_writer.close = AsyncMock()
+    protocol.writer = mock_writer
     protocol.data = {"ecomax": mock_ecomax}
+    protocol.writer = mock_writer
 
     with patch(
         "pyplumio.protocol.Protocol.queues",
@@ -280,6 +284,10 @@ async def test_connection_lost() -> None:
     # Check that devices were notified and callback was called.
     mock_ecomax.dispatch.assert_called_once_with(ATTR_CONNECTED, False)
     mock_connection_lost_callback.assert_called_once()
+
+    # Check that writer was closed.
+    mock_writer.close.assert_awaited_once()
+    assert protocol.writer is None
 
 
 @patch("asyncio.wait")
@@ -298,8 +306,9 @@ async def test_shutdown(
     mock_read_queue = Mock()
     mock_write_queue = Mock()
 
-    protocol.writer = Mock()
-    protocol.writer.close = AsyncMock(side_effect=OSError)
+    mock_writer = AsyncMock()
+    mock_writer.close = AsyncMock(side_effect=OSError)
+    protocol.writer = mock_writer
     protocol.data["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
     mock_frame_consumer_task = Mock()
@@ -327,4 +336,5 @@ async def test_shutdown(
         call(*protocol.tasks, return_exceptions=True),
     ]
     mock_gather.assert_has_awaits(calls)
-    protocol.writer.close.assert_awaited_once()
+    mock_writer.close.assert_awaited_once()
+    assert protocol.writer is None
