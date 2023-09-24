@@ -152,7 +152,7 @@ class Protocol(EventManager):
                 pass
 
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
-        """setup the device entry."""
+        """Setup the device entry."""
         handler, name = _get_device_handler_and_name(device_type)
         write_queue: asyncio.Queue = self.queues[1]
         if name not in self.data:
