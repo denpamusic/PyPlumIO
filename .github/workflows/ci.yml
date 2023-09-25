@@ -12,7 +12,7 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Fetch tags
         run: |
@@ -39,7 +39,7 @@ jobs:
         run: tox
 
       - if: github.event_name != 'pull_request'
-        uses: paambaati/codeclimate-action@v3.2.0
+        uses: paambaati/codeclimate-action@v5.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
