@@ -9,6 +9,7 @@ from typing import Final
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
+    ChecksumError,
     FrameError,
     ReadError,
     UnknownDeviceError,
@@ -90,6 +91,8 @@ class Protocol(EventManager):
                 _LOGGER.debug("Unknown frame type: %s", e)
             except ReadError as e:
                 _LOGGER.debug("Read error: %s", e)
+            except ChecksumError as e:
+                _LOGGER.debug("Checksum error: %s", e)
             except FrameError as e:
                 _LOGGER.warning("Can't process received frame: %s", e)
             except UnknownDeviceError as e:
