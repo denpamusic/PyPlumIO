@@ -9,11 +9,10 @@ from typing import Final
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler
 from pyplumio.exceptions import (
-    ChecksumError,
+    FrameDataError,
     FrameError,
     ReadError,
     UnknownDeviceError,
-    UnknownFrameError,
 )
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
@@ -87,16 +86,14 @@ class Protocol(EventManager):
                     device = self.setup_device_entry(response.sender)
                     read_queue.put_nowait((device, response))
 
-            except UnknownFrameError as e:
-                _LOGGER.debug("Unknown frame type: %s", e)
+            except FrameDataError as e:
+                _LOGGER.warning("Incorrect payload: %s", e)
             except ReadError as e:
                 _LOGGER.debug("Read error: %s", e)
-            except ChecksumError as e:
-                _LOGGER.debug("Checksum error: %s", e)
-            except FrameError as e:
-                _LOGGER.warning("Can't process received frame: %s", e)
             except UnknownDeviceError as e:
                 _LOGGER.debug("Unknown device: %s", e)
+            except FrameError as e:
+                _LOGGER.debug("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
                 break

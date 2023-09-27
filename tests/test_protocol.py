@@ -9,11 +9,10 @@ import pytest
 from pyplumio.const import ATTR_CONNECTED, DeviceType, EncryptionType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import (
-    ChecksumError,
+    FrameDataError,
     FrameError,
     ReadError,
     UnknownDeviceError,
-    UnknownFrameError,
 )
 from pyplumio.frames import Response
 from pyplumio.frames.requests import (
@@ -131,11 +130,10 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
     protocol.reader.read = AsyncMock(
         side_effect=(
             response,
-            UnknownFrameError("test unknown frame error"),
-            ChecksumError("test checksum error"),
             FrameError("test frame error"),
             UnknownDeviceError("test unknown device error"),
             ReadError("test read error"),
+            FrameDataError("test frame data error"),
             Exception("test generic error"),
             ConnectionError,
         )
@@ -146,7 +144,7 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
     # Create mock queues.
     mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue = AsyncMock(spec=asyncio.Queue)
-    mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0, 0, 0))
+    mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0, 0))
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
     with patch("pyplumio.devices.ecomax.EcoMAX") as mock_device, patch(
@@ -158,16 +156,6 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
         (
             "pyplumio.protocol",
             logging.DEBUG,
-            "Unknown frame type: test unknown frame error",
-        ),
-        (
-            "pyplumio.protocol",
-            logging.DEBUG,
-            "Checksum error: test checksum error",
-        ),
-        (
-            "pyplumio.protocol",
-            logging.WARNING,
             "Can't process received frame: test frame error",
         ),
         (
@@ -179,6 +167,11 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
             "pyplumio.protocol",
             logging.DEBUG,
             "Read error: test read error",
+        ),
+        (
+            "pyplumio.protocol",
+            logging.WARNING,
+            "Incorrect payload: test frame data error",
         ),
         (
             "pyplumio.protocol",
@@ -194,8 +187,8 @@ async def test_frame_producer(protocol: Protocol, caplog) -> None:
     )
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
-    assert mock_write_queue.qsize.call_count == 8
-    assert protocol.reader.read.await_count == 8
+    assert mock_write_queue.qsize.call_count == 7
+    assert protocol.reader.read.await_count == 7
 
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
