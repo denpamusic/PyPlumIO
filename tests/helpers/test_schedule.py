@@ -55,6 +55,10 @@ def test_schedule_day(schedule_day: ScheduleDay) -> None:
         with pytest.raises(ValueError):
             schedule_day.set_state(STATE_ON, start, end)
 
+    # Test with incorrect state.
+    with pytest.raises(ValueError):
+        schedule_day.set_state("invalid_state", "00:00", "01:00")  # type: ignore [arg-type]
+
     # set whole day schedule.
     schedule_day.set_on()
     assert schedule_day.intervals == [True for _ in range(48)]

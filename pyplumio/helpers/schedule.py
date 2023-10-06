@@ -16,8 +16,18 @@ TIME_FORMAT: Final = "%H:%M"
 START_OF_DAY: Final = "00:00"
 END_OF_DAY: Final = "00:00"
 
-STATE_NIGHT: Final = STATE_OFF
-STATE_DAY: Final = STATE_ON
+STATE_NIGHT: Final = "night"
+STATE_DAY: Final = "day"
+
+ENABLED: Final[list[str]] = [
+    STATE_ON,
+    STATE_DAY,
+]
+
+DISABLED: Final[list[str]] = [
+    STATE_OFF,
+    STATE_NIGHT,
+]
 
 
 def _parse_interval(start: str, end: str) -> tuple[int, int]:
@@ -77,14 +87,17 @@ class ScheduleDay(MutableMapping):
 
     def set_state(
         self,
-        state: Literal["off", "on"],
+        state: Literal["off", "on", "day", "night"],
         start: str = START_OF_DAY,
         end: str = END_OF_DAY,
     ) -> None:
         """Set state for interval."""
+        if state not in [*ENABLED, *DISABLED]:
+            raise ValueError(f'state "{state}" is not allowed')
+
         index, stop_index = _parse_interval(start, end)
         while index < stop_index:
-            self._intervals[index] = state == STATE_ON
+            self._intervals[index] = state in ENABLED
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
