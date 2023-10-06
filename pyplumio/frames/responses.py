@@ -131,7 +131,7 @@ class DataSchemaResponse(Response):
 
 class SetEcomaxParameterResponse(Response):
     """Represents set ecoMAX parameter response. Empty response
-    that aknowledges, that ecoMAX parameter was successfully changed.
+    that acknowledges, that ecoMAX parameter was successfully changed.
     """
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_ECOMAX_PARAMETER
@@ -139,7 +139,7 @@ class SetEcomaxParameterResponse(Response):
 
 class SetMixerParameterResponse(Response):
     """Represents set mixer parameter response. Empty response
-    that aknowledges, that mixer parameter was successfully changed.
+    that acknowledges, that mixer parameter was successfully changed.
     """
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
@@ -147,7 +147,7 @@ class SetMixerParameterResponse(Response):
 
 class SetThermostatParameterResponse(Response):
     """Represents set thermostat parameter response. Empty response
-    that aknowledges, that thermostat parameter was successfully changed.
+    that acknowledges, that thermostat parameter was successfully changed.
     """
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
@@ -155,7 +155,7 @@ class SetThermostatParameterResponse(Response):
 
 class EcomaxControlResponse(Response):
     """Represents ecoMAX control response. Empty response
-    that aknowledges, that ecoMAX control request was successfully
+    that acknowledges, that ecoMAX control request was successfully
     processed.
     """
 
