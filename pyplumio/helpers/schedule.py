@@ -19,15 +19,15 @@ END_OF_DAY: Final = "00:00"
 STATE_NIGHT: Final = "night"
 STATE_DAY: Final = "day"
 
-STATES_ON: Final = [
+STATES_ON: Final = (
     STATE_ON,
     STATE_DAY,
-]
+)
 
-STATES_OFF: Final = [
+STATES_OFF: Final = (
     STATE_OFF,
     STATE_NIGHT,
-]
+)
 
 
 def _parse_interval(start: str, end: str) -> tuple[int, int]:
