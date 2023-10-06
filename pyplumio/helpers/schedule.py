@@ -19,12 +19,12 @@ END_OF_DAY: Final = "00:00"
 STATE_NIGHT: Final = "night"
 STATE_DAY: Final = "day"
 
-ENABLED: Final[list[str]] = [
+STATES_ON: Final = [
     STATE_ON,
     STATE_DAY,
 ]
 
-DISABLED: Final[list[str]] = [
+STATES_OFF: Final = [
     STATE_OFF,
     STATE_NIGHT,
 ]
@@ -92,12 +92,12 @@ class ScheduleDay(MutableMapping):
         end: str = END_OF_DAY,
     ) -> None:
         """Set state for interval."""
-        if state not in [*ENABLED, *DISABLED]:
+        if state not in [*STATES_ON, *STATES_OFF]:
             raise ValueError(f'state "{state}" is not allowed')
 
         index, stop_index = _parse_interval(start, end)
         while index < stop_index:
-            self._intervals[index] = state in ENABLED
+            self._intervals[index] = state in STATES_ON
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
