@@ -37,7 +37,7 @@ class ThermostatParameter(Parameter):
         super().__init__(*args, **kwargs)
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """set parameter value."""
+        """Set parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
 

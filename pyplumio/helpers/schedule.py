@@ -81,18 +81,18 @@ class ScheduleDay(MutableMapping):
         start: str = START_OF_DAY,
         end: str = END_OF_DAY,
     ) -> None:
-        """set state for interval."""
+        """Set state for interval."""
         index, stop_index = _parse_interval(start, end)
         while index < stop_index:
             self._intervals[index] = state == STATE_ON
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """set on state for interval."""
+        """Set on state for interval."""
         self.set_state(STATE_ON, start, end)
 
     def set_off(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """set off state for interval."""
+        """Set off state for interval."""
         self.set_state(STATE_OFF, start, end)
 
     @property

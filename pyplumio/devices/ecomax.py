@@ -256,7 +256,7 @@ class EcoMAX(Addressable):
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
-        """set thermostat parameters."""
+        """Set thermostat parameters."""
         if parameters is None:
             return False
 
