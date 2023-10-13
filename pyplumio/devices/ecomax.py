@@ -153,7 +153,7 @@ class EcoMAX(Addressable):
         return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
 
     async def _update_frame_versions(self, versions: dict[int, int]) -> None:
-        """Check frame versions and update an outdated frames."""
+        """Check frame versions and update outdated frames."""
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)

@@ -93,7 +93,7 @@ class Connection(ABC):
     async def connect(self) -> None:
         """Open the connection.
 
-        Initializes connection via connect or reconnect
+        Initialize a connection via connect or reconnect
         routines, depending on '_reconnect_on_failure' property."""
         if self._reconnect_on_failure:
             await self._reconnect()
