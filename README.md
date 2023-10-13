@@ -47,20 +47,20 @@ $ pip install pyplumio
 
 2. Connect to the ecoMAX controller:
 
-```sh
-connection = pyplumio.open_serial_connection("/dev/ttyUSB0")
-await connection.connect()
-ecomax = await connection.get("ecomax")
+```python
+>>> connection = pyplumio.open_serial_connection("/dev/ttyUSB0")
+>>> await connection.connect()
+>>> ecomax = await connection.get("ecomax")
 ```
 
 3. Print some values:
 ```python
-print(await ecomax.get("heating_temp"))
+>>> print(await ecomax.get("heating_temp"))
 ```
 
 4. Don’t forget to close the connection:
 ```python
-await connection.close()
+>>> await connection.close()
 ```
 
 ## Home Assistant Integration
