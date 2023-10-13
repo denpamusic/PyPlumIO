@@ -1,4 +1,4 @@
-"""Contains thermostat device representation."""
+"""Contains a thermostat class."""
 from __future__ import annotations
 
 import asyncio
@@ -14,16 +14,20 @@ from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
 
 class Thermostat(SubDevice):
-    """Represents the thermostat sub-device."""
+    """Represents a thermostat."""
 
     def __init__(self, queue: asyncio.Queue, parent: Addressable, index: int = 0):
-        """Initialize a new Thermostat object."""
+        """Initialize a new thermostat."""
         super().__init__(queue, parent, index)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._add_sensors)
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._add_parameters)
 
     async def _add_sensors(self, sensors: EventDataType) -> bool:
-        """Add thermostat sensors."""
+        """Handle thermostat sensors.
+
+        For each sensor dispatch an event with the
+        sensor's name and value.
+        """
         for name, value in sensors.items():
             await self.dispatch(name, value)
 
@@ -32,7 +36,11 @@ class Thermostat(SubDevice):
     async def _add_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
-        """Add thermostat parameters."""
+        """Handle thermostat parameters.
+
+        For each parameter dispatch an event with the
+        parameter's name and value.
+        """
         for index, value in parameters:
             description = THERMOSTAT_PARAMETERS[index]
             parameter = description.cls(

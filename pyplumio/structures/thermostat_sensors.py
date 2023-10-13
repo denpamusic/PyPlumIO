@@ -1,4 +1,4 @@
-"""Contains thermostats structure decoder."""
+"""Contains a thermostat sensors structure decoder."""
 from __future__ import annotations
 
 import math
@@ -21,7 +21,7 @@ ATTR_CONTACTS: Final = "contacts"
 
 
 class ThermostatSensorsStructure(StructureDecoder):
-    """Represents thermostats data structure."""
+    """Represents a thermostats sensors data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

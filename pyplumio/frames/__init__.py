@@ -1,4 +1,4 @@
-"""Contains frame class."""
+"""Contains frame classes."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -22,13 +22,16 @@ ECONET_VERSION: Final = 5
 
 
 def _handler_class_path(frame_type_name: str) -> str:
-    """Return handler class path from module and frame type name."""
+    """Return handler class path from module name and
+    frame type name.
+    """
     module, type_name = frame_type_name.split("_", 1)
     type_name = util.to_camelcase(type_name, overrides={"uid": "UID"})
     return f"{module.lower()}s.{type_name}{module.capitalize()}"
 
 
-# dictionary of frame handler classes indexed by frame types.
+# Dictionary of frame handler classes indexed by frame types.
+#
 # example: "24: requests.StopMasterRequest"
 FRAME_TYPES: dict[int, str] = {
     frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
@@ -74,12 +77,16 @@ class FrameDataClass:
 
 
 class Frame(ABC, FrameDataClass):
-    """Represents base frame class."""
+    """Represents a frame."""
 
     frame_type: ClassVar[int]
 
     def __init__(self, *args, **kwargs):
-        """Process frame message and data."""
+        """Process a frame data and message.
+
+        If message is set, decode it, otherwise create message from the
+        provided data.
+        """
         super().__init__(*args, **kwargs)
 
         try:
@@ -89,11 +96,11 @@ class Frame(ABC, FrameDataClass):
             pass
 
         if not self.message:
-            # If message not set, create message bytes from data.
+            # Message not set, create message bytes from data.
             self.message = self.create_message(self.data)
 
         if self.message and not self.data:
-            # If message is set and data is not, decode message.
+            # Message is set, but data is not, decode message.
             self.data = self.decode_message(self.message)
 
     def __len__(self) -> int:
@@ -101,7 +108,7 @@ class Frame(ABC, FrameDataClass):
         return self.length
 
     def hex(self, *args, **kwargs) -> str:
-        """Return hex frame representation."""
+        """Return frame message represented as hex string."""
         return self.bytes.hex(*args, **kwargs)
 
     @abstractmethod
@@ -114,7 +121,7 @@ class Frame(ABC, FrameDataClass):
 
     @property
     def length(self) -> int:
-        """Return frame length."""
+        """Frame length in bytes."""
         return (
             HEADER_SIZE
             + FRAME_TYPE_SIZE
@@ -125,7 +132,7 @@ class Frame(ABC, FrameDataClass):
 
     @property
     def header(self) -> bytearray:
-        """Return frame header."""
+        """Frame header."""
         buffer = bytearray(HEADER_SIZE)
         util.pack_header(
             buffer,
@@ -142,7 +149,7 @@ class Frame(ABC, FrameDataClass):
 
     @property
     def bytes(self) -> bytes:
-        """Return bytes frame representation."""
+        """Frame bytes."""
         data = self.header
         data.append(self.frame_type)
         data += self.message
@@ -152,32 +159,32 @@ class Frame(ABC, FrameDataClass):
 
 
 class Request(Frame):
-    """Represents request frame."""
+    """Represents a request."""
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         return bytearray()
 
     def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode frame message."""
+        """Decode a frame message."""
         return {}
 
     def response(self, **args) -> Response | None:
-        """Return response object for current request."""
+        """Return a response frame."""
         return None
 
 
 class Response(Frame):
-    """Represents response frame."""
+    """Represents a response."""
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         return bytearray()
 
     def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode frame message."""
+        """Decode a frame message."""
         return {}
 
 
 class Message(Response):
-    """Represents message frame."""
+    """Represents a message."""

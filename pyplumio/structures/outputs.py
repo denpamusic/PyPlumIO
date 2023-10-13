@@ -1,4 +1,4 @@
-"""Contains outputs structure decoder."""
+"""Contains an outputs structure decoder."""
 from __future__ import annotations
 
 import math
@@ -45,7 +45,7 @@ OUTPUTS: tuple[str, ...] = (
 
 
 class OutputsStructure(StructureDecoder):
-    """Represent outputs data structure."""
+    """Represents an outputs data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

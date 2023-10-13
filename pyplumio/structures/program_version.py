@@ -1,4 +1,4 @@
-"""Contains program version decoder."""
+"""Contains a program version decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -13,13 +13,15 @@ ATTR_VERSION: Final = "version"
 
 
 def _formated_version(version_tuple=__version_tuple__) -> str:
-    """Format version tuple for program version response."""
+    """Format version tuple for a program version response."""
     return ".".join(str(x) for x in version_tuple[0:3])
 
 
 @dataclass
 class VersionInfo:
-    """Represents version info provided in program version response."""
+    """Represents a version info provided in program version
+    response.
+    """
 
     software: str = _formated_version()
     struct_tag: bytes = b"\xFF\xFF"
@@ -29,10 +31,10 @@ class VersionInfo:
 
 
 class ProgramVersionStructure(Structure):
-    """Represents program version data structure."""
+    """Represents a program version data structure."""
 
     def encode(self, data: EventDataType) -> bytearray:
-        """Encode device data to bytearray message."""
+        """Encode data to the bytearray message."""
         message = bytearray(15)
         version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
         struct.pack_into(

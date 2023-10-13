@@ -1,9 +1,9 @@
-"""Contains UID decoder."""
+"""Contains an UID helpers."""
 from __future__ import annotations
 
 
 def unpack_uid(message: bytearray, offset: int = 0) -> str:
-    """Decode and return uid string."""
+    """Decode and return complete UID string."""
     uid_length = message[offset]
     offset += 1
     uid = message[offset : uid_length + offset]
@@ -12,7 +12,7 @@ def unpack_uid(message: bytearray, offset: int = 0) -> str:
 
 
 def _encode_base5(data: bytes) -> str:
-    """Encode bytes to base5 encided string."""
+    """Encode bytes to base5 encoded string."""
     key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
     number = int.from_bytes(data, "little")
     output: str = ""
@@ -25,7 +25,7 @@ def _encode_base5(data: bytes) -> str:
 
 
 def _uid_crc(message: bytes) -> bytes:
-    """Return UID crc."""
+    """Return an UID CRC."""
     crc_value = 0xA3A3
     for byte in message:
         crc_value = _uid_byte(crc_value ^ byte)
@@ -34,7 +34,7 @@ def _uid_crc(message: bytes) -> bytes:
 
 
 def _uid_byte(byte: int) -> int:
-    """Return CRC for a byte."""
+    """Return a byte CRC."""
     for _ in range(8):
         byte = (byte >> 1) ^ 0xA001 if byte & 1 else byte >> 1
 

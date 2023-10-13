@@ -1,4 +1,4 @@
-"""Contains boiler power structure decoder."""
+"""Contains a boiler power structure decoder."""
 from __future__ import annotations
 
 import math
@@ -12,7 +12,7 @@ ATTR_POWER: Final = "power"
 
 
 class PowerStructure(StructureDecoder):
-    """Represents ecoMAX power sensor data structure."""
+    """Represents a boiler power sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

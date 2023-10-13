@@ -1,4 +1,4 @@
-"""Contains event helper."""
+"""Contains an event manager class."""
 from __future__ import annotations
 
 import asyncio
@@ -15,21 +15,21 @@ class EventManager(TaskManager):
     _callbacks: dict[str | int, list[EventCallbackType]]
 
     def __init__(self):
-        """Initialize the event manager object."""
+        """Initialize new event manager."""
         super().__init__()
         self.data = {}
         self._events = {}
         self._callbacks = {}
 
     def __getattr__(self, name: str):
-        """Return attributes from the underlying data."""
+        """Return attributes from the underlying data dictionary."""
         try:
             return self.data[name]
         except KeyError as e:
             raise AttributeError from e
 
     async def wait_for(self, name: str | int, timeout: float | None = None) -> None:
-        """Wait for the value."""
+        """Wait for the value to become available."""
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
@@ -46,29 +46,29 @@ class EventManager(TaskManager):
             return default
 
     def subscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe callback to the value change event."""
+        """Subscribe a callback to the event."""
         if name not in self._callbacks:
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
 
     def subscribe_once(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe callback to the single value change event."""
+        """Subscribe a callback to the single event."""
 
         async def _callback(value):
-            """Unsubscribe the callback and call it."""
+            """Unsubscribe callback from the event and calls it."""
             self.unsubscribe(name, _callback)
             return await callback(value)
 
         self.subscribe(name, _callback)
 
     def unsubscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Usubscribe callback from the value change event."""
+        """Usubscribe a callback from the event."""
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
     async def dispatch(self, name: str | int, value) -> None:
-        """Call registered callbacks and dispatch event."""
+        """Call registered callbacks and dispatch the event."""
         if name in self._callbacks:
             callbacks = self._callbacks[name].copy()
             for callback in callbacks:
@@ -79,13 +79,16 @@ class EventManager(TaskManager):
         self.set_event(name)
 
     def dispatch_nowait(self, name: str | int, value) -> None:
-        """Call registered callbacks and dispatch event without waiting."""
+        """Call a registered callbacks and dispatch the event
+        without waiting.
+        """
         self.create_task(self.dispatch(name, value))
 
     def load(self, data: EventDataType) -> None:
-        """Load the event data."""
+        """Load event data."""
 
         async def _dispatch_events(data: EventDataType) -> None:
+            """Dispatch events for a loaded data."""
             for key, value in data.items():
                 await self.dispatch(key, value)
 
@@ -93,7 +96,7 @@ class EventManager(TaskManager):
         self.create_task(_dispatch_events(data))
 
     def create_event(self, name: str | int) -> asyncio.Event:
-        """Create the event."""
+        """Create an event."""
         if name in self.events:
             return self.events[name]
 
@@ -102,7 +105,7 @@ class EventManager(TaskManager):
         return event
 
     def set_event(self, name: str | int) -> None:
-        """Set the event."""
+        """Set an event."""
         if name in self.events:
             event = self.events[name]
             if not event.is_set():
@@ -115,5 +118,5 @@ class EventManager(TaskManager):
 
     @property
     def events(self) -> dict[str | int, asyncio.Event]:
-        """Return events."""
+        """List of events."""
         return self._events

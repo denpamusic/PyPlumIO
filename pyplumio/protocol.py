@@ -175,5 +175,5 @@ class Protocol(EventManager):
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
-        """Return protocol queues."""
+        """Protocol queues."""
         return self._queues

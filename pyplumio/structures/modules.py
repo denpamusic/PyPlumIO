@@ -1,4 +1,4 @@
-"""Contains modules structure decoder."""
+"""Contains a modules structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -28,7 +28,7 @@ MODULES: tuple[str, ...] = (
 
 @dataclass
 class ConnectedModules:
-    """Represents firmware version info for connected module."""
+    """Represents a firmware version info for connected module."""
 
     module_a: str | None = None
     module_b: str | None = None
@@ -41,7 +41,7 @@ class ConnectedModules:
 def _get_module_version(
     module_name: str, message: bytearray, offset: int = 0
 ) -> tuple[str | None, int]:
-    """Get module version from a message."""
+    """Get a module version."""
     if message[offset] == BYTE_UNDEFINED:
         return None, (offset + 1)
 
@@ -58,7 +58,7 @@ def _get_module_version(
 
 
 class ModulesStructure(StructureDecoder):
-    """Represents modules data structure."""
+    """Represents a modules data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

@@ -19,44 +19,47 @@ from pyplumio.structures.schedules import SchedulesStructure
 
 
 class ProgramVersionRequest(Request):
-    """Represents program version request."""
+    """Represents a program version request."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_PROGRAM_VERSION
 
     def response(self, **kwargs) -> Response | None:
-        """Return response frame object."""
+        """Return a response frame."""
         return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
 
 class CheckDeviceRequest(Request):
-    """Represents check device request."""
+    """Represents a check device request."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_CHECK_DEVICE
 
     def response(self, **kwargs) -> Response | None:
-        """Return response frame object."""
+        """Return a response frame."""
         return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 
 
 class UIDRequest(Request):
-    """Represents uid request."""
+    """Represents an UID request."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_UID
 
 
 class PasswordRequest(Request):
-    """Represents password request."""
+    """Represents a password request."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_PASSWORD
 
 
 class EcomaxParametersRequest(Request):
-    """Represents ecoMAX parameters request."""
+    """Represents an ecoMAX parameters request.
+
+    Contains number of parameters and index of the first parameter.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_PARAMETERS
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         message = bytearray()
         message.append(255)  # Number of parameters.
         message.append(0)  # Index of the first parameter.
@@ -64,12 +67,16 @@ class EcomaxParametersRequest(Request):
 
 
 class MixerParametersRequest(Request):
-    """Represents mixer parameters request."""
+    """Represents a mixer parameters request.
+
+    Contains number of parameters to get and index of the first
+    parameter.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_MIXER_PARAMETERS
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         message = bytearray()
         message.append(255)  # Number of parameters.
         message.append(0)  # Index of the first parameter.
@@ -77,12 +84,16 @@ class MixerParametersRequest(Request):
 
 
 class ThermostatParametersRequest(Request):
-    """Represents thermostat parameters request."""
+    """Represents a thermostat parameters request.
+
+    Contains number of parameters to get and index of the first
+    parameter.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         message = bytearray()
         message.append(255)  # Number of parameters.
         message.append(0)  # Index of the first parameter.
@@ -96,12 +107,15 @@ class DataSchemaRequest(Request):
 
 
 class SetEcomaxParameterRequest(Request):
-    """Represents set ecoMAX parameter request."""
+    """Represents a request to set an ecoMAX parameter.
+
+    Contains parameter index and new value.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_ECOMAX_PARAMETER
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         try:
             message = bytearray()
             index = data[ATTR_INDEX]
@@ -114,12 +128,15 @@ class SetEcomaxParameterRequest(Request):
 
 
 class SetMixerParameterRequest(Request):
-    """Represents set mixer parameter request."""
+    """Represents a request to set a mixer parameter.
+
+    Contains parameter index, new value and mixer index.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_MIXER_PARAMETER
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         try:
             index = data[ATTR_INDEX]
             value = data[ATTR_VALUE]
@@ -134,12 +151,23 @@ class SetMixerParameterRequest(Request):
 
 
 class SetThermostatParameterRequest(Request):
-    """Represents set thermostat parameter request."""
+    """Represents a request to set a thermostat parameter.
+
+    Contains parameter index, new value, parameter offset and
+    parameter size.
+
+    Parameter offset is calculated by multiplying
+    thermostat index by total number of parameters available.
+
+    For example, if total available parameters is 12,
+    offset for the second thermostat is 12 (1 * 12),
+    and for the third thermostat is 24 (2 * 12).
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         try:
             message = bytearray()
             index = data[ATTR_INDEX]
@@ -154,12 +182,16 @@ class SetThermostatParameterRequest(Request):
 
 
 class EcomaxControlRequest(Request):
-    """Represent ecoMAX control request."""
+    """Represents an ecoMAX control request.
+
+    Contains single binary value. 0 - means that controller should
+    be turned off, 1 - means that it should be turned on.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_CONTROL
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Creates frame message."""
+        """Create a frame message."""
         try:
             message = bytearray()
             message.append(data[ATTR_VALUE])
@@ -169,24 +201,36 @@ class EcomaxControlRequest(Request):
 
 
 class StartMasterRequest(Request):
-    """Represent start master request."""
+    """Represents a request to become a master.
+
+    Once controller receives this request, it starts sending
+    periodic messages.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_START_MASTER
 
 
 class StopMasterRequest(Request):
-    """Represent stop master request."""
+    """Represents a request to stop being a master.
+
+    Once controller receives this request, it stops sending
+    periodic messages.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_STOP_MASTER
 
 
 class AlertsRequest(Request):
-    """Represent alerts request."""
+    """Represents an alerts request.
+
+    Contains number of alerts to get and index of the first
+    alert.
+    """
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ALERTS
 
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
         message = bytearray()
         message.append(0)  # Index of the first alert.
         message.append(100)  # Number of alerts.
@@ -194,15 +238,16 @@ class AlertsRequest(Request):
 
 
 class SchedulesRequest(Request):
-    """Represents schedule request."""
+    """Represents a schedules request."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SCHEDULES
 
 
 class SetScheduleRequest(Request):
-    """Represents set schedule request."""
+    """Represents a request to set a schedule."""
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_SCHEDULE
 
     def create_message(self, data: EventDataType) -> bytearray:
+        """Create a frame message."""
         return SchedulesStructure(self).encode(data)

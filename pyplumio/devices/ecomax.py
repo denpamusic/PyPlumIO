@@ -1,4 +1,4 @@
-"""Contains ecoMAX device representation."""
+"""Contains an ecoMAX class."""
 from __future__ import annotations
 
 import asyncio
@@ -97,7 +97,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class EcoMAX(Addressable):
-    """Represents the ecoMAX controller."""
+    """Represents an ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
     _frame_versions: dict[int, int]
@@ -105,7 +105,7 @@ class EcoMAX(Addressable):
     _fuel_burned_timestamp_ns: int = 0
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
-        """Initialize new ecoMAX object."""
+        """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
         self._frame_versions = {}
         self._fuel_burned_timestamp_ns = time.perf_counter_ns()
@@ -127,12 +127,12 @@ class EcoMAX(Addressable):
         )
 
     async def async_setup(self) -> bool:
-        """Setup addressable device object."""
+        """Setup an ecoMAX controller."""
         await self.wait_for(ATTR_SENSORS)
         return await super().async_setup()
 
     def handle_frame(self, frame: Frame) -> None:
-        """Handle received frame."""
+        """Handle frame received from the ecoMAX device."""
         if isinstance(frame, Request) and frame.frame_type in (
             FrameType.REQUEST_CHECK_DEVICE,
             FrameType.REQUEST_PROGRAM_VERSION,
@@ -142,7 +142,7 @@ class EcoMAX(Addressable):
         super().handle_frame(frame)
 
     def _has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
-        """Check if device instance has a version of the frame."""
+        """Check if ecoMAX controller has this version of the frame."""
         return (
             frame_type in self._frame_versions
             and self._frame_versions[frame_type] == version
@@ -153,7 +153,7 @@ class EcoMAX(Addressable):
         return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
 
     async def _update_frame_versions(self, versions: dict[int, int]) -> None:
-        """Check versions and fetch outdated frames."""
+        """Check frame versions and update an outdated frames."""
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)
@@ -166,9 +166,10 @@ class EcoMAX(Addressable):
                 self._frame_versions[frame_type] = version
 
     def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer, None, None]:
-        """Iterates through the mixer indexes. For each index,
-        returns or creates instance of Mixer class.
-        Once done, dispatches the event.
+        """Iterate through the mixer indexes.
+
+        For each index, return or create an instance of the mixer class.
+        Once done, dispatch the 'mixers' event without waiting.
         """
         mixers = self.data.setdefault(ATTR_MIXERS, {})
         for index in indexes:
@@ -180,9 +181,11 @@ class EcoMAX(Addressable):
         return self.dispatch_nowait(ATTR_MIXERS, mixers)
 
     def _thermostats(self, indexes: Iterable[int]) -> Generator[Thermostat, None, None]:
-        """Iterates through the thermostat indexes. For each index,
-        returns or creates instance of Thermostat class.
-        Once done, dispatches the event.
+        """Iterate through the thermostat indexes.
+
+        For each index, return or create an instance of the thermostat
+        class. Once done, dispatch the 'thermostats' event without
+        waiting.
         """
         thermostats = self.data.setdefault(ATTR_THERMOSTATS, {})
         for index in indexes:
@@ -194,7 +197,11 @@ class EcoMAX(Addressable):
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
     async def _add_ecomax_sensors(self, sensors: EventDataType) -> bool:
-        """Add ecomax sensors."""
+        """Handle ecoMAX sensors.
+
+        For each sensor dispatch an event with the
+        sensor's name and value.
+        """
         for name, value in sensors.items():
             await self.dispatch(name, value)
 
@@ -203,7 +210,11 @@ class EcoMAX(Addressable):
     async def _add_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
-        """Add ecomax parameters."""
+        """Handle ecoMAX parameters.
+
+        For each parameter dispatch an event with the
+        parameter's name and value.
+        """
         product = await self.get(ATTR_PRODUCT)
         for index, value in parameters:
             description = (
@@ -224,7 +235,12 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_mixer_sensors(self, sensors: dict[int, EventDataType]) -> bool:
-        """Pass mixer sensors to mixer instances."""
+        """Handle mixer sensors.
+
+        For each sensor dispatch an event with the
+        sensor's name and value. Events are dispatched for the
+        respective mixer instance.
+        """
         for mixer in self._mixers(sensors.keys()):
             await mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
 
@@ -234,7 +250,12 @@ class EcoMAX(Addressable):
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
-        """Pass mixer parameters to mixer instances."""
+        """Handle mixer parameters.
+
+        For each parameter dispatch an event with the
+        parameter's name and value. Events are dispatched for the
+        respective mixer instance.
+        """
         if parameters is None:
             return False
 
@@ -244,7 +265,12 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_thermostat_sensors(self, sensors: dict[int, EventDataType]) -> bool:
-        """Pass sensors to thermostat instances."""
+        """Handle thermostat sensors.
+
+        For each sensor dispatch an event with the
+        sensor's name and value. Events are dispatched for the
+        respective thermostat instance.
+        """
         for thermostat in self._thermostats(sensors.keys()):
             await thermostat.dispatch(
                 ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
@@ -256,7 +282,12 @@ class EcoMAX(Addressable):
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
-        """Set thermostat parameters."""
+        """Handle thermostat parameters.
+
+        For each parameter dispatch an event with the
+        parameter's name and value. Events are dispatched for the
+        respective thermostat instance.
+        """
         if parameters is None:
             return False
 
@@ -270,7 +301,7 @@ class EcoMAX(Addressable):
     async def _add_thermostat_profile_parameter(
         self, parameter: ParameterDataType
     ) -> EcomaxParameter | None:
-        """Add thermostat profile parameter to the device instance."""
+        """Add thermostat profile parameter to the dataset."""
         if parameter is not None:
             return THERMOSTAT_PROFILE_PARAMETER.cls(
                 device=self,
@@ -283,7 +314,10 @@ class EcoMAX(Addressable):
         return None
 
     async def _decode_thermostat_parameters(self, decoder: StructureDecoder) -> bool:
-        """Decode thermostat parameters."""
+        """Decode thermostat parameters.
+
+        Dispatch 'thermostat_profile' and 'thermostat_parameters' event.
+        """
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
             await self.dispatch(field, data[field])
@@ -291,7 +325,9 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_ecomax_control_parameter(self, mode: int) -> None:
-        """Add ecoMAX control parameter to the device instance."""
+        """Create ecoMAX control parameter instance and dispatch an
+        'ecomax_control' event.
+        """
         parameter = ECOMAX_CONTROL_PARAMETER.cls(
             device=self,
             description=ECOMAX_CONTROL_PARAMETER,
@@ -302,7 +338,9 @@ class EcoMAX(Addressable):
         await self.dispatch(ECOMAX_CONTROL_PARAMETER.name, parameter)
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
-        """Add burned fuel counter."""
+        """Calculate fuel burned since last sensor's data message
+        and dispatch 'fuel_burned' event.
+        """
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
         if time_passed_ns < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
@@ -317,7 +355,10 @@ class EcoMAX(Addressable):
         self._fuel_burned_timestamp_ns = current_timestamp_ns
 
     async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
-        """Decode regulator data."""
+        """Decode an ecoMAX regulator data.
+
+        Dispatch 'frame_versions' and 'regdata' events.
+        """
         data = decoder.decode(decoder.frame.message, data=self.data)[0]
         for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
             try:
@@ -330,7 +371,7 @@ class EcoMAX(Addressable):
     async def _add_schedule_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
-        """Add schedule parameter."""
+        """Add schedule parameters to the dataset."""
         for index, value in parameters:
             description = SCHEDULE_PARAMETERS[index]
             parameter = description.cls(
@@ -348,7 +389,7 @@ class EcoMAX(Addressable):
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> EventDataType:
-        """Add schedules."""
+        """Add schedules to the dataset."""
         return {
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
@@ -389,7 +430,7 @@ class EcoMAX(Addressable):
         self.create_task(self.turn_off())
 
     async def shutdown(self) -> None:
-        """Cancel scheduled tasks for root and sub devices."""
+        """Shutdown tasks for the ecoMAX controller and sub-devices."""
         mixers = self.get_nowait(ATTR_MIXERS, {})
         thermostats = self.get_nowait(ATTR_THERMOSTATS, {})
         for subdevice in (mixers | thermostats).values():

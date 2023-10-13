@@ -1,4 +1,4 @@
-"""Contains frame versions structure decoder."""
+"""Contains a frame versions structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -12,7 +12,7 @@ ATTR_FRAME_VERSIONS: Final = "frame_versions"
 
 
 class FrameVersionsStructure(StructureDecoder):
-    """Represents frame version data structure."""
+    """Represents a frame version data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

@@ -1,4 +1,4 @@
-"""Contains data type representations."""
+"""Contains data type helper classes."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -13,7 +13,7 @@ class DataType(ABC):
     _data: bytes = bytearray()
 
     def __init__(self, data: bytes | None = None, size: int | None = None):
-        """Initialize new Data Type object."""
+        """Initialize a new data type."""
         if size is None:
             size = self.size
 
@@ -35,161 +35,161 @@ class DataType(ABC):
     @property
     @abstractmethod
     def value(self):
-        """Return data value."""
+        """Data value."""
 
     @property
     @abstractmethod
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
 
 
 class Undefined0(DataType):
-    """Represents undefined zero-byte data type."""
+    """Represents an undefined zero-byte."""
 
     @property
     def value(self) -> None:
-        """Return data value."""
+        """Data value."""
         return None
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 0
 
 
 class SignedChar(DataType):
-    """Represents signed char data type."""
+    """Represents a signed char."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_char(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 1
 
 
 class Short(DataType):
-    """Represents 16 bit integer data type."""
+    """Represents a 16 bit integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_short(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 2
 
 
 class Int(DataType):
-    """Represents 32 bit integer data type."""
+    """Represents a 32 bit integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_int(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 4
 
 
 class Byte(DataType):
-    """Represents byte data type."""
+    """Represents a byte."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return ord(self._data)
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 1
 
 
 class UnsignedShort(DataType):
-    """Represents unsigned 16 bit integer data type."""
+    """Represents an unsigned 16 bit integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_ushort(self._data)
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 2
 
 
 class UnsignedInt(DataType):
-    """Represents unsigned 32 bit integer data type."""
+    """Represents a unsigned 32 bit integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_uint(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 4
 
 
 class Float(DataType):
-    """Representats float data type."""
+    """Representats a float."""
 
     @property
     def value(self) -> float:
-        """Return data value."""
+        """Data value."""
         return util.unpack_float(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 4
 
 
 class Undefined8(DataType):
-    """Represents undefined data type."""
+    """Represents an undefined."""
 
     @property
     def value(self) -> None:
-        """Return data value."""
+        """Data value."""
         return None
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 0
 
 
 class Double(DataType):
-    """Represents double data type."""
+    """Represents a double."""
 
     @property
     def value(self) -> float:
-        """Return data value."""
+        """Data value."""
         return util.unpack_double(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 8
 
 
 class Boolean(DataType):
-    """Represents boolean data type."""
+    """Represents a boolean."""
 
     _index: int = 0
 
     def __init__(self, data: bytes | None = None, size: int | None = None):
-        """Initialize new Boolean object."""
+        """Initialize a new boolean."""
         self._index = 0
         super().__init__(data, size=1)
 
@@ -204,76 +204,76 @@ class Boolean(DataType):
 
     @property
     def value(self) -> bool:
-        """Return data value."""
+        """Data value."""
         return bool(ord(self._data) & (1 << self._index))
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 1 if self._index == 7 else 0
 
 
 class Int64(DataType):
-    """Represents 64 bit signed integer data type."""
+    """Represents a 64 bit signed integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_int64(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 8
 
 
 class UInt64(DataType):
-    """Represents 64 bit unsigned integer data type."""
+    """Represents a 64 bit unsigned integer."""
 
     @property
     def value(self) -> int:
-        """Return data value."""
+        """Data value."""
         return util.unpack_uint64(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 8
 
 
 class IPv4(DataType):
-    """Represents IPv4 address data type."""
+    """Represents an IPv4 address."""
 
     @property
     def value(self) -> str:
-        """Return data value."""
+        """Data value."""
         return util.ip4_from_bytes(self._data)
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 4
 
 
 class IPv6(DataType):
-    """Represents IPv6 address data type."""
+    """Represents an IPv6 address."""
 
     @property
     def value(self) -> str:
-        """Return data value."""
+        """Data value."""
         return util.ip6_from_bytes(self._data)
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return 16
 
 
 class String(DataType):
-    """Represents string data type."""
+    """Represents a string."""
 
     def __init__(self, data: bytes | None = None, size: int | None = None):
-        """Initialize new String object."""
+        """Initialize a new string."""
         super().__init__(data, size=-1)
 
     def unpack(self, data: bytes):
@@ -283,7 +283,7 @@ class String(DataType):
 
     @property
     def value(self) -> str:
-        """Return data value."""
+        """Data value."""
         value = ""
         offset = 0
         if offset in self._data:
@@ -295,7 +295,7 @@ class String(DataType):
 
     @property
     def size(self) -> int:
-        """Return data length."""
+        """Data length."""
         return len(self.value) + 1
 
 

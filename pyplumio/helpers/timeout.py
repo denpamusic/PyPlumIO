@@ -1,4 +1,4 @@
-"""Contains timeout decorator."""
+"""Contains a timeout decorator."""
 from __future__ import annotations
 
 import asyncio
@@ -8,8 +8,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def timeout(seconds: int, raise_exception: bool = True):
-    """Decorator to add a timeout to the awaitable. Returns None if
-    raise_exception parameter is set to false."""
+    """Decorator to add a timeout to the awaitable.
+
+    Return None if raise_exception parameter is set to false.
+    """
 
     def decorator(func):
         async def wrapper(*args, **kwargs):

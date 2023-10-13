@@ -1,4 +1,4 @@
-"""Contains reader and writer classes."""
+"""Contains a frame reader and writer classes."""
 from __future__ import annotations
 
 from asyncio import IncompleteReadError, StreamReader, StreamWriter
@@ -22,40 +22,45 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class FrameWriter:
-    """Represents frame writer."""
+    """Represents a frame writer."""
 
     _writer: StreamWriter
 
     def __init__(self, writer: StreamWriter):
-        """Initialize new Frame Writer object."""
+        """Initialize a new frame writer."""
         self._writer = writer
 
     @timeout(WRITER_TIMEOUT)
     async def write(self, frame: Frame) -> None:
         """Write frame to the connection and
-        wait for buffer to drain."""
+        wait for buffer to drain.
+        """
         self._writer.write(frame.bytes)
         await self._writer.drain()
         _LOGGER.debug("Sent frame: %s", frame)
 
     @timeout(WRITER_TIMEOUT)
     async def close(self) -> None:
-        """Close the stream writer."""
+        """Close the frame writer."""
         self._writer.close()
         await self._writer.wait_closed()
 
 
 class FrameReader:
-    """Represents frame reader."""
+    """Represents a frame reader."""
 
     _reader: StreamReader
 
     def __init__(self, reader: StreamReader):
-        """Initialize new Frame Reader object."""
+        """Initialize a new frame reader."""
         self._reader = reader
 
     async def _read_header(self) -> tuple[bytes, int, int, int, int, int]:
-        """Locate and read frame header."""
+        """Locate and read a frame header.
+
+        Raises ReadError if header size is too small and OSError on
+        broken connection.
+        """
         while buffer := await self._reader.read(1):
             if FRAME_START not in buffer:
                 continue
@@ -86,7 +91,11 @@ class FrameReader:
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Frame | None:
-        """Read the frame and return corresponding handler object."""
+        """Read the frame and return corresponding handler object.
+
+        Raises ReadError on unexpected frame length or incomplete
+        frame and raises ChecksumError on incorrect frame checksum.
+        """
         (
             header,
             length,

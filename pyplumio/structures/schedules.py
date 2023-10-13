@@ -73,13 +73,13 @@ SCHEDULES: tuple[str, ...] = (
 
 
 class ScheduleParameter(Parameter):
-    """Represents schedule parameter."""
+    """Represents a schedule parameter."""
 
     device: Addressable
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
         schedule_name, _ = self.description.name.split("_", 1)
         return factory(
             "frames.requests.SetScheduleRequest",
@@ -89,12 +89,12 @@ class ScheduleParameter(Parameter):
 
 
 class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
-    """Represents schedule binary parameter."""
+    """Represents a schedule binary parameter."""
 
 
 @dataclass
 class ScheduleParameterDescription(ParameterDescription):
-    """Represent schedule parameter description."""
+    """Represents a schedule parameter description."""
 
     cls: type[ScheduleParameter] = ScheduleParameter
 
@@ -116,7 +116,7 @@ SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
 
 
 def collect_schedule_data(name: str, device: Device) -> EventDataType:
-    """Return schedule data collected from the device."""
+    """Return a schedule data collected from the device."""
     return {
         ATTR_TYPE: name,
         ATTR_SWITCH: device.data[f"{name}_{ATTR_SCHEDULE_SWITCH}"],
@@ -164,10 +164,10 @@ def _decode_schedule(message: bytearray, offset: int) -> tuple[list[list[bool]],
 
 
 class SchedulesStructure(Structure):
-    """Represents schedule data structure."""
+    """Represents a schedule data structure."""
 
     def encode(self, data: EventDataType) -> bytearray:
-        """Encode device data to bytearray message."""
+        """Encode data to the bytearray message."""
         message = bytearray()
         message.append(1)
         try:

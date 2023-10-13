@@ -1,4 +1,4 @@
-"""Contains schedule helpers."""
+"""Contains a schedule helper classes."""
 
 
 from collections.abc import Iterable, Iterator, MutableMapping
@@ -31,7 +31,10 @@ STATES_OFF: Final = (
 
 
 def _parse_interval(start: str, end: str) -> tuple[int, int]:
-    """Parse interval string."""
+    """Parse an interval string.
+
+    Intervals should be specified in '%H:%M' format.
+    """
     start_dt = dt.datetime.strptime(start, TIME_FORMAT)
     end_dt = dt.datetime.strptime(end, TIME_FORMAT)
     start_of_day_dt = dt.datetime.strptime(START_OF_DAY, TIME_FORMAT)
@@ -51,12 +54,12 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
 
 
 class ScheduleDay(MutableMapping):
-    """Represents single day of schedule."""
+    """Represents a single day of schedule."""
 
     _intervals: list[bool]
 
     def __init__(self, intervals: list[bool]):
-        """Initialize new schedule day object."""
+        """Initialize a new schedule day."""
         self._intervals = intervals
 
     def __repr__(self) -> str:
@@ -64,25 +67,27 @@ class ScheduleDay(MutableMapping):
         return f"ScheduleDay({self._intervals})"
 
     def __len__(self) -> int:
-        """Return schedule length."""
+        """Return a schedule length."""
         return len(self._intervals)
 
     def __iter__(self) -> Iterator[bool]:
-        """Return iterator."""
+        """Return an iterator."""
         return self._intervals.__iter__()
 
     def __getitem__(self, index):
-        """Return item."""
+        """Return a schedule item."""
         return self._intervals.__getitem__(index)
 
     def __delitem__(self, index) -> None:
+        """Delete a schedule item."""
         return self._intervals.__delitem__(index)
 
     def __setitem__(self, index, value) -> None:
+        """Set a schedule item."""
         return self._intervals.__setitem__(index, value)
 
     def append(self, item) -> None:
-        """Append value to interval."""
+        """Append a value to the interval."""
         self._intervals.append(item)
 
     def set_state(
@@ -91,7 +96,11 @@ class ScheduleDay(MutableMapping):
         start: str = START_OF_DAY,
         end: str = END_OF_DAY,
     ) -> None:
-        """Set state for interval."""
+        """Set an interval state.
+
+        Can be on of the following:
+        'off', 'on', 'day' or 'night'.
+        """
         if state not in [*STATES_ON, *STATES_OFF]:
             raise ValueError(f'state "{state}" is not allowed')
 
@@ -101,22 +110,22 @@ class ScheduleDay(MutableMapping):
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set on state for interval."""
+        """Set an interval state to 'on'."""
         self.set_state(STATE_ON, start, end)
 
     def set_off(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set off state for interval."""
+        """Set an interval state to 'off'."""
         self.set_state(STATE_OFF, start, end)
 
     @property
     def intervals(self) -> list[bool]:
-        """Return intervals."""
+        """A list of schedule intervals."""
         return self._intervals
 
 
 @dataclass
 class Schedule(Iterable):
-    """Represents weekly schedule."""
+    """Represents a weekly schedule."""
 
     name: str
     device: Addressable
@@ -129,7 +138,7 @@ class Schedule(Iterable):
     sunday: ScheduleDay
 
     def __iter__(self) -> Iterator[ScheduleDay]:
-        """Return list of days."""
+        """Returns a list of days."""
         return (
             self.sunday,
             self.monday,
@@ -141,7 +150,7 @@ class Schedule(Iterable):
         ).__iter__()
 
     def commit(self) -> None:
-        """Commit changes to the device."""
+        """Commit a weekly schedule to the device."""
         self.device.queue.put_nowait(
             factory(
                 "frames.requests.SetScheduleRequest",

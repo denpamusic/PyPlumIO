@@ -1,4 +1,4 @@
-"""Contains mixer parameter structure decoder."""
+"""Contains a mixer parameter structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -21,13 +21,13 @@ MIXER_PARAMETER_SIZE: Final = 3
 
 
 class MixerParameter(Parameter):
-    """Represents mixer parameter."""
+    """Represents a mixer parameter."""
 
     device: Mixer
     description: MixerParameterDescription
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """Set a parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
             value -= self.description.offset
@@ -36,22 +36,22 @@ class MixerParameter(Parameter):
 
     @property
     def value(self) -> ParameterValueType:
-        """Return parameter value."""
+        """A parameter value."""
         return (self._value / self.description.multiplier) - self.description.offset
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
+        """Minimum allowed value."""
         return (self._min_value / self.description.multiplier) - self.description.offset
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
+        """Maximum allowed value."""
         return (self._max_value / self.description.multiplier) - self.description.offset
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
         return factory(
             "frames.requests.SetMixerParameterRequest",
             recipient=self.device.parent.address,
@@ -64,12 +64,12 @@ class MixerParameter(Parameter):
 
 
 class MixerBinaryParameter(BinaryParameter, MixerParameter):
-    """Represents mixer binary parameter."""
+    """Represents a mixer binary parameter."""
 
 
 @dataclass
 class MixerParameterDescription(ParameterDescription):
-    """Represent mixer parameter description."""
+    """Represents a mixer parameter description."""
 
     cls: type[MixerParameter] = MixerParameter
     multiplier: int = 1
@@ -119,12 +119,12 @@ ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
 
 
 class MixerParametersStructure(StructureDecoder):
-    """Represent mixer parameters data structure."""
+    """Represents a mixer parameters data structure."""
 
     _offset: int
 
     def _mixer_parameter(self, message: bytearray, start: int, end: int):
-        """Yields mixer parameters."""
+        """Yield a single mixer parameter."""
         for index in range(start, start + end):
             if (parameter := util.unpack_parameter(message, self._offset)) is not None:
                 yield (index, parameter)

@@ -1,4 +1,4 @@
-"""Contains temperatures structure decoder."""
+"""Contains a temperatures structure decoder."""
 from __future__ import annotations
 
 import math
@@ -47,7 +47,7 @@ TEMPERATURES: tuple[str, ...] = (
 
 
 class TemperaturesStructure(StructureDecoder):
-    """Represents temperatures data structures."""
+    """Represents a temperatures data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

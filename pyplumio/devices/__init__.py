@@ -1,4 +1,4 @@
-"""Contains device representations."""
+"""Contains device classes."""
 from __future__ import annotations
 
 import asyncio
@@ -26,7 +26,8 @@ def _handler_class_path(device_type_name: str) -> str:
     return f"{device_type_name.lower()}.{device_type_name}"
 
 
-# dictionary of device handler classes indexed by device types.
+# Dictionary of device handler classes indexed by device types.
+#
 # example: "69: ecomax.EcoMAX"
 DEVICE_TYPES: dict[int, str] = {
     device_type.value: _handler_class_path(device_type.name)
@@ -35,7 +36,7 @@ DEVICE_TYPES: dict[int, str] = {
 
 
 def get_device_handler(device_type: int) -> str:
-    """Return module and class for a given device type."""
+    """Return module name and class name for a given device type."""
     if device_type in DEVICE_TYPES:
         return "devices." + DEVICE_TYPES[device_type]
 
@@ -48,7 +49,7 @@ class Device(EventManager):
     queue: asyncio.Queue
 
     def __init__(self, queue: asyncio.Queue):
-        """Initialize the device object."""
+        """Initialize a new device."""
         super().__init__()
         self.queue = queue
 
@@ -59,9 +60,11 @@ class Device(EventManager):
         timeout: float | None = None,
         retries: int = SET_RETRIES,
     ) -> bool:
-        """Set a parameter value. Name should point
-        to a valid parameter object, otherwise raises
-        ParameterNotFoundError."""
+        """Set a parameter value.
+
+        Name should point to a valid parameter object, otherwise
+        raise ParameterNotFoundError.
+        """
         parameter = await self.get(name, timeout=timeout)
         if not isinstance(parameter, Parameter):
             raise ParameterNotFoundError(f"Parameter not found ({name})")
@@ -80,25 +83,25 @@ class Device(EventManager):
 
 
 class Addressable(Device):
-    """Represents the addressable device."""
+    """Represents an addressable device."""
 
     address: ClassVar[int]
     _frame_types: tuple[DataFrameDescription, ...] = ()
     _network: NetworkInfo
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
-        """Initialize the addressable object."""
+        """Initialize a new addressable device."""
         super().__init__(queue)
         self._network = network
 
     def handle_frame(self, frame: Frame) -> None:
-        """Handle received frame."""
+        """Handle a frame received from the addressable device."""
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)
 
     async def async_setup(self) -> bool:
-        """Setup addressable device object."""
+        """Setup an addressable device."""
         results = await asyncio.gather(
             *{
                 self.create_task(
@@ -125,8 +128,10 @@ class Addressable(Device):
         timeout: float = 3.0,
     ):
         """Send request for a data and wait for a value to become
-        available. If value is not available before timeout, retry
-        request."""
+        available.
+
+        If value is not available before timeout, retry request.
+        """
         request: Request = factory(
             get_frame_handler(frame_type), recipient=self.address
         )

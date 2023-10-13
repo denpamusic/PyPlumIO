@@ -1,4 +1,4 @@
-"""Contains output flags structure decoder."""
+"""Contains an output flags structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -14,7 +14,7 @@ ATTR_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
 
 
 class OutputFlagsStructure(StructureDecoder):
-    """Represents output flags structure."""
+    """Represents an output flags structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

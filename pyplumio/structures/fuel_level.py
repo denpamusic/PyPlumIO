@@ -1,4 +1,4 @@
-"""Contains fuel level structure decoder."""
+"""Contains a fuel level structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -11,7 +11,7 @@ ATTR_FUEL_LEVEL: Final = "fuel_level"
 
 
 class FuelLevelStructure(StructureDecoder):
-    """Represents fuel level sensor data structure."""
+    """Represents a fuel level sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

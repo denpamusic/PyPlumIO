@@ -1,4 +1,4 @@
-"""Contains thermostat parameter structure decoder."""
+"""Contains a thermostat parameters structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -25,19 +25,19 @@ THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
 class ThermostatParameter(Parameter):
-    """Represents thermostat parameter."""
+    """Represents a thermostat parameter."""
 
     device: Thermostat
     description: ThermostatParameterDescription
     offset: int
 
     def __init__(self, offset: int, *args, **kwargs):
-        """Initialize ThermostatParameter object."""
+        """Initialize a new thermostat parameter."""
         self.offset = offset
         super().__init__(*args, **kwargs)
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """Set a parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
 
@@ -45,22 +45,22 @@ class ThermostatParameter(Parameter):
 
     @property
     def value(self) -> ParameterValueType:
-        """Return parameter value."""
+        """A parameter value."""
         return self._value / self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
+        """Minimum allowed value."""
         return self._min_value / self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
+        """Maximum allowed value."""
         return self._max_value / self.description.multiplier
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
         return factory(
             "frames.requests.SetThermostatParameterRequest",
             recipient=self.device.parent.address,
@@ -76,12 +76,12 @@ class ThermostatParameter(Parameter):
 
 
 class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
-    """Represents thermostat binary parameter."""
+    """Represents a thermostat binary parameter."""
 
 
 @dataclass
 class ThermostatParameterDescription(ParameterDescription):
-    """Represents thermostat parameter description."""
+    """Represents a thermostat parameter description."""
 
     cls: type[ThermostatParameter] = ThermostatParameter
     multiplier: int = 1
@@ -112,7 +112,7 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
 def _empty_response(
     offset: int, data: EventDataType | None = None
 ) -> tuple[EventDataType, int]:
-    """Return empty response."""
+    """Return an empty response."""
     return (
         ensure_device_data(
             data,
@@ -123,14 +123,14 @@ def _empty_response(
 
 
 class ThermostatParametersStructure(StructureDecoder):
-    """Represent thermostat parameters data structure."""
+    """Represents a thermostat parameters data structure."""
 
     _offset: int
 
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
     ):
-        """Yields thermostat parameters."""
+        """Yield a single thermostat parameter."""
         for index in range(start, (start + end) // thermostats):
             description = THERMOSTAT_PARAMETERS[index]
             if (

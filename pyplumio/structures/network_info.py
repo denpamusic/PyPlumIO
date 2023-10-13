@@ -1,4 +1,4 @@
-"""Contains network info structure decoder."""
+"""Contains a network info structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -17,7 +17,7 @@ DEFAULT_NETMASK: Final = "255.255.255.0"
 
 @dataclass
 class EthernetParameters:
-    """Represents ethernet parameters."""
+    """Represents an ethernet parameters."""
 
     ip: str = DEFAULT_IP
     netmask: str = DEFAULT_NETMASK
@@ -27,7 +27,7 @@ class EthernetParameters:
 
 @dataclass
 class WirelessParameters(EthernetParameters):
-    """Represents wireless network parameters."""
+    """Represents a wireless network parameters."""
 
     ssid: str = ""
     encryption: EncryptionType = EncryptionType.NONE
@@ -36,7 +36,7 @@ class WirelessParameters(EthernetParameters):
 
 @dataclass
 class NetworkInfo:
-    """Represents network parameters."""
+    """Represents a network parameters."""
 
     eth: EthernetParameters = field(default_factory=EthernetParameters)
     wlan: WirelessParameters = field(default_factory=WirelessParameters)
@@ -44,10 +44,10 @@ class NetworkInfo:
 
 
 class NetworkInfoStructure(Structure):
-    """Represents network info data structure."""
+    """Represents a network info data structure."""
 
     def encode(self, data: EventDataType) -> bytearray:
-        """Encode data and return bytearray."""
+        """Encode data to the bytearray message."""
         message = bytearray()
         message += b"\x01"
         network_info = data[ATTR_NETWORK] if ATTR_NETWORK in data else NetworkInfo()

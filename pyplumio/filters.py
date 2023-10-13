@@ -45,16 +45,16 @@ def _significantly_changed(old, new) -> bool:
 
 @overload
 def _diffence_between(old: list, new: list) -> list:
-    """Return the difference between lists."""
+    """Return a difference between lists."""
 
 
 @overload
 def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> list:
-    """Return the difference between lists."""
+    """Return a difference between substractable."""
 
 
 def _diffence_between(old, new):
-    """Return the difference between values."""
+    """Return a difference between values."""
     if old == UNDEFINED:
         return None
 
@@ -68,18 +68,18 @@ def _diffence_between(old, new):
 
 
 class Filter(ABC):
-    """Represents base for value callback modifiers."""
+    """Represents a filter."""
 
     _callback: Any
     _value: Any = UNDEFINED
 
     def __init__(self, callback: EventCallbackType):
-        """Initialize new Filter object."""
+        """Initialize a new filter."""
         self._callback = callback
         self._value = UNDEFINED
 
     def __eq__(self, other) -> bool:
-        """Compare debounced callbacks."""
+        """Compare callbacks."""
         if isinstance(other, Filter):
             return self._callback == other._callback
 
@@ -94,7 +94,11 @@ class Filter(ABC):
 
 
 class _OnChange(Filter):
-    """Provides changed functionality to the callback."""
+    """Represents a value changed filter.
+
+    Calls a callback only when value is changed from the
+    previous callback call.
+    """
 
     async def __call__(self, new_value):
         """Set a new value for the callback."""
@@ -104,18 +108,27 @@ class _OnChange(Filter):
 
 
 def on_change(callback: EventCallbackType) -> _OnChange:
-    """Helper for a change callback filter."""
+    """
+    A value changed filter.
+
+    A callback function will only be called if value is changed from the
+    previous call.
+    """
     return _OnChange(callback)
 
 
 class _Debounce(Filter):
-    """Provides debounce functionality to the callback."""
+    """Represents a debounce filter.
+
+    Calls a callback only when value is stabilized across multiple
+    filter calls.
+    """
 
     _calls: int = 0
     _min_calls: int = 3
 
     def __init__(self, callback: EventCallbackType, min_calls: int):
-        """Initialize Debounce object."""
+        """Initialize a new debounce filter."""
         super().__init__(callback)
         self._calls = 0
         self._min_calls = min_calls
@@ -134,18 +147,26 @@ class _Debounce(Filter):
 
 
 def debounce(callback: EventCallbackType, min_calls) -> _Debounce:
-    """Helper method for a debounce callback filter."""
+    """A debounce filter.
+
+    A callback function will only called once value is stabilized
+    across multiple filter calls.
+    """
     return _Debounce(callback, min_calls)
 
 
 class _Throttle(Filter):
-    """Provides throttle functionality to the callback."""
+    """Represents a throttle filter.
+
+    Calls a callback only when certain amount of seconds passed
+    since the last call.
+    """
 
     _last_called: float | None
     _timeout: float
 
     def __init__(self, callback: EventCallbackType, seconds: float):
-        """Initialize Debounce object."""
+        """Initialize a new throttle filter."""
         super().__init__(callback)
         self._last_called = None
         self._timeout = seconds
@@ -162,15 +183,22 @@ class _Throttle(Filter):
 
 
 def throttle(callback: EventCallbackType, seconds: float) -> _Throttle:
-    """Helper method for a throttle callback filter."""
+    """A throttle filter.
+
+    A callback function will only be called once a certain amount of
+    seconds passed since the last call.
+    """
     return _Throttle(callback, seconds)
 
 
 class _Delta(Filter):
-    """Provides ability to pass call difference to the callback."""
+    """Represents a difference filter.
+
+    Calls a callback with a difference between two subsequent values.
+    """
 
     async def __call__(self, new_value):
-        """Set new value for the callback."""
+        """Set a new value for the callback."""
         if _significantly_changed(self._value, new_value):
             old_value = self._value
             self._value = new_value
@@ -179,20 +207,27 @@ class _Delta(Filter):
 
 
 def delta(callback: EventCallbackType) -> _Delta:
-    """Helper method for a delta callback filter."""
+    """A difference filter.
+
+    A callback function will be called with a difference between two
+    subsequent value.
+    """
     return _Delta(callback)
 
 
 class _Aggregate(Filter):
-    """Provides ability to sum value for some time before sending them
-    to the callback."""
+    """Represents an aggregate filter.
+
+    Calls a callback with a sum of values collected over a specified
+    time period.
+    """
 
     _sum: complex
     _last_update: float | None
     _timeout: float
 
     def __init__(self, callback: EventCallbackType, seconds: float):
-        """Initialize Aggregate object."""
+        """Initialize a new aggregate filter."""
         super().__init__(callback)
         self._last_update = time.monotonic()
         self._timeout = seconds
@@ -216,5 +251,9 @@ class _Aggregate(Filter):
 
 
 def aggregate(callback: EventCallbackType, seconds: float) -> _Aggregate:
-    """Helper method for a total callback filter."""
+    """An aggregate filter.
+
+    A callback function will be called with a sum of values collected
+    over a specified time period.
+    """
     return _Aggregate(callback, seconds)

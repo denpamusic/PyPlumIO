@@ -1,4 +1,4 @@
-"""Contains outputs structure decoder."""
+"""Contains a statuses structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -19,7 +19,7 @@ STATUSES: tuple[str, ...] = (
 
 
 class StatusesStructure(StructureDecoder):
-    """Represents statuses data structure."""
+    """Represents a statuses data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

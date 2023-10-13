@@ -1,4 +1,4 @@
-"""Contains boiler load structure decoder."""
+"""Contains a boiler load structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -11,7 +11,7 @@ ATTR_LOAD: Final = "load"
 
 
 class LoadStructure(StructureDecoder):
-    """Represents load sensor data structure."""
+    """Represents a boiler load sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

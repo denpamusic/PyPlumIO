@@ -1,4 +1,4 @@
-"""Contains various helper methods."""
+"""Contains various utility methods."""
 from __future__ import annotations
 
 import functools
@@ -21,7 +21,7 @@ unpack_header = struct.Struct("<BH4B").unpack_from
 
 
 def crc(data: bytes) -> int:
-    """Return the checksum."""
+    """Return a checksum."""
     return functools.reduce(lambda x, y: x ^ y, data)
 
 
@@ -57,22 +57,22 @@ def check_parameter(data: bytearray) -> bool:
 
 
 def ip4_to_bytes(address: str) -> bytes:
-    """Convert ip4 address to bytes."""
+    """Convert an IPv4 address to bytes."""
     return socket.inet_aton(address)
 
 
 def ip4_from_bytes(data: bytes) -> str:
-    """Convert bytes to ip4 address."""
+    """Convert bytes to an IPv4 address."""
     return socket.inet_ntoa(data)
 
 
 def ip6_to_bytes(address: str) -> bytes:
-    """Convert ip6 address to bytes."""
+    """Convert an IPv6 address to bytes."""
     return socket.inet_pton(socket.AF_INET6, address)
 
 
 def ip6_from_bytes(data: bytes) -> str:
-    """Convert bytes to ip6 address."""
+    """Convert bytes to an IPv6 address."""
     return socket.inet_ntop(socket.AF_INET6, data)
 
 

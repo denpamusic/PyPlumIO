@@ -1,4 +1,4 @@
-"""Contains tasks helper."""
+"""Contains a task manager class."""
 from __future__ import annotations
 
 import asyncio
@@ -7,15 +7,16 @@ from typing import Any
 
 
 class TaskManager:
-    """Represents task manager."""
+    """Represents a task manager."""
 
     _tasks: set[asyncio.Task]
 
     def __init__(self):
+        """Initialize a new task manager."""
         self._tasks = set()
 
     def create_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
-        """Create asyncio Task and store it's reference."""
+        """Create asyncio task and store a reference for it."""
         task: asyncio.Task = asyncio.create_task(coro)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
@@ -27,10 +28,10 @@ class TaskManager:
             task.cancel()
 
     async def wait_until_done(self, return_exceptions: bool = True) -> None:
-        """Wait for all task to complete."""
+        """Wait for all tasks to complete."""
         await asyncio.gather(*self._tasks, return_exceptions=return_exceptions)
 
     @property
     def tasks(self) -> set[asyncio.Task]:
-        """Return set of task references."""
+        """A list of tasks."""
         return self._tasks

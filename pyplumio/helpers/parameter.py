@@ -1,4 +1,4 @@
-"""Contains device parameter representation."""
+"""Contains a device parameter class."""
 from __future__ import annotations
 
 import asyncio
@@ -20,7 +20,7 @@ SET_RETRIES: Final = 5
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
-    """Normalize parameter value to integer."""
+    """Normalizes parameter value to an integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
 
@@ -33,7 +33,7 @@ def _normalize_parameter_value(value: ParameterValueType) -> int:
 
 @dataclass
 class ParameterDescription:
-    """Represents parameter description."""
+    """Represents a parameter description."""
 
     name: str
 
@@ -58,7 +58,7 @@ class Parameter:
         description: ParameterDescription,
         index: int = 0,
     ):
-        """Initialize Parameter object."""
+        """Initialize a new parameter."""
         self.index = index
         self.device = device
         self.description = description
@@ -69,7 +69,7 @@ class Parameter:
         self._index = index
 
     def __repr__(self) -> str:
-        """Returns serializable string representation."""
+        """Return serializable string representation."""
         return (
             self.__class__.__name__
             + f"(device={self.device.__class__.__name__}, "
@@ -78,11 +78,12 @@ class Parameter:
         )
 
     def _call_relational_method(self, method_to_call, other):
+        """Call specified relational method."""
         func = getattr(self._value, method_to_call)
         return func(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
-        """Return integer representation of parameter value."""
+        """Return integer representation of parameter's value."""
         return self._value
 
     def __add__(self, other) -> int:
@@ -126,11 +127,13 @@ class Parameter:
         return self._call_relational_method("__lt__", other)
 
     async def _confirm_parameter_change(self, parameter: Parameter) -> None:
-        """Callback for when parameter change is confirmed on the device."""
+        """A callback for when parameter change is confirmed on
+        the device.
+        """
         self._is_changed = False
 
     async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
-        """Set parameter value."""
+        """Set a parameter value."""
         if (value := _normalize_parameter_value(value)) == self._value:
             return True
 
@@ -162,32 +165,32 @@ class Parameter:
         return True
 
     def set_nowait(self, value: ParameterValueType, retries: int = SET_RETRIES) -> None:
-        """Set parameter value without waiting for result"""
+        """Set a parameter value without waiting."""
         self.device.create_task(self.set(value, retries))
 
     @property
     def is_changed(self) -> bool:
-        """Parameter change has not yet confirmed on the device."""
+        """Check if parameter change is confirmed on the device."""
         return self._is_changed
 
     @property
     def value(self) -> ParameterValueType:
-        """Return parameter value."""
+        """A parameter value."""
         return self._value
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
+        """Minimum allowed value."""
         return self._min_value
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
+        """Maximum allowed value."""
         return self._max_value
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
         raise NotImplementedError
 
 
@@ -195,32 +198,32 @@ class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
     async def turn_on(self) -> bool:
-        """Turn on parameter."""
+        """Set a parameter value to 'on'."""
         return await self.set(STATE_ON)
 
     async def turn_off(self) -> bool:
-        """Turn off parameter."""
+        """Set a parameter value to 'off'."""
         return await self.set(STATE_OFF)
 
     def turn_on_nowait(self) -> None:
-        """Turn on parameter without waiting."""
+        """Set a parameter state to 'on' without waiting."""
         self.set_nowait(STATE_ON)
 
     def turn_off_nowait(self) -> None:
-        """Turn off parameter without waiting."""
+        """Set a parameter state to 'off' without waiting."""
         self.set_nowait(STATE_OFF)
 
     @property
     def value(self) -> ParameterValueType:
-        """Return parameter value."""
+        """A parameter value."""
         return STATE_ON if self._value == 1 else STATE_OFF
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
+        """Minimum allowed value."""
         return STATE_OFF
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
+        """Maximum allowed value."""
         return STATE_ON

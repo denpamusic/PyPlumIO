@@ -1,4 +1,4 @@
-"""Contains regulator data structure decoder."""
+"""Contains a regulator data structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -17,7 +17,7 @@ REGDATA_VERSION: Final = "1.0"
 
 
 class RegulatorData(EventManager):
-    """Represents regulator data."""
+    """Represents a regulator data."""
 
 
 def _unpack_data(
@@ -37,7 +37,7 @@ def _decode_regulator_data(
     schema: list[tuple[int, DataType]],
     boolean_index: int = 0,
 ) -> EventDataType:
-    """Decode regulator data from the schema."""
+    """Decode a regulator data from the schema."""
     data: EventDataType = {}
     for sensor_id, data_type in schema:
         if not isinstance(data_type, Boolean) and boolean_index > 0:
@@ -54,7 +54,7 @@ def _decode_regulator_data(
 
 
 class RegulatorDataStructure(StructureDecoder):
-    """Represents regulator data structure."""
+    """Represents a regulator data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

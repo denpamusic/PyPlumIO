@@ -1,4 +1,4 @@
-"""Contains fan power structure decoder."""
+"""Contains a fan power structure decoder."""
 from __future__ import annotations
 
 import math
@@ -12,7 +12,7 @@ ATTR_FAN_POWER: Final = "fan_power"
 
 
 class FanPowerStructure(StructureDecoder):
-    """Represents fan power sensor data structure."""
+    """Represents a fan power sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

@@ -9,22 +9,22 @@ from pyplumio.structures.network_info import EthernetParameters, WirelessParamet
 def open_serial_connection(
     device: str, baudrate: int = 115200, **kwargs
 ) -> SerialConnection:
-    """Helper function for Serial connection."""
+    """Open a serial connection."""
     return SerialConnection(device, baudrate, **kwargs)
 
 
 def open_tcp_connection(host: str, port: int, **kwargs) -> TcpConnection:
-    """Helper function for TCP connection."""
+    """Open a TCP connection."""
     return TcpConnection(host, port, **kwargs)
 
 
 def ethernet_parameters(**kwargs) -> EthernetParameters:
-    """Return instance of ethernet parameters dataclass."""
+    """Return an instance of ethernet parameters dataclass."""
     return EthernetParameters(status=True, **kwargs)
 
 
 def wireless_parameters(**kwargs) -> WirelessParameters:
-    """Return instance of wireless parameters dataclass."""
+    """Return an instance of wireless parameters dataclass."""
     return WirelessParameters(status=True, **kwargs)
 
 

@@ -35,22 +35,22 @@ from pyplumio.structures.thermostat_sensors import ThermostatSensorsStructure
 
 
 class RegulatorDataMessage(Message):
-    """Represents current regulator data."""
+    """Represents a regulator data message."""
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode frame message."""
+        """Decode a frame message."""
         return {ATTR_REGDATA_DECODER: RegulatorDataStructure(self)}
 
 
 class SensorDataMessage(Message):
-    """Represents current device state."""
+    """Represents a sensor data message."""
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_SENSOR_DATA
 
     def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode frame message."""
+        """Decode a frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         try:
             sensors[ATTR_STATE] = message[offset]

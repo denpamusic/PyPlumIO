@@ -1,4 +1,4 @@
-"""Contains ecoSTER device representation."""
+"""Contains an ecoSTER class."""
 from __future__ import annotations
 
 from typing import ClassVar
@@ -8,6 +8,6 @@ from pyplumio.devices import Addressable
 
 
 class EcoSTER(Addressable):
-    """Represents the ecoSTER thermostat."""
+    """Represents an ecoSTER thermostat."""
 
     address: ClassVar[int] = DeviceType.ECOSTER

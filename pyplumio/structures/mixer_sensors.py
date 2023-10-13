@@ -1,4 +1,4 @@
-"""Contains mixers structure decoder."""
+"""Contains a mixer sensors structure decoder."""
 from __future__ import annotations
 
 import math
@@ -15,7 +15,7 @@ ATTR_MIXER_SENSORS: Final = "mixer_sensors"
 
 
 class MixerSensorsStructure(StructureDecoder):
-    """Represents mixers data structure."""
+    """Represents a mixer sensors data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

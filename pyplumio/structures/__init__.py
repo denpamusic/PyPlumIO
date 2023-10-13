@@ -9,7 +9,7 @@ from pyplumio.helpers.typing import EventDataType
 
 
 def ensure_device_data(data: EventDataType | None, *args) -> EventDataType:
-    """Make new or merge multiple device data."""
+    """Create or merge multiple device datasets."""
     if data is None:
         data = {}
 
@@ -21,17 +21,17 @@ def ensure_device_data(data: EventDataType | None, *args) -> EventDataType:
 
 @dataclass
 class StructureDataClass:
-    "Represents structure dataclass mixin."
+    "Represents a structure dataclass mixin."
 
     frame: Frame
 
 
 class Structure(ABC, StructureDataClass):
-    """Represents data structure."""
+    """Represents a data structure."""
 
     @abstractmethod
     def encode(self, data: EventDataType) -> bytearray:
-        """Encode device data to bytearray message."""
+        """Encode data to the bytearray message."""
 
     @abstractmethod
     def decode(
@@ -44,10 +44,10 @@ class Structure(ABC, StructureDataClass):
 
 
 class StructureDecoder(Structure, ABC):
-    """Represent structure that only handles decoding."""
+    """Represents a structure that only handles decoding."""
 
     def encode(self, data: EventDataType) -> bytearray:
-        """Encode device data to bytearray message."""
+        """Encode data to the bytearray message."""
         return bytearray()
 
     @abstractmethod

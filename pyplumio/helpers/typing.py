@@ -15,4 +15,4 @@ class SupportsSubtraction(Protocol):
     """Supports subtraction operation."""
 
     def __sub__(self, other):
-        """Subtracts a value."""
+        """Subtract a value."""

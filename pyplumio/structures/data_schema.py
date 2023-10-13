@@ -12,7 +12,7 @@ ATTR_SCHEMA: Final = "schema"
 
 
 class DataSchemaStructure(StructureDecoder):
-    """Represent data schema structure."""
+    """Represents a data schema structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

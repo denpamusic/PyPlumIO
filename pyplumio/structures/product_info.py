@@ -1,4 +1,4 @@
-"""Contains product info structure decoder."""
+"""Contains a product info structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -16,7 +16,7 @@ ATTR_PRODUCT: Final = "product"
 
 @dataclass
 class ProductInfo:
-    """Represents product info provided by UID response."""
+    """Represents a product info provided by an UID response."""
 
     type: ProductType
     id: int
@@ -27,7 +27,7 @@ class ProductInfo:
 
 
 class ProductInfoStructure(StructureDecoder):
-    """Represents product info data structure."""
+    """Represents a product info data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

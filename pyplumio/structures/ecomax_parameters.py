@@ -21,13 +21,13 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 
 
 class EcomaxParameter(Parameter):
-    """Represents ecoMAX parameter."""
+    """Represents an ecoMAX parameter."""
 
     device: Addressable
     description: EcomaxParameterDescription
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set parameter value."""
+        """Set a parameter value."""
         if isinstance(value, (int, float)):
             value *= self.description.multiplier
             value -= self.description.offset
@@ -36,22 +36,22 @@ class EcomaxParameter(Parameter):
 
     @property
     def value(self) -> ParameterValueType:
-        """Return parameter value."""
+        """A parameter value."""
         return (self._value + self.description.offset) / self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Return minimum allowed value."""
+        """Minimum allowed value."""
         return (self._min_value + self.description.offset) / self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Return maximum allowed value."""
+        """Maximum allowed value."""
         return (self._max_value + self.description.offset) / self.description.multiplier
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
 
         if self.description.name == ATTR_ECOMAX_CONTROL:
             return factory(
@@ -85,12 +85,12 @@ class EcomaxParameter(Parameter):
 
 
 class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
-    """Represents ecoMAX binary parameter."""
+    """Represents an ecoMAX binary parameter."""
 
 
 @dataclass
 class EcomaxParameterDescription(ParameterDescription):
-    """Represent ecoMAX parameter description."""
+    """Represents an ecoMAX parameter description."""
 
     cls: type[EcomaxParameter] = EcomaxParameter
     multiplier: int = 1
@@ -301,12 +301,12 @@ THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_P
 
 
 class EcomaxParametersStructure(StructureDecoder):
-    """Represents ecoMAX parameters data structure."""
+    """Represents an ecoMAX parameters structure."""
 
     _offset: int
 
     def _ecomax_parameter(self, message: bytearray, start: int, end: int):
-        """Yields ecoMAX parameters."""
+        """Yield a single ecoMAX parameter."""
         for index in range(start, start + end):
             if parameter := util.unpack_parameter(message, self._offset):
                 yield (index, parameter)

@@ -1,4 +1,4 @@
-"""Contains mixer device representation."""
+"""Contains a mixer class."""
 from __future__ import annotations
 
 import asyncio
@@ -17,16 +17,20 @@ from pyplumio.structures.product_info import ATTR_PRODUCT
 
 
 class Mixer(SubDevice):
-    """Represents the mixer sub-device."""
+    """Represents an mixer."""
 
     def __init__(self, queue: asyncio.Queue, parent: Addressable, index: int = 0):
-        """Initialize a new Mixer object."""
+        """Initialize a new mixer."""
         super().__init__(queue, parent, index)
         self.subscribe(ATTR_MIXER_SENSORS, self._add_sensors)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._add_parameters)
 
     async def _add_sensors(self, sensors: EventDataType) -> bool:
-        """Add mixer sensors."""
+        """Handle mixer sensors.
+
+        For each sensor dispatch an event with the
+        sensor's name and value.
+        """
         for name, value in sensors.items():
             await self.dispatch(name, value)
 
@@ -35,7 +39,11 @@ class Mixer(SubDevice):
     async def _add_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
-        """Add mixer parameters."""
+        """Handle mixer parameters.
+
+        For each parameter dispatch an event with the
+        parameter's name and value.
+        """
         product = await self.parent.get(ATTR_PRODUCT)
 
         for index, value in parameters:

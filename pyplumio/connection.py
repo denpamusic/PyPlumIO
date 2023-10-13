@@ -1,4 +1,4 @@
-"""Contains connection representation."""
+"""Contains a connection class."""
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -21,8 +21,10 @@ RECONNECT_TIMEOUT: Final = 20
 
 
 class Connection(ABC):
-    """Base connection representation. All specific connection classes
-    must me inherited from this class."""
+    """Represents a connection.
+
+    All specific connection classes MUST be inherited from this class.
+    """
 
     _kwargs: MutableMapping[str, Any]
     _protocol: Protocol
@@ -36,7 +38,7 @@ class Connection(ABC):
         wireless_parameters=None,
         **kwargs,
     ):
-        """Initialize Connection object."""
+        """Initialize a new connection."""
         self._kwargs = kwargs
         self._closing = False
         self._protocol = Protocol(
@@ -47,16 +49,16 @@ class Connection(ABC):
         self._reconnect_on_failure = reconnect_on_failure
 
     async def __aenter__(self):
-        """Provide entry point for context manager."""
+        """Provide an entry point for the context manager."""
         await self.connect()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
-        """Provide exit point for context manager."""
+        """Provide an exit point for the context manager."""
         await self.close()
 
     def __getattr__(self, name: str):
-        """Return attributes from the underlying protocol object."""
+        """Return an attributes from the underlying protocol object."""
         return getattr(self.protocol, name)
 
     async def _connect(self) -> None:
@@ -72,7 +74,7 @@ class Connection(ABC):
             raise ConnectionFailedError from connection_error
 
     async def _reconnect(self) -> None:
-        """Establish connection and reconnect on failure."""
+        """Try to connect and reconnect on failure."""
         try:
             await self._connect()
             return
@@ -80,7 +82,7 @@ class Connection(ABC):
             await self._connection_lost()
 
     async def _connection_lost(self) -> None:
-        """Callback to resume the connection on connection lost."""
+        """Resume connection on the connection loss."""
         if self._reconnect_on_failure and not self._closing:
             _LOGGER.error(
                 "Can't connect to the device, retrying in %.1f seconds",
@@ -90,9 +92,10 @@ class Connection(ABC):
             await self._reconnect()
 
     async def connect(self) -> None:
-        """Initialize the connection. This method initializes
-        connection via connect or reconnect routines, depending
-        on _reconnect_on_failure property."""
+        """Open the connection.
+
+        Initializes connection via connect or reconnect
+        routines, depending on '_reconnect_on_failure' property."""
         if self._reconnect_on_failure:
             await self._reconnect()
         else:
@@ -105,7 +108,7 @@ class Connection(ABC):
 
     @property
     def protocol(self) -> Protocol:
-        """Return protocol object."""
+        """A protocol object."""
         return self._protocol
 
     @abstractmethod
@@ -116,19 +119,19 @@ class Connection(ABC):
 
 
 class TcpConnection(Connection):
-    """Represents TCP connection."""
+    """Represents a TCP connection."""
 
     host: str
     port: int
 
     def __init__(self, host: str, port: int, **kwargs):
-        """Initialize TCP connection object."""
+        """Initialize a new TCP connection."""
         super().__init__(**kwargs)
         self.host = host
         self.port = port
 
     def __repr__(self):
-        """Return string representation of the class."""
+        """Return a string representation of the class."""
         return (
             f"TcpConnection(host={self.host}, port={self.port}, kwargs={self._kwargs})"
         )
@@ -144,19 +147,19 @@ class TcpConnection(Connection):
 
 
 class SerialConnection(Connection):
-    """Represents Serial connection."""
+    """Represents a serial connection."""
 
     device: str
     baudrate: int
 
     def __init__(self, device: str, baudrate: int = 115200, **kwargs):
-        """Initialize Serial connection object."""
+        """Initialize a new serial connection."""
         super().__init__(**kwargs)
         self.device = device
         self.baudrate = baudrate
 
     def __repr__(self):
-        """Return string representation of the class."""
+        """Return a string representation of the class."""
         return (
             f"SerialConnection(device={self.device}, baudrate={self.baudrate}, "
             + f"kwargs={self._kwargs})"

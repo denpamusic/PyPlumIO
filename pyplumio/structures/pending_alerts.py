@@ -1,4 +1,4 @@
-"""Contains alarms structure decoder."""
+"""Contains a pending alerts structure decoder."""
 from __future__ import annotations
 
 from typing import Final
@@ -10,7 +10,7 @@ ATTR_PENDING_ALERTS: Final = "pending_alerts"
 
 
 class PendingAlertsStructure(StructureDecoder):
-    """Represents current alert data structure."""
+    """Represents a pending alerts structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

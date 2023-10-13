@@ -1,4 +1,4 @@
-"""Contains lambda sensor structure decoder."""
+"""Contains a lambda sensor structure decoder."""
 from __future__ import annotations
 
 import math
@@ -15,7 +15,7 @@ ATTR_LAMBDA_LEVEL: Final = "lambda_level"
 
 
 class LambaSensorStructure(StructureDecoder):
-    """Represents lambda sensor data structure."""
+    """Represents a lambda sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

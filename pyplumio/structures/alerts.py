@@ -1,4 +1,4 @@
-"""Contains alarms structure decoder."""
+"""Contains an alerts structure decoder."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -20,7 +20,7 @@ ATTR_SECOND: Final = "second"
 
 
 def _convert_to_datetime(seconds: int) -> datetime:
-    """Converts timestamp to datetime."""
+    """Convert timestamp to a datetime object."""
     intervals: tuple[tuple[str, int], ...] = (
         (ATTR_YEAR, 32140800),  # 60sec * 60min * 24h * 31d * 12m
         (ATTR_MONTH, 2678400),  # 60sec * 60min * 24h * 31d
@@ -49,7 +49,7 @@ def _convert_to_datetime(seconds: int) -> datetime:
 
 @dataclass
 class Alert:
-    """Represents device alert."""
+    """Represents a device alert."""
 
     code: int
     from_dt: datetime
@@ -57,7 +57,7 @@ class Alert:
 
 
 class AlertsStructure(StructureDecoder):
-    """Represents alerts data structure."""
+    """Represents an alerts data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
