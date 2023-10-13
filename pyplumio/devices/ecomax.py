@@ -109,22 +109,22 @@ class EcoMAX(Addressable):
         super().__init__(queue, network)
         self._frame_versions = {}
         self._fuel_burned_timestamp_ns = time.perf_counter_ns()
-        self.subscribe(ATTR_SENSORS, self._add_ecomax_sensors)
-        self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
+        self.subscribe(ATTR_ECOMAX_PARAMETERS, self._handle_ecomax_parameters)
+        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
-        self.subscribe(ATTR_ECOMAX_PARAMETERS, self._add_ecomax_parameters)
+        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
+        self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
         self.subscribe(ATTR_REGDATA_DECODER, self._decode_regulator_data)
-        self.subscribe(ATTR_MIXER_SENSORS, self._add_mixer_sensors)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._add_mixer_parameters)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules)
         self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
-        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
-        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._add_thermostat_sensors)
-        self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
-        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._add_thermostat_parameters)
+        self.subscribe(ATTR_SENSORS, self._handle_ecomax_sensors)
+        self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
+        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
         self.subscribe(
             ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
         )
+        self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
+        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
 
     async def async_setup(self) -> bool:
         """Setup an ecoMAX controller."""
@@ -196,7 +196,7 @@ class EcoMAX(Addressable):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
-    async def _add_ecomax_sensors(self, sensors: EventDataType) -> bool:
+    async def _handle_ecomax_sensors(self, sensors: EventDataType) -> bool:
         """Handle ecoMAX sensors.
 
         For each sensor dispatch an event with the
@@ -207,7 +207,7 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_ecomax_parameters(
+    async def _handle_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterDataType]]
     ) -> bool:
         """Handle ecoMAX parameters.
@@ -234,7 +234,7 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_mixer_sensors(self, sensors: dict[int, EventDataType]) -> bool:
+    async def _handle_mixer_sensors(self, sensors: dict[int, EventDataType]) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
@@ -246,7 +246,7 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_mixer_parameters(
+    async def _handle_mixer_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
@@ -264,7 +264,9 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_thermostat_sensors(self, sensors: dict[int, EventDataType]) -> bool:
+    async def _handle_thermostat_sensors(
+        self, sensors: dict[int, EventDataType]
+    ) -> bool:
         """Handle thermostat sensors.
 
         For each sensor dispatch an event with the
@@ -278,7 +280,7 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _add_thermostat_parameters(
+    async def _handle_thermostat_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
     ) -> bool:
