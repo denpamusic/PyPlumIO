@@ -35,12 +35,12 @@ class DataType(ABC):
     @property
     @abstractmethod
     def value(self):
-        """Data value."""
+        """A data value."""
 
     @property
     @abstractmethod
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
 
 
 class Undefined0(DataType):
@@ -48,12 +48,12 @@ class Undefined0(DataType):
 
     @property
     def value(self) -> None:
-        """Data value."""
+        """A data value."""
         return None
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 0
 
 
@@ -62,12 +62,12 @@ class SignedChar(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_char(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 1
 
 
@@ -76,12 +76,12 @@ class Short(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_short(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 2
 
 
@@ -90,12 +90,12 @@ class Int(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_int(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 4
 
 
@@ -104,12 +104,12 @@ class Byte(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return ord(self._data)
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 1
 
 
@@ -118,12 +118,12 @@ class UnsignedShort(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_ushort(self._data)
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 2
 
 
@@ -132,12 +132,12 @@ class UnsignedInt(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_uint(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 4
 
 
@@ -146,12 +146,12 @@ class Float(DataType):
 
     @property
     def value(self) -> float:
-        """Data value."""
+        """A data value."""
         return util.unpack_float(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 4
 
 
@@ -160,12 +160,12 @@ class Undefined8(DataType):
 
     @property
     def value(self) -> None:
-        """Data value."""
+        """A data value."""
         return None
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 0
 
 
@@ -174,12 +174,12 @@ class Double(DataType):
 
     @property
     def value(self) -> float:
-        """Data value."""
+        """A data value."""
         return util.unpack_double(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 8
 
 
@@ -204,12 +204,12 @@ class Boolean(DataType):
 
     @property
     def value(self) -> bool:
-        """Data value."""
+        """A data value."""
         return bool(ord(self._data) & (1 << self._index))
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 1 if self._index == 7 else 0
 
 
@@ -218,12 +218,12 @@ class Int64(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_int64(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 8
 
 
@@ -232,12 +232,12 @@ class UInt64(DataType):
 
     @property
     def value(self) -> int:
-        """Data value."""
+        """A data value."""
         return util.unpack_uint64(self._data)[0]
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 8
 
 
@@ -246,12 +246,12 @@ class IPv4(DataType):
 
     @property
     def value(self) -> str:
-        """Data value."""
+        """A data value."""
         return util.ip4_from_bytes(self._data)
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 4
 
 
@@ -260,12 +260,12 @@ class IPv6(DataType):
 
     @property
     def value(self) -> str:
-        """Data value."""
+        """A data value."""
         return util.ip6_from_bytes(self._data)
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return 16
 
 
@@ -283,7 +283,7 @@ class String(DataType):
 
     @property
     def value(self) -> str:
-        """Data value."""
+        """A data value."""
         value = ""
         offset = 0
         if offset in self._data:
@@ -295,7 +295,7 @@ class String(DataType):
 
     @property
     def size(self) -> int:
-        """Data length."""
+        """A data length."""
         return len(self.value) + 1
 
 

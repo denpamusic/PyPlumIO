@@ -28,7 +28,7 @@ def _handler_class_path(device_type_name: str) -> str:
 
 # Dictionary of device handler classes indexed by device types.
 #
-# example: "69: ecomax.EcoMAX"
+# Example: "69: ecomax.EcoMAX"
 DEVICE_TYPES: dict[int, str] = {
     device_type.value: _handler_class_path(device_type.name)
     for device_type in DeviceType

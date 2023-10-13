@@ -15,7 +15,7 @@ class EventManager(TaskManager):
     _callbacks: dict[str | int, list[EventCallbackType]]
 
     def __init__(self):
-        """Initialize new event manager."""
+        """Initialize a new event manager."""
         super().__init__()
         self.data = {}
         self._events = {}
@@ -85,7 +85,7 @@ class EventManager(TaskManager):
         self.create_task(self.dispatch(name, value))
 
     def load(self, data: EventDataType) -> None:
-        """Load event data."""
+        """Load an event data."""
 
         async def _dispatch_events(data: EventDataType) -> None:
             """Dispatch events for a loaded data."""

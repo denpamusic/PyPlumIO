@@ -22,8 +22,8 @@ ECONET_VERSION: Final = 5
 
 
 def _handler_class_path(frame_type_name: str) -> str:
-    """Return handler class path from module name and
-    frame type name.
+    """Return handler class path from module name and frame type
+    name.
     """
     module, type_name = frame_type_name.split("_", 1)
     type_name = util.to_camelcase(type_name, overrides={"uid": "UID"})
@@ -32,7 +32,7 @@ def _handler_class_path(frame_type_name: str) -> str:
 
 # Dictionary of frame handler classes indexed by frame types.
 #
-# example: "24: requests.StopMasterRequest"
+# Example: "24: requests.StopMasterRequest"
 FRAME_TYPES: dict[int, str] = {
     frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
 }
@@ -66,7 +66,7 @@ class DataFrameDescription:
 
 @dataclass
 class FrameDataClass:
-    """Data class mixin for the frame."""
+    """Represents a frame data class mixin."""
 
     recipient: int = DeviceType.ALL
     sender: int = DeviceType.ECONET
@@ -104,20 +104,20 @@ class Frame(ABC, FrameDataClass):
             self.data = self.decode_message(self.message)
 
     def __len__(self) -> int:
-        """Return frame length."""
+        """Return a frame length."""
         return self.length
 
     def hex(self, *args, **kwargs) -> str:
-        """Return frame message represented as hex string."""
+        """Return a frame message represented as hex string."""
         return self.bytes.hex(*args, **kwargs)
 
     @abstractmethod
     def create_message(self, data: EventDataType) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
 
     @abstractmethod
     def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode frame message."""
+        """Decode a frame message."""
 
     @property
     def length(self) -> int:
@@ -132,7 +132,7 @@ class Frame(ABC, FrameDataClass):
 
     @property
     def header(self) -> bytearray:
-        """Frame header."""
+        """A frame header."""
         buffer = bytearray(HEADER_SIZE)
         util.pack_header(
             buffer,

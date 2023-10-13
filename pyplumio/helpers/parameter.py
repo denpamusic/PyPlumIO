@@ -20,7 +20,7 @@ SET_RETRIES: Final = 5
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
-    """Normalizes parameter value to an integer."""
+    """Normalize a parameter value to an integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
 
@@ -69,7 +69,7 @@ class Parameter:
         self._index = index
 
     def __repr__(self) -> str:
-        """Return serializable string representation."""
+        """Return a serializable string representation."""
         return (
             self.__class__.__name__
             + f"(device={self.device.__class__.__name__}, "
@@ -78,12 +78,12 @@ class Parameter:
         )
 
     def _call_relational_method(self, method_to_call, other):
-        """Call specified relational method."""
+        """Call a specified relational method."""
         func = getattr(self._value, method_to_call)
         return func(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
-        """Return integer representation of parameter's value."""
+        """Return an integer representation of parameter's value."""
         return self._value
 
     def __add__(self, other) -> int:

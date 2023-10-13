@@ -3,7 +3,7 @@ from __future__ import annotations
 
 
 def unpack_uid(message: bytearray, offset: int = 0) -> str:
-    """Decode and return complete UID string."""
+    """Decode and return a complete UID string."""
     uid_length = message[offset]
     offset += 1
     uid = message[offset : uid_length + offset]
@@ -12,7 +12,7 @@ def unpack_uid(message: bytearray, offset: int = 0) -> str:
 
 
 def _encode_base5(data: bytes) -> str:
-    """Encode bytes to base5 encoded string."""
+    """Encode bytes to a base5 encoded string."""
     key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
     number = int.from_bytes(data, "little")
     output: str = ""

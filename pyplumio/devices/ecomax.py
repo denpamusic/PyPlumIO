@@ -199,8 +199,8 @@ class EcoMAX(Addressable):
     async def _handle_ecomax_sensors(self, sensors: EventDataType) -> bool:
         """Handle ecoMAX sensors.
 
-        For each sensor dispatch an event with the
-        sensor's name and value.
+        For each sensor dispatch an event with the sensor's name and
+        value.
         """
         for name, value in sensors.items():
             await self.dispatch(name, value)
@@ -212,8 +212,8 @@ class EcoMAX(Addressable):
     ) -> bool:
         """Handle ecoMAX parameters.
 
-        For each parameter dispatch an event with the
-        parameter's name and value.
+        For each parameter dispatch an event with the parameter's name
+        and value.
         """
         product = await self.get(ATTR_PRODUCT)
         for index, value in parameters:
@@ -412,7 +412,7 @@ class EcoMAX(Addressable):
         try:
             return await self.data[ATTR_ECOMAX_CONTROL].turn_on()
         except KeyError:
-            _LOGGER.error("ecoMAX control is not available, please try later")
+            _LOGGER.error("ecoMAX control isn't available, please try later")
             return False
 
     async def turn_off(self) -> bool:
@@ -420,7 +420,7 @@ class EcoMAX(Addressable):
         try:
             return await self.data[ATTR_ECOMAX_CONTROL].turn_off()
         except KeyError:
-            _LOGGER.error("ecoMAX control is not available, please try later")
+            _LOGGER.error("ecoMAX control isn't available, please try later")
             return False
 
     def turn_on_nowait(self) -> None:
