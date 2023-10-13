@@ -24,6 +24,7 @@ ATTR_FIREPLACE_PUMP: Final = "fireplace_pump"
 ATTR_GCZ_CONTACT: Final = "gcz_contact"
 ATTR_BLOW_FAN1: Final = "blow_fan1"
 ATTR_BLOW_FAN2: Final = "blow_fan2"
+
 OUTPUTS: tuple[str, ...] = (
     ATTR_FAN,
     ATTR_FEEDER,
@@ -43,6 +44,8 @@ OUTPUTS: tuple[str, ...] = (
     ATTR_BLOW_FAN2,
 )
 
+OUTPUTS_SIZE: Final = 4
+
 
 class OutputsStructure(StructureDecoder):
     """Represents an outputs data structure."""
@@ -51,9 +54,14 @@ class OutputsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        outputs = util.unpack_ushort(message[offset : offset + 4])
-        data = ensure_device_data(data)
-        for index, output in enumerate(OUTPUTS):
-            data[output] = bool(outputs & int(math.pow(2, index)))
-
-        return data, offset + 4
+        outputs = util.unpack_ushort(message[offset : offset + OUTPUTS_SIZE])
+        return (
+            ensure_device_data(
+                data,
+                {
+                    output: bool(outputs & int(math.pow(2, index)))
+                    for index, output in enumerate(OUTPUTS)
+                },
+            ),
+            offset + OUTPUTS_SIZE,
+        )

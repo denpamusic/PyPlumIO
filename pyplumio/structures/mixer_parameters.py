@@ -121,15 +121,27 @@ ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
 class MixerParametersStructure(StructureDecoder):
     """Represents a mixer parameters data structure."""
 
-    _offset: int
+    _offset: int = 0
 
-    def _mixer_parameter(self, message: bytearray, start: int, end: int):
-        """Yield a single mixer parameter."""
-        for index in range(start, start + end):
-            if (parameter := util.unpack_parameter(message, self._offset)) is not None:
-                yield (index, parameter)
-
+    def _unpack_mixer_parameter(self, message: bytearray) -> ParameterDataType | None:
+        """Unpack a single mixer parameter."""
+        try:
+            return util.unpack_parameter(message, self._offset)
+        finally:
             self._offset += MIXER_PARAMETER_SIZE
+
+    def _unpack_mixer_parameters(
+        self, message: bytearray, start: int, end: int
+    ) -> list[tuple[int, ParameterDataType]]:
+        """Unpack mixer parameters."""
+        return [
+            (index, parameter)
+            for index, parameter in [
+                (index, self._unpack_mixer_parameter(message))
+                for index in range(start, start + end)
+            ]
+            if parameter is not None
+        ]
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
@@ -139,19 +151,18 @@ class MixerParametersStructure(StructureDecoder):
         end = message[offset + 2]
         mixers = message[offset + 3]
         self._offset = offset + 4
-
-        mixer_parameters: dict[int, list[tuple[int, ParameterDataType]]] = {}
-        for mixer in range(mixers):
-            if parameters := list(self._mixer_parameter(message, start, end)):
-                mixer_parameters[mixer] = parameters
-
         return (
             ensure_device_data(
                 data,
                 {
-                    ATTR_MIXER_PARAMETERS: (
-                        None if not mixer_parameters else mixer_parameters
-                    )
+                    ATTR_MIXER_PARAMETERS: {
+                        index: mixer_parameters
+                        for index, mixer_parameters in [
+                            (index, self._unpack_mixer_parameters(message, start, end))
+                            for index in range(mixers)
+                        ]
+                        if mixer_parameters
+                    }
                 },
             ),
             self._offset,

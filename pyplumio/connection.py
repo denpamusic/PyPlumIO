@@ -76,8 +76,7 @@ class Connection(ABC):
     async def _reconnect(self) -> None:
         """Try to connect and reconnect on failure."""
         try:
-            await self._connect()
-            return
+            return await self._connect()
         except ConnectionFailedError:
             await self._connection_lost()
 

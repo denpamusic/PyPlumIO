@@ -9,12 +9,12 @@ from pyplumio.structures.network_info import EthernetParameters, WirelessParamet
 def open_serial_connection(
     device: str, baudrate: int = 115200, **kwargs
 ) -> SerialConnection:
-    """Open a serial connection."""
+    """Create a serial connection."""
     return SerialConnection(device, baudrate, **kwargs)
 
 
 def open_tcp_connection(host: str, port: int, **kwargs) -> TcpConnection:
-    """Open a TCP connection."""
+    """Create a TCP connection."""
     return TcpConnection(host, port, **kwargs)
 
 

@@ -10,6 +10,8 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_FUEL_CONSUMPTION: Final = "fuel_consumption"
 
+FUEL_CONSUMPTION_SIZE: Final = 4
+
 
 class FuelConsumptionStructure(StructureDecoder):
     """Represents a fuel consumption sensor data structure."""
@@ -19,11 +21,10 @@ class FuelConsumptionStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         fuel_consumption = util.unpack_float(message[offset : offset + 4])[0]
-        offset += 4
         if not math.isnan(fuel_consumption):
             return (
                 ensure_device_data(data, {ATTR_FUEL_CONSUMPTION: fuel_consumption}),
-                offset,
+                offset + FUEL_CONSUMPTION_SIZE,
             )
 
-        return ensure_device_data(data), offset
+        return ensure_device_data(data), offset + FUEL_CONSUMPTION_SIZE

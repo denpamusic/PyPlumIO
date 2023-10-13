@@ -72,23 +72,37 @@ class NetworkInfoStructure(Structure):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        network_info = NetworkInfo(
-            eth=EthernetParameters(
-                ip=util.ip4_from_bytes(message[offset : offset + 4]),
-                netmask=util.ip4_from_bytes(message[offset + 4 : offset + 8]),
-                gateway=util.ip4_from_bytes(message[offset + 8 : offset + 12]),
-                status=bool(message[offset + 13]),
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_NETWORK: NetworkInfo(
+                        eth=EthernetParameters(
+                            ip=util.ip4_from_bytes(message[offset : offset + 4]),
+                            netmask=util.ip4_from_bytes(
+                                message[offset + 4 : offset + 8]
+                            ),
+                            gateway=util.ip4_from_bytes(
+                                message[offset + 8 : offset + 12]
+                            ),
+                            status=bool(message[offset + 13]),
+                        ),
+                        wlan=WirelessParameters(
+                            ip=util.ip4_from_bytes(message[offset + 13 : offset + 17]),
+                            netmask=util.ip4_from_bytes(
+                                message[offset + 17 : offset + 21]
+                            ),
+                            gateway=util.ip4_from_bytes(
+                                message[offset + 21 : offset + 25]
+                            ),
+                            encryption=EncryptionType(int(message[offset + 26])),
+                            signal_quality=int(message[offset + 27]),
+                            status=bool(message[offset + 28]),
+                            ssid=util.unpack_string(message, offset + 33),
+                        ),
+                        server_status=bool(message[offset + 25]),
+                    )
+                },
             ),
-            wlan=WirelessParameters(
-                ip=util.ip4_from_bytes(message[offset + 13 : offset + 17]),
-                netmask=util.ip4_from_bytes(message[offset + 17 : offset + 21]),
-                gateway=util.ip4_from_bytes(message[offset + 21 : offset + 25]),
-                encryption=EncryptionType(int(message[offset + 26])),
-                signal_quality=int(message[offset + 27]),
-                status=bool(message[offset + 28]),
-                ssid=util.unpack_string(message, offset + 33),
-            ),
-            server_status=bool(message[offset + 25]),
+            offset + 25,
         )
-
-        return ensure_device_data(data, {ATTR_NETWORK: network_info}), offset

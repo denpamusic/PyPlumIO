@@ -13,6 +13,8 @@ ATTR_LAMBDA_STATE: Final = "lambda_state"
 ATTR_LAMBDA_TARGET: Final = "lambda_target"
 ATTR_LAMBDA_LEVEL: Final = "lambda_level"
 
+LAMBDA_LEVEL_SIZE: Final = 4
+
 
 class LambaSensorStructure(StructureDecoder):
     """Represents a lambda sensor data structure."""
@@ -24,18 +26,15 @@ class LambaSensorStructure(StructureDecoder):
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1
 
-        state = message[offset]
-        target = message[offset + 1]
-        level = util.unpack_ushort(message[offset + 2 : offset + 4])
-
+        level = util.unpack_ushort(message[offset + 2 : offset + LAMBDA_LEVEL_SIZE])
         return (
             ensure_device_data(
                 data,
                 {
-                    ATTR_LAMBDA_STATE: state,
-                    ATTR_LAMBDA_TARGET: target,
+                    ATTR_LAMBDA_STATE: message[offset],
+                    ATTR_LAMBDA_TARGET: message[offset + 1],
                     ATTR_LAMBDA_LEVEL: None if math.isnan(level) else (level / 10),
                 },
             ),
-            offset + 4,
+            offset + LAMBDA_LEVEL_SIZE,
         )

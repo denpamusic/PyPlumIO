@@ -192,12 +192,12 @@ class SchedulesStructure(Structure):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_index = message[offset + 1]
-        last_index = message[offset + 2]
+        start = message[offset + 1]
+        end = message[offset + 2]
         offset += 3
         parameters: list[tuple[int, ParameterDataType]] = []
         schedules: list[tuple[int, list[list[bool]]]] = []
-        for _ in range(first_index, first_index + last_index):
+        for _ in range(start, start + end):
             index = message[offset]
             switch = (message[offset + 1], 0, 1)
             parameter = unpack_parameter(message, offset + 2)

@@ -9,6 +9,8 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_FUEL_LEVEL: Final = "fuel_level"
 
+FUEL_LEVEL_SIZE: Final = 1
+
 
 class FuelLevelStructure(StructureDecoder):
     """Represents a fuel level sensor data structure."""
@@ -18,6 +20,9 @@ class FuelLevelStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
-            return ensure_device_data(data), offset + 1
+            return ensure_device_data(data), offset + FUEL_LEVEL_SIZE
 
-        return ensure_device_data(data, {ATTR_FUEL_LEVEL: message[offset]}), offset + 1
+        return (
+            ensure_device_data(data, {ATTR_FUEL_LEVEL: message[offset]}),
+            offset + FUEL_LEVEL_SIZE,
+        )

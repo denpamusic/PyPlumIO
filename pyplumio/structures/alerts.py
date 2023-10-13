@@ -18,6 +18,8 @@ ATTR_HOUR: Final = "hour"
 ATTR_MINUTE: Final = "minute"
 ATTR_SECOND: Final = "second"
 
+ALERT_SIZE: Final = 9
+
 
 def _convert_to_datetime(seconds: int) -> datetime:
     """Convert timestamp to a datetime object."""
@@ -59,29 +61,46 @@ class Alert:
 class AlertsStructure(StructureDecoder):
     """Represents an alerts data structure."""
 
+    _offset: int = 0
+
+    def _unpack_alert(self, message: bytearray) -> Alert:
+        """Unpack an alert."""
+        try:
+            code = message[self._offset]
+            code = AlertType(code)
+        except ValueError:
+            pass
+
+        from_dt = _convert_to_datetime(
+            util.unpack_uint(message[self._offset + 1 : self._offset + 5])[0]
+        )
+        to_dt = None
+        if util.check_parameter(message[self._offset + 5 : self._offset + ALERT_SIZE]):
+            to_dt = _convert_to_datetime(
+                util.unpack_uint(message[self._offset + 5 : self._offset + ALERT_SIZE])[
+                    0
+                ]
+            )
+
+        self._offset += ALERT_SIZE
+
+        return Alert(code, from_dt, to_dt)
+
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        first_index = message[offset + 1]
-        last_index = message[offset + 2]
-        offset += 3
-        alerts: list[Alert] = []
-        for _ in range(first_index, first_index + last_index):
-            try:
-                code = message[offset]
-                code = AlertType(code)
-            except ValueError:
-                pass
-
-            from_ts = util.unpack_uint(message[offset + 1 : offset + 5])[0]
-            from_dt = _convert_to_datetime(from_ts)
-            to_dt = None
-            if util.check_parameter(message[offset + 5 : offset + 9]):
-                to_ts = util.unpack_uint(message[offset + 5 : offset + 9])[0]
-                to_dt = _convert_to_datetime(to_ts)
-
-            alerts.append(Alert(code, from_dt, to_dt))
-            offset += 9
-
-        return ensure_device_data(data, {ATTR_ALERTS: alerts}), offset
+        start = message[offset + 1]
+        end = message[offset + 2]
+        self._offset = offset + 3
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_ALERTS: [
+                        self._unpack_alert(message) for _ in range(start, start + end)
+                    ]
+                },
+            ),
+            self._offset,
+        )

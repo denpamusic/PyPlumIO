@@ -10,6 +10,8 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_POWER: Final = "power"
 
+POWER_SIZE: Final = 4
+
 
 class PowerStructure(StructureDecoder):
     """Represents a boiler power sensor data structure."""
@@ -19,8 +21,7 @@ class PowerStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         power = util.unpack_float(message[offset : offset + 4])[0]
-        offset += 4
         if not math.isnan(power):
-            return ensure_device_data(data, {ATTR_POWER: power}), offset
+            return ensure_device_data(data, {ATTR_POWER: power}), offset + POWER_SIZE
 
-        return ensure_device_data(data), offset
+        return ensure_device_data(data), offset + POWER_SIZE

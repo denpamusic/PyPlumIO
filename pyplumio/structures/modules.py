@@ -38,35 +38,46 @@ class ConnectedModules:
     panel: str | None = None
 
 
-def _get_module_version(
-    module_name: str, message: bytearray, offset: int = 0
-) -> tuple[str | None, int]:
-    """Get a module version."""
-    if message[offset] == BYTE_UNDEFINED:
-        return None, (offset + 1)
-
-    version_data = struct.unpack("<BBB", message[offset : offset + 3])
-    module_version = ".".join(str(i) for i in version_data)
-    offset += 3
-
-    if module_name == ATTR_MODULE_A:
-        vendor_code, vendor_version = struct.unpack("<BB", message[offset : offset + 2])
-        module_version += f".{chr(vendor_code)}{str(vendor_version)}"
-        offset += 2
-
-    return module_version, offset
-
-
 class ModulesStructure(StructureDecoder):
     """Represents a modules data structure."""
+
+    _offset: int = 0
+
+    def _unpack_module_version(self, module: str, message: bytearray) -> str | None:
+        """Unpack a module version."""
+        if message[self._offset] == BYTE_UNDEFINED:
+            self._offset += 1
+            return None
+
+        version_data = struct.unpack("<BBB", message[self._offset : self._offset + 3])
+        version = ".".join(str(i) for i in version_data)
+        self._offset += 3
+
+        if module == ATTR_MODULE_A:
+            vendor_code, vendor_version = struct.unpack(
+                "<BB", message[self._offset : self._offset + 2]
+            )
+            version += f".{chr(vendor_code) + str(vendor_version)}"
+            self._offset += 2
+
+        return version
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        connected_modules = ConnectedModules()
-        for module_name in MODULES:
-            module_version, offset = _get_module_version(module_name, message, offset)
-            setattr(connected_modules, module_name, module_version)
-
-        return ensure_device_data(data, {ATTR_MODULES: connected_modules}), offset
+        self._offset = offset
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_MODULES: ConnectedModules(
+                        **{
+                            module: self._unpack_module_version(module, message)
+                            for module in MODULES
+                        }
+                    )
+                },
+            ),
+            self._offset,
+        )

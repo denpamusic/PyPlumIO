@@ -25,6 +25,7 @@ ATTR_HYDRAULIC_COUPLER_TEMP: Final = "hydraulic_coupler_temp"
 ATTR_EXCHANGER_TEMP: Final = "exchanger_temp"
 ATTR_AIR_IN_TEMP: Final = "air_in_temp"
 ATTR_AIR_OUT_TEMP: Final = "air_out_temp"
+
 TEMPERATURES: tuple[str, ...] = (
     ATTR_HEATING_TEMP,
     ATTR_FEEDER_TEMP,
@@ -45,25 +46,43 @@ TEMPERATURES: tuple[str, ...] = (
     ATTR_AIR_OUT_TEMP,
 )
 
+TEMPERATURE_SIZE: Final = 5
+
 
 class TemperaturesStructure(StructureDecoder):
     """Represents a temperatures data structure."""
+
+    _offset: int = 0
+
+    def _unpack_temperature(self, message: bytearray) -> tuple[str, float]:
+        """Unpack a temperature."""
+        index = message[self._offset]
+        temp = util.unpack_float(message[self._offset + 1 : self._offset + 5])[0]
+        if math.isnan(temp) or len(TEMPERATURES) < index <= 0:
+            temp = None
+
+        try:
+            return TEMPERATURES[index], temp
+        finally:
+            self._offset += TEMPERATURE_SIZE
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_device_data(data)
-        temp_count = message[offset]
-        offset += 1
-        for _ in range(temp_count):
-            index = message[offset]
-            temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
-
-            if (not math.isnan(temp)) and 0 <= index < len(TEMPERATURES):
-                # Temperature exists and index is in the correct range.
-                data[TEMPERATURES[index]] = temp
-
-            offset += 5
-
-        return data, offset
+        temperatures = message[offset]
+        self._offset = offset + 1
+        return (
+            ensure_device_data(
+                data,
+                {
+                    name: temperature
+                    for name, temperature in [
+                        self._unpack_temperature(message) for _ in range(temperatures)
+                    ]
+                    if temperature is not None
+                },
+            ),
+            self._offset,
+        )

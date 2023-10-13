@@ -10,24 +10,39 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_SCHEMA: Final = "schema"
 
+BLOCK_SIZE: Final = 3
+
 
 class DataSchemaStructure(StructureDecoder):
     """Represents a data schema structure."""
+
+    _offset: int = 0
+
+    def _unpack_block(self, message: bytearray) -> tuple[int, DataType]:
+        """Unpack a block."""
+        param_type = message[self._offset]
+        param_id = util.unpack_ushort(
+            message[self._offset + 1 : self._offset + BLOCK_SIZE]
+        )
+
+        try:
+            return param_id, DATA_TYPES[param_type]()
+        finally:
+            self._offset += BLOCK_SIZE
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        blocks_count = util.unpack_ushort(message[offset : offset + 2])
-        offset += 2
-        if blocks_count == 0:
-            return ensure_device_data(data), offset
+        blocks = util.unpack_ushort(message[offset : offset + 2])
+        self._offset = offset + 2
+        if blocks == 0:
+            return ensure_device_data(data), self._offset
 
-        schema: list[tuple[int, DataType]] = []
-        for _ in range(blocks_count):
-            param_type = message[offset]
-            param_id = util.unpack_ushort(message[offset + 1 : offset + 3])
-            schema.append((param_id, DATA_TYPES[param_type]()))
-            offset += 3
-
-        return ensure_device_data(data, {ATTR_SCHEMA: schema}), offset
+        return (
+            ensure_device_data(
+                data,
+                {ATTR_SCHEMA: [self._unpack_block(message) for _ in range(blocks)]},
+            ),
+            self._offset,
+        )

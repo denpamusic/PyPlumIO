@@ -10,7 +10,7 @@ from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import EventDataType, ParameterValueType
+from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
@@ -305,30 +305,32 @@ class EcomaxParametersStructure(StructureDecoder):
 
     _offset: int
 
-    def _ecomax_parameter(self, message: bytearray, start: int, end: int):
-        """Yield a single ecoMAX parameter."""
-        for index in range(start, start + end):
-            if parameter := util.unpack_parameter(message, self._offset):
-                yield (index, parameter)
-
+    def _unpack_ecomax_parameter(self, message: bytearray) -> ParameterDataType | None:
+        """Unpack an ecoMAX parameter."""
+        try:
+            return util.unpack_parameter(message, self._offset)
+        finally:
             self._offset += ECOMAX_PARAMETER_SIZE
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-
         start = message[offset + 1]
         end = message[offset + 2]
         self._offset = offset + 3
-
         return (
             ensure_device_data(
                 data,
                 {
-                    ATTR_ECOMAX_PARAMETERS: list(
-                        self._ecomax_parameter(message, start, end)
-                    )
+                    ATTR_ECOMAX_PARAMETERS: [
+                        (index, parameter)
+                        for index, parameter in [
+                            (index, self._unpack_ecomax_parameter(message))
+                            for index in range(start, start + end)
+                        ]
+                        if parameter is not None
+                    ]
                 },
             ),
             self._offset,

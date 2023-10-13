@@ -10,26 +10,46 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_FRAME_VERSIONS: Final = "frame_versions"
 
+FRAME_VERSION_SIZE: Final = 3
+
 
 class FrameVersionsStructure(StructureDecoder):
     """Represents a frame version data structure."""
+
+    _offset: int = 0
+
+    def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:
+        """Unpack frame versions."""
+        try:
+            frame_type = message[self._offset]
+            frame_type = FrameType(frame_type)
+        except ValueError:
+            pass
+
+        version = util.unpack_ushort(
+            message[self._offset + 1 : self._offset + FRAME_VERSION_SIZE]
+        )
+
+        try:
+            return frame_type, version
+        finally:
+            self._offset += FRAME_VERSION_SIZE
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        frame_versions: dict[int, int] = {}
-        frame_count = message[offset]
-        offset += 1
-        for _ in range(frame_count):
-            try:
-                frame_type = message[offset]
-                frame_type = FrameType(frame_type)
-            except ValueError:
-                pass
-
-            version = util.unpack_ushort(message[offset + 1 : offset + 3])
-            frame_versions[frame_type] = version
-            offset += 3
-
-        return ensure_device_data(data, {ATTR_FRAME_VERSIONS: frame_versions}), offset
+        frame_versions = message[offset]
+        self._offset = offset + 1
+        return (
+            ensure_device_data(
+                data,
+                {
+                    ATTR_FRAME_VERSIONS: dict(
+                        self._unpack_frame_versions(message)
+                        for _ in range(frame_versions)
+                    )
+                },
+            ),
+            self._offset,
+        )

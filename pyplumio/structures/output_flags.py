@@ -12,6 +12,8 @@ ATTR_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
 ATTR_CIRCULATION_PUMP_FLAG: Final = "circulation_pump_flag"
 ATTR_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
 
+OUTPUT_FLAGS_SIZE: Final = 4
+
 
 class OutputFlagsStructure(StructureDecoder):
     """Represents an output flags structure."""
@@ -20,7 +22,7 @@ class OutputFlagsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        output_flags = util.unpack_ushort(message[offset : offset + 4])
+        output_flags = util.unpack_ushort(message[offset : offset + OUTPUT_FLAGS_SIZE])
         return (
             ensure_device_data(
                 data,
@@ -31,5 +33,5 @@ class OutputFlagsStructure(StructureDecoder):
                     ATTR_SOLAR_PUMP_FLAG: bool(output_flags & 0x800),
                 },
             ),
-            offset + 4,
+            offset + OUTPUT_FLAGS_SIZE,
         )

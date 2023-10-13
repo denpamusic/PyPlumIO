@@ -10,12 +10,15 @@ ATTR_HEATING_TARGET: Final = "heating_target"
 ATTR_HEATING_STATUS: Final = "heating_status"
 ATTR_WATER_HEATER_TARGET: Final = "water_heater_target"
 ATTR_WATER_HEATER_STATUS: Final = "water_heater_status"
+
 STATUSES: tuple[str, ...] = (
     ATTR_HEATING_TARGET,
     ATTR_HEATING_STATUS,
     ATTR_WATER_HEATER_TARGET,
     ATTR_WATER_HEATER_STATUS,
 )
+
+STATUSES_SIZE: Final = 4
 
 
 class StatusesStructure(StructureDecoder):
@@ -25,8 +28,13 @@ class StatusesStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_device_data(data)
-        for index, status in enumerate(STATUSES):
-            data[status] = message[offset + index]
-
-        return data, offset + 4
+        return (
+            ensure_device_data(
+                data,
+                {
+                    status: message[offset + index]
+                    for index, status in enumerate(STATUSES)
+                },
+            ),
+            offset + STATUSES_SIZE,
+        )

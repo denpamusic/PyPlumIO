@@ -9,6 +9,8 @@ from pyplumio.structures import StructureDecoder, ensure_device_data
 
 ATTR_LOAD: Final = "load"
 
+LOAD_SIZE: Final = 1
+
 
 class LoadStructure(StructureDecoder):
     """Represents a boiler load sensor data structure."""
@@ -18,6 +20,9 @@ class LoadStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
-            return ensure_device_data(data), offset + 1
+            return ensure_device_data(data), offset + LOAD_SIZE
 
-        return ensure_device_data(data, {ATTR_LOAD: message[offset]}), offset + 1
+        return (
+            ensure_device_data(data, {ATTR_LOAD: message[offset]}),
+            offset + LOAD_SIZE,
+        )

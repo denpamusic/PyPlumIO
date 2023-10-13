@@ -34,10 +34,7 @@ class ProductInfoStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
-        uid = unpack_uid(message, offset)
         logo, image = struct.unpack_from("<HH", message)
-        model = util.unpack_string(message, offset + 16)
-
         return (
             ensure_device_data(
                 data,
@@ -45,10 +42,10 @@ class ProductInfoStructure(StructureDecoder):
                     ATTR_PRODUCT: ProductInfo(
                         type=ProductType(product_type),
                         id=product_id,
-                        uid=uid,
+                        uid=unpack_uid(message, offset),
                         logo=logo,
                         image=image,
-                        model=model,
+                        model=util.unpack_string(message, offset + 16),
                     )
                 },
             ),

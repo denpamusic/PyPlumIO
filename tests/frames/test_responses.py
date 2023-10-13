@@ -115,7 +115,7 @@ def test_mixer_parameters_response(
 
     # Test with empty parameters.
     frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
-    assert frame1.data == {ATTR_MIXER_PARAMETERS: None}
+    assert frame1.data == {ATTR_MIXER_PARAMETERS: {}}
 
 
 def test_thermostat_parameters_response(
@@ -148,7 +148,7 @@ def test_thermostat_parameters_response_with_no_parameters() -> None:
     assert frame_data == {
         ATTR_THERMOSTAT_COUNT: 2,
         ATTR_THERMOSTAT_PROFILE: None,
-        ATTR_THERMOSTAT_PARAMETERS: None,
+        ATTR_THERMOSTAT_PARAMETERS: {},
     }
 
 
