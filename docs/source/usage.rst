@@ -66,11 +66,10 @@ context manager.
         """Opens the connection and gets the ecoMAX device."""
         async with pyplumio.open_tcp_connection("localhost", port=8899) as conn:
             try:
-                # Get the ecoMAX device within 10 seconds or
-                # timeout.
+                # Get the ecoMAX device within 10 seconds or timeout.
                 ecomax = await conn.get("ecomax", timeout=10)
             except asyncio.TimeoutError:
-                # Log the error, if device times out.
+                # If device times out, log the error.
                 _LOGGER.error("Failed to get the device within 10 seconds")
         
 
@@ -99,11 +98,10 @@ using Python's context manager.
         await connection.connect()
         
         try:
-            # Get the ecoMAX device within 10 seconds or
-            # timeout.
+            # Get the ecoMAX device within 10 seconds or timeout.
             ecomax = await connection.get("ecomax", timeout=10)
         except asyncio.TimeoutError:
-            # Log the error, if device times out.
+            # If device times out, log the error.
             _LOGGER.error("Failed to get the device within 10 seconds")
         
         # Close the connection.
@@ -148,7 +146,7 @@ and close the connection.
             # Get the ecoMAX device.
             ecomax = await conn.get("ecomax")
 
-            # Get heating temperature.
+            # Get the heating temperature.
             heating_temp = await ecomax.get("heating_temp")
             ...
             
@@ -169,7 +167,7 @@ it is available, otherwise it'll print ``60``.
 
 .. code-block:: python
 
-    # Print heating temperature or 60 it the property is not available.
+    # Print the heating temperature or 60 it property is not available.
     heating_temp = ecomax.get_nowait("heating_temp", default=60)
     print(heating_temp)
 
@@ -186,10 +184,10 @@ available and print it out.
 
 .. code-block:: python
 
-    # Wait until heating_temp property is available.
+    # Wait until the 'heating_temp' property becomes available.
     await ecomax.wait_for("heating_temp")
 
-    # Output heating_temp property.
+    # Output the 'heating_temp' property.
     print(ecomax.heating_temp)
 
 Writing
@@ -258,8 +256,8 @@ attributes of parameter object. Both values are **inclusive**.
 
     ecomax = await connection.get("ecomax")
     target_temp = await ecomax.get("heating_target_temp")
-    print(target_temp.min_value)  # Prints minimum allowed target temperature.
-    print(target_temp.max_value)  # Prints maximum allowed target temperature.
+    print(target_temp.min_value)  # Minimum allowed target temperature.
+    print(target_temp.max_value)  # Maximum allowed target temperature.
 
 Binary parameters
 ^^^^^^^^^^^^^^^^^
@@ -316,10 +314,10 @@ Examples
             # Get the ecoMAX device.
             ecomax = await conn.get("ecomax")
 
-            # Turn on the controller without waiting for the result.
+            # Turn on controller without waiting for the result.
             ecomax.turn_on_nowait()
 
-            # Set heating temperature to 65 degreess.
+            # Set heating temperature to 65 degrees.
             result = await ecomax.set("heating_target_temp", 65)
             if result:
                 print("Heating temperature is set to 65.")
@@ -399,7 +397,7 @@ callback to be awaited. Filters can also be chained.
 
     from pyplumio.filter import throttle, on_change
 
-    # Awaits the callback on value change but no faster than
+    # Await the callback on value change but no faster than
     # once per 5 seconds.
     ecomax.subscribe("heating_temp", throttle(on_change(my_callback), seconds=5))
 
@@ -430,7 +428,7 @@ then calls the callback with the sum of values collected.
 
     from pyplumio.filters import aggregate
 
-    # Awaits the callback with the fuel burned during 30 seconds.
+    # Await the callback with the fuel burned during 30 seconds.
     ecomax.subscribe("fuel_burned", aggregate(my_callback, seconds=30))
 
 On change
@@ -448,7 +446,7 @@ value is changed.
 
     from pyplumio.filter import on_change
 
-    # Awaits the callback once heating_temp value is changed since
+    # Await the callback once heating_temp value is changed since
     # last call.
     ecomax.subscribe("heating_temp", on_change(my_callback))
 
@@ -464,7 +462,7 @@ multiple calls, specified in ``min_calls`` argument.
 
     from pyplumio.filter import debounce
 
-    # Awaits the callback once outside_temp stays the same for three
+    # Await the callback once outside_temp stays the same for three
     # consecutive times it's received by PyPlumIO.
     ecomax.subscribe("outside_temp", debounce(my_callback, min_calls=3))
 
@@ -479,7 +477,7 @@ This filter limits how often your callback will be awaited.
 
     from pyplumio.filter import throttle
 
-    # Awaits the callback once per 5 seconds, regardless of 
+    # Await the callback once per 5 seconds, regardless of 
     # how often outside_temp value is being processed by PyPlumIO.
     ecomax.subscribe("outside_temp", throttle(my_callback, seconds=5))
 
@@ -496,7 +494,7 @@ It can be used with numeric values, dictionaries, tuples or lists.
 
     from pyplumio.filter import delta
 
-    # Awaits the callback with difference between values in current
+    # Await the callback with difference between values in current
     # and last await.
     ecomax.subscribe("outside_temp", delta(my_callback))
 
@@ -531,7 +529,7 @@ you can use to access the values.
 
 .. code-block:: python
 
-    # Gets regulator data with the 1280 key.
+    # Get regulator data with the 1280 key.
     heating_target = regdata.get_nowait(1280)
 
 To see every value stored in the RegulatorData object, you can check
@@ -653,13 +651,13 @@ The other boundary is then set to the end or start of the day.
 .. code-block:: python
 
     heating_schedule.monday.set_on(start="07:00")
-    # is an equivalent to
+    # is equivalent to
     heating_schedule.monday.set_on(start="07:00", end="00:00")
 
 .. code-block:: python
 
     heating_schedule.monday.set_off(end="07:00")
-    # is an equivalent to
+    # is equivalent to
     heating_schedule.monday.set_off(start="00:00", end="07:00")
 
 This can be used to set state for a whole day with
@@ -674,9 +672,9 @@ Schedule object:
     heating_schedule = schedules["heating"]
 
     for weekday in heating_schedule:
-        # Set nighttime mode from 00:00 to 07:00
+        # Set a nighttime mode from 00:00 to 07:00
         weekday.set_on("00:00", "07:00")
-        # Set daytime mode from 07:00 to 00:00
+        # Set a daytime mode from 07:00 to 00:00
         weekday.set_off("07:00", "00:00")
 
     # Commit changes to the device.
@@ -692,16 +690,16 @@ Examples
 
 
     async def main():
-        """Sets device schedule."""
+        """Set a device schedule."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
             ecomax = await connection.get("ecomax")
             schedules = await ecomax.get("schedules")
             heating_schedule = schedules["heating"]
 
-            # Turn heating schedule on.
+            # Turn the heating schedule on.
             await ecomax.set("schedule_heating_switch", "on")
 
-            # Drop heating temperature by 10 degrees during nighttime.
+            # Drop the heating temperature by 10 degrees in the nighttime mode.
             await ecomax.set("schedule_heating_parameter", 10)
 
             for weekday in heating_schedule:
@@ -709,7 +707,7 @@ Examples
                 weekday.set_state(STATE_NIGHT, "00:30", "09:00")
                 weekday.set_state(STATE_DAY, "09:00", "00:00")
 
-            # There will be no nighttime on sunday.
+            # There will be no nighttime mode on sunday.
             heating_schedule.sunday.set_state(STATE_DAY)
             
             heating_schedule.commit()
@@ -730,7 +728,7 @@ It serves information purposes only and can be omitted.
     from pyplumio.const import EncryptionType
 
     async def main():
-        """Initializes connection with network parameters."""
+        """Initialize a connection with network parameters."""
         ethernet = pyplumio.ethernet_parameters(
             ip="10.10.1.100",
             netmask="255.255.255.0",
