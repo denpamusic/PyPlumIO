@@ -188,10 +188,10 @@ class Boolean(DataType):
 
     _index: int = 0
 
-    def __init__(self, data: bytes | None = None, size: int | None = None):
+    def __init__(self, data: bytes | None = None, size: int | None = 1):
         """Initialize a new boolean."""
         self._index = 0
-        super().__init__(data, size=1)
+        super().__init__(data, size)
 
     def index(self, index: int) -> int:
         """Return next bit index in the bit array."""
@@ -272,9 +272,9 @@ class IPv6(DataType):
 class String(DataType):
     """Represents a string."""
 
-    def __init__(self, data: bytes | None = None, size: int | None = None):
+    def __init__(self, data: bytes | None = None, size: int | None = -1):
         """Initialize a new string."""
-        super().__init__(data, size=-1)
+        super().__init__(data, size)
 
     def unpack(self, data: bytes):
         """Unpack data to a given type."""
