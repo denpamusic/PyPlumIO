@@ -58,12 +58,11 @@ class EcomaxParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, _: EventDataType) -> bytearray:
         """Create a frame message."""
-        message = bytearray()
-        message.append(255)  # Number of parameters.
-        message.append(0)  # Index of the first parameter.
-        return message
+        number_of_parameters = 255
+        first_index = 0
+        return bytearray([number_of_parameters, first_index])
 
 
 class MixerParametersRequest(Request):
@@ -75,12 +74,11 @@ class MixerParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_MIXER_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, _: EventDataType) -> bytearray:
         """Create a frame message."""
-        message = bytearray()
-        message.append(255)  # Number of parameters.
-        message.append(0)  # Index of the first parameter.
-        return message
+        number_of_parameters = 255
+        first_index = 0
+        return bytearray([number_of_parameters, first_index])
 
 
 class ThermostatParametersRequest(Request):
@@ -92,12 +90,11 @@ class ThermostatParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, _: EventDataType) -> bytearray:
         """Create a frame message."""
-        message = bytearray()
-        message.append(255)  # Number of parameters.
-        message.append(0)  # Index of the first parameter.
-        return message
+        number_of_parameters = 255
+        first_index = 0
+        return bytearray([number_of_parameters, first_index])
 
 
 class DataSchemaRequest(Request):
@@ -117,12 +114,7 @@ class SetEcomaxParameterRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         try:
-            message = bytearray()
-            index = data[ATTR_INDEX]
-            value = data[ATTR_VALUE]
-            message.append(index)
-            message.append(value)
-            return message
+            return bytearray([data[ATTR_INDEX], data[ATTR_VALUE]])
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
@@ -138,14 +130,9 @@ class SetMixerParameterRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         try:
-            index = data[ATTR_INDEX]
-            value = data[ATTR_VALUE]
-            mixer_index = data[ATTR_DEVICE_INDEX]
-            message = bytearray()
-            message.append(mixer_index)
-            message.append(index)
-            message.append(value)
-            return message
+            return bytearray(
+                [data[ATTR_DEVICE_INDEX], data[ATTR_INDEX], data[ATTR_VALUE]]
+            )
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
@@ -169,14 +156,11 @@ class SetThermostatParameterRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         try:
-            message = bytearray()
             index = data[ATTR_INDEX]
             value: int = data[ATTR_VALUE]
             offset = data[ATTR_OFFSET]
-            size = data[ATTR_SIZE]
-            message.append(index if offset is None else index + offset)
-            message += value.to_bytes(length=size, byteorder="little")
-            return message
+            message = bytearray([index if offset is None else index + offset])
+            return message + value.to_bytes(length=data[ATTR_SIZE], byteorder="little")
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
@@ -193,9 +177,7 @@ class EcomaxControlRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         try:
-            message = bytearray()
-            message.append(data[ATTR_VALUE])
-            return message
+            return bytearray([data[ATTR_VALUE]])
         except KeyError as e:
             raise FrameDataError from e
 
@@ -229,12 +211,11 @@ class AlertsRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ALERTS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, _: EventDataType) -> bytearray:
         """Create a frame message."""
-        message = bytearray()
-        message.append(0)  # Index of the first alert.
-        message.append(100)  # Number of alerts.
-        return message
+        number_of_alerts = 100
+        first_index = 0
+        return bytearray([first_index, number_of_alerts])
 
 
 class SchedulesRequest(Request):

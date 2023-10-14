@@ -39,7 +39,7 @@ class RegulatorDataMessage(Message):
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, _: bytearray) -> EventDataType:
         """Decode a frame message."""
         return {ATTR_REGDATA_DECODER: RegulatorDataStructure(self)}
 

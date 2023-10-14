@@ -123,7 +123,7 @@ class ThermostatParametersResponse(Response):
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, _: bytearray) -> EventDataType:
         """Decode a frame message."""
         return {ATTR_THERMOSTAT_PARAMETERS_DECODER: ThermostatParametersStructure(self)}
 
