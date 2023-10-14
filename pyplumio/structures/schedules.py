@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from functools import lru_cache
 from itertools import chain
 from typing import TYPE_CHECKING, Final
 
@@ -125,14 +124,9 @@ def collect_schedule_data(name: str, device: Device) -> EventDataType:
     }
 
 
-@lru_cache(maxsize=16)
 def _split_byte(byte: int) -> list[bool]:
     """Split single byte into an eight bits."""
-    bits = []
-    for bit in reversed(range(8)):
-        bits.append(bool(byte & (1 << bit)))
-
-    return bits
+    return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
 
 
 def _join_byte(bits: Sequence[int | bool]) -> int:
@@ -168,8 +162,7 @@ class SchedulesStructure(Structure):
 
     def encode(self, data: EventDataType) -> bytearray:
         """Encode data to the bytearray message."""
-        message = bytearray()
-        message.append(1)
+        message = bytearray([1])
         try:
             message.append(SCHEDULES.index(data[ATTR_TYPE]))
             message.append(int(data[ATTR_SWITCH]))
@@ -178,13 +171,12 @@ class SchedulesStructure(Structure):
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
-        schedule_bytes = []
-        for day in list(schedule):
-            schedule_bytes += [
-                _join_byte(day[i : i + 8]) for i in range(0, len(day), 8)
-            ]
-
-        message += bytearray(schedule_bytes)
+        message += bytearray(
+            chain.from_iterable(
+                [_join_byte(day[i : i + 8]) for i in range(0, len(day), 8)]
+                for day in list(schedule)
+            )
+        )
 
         return message
 

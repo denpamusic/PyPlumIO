@@ -14,8 +14,7 @@ class DataType(ABC):
 
     def __init__(self, data: bytes | None = None, size: int | None = None):
         """Initialize a new data type."""
-        if size is None:
-            size = self.size
+        size = self.size if size is None else size
 
         if data is not None:
             self._data = data[0:size] if size > 0 else data

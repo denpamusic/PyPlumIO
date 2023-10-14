@@ -71,13 +71,13 @@ class Protocol(EventManager):
         while self.connected.is_set():
             try:
                 if write_queue.qsize() > 0:
-                    request = await write_queue.get()
-                    await self.writer.write(request)
+                    await self.writer.write(await write_queue.get())
                     write_queue.task_done()
 
                 if (response := await self.reader.read()) is not None:
-                    device = self.setup_device_entry(response.sender)
-                    read_queue.put_nowait((device, response))
+                    read_queue.put_nowait(
+                        (self.setup_device_entry(response.sender), response)
+                    )
 
             except FrameDataError as e:
                 _LOGGER.warning("Incorrect payload: %s", e)

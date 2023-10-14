@@ -92,16 +92,16 @@ class ScheduleDay(MutableMapping):
 
     def set_state(
         self,
-        state: Literal["off", "on", "day", "night"],
+        state: Literal["on", "off", "day", "night"],
         start: str = START_OF_DAY,
         end: str = END_OF_DAY,
     ) -> None:
         """Set an interval state.
 
         Can be on of the following:
-        'off', 'on', 'day' or 'night'.
+        'on', 'off', 'day' or 'night'.
         """
-        if state not in [*STATES_ON, *STATES_OFF]:
+        if state not in (STATES_ON + STATES_OFF):
             raise ValueError(f'state "{state}" is not allowed')
 
         index, stop_index = _parse_interval(start, end)

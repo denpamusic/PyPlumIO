@@ -10,9 +10,7 @@ from pyplumio.helpers.typing import EventDataType
 
 def ensure_device_data(data: EventDataType | None, *args) -> EventDataType:
     """Create or merge multiple device datasets."""
-    if data is None:
-        data = {}
-
+    data = data if data is not None else {}
     for new_data in args:
         data |= new_data
 

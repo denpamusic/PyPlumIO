@@ -15,10 +15,9 @@ def _encode_base5(data: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
     key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
     number = int.from_bytes(data, "little")
-    output: str = ""
-    mask = (1 << 5) - 1
+    output = ""
     while number:
-        output = key_string[number & mask] + output
+        output = key_string[number & 0b00011111] + output
         number >>= 5
 
     return output

@@ -58,8 +58,7 @@ class RegulatorDataStructure(StructureDecoder):
         )
 
         if schema:
-            regulator_data = data.setdefault(ATTR_REGDATA, RegulatorData())
-            regulator_data.load(
+            data.setdefault(ATTR_REGDATA, RegulatorData()).load(
                 {
                     param_id: self._unpack_regulator_data(message, data_type)
                     for param_id, data_type in schema
