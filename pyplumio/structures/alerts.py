@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Final
+from typing import Any, Final, Generator
 
 from pyplumio import util
 from pyplumio.const import AlertType
@@ -23,30 +23,23 @@ ALERT_SIZE: Final = 9
 
 def _convert_to_datetime(seconds: int) -> datetime:
     """Convert timestamp to a datetime object."""
-    intervals: tuple[tuple[str, int], ...] = (
-        (ATTR_YEAR, 32140800),  # 60sec * 60min * 24h * 31d * 12m
-        (ATTR_MONTH, 2678400),  # 60sec * 60min * 24h * 31d
-        (ATTR_DAY, 86400),  # 60sec * 60min * 24h
-        (ATTR_HOUR, 3600),  # 60sec * 60min
-        (ATTR_MINUTE, 60),
-        (ATTR_SECOND, 1),
-    )
 
-    result: dict[str, int] = {}
+    def _seconds_to_datetime_args(seconds: int) -> Generator[Any, None, None]:
+        intervals: tuple[tuple[str, int, int], ...] = (
+            (ATTR_YEAR, 32140800, 2000),  # 60sec * 60min * 24h * 31d * 12m
+            (ATTR_MONTH, 2678400, 1),  # 60sec * 60min * 24h * 31d
+            (ATTR_DAY, 86400, 1),  # 60sec * 60min * 24h
+            (ATTR_HOUR, 3600, 0),  # 60sec * 60min
+            (ATTR_MINUTE, 60, 0),
+            (ATTR_SECOND, 1, 0),
+        )
 
-    for name, count in intervals:
-        value = seconds // count
-        seconds -= value * count
-        result[name] = value
+        for name, count, offset in intervals:
+            value = seconds // count
+            seconds -= value * count
+            yield name, (value + offset)
 
-    return datetime(
-        year=(result[ATTR_YEAR] + 2000),
-        month=(result[ATTR_MONTH] + 1),
-        day=(result[ATTR_DAY] + 1),
-        hour=result[ATTR_HOUR],
-        minute=result[ATTR_MINUTE],
-        second=result[ATTR_SECOND],
-    )
+    return datetime(**dict(_seconds_to_datetime_args(seconds)))
 
 
 @dataclass
