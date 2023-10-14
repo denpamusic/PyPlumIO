@@ -43,6 +43,13 @@ def get_device_handler(device_type: int) -> str:
     raise UnknownDeviceError(f"Unknown device ({device_type})")
 
 
+def get_device_handler_and_name(device_type: int) -> tuple[str, str]:
+    """Get device handler full path and lowercased class name."""
+    handler = get_device_handler(device_type)
+    _, class_name = handler.rsplit(".", 1)
+    return handler, class_name.lower()
+
+
 class Device(EventManager):
     """Represents a device."""
 

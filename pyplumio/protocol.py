@@ -7,7 +7,7 @@ import logging
 from typing import Final
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
-from pyplumio.devices import Addressable, get_device_handler
+from pyplumio.devices import Addressable, get_device_handler_and_name
 from pyplumio.exceptions import (
     FrameDataError,
     FrameError,
@@ -27,13 +27,6 @@ from pyplumio.structures.network_info import (
 _LOGGER = logging.getLogger(__name__)
 
 CONSUMERS_NUMBER: Final = 2
-
-
-def _get_device_handler_and_name(address: int) -> tuple[str, str]:
-    """Get device handler full path and lowercased class name."""
-    handler = get_device_handler(address)
-    _, class_name = handler.rsplit(".", 1)
-    return handler, class_name.lower()
 
 
 class Protocol(EventManager):
@@ -149,7 +142,7 @@ class Protocol(EventManager):
 
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
         """Setup the device entry."""
-        handler, name = _get_device_handler_and_name(device_type)
+        handler, name = get_device_handler_and_name(device_type)
         write_queue: asyncio.Queue = self.queues[1]
         if name not in self.data:
             device: Addressable = factory(
