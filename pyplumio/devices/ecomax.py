@@ -241,6 +241,9 @@ class EcoMAX(Addressable):
         sensor's name and value. Events are dispatched for the
         respective mixer instance.
         """
+        if not sensors:
+            return False
+
         for mixer in self._mixers(sensors.keys()):
             await mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
 
@@ -256,7 +259,7 @@ class EcoMAX(Addressable):
         parameter's name and value. Events are dispatched for the
         respective mixer instance.
         """
-        if parameters is None:
+        if not parameters:
             return False
 
         for mixer in self._mixers(parameters.keys()):
@@ -273,6 +276,9 @@ class EcoMAX(Addressable):
         sensor's name and value. Events are dispatched for the
         respective thermostat instance.
         """
+        if not sensors:
+            return False
+
         for thermostat in self._thermostats(sensors.keys()):
             await thermostat.dispatch(
                 ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
@@ -290,7 +296,7 @@ class EcoMAX(Addressable):
         parameter's name and value. Events are dispatched for the
         respective thermostat instance.
         """
-        if parameters is None:
+        if not parameters:
             return False
 
         for thermostat in self._thermostats(parameters.keys()):

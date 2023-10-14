@@ -67,6 +67,7 @@ from pyplumio.structures.mixer_parameters import (
     MixerBinaryParameter,
     MixerParameter,
 )
+from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.regulator_data import ATTR_REGDATA, RegulatorData
 from pyplumio.structures.schedules import (
@@ -81,7 +82,10 @@ from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PROFILE,
     ThermostatParameter,
 )
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
+from pyplumio.structures.thermostat_sensors import (
+    ATTR_THERMOSTAT_COUNT,
+    ATTR_THERMOSTAT_SENSORS,
+)
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -170,7 +174,7 @@ async def test_frame_versions_update(
 async def test_ecomax_data_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on received data frames."""
+    """Test callbacks that are dispatched on received data frames."""
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
@@ -188,7 +192,7 @@ async def test_ecomax_data_callbacks(
 async def test_ecomax_parameters_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on received parameter frames."""
+    """Test callbacks that are dispatched on received parameter frames."""
     ecomax.handle_frame(
         EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
     )
@@ -238,7 +242,7 @@ async def test_ecomax_parameters_callbacks(
     side_effect=(0, 10 * 1000000000, 600 * 1000000000, 610 * 1000000000),
 )
 async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
-    """Test callbacks that are dispatchd on received fuel consumption."""
+    """Test callbacks that are dispatched on received fuel consumption."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
@@ -252,7 +256,7 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
 async def test_regdata_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on received regdata."""
+    """Test callbacks that are dispatched on received regdata."""
     ecomax.handle_frame(
         DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
     )
@@ -272,7 +276,7 @@ async def test_regdata_callbacks(
 async def test_regdata_callbacks_without_schema(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on received regdata."""
+    """Test callbacks that are dispatched on received regdata."""
     ecomax.handle_frame(
         RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
     )
@@ -284,7 +288,7 @@ async def test_regdata_callbacks_without_schema(
 async def test_mixer_sensors_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving mixer sensors info."""
+    """Test callbacks that are dispatched on receiving mixer sensors info."""
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
@@ -302,10 +306,18 @@ async def test_mixer_sensors_callbacks(
     }
 
 
+async def test_mixer_sensors_callbacks_without_mixers(ecomax: EcoMAX) -> None:
+    """Test callbacks that are dispatched on receiving mixer sensors
+    without any mixers."""
+    ecomax.handle_frame(MixerParametersResponse(data={ATTR_MIXER_SENSORS: {}}))
+    await ecomax.wait_until_done()
+    assert not await ecomax.get(ATTR_MIXER_SENSORS)
+
+
 async def test_thermostat_sensors_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving thermostat sensors info."""
+    """Test callbacks that are dispatched on receiving thermostat sensors info."""
     ecomax.handle_frame(
         SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
     )
@@ -327,10 +339,20 @@ async def test_thermostat_sensors_callbacks(
     assert thermostat_count == 1
 
 
+async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) -> None:
+    """Test callbacks that are dispatched on receiving thermostats sensors
+    without any thermostats."""
+    ecomax.handle_frame(
+        ThermostatParametersResponse(data={ATTR_THERMOSTAT_SENSORS: {}})
+    )
+    await ecomax.wait_until_done()
+    assert not await ecomax.get(ATTR_THERMOSTAT_SENSORS)
+
+
 async def test_thermostat_parameters_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving thermostat parameters."""
+    """Test callbacks that are dispatched on receiving thermostat parameters."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
@@ -361,7 +383,7 @@ async def test_thermostat_parameters_callbacks(
 async def test_thermostat_parameters_callbacks_without_thermostats(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving thermostat parameters
+    """Test callbacks that are dispatched on receiving thermostat parameters
     without any thermostats."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 0}))
     ecomax.handle_frame(
@@ -378,7 +400,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
 async def test_thermostat_profile_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving thermostat profile."""
+    """Test callbacks that are dispatched on receiving thermostat profile."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
@@ -407,7 +429,7 @@ async def test_thermostat_profile_callbacks(
 async def test_mixer_parameters_callbacks(
     ecomax: EcoMAX, messages: dict[FrameType, bytearray]
 ) -> None:
-    """Test callbacks that are dispatchd on receiving mixer parameters."""
+    """Test callbacks that are dispatched on receiving mixer parameters."""
     ecomax.handle_frame(
         MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
     )
@@ -442,7 +464,7 @@ async def test_mixer_parameters_callbacks(
 
 async def test_mixer_parameters_callbacks_without_mixers(ecomax: EcoMAX) -> None:
     """Test mixer parameters callbacks without any mixers."""
-    ecomax.handle_frame(MixerParametersResponse(data={ATTR_MIXER_PARAMETERS: None}))
+    ecomax.handle_frame(MixerParametersResponse(data={ATTR_MIXER_PARAMETERS: {}}))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_MIXER_PARAMETERS)
 
@@ -452,7 +474,7 @@ async def test_schedule_callback(
     messages: dict[FrameType, bytearray],
     data: dict[FrameType, EventDataType],
 ) -> None:
-    """Test callback that is dispatchd on receiving schedule data."""
+    """Test callback that is dispatched on receiving schedule data."""
     ecomax.handle_frame(
         SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])
     )
