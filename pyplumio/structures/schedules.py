@@ -129,7 +129,7 @@ def _split_byte(byte: int) -> list[bool]:
     return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
 
 
-def _join_byte(bits: Sequence[int | bool]) -> int:
+def _join_bits(bits: Sequence[int | bool]) -> int:
     """Join eight bits into a single byte."""
     result = 0
     for bit in bits:
@@ -173,7 +173,7 @@ class SchedulesStructure(Structure):
 
         message += bytearray(
             chain.from_iterable(
-                [_join_byte(day[i : i + 8]) for i in range(0, len(day), 8)]
+                [_join_bits(day[i : i + 8]) for i in range(0, len(day), 8)]
                 for day in list(schedule)
             )
         )
