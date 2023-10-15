@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import math
 import time
-from typing import Any, Final, SupportsFloat, overload
+from typing import Any, Callable, Final, SupportsFloat, overload
 
 from pyplumio.const import UNDEFINED
 from pyplumio.helpers.parameter import Parameter
@@ -254,3 +254,32 @@ def aggregate(callback: EventCallbackType, seconds: float) -> _Aggregate:
     over a specified time period.
     """
     return _Aggregate(callback, seconds)
+
+
+class _Custom(Filter):
+    """Represents a custom filter.
+
+    Calls a callback with value, if user-defined filter function
+    that's called by this class with the value as an argument
+    returns true.
+    """
+
+    def __init__(self, callback: EventCallbackType, filter_fn: Callable[[Any], bool]):
+        """Initialize a new custom filter."""
+        super().__init__(callback)
+        self._filter_fn = filter_fn
+
+    async def __call__(self, new_value):
+        """Set a new value for the callback."""
+        if self._filter_fn(new_value):
+            await self._callback(new_value)
+
+
+def custom(callback: EventCallbackType, filter_fn: Callable[[Any], bool]) -> _Custom:
+    """A custom filter.
+
+    A callback function will be called when user-defined filter
+    function, that's being called with the value as an argument,
+    returns true.
+    """
+    return _Custom(callback, filter_fn)

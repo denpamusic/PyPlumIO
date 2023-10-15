@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.filters import aggregate, debounce, delta, on_change, throttle
+from pyplumio.filters import aggregate, custom, debounce, delta, on_change, throttle
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.structures.alerts import Alert
 
@@ -184,3 +184,19 @@ async def test_aggregate(mock_time) -> None:
     # Test with non-numeric value.
     with pytest.raises(ValueError):
         await wrapped_callback("banana")
+
+
+async def test_custom() -> None:
+    """Test custom filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = custom(test_callback, lambda x: len(x) == 4)
+
+    await wrapped_callback([1, 2])
+    test_callback.assert_not_awaited()
+
+    await wrapped_callback([1, 2, 3, 4])
+    test_callback.assert_awaited_once_with([1, 2, 3, 4])
+    test_callback.reset_mock()
+
+    await wrapped_callback([])
+    test_callback.assert_not_awaited()

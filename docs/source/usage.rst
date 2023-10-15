@@ -498,6 +498,23 @@ It can be used with numeric values, dictionaries, tuples or lists.
     # and last await.
     ecomax.subscribe("outside_temp", delta(my_callback))
 
+Custom
+^^^^^^
+
+.. autofunction:: pyplumio.filters.custom
+
+This filter allows to specify filter function that will be called
+every time the value is received from the controller.
+
+A callback is awaited once this filter function returns true.
+
+.. code-block:: python
+
+    from pyplumio.filter import delta
+
+    # Await the callback when temperature is higher that 10 degrees
+    # Celsius.
+    ecomax.subscribe("outside_temp", custom(my_callback, lambda x: x > 10))
 
 Regulator Data
 --------------
