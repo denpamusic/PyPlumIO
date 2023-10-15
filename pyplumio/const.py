@@ -51,7 +51,7 @@ class DeviceState(IntEnum):
     """Contains device states."""
 
     OFF = 0
-    FANNING = 1
+    STABILISATION = 1
     KINDLING = 2
     WORKING = 3
     SUPERVISION = 4
