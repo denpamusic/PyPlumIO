@@ -52,9 +52,6 @@ def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> lis
 
 def _diffence_between(old, new):
     """Return a difference between values."""
-    if old == UNDEFINED:
-        return None
-
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
 
@@ -199,7 +196,10 @@ class _Delta(Filter):
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             old_value = self._value
             self._value = new_value
-            if (difference := _diffence_between(old_value, new_value)) is not None:
+            if (
+                self._value != UNDEFINED
+                and (difference := _diffence_between(old_value, new_value)) is not None
+            ):
                 return await self._callback(difference)
 
 
