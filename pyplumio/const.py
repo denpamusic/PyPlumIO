@@ -74,7 +74,7 @@ class DeviceState(IntEnum):
     def _missing_(cls, value):
         """Look up state in extra state table.
 
-        Currently it's only used for stabilisation state,
+        Currently it's only used for stabilization state,
         since it differs between models.
         """
         if value in EXTRA_STATES:
