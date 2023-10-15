@@ -209,7 +209,7 @@ class AlertsRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
 
-        return bytearray([data.get(ATTR_INDEX, 0), data.get(ATTR_COUNT, 100)])
+        return bytearray([data.get(ATTR_INDEX, 0), data.get(ATTR_COUNT, 10)])
 
 
 class SchedulesRequest(Request):
