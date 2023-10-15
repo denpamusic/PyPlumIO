@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, Generator
 
 from pyplumio import util
 from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE
@@ -123,25 +123,23 @@ class MixerParametersStructure(StructureDecoder):
 
     _offset: int = 0
 
-    def _unpack_mixer_parameter(self, message: bytearray) -> ParameterDataType | None:
-        """Unpack a single mixer parameter."""
-        try:
-            return util.unpack_parameter(message, self._offset)
-        finally:
+    def _mixer_parameter(
+        self, message: bytearray, start: int, end: int
+    ) -> Generator[tuple[int, ParameterDataType], None, None]:
+        """Get a mixer parameter."""
+        for index in range(start, start + end):
+            if parameter := util.unpack_parameter(message, self._offset):
+                yield (index, parameter)
+
             self._offset += MIXER_PARAMETER_SIZE
 
-    def _unpack_mixer_parameters(
-        self, message: bytearray, start: int, end: int
-    ) -> list[tuple[int, ParameterDataType]]:
-        """Unpack mixer parameters."""
-        return [
-            (index, parameter)
-            for index, parameter in [
-                (index, self._unpack_mixer_parameter(message))
-                for index in range(start, start + end)
-            ]
-            if parameter is not None
-        ]
+    def _mixer_parameters(
+        self, message: bytearray, mixers: int, start: int, end: int
+    ) -> Generator[tuple[int, list[tuple[int, ParameterDataType]]], None, None]:
+        """Get parameters for a mixer."""
+        for index in range(mixers):
+            if parameters := list(self._mixer_parameter(message, start, end)):
+                yield (index, parameters)
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
@@ -155,14 +153,9 @@ class MixerParametersStructure(StructureDecoder):
             ensure_device_data(
                 data,
                 {
-                    ATTR_MIXER_PARAMETERS: {
-                        index: mixer_parameters
-                        for index, mixer_parameters in [
-                            (index, self._unpack_mixer_parameters(message, start, end))
-                            for index in range(mixers)
-                        ]
-                        if mixer_parameters
-                    }
+                    ATTR_MIXER_PARAMETERS: dict(
+                        self._mixer_parameters(message, mixers, start, end)
+                    )
                 },
             ),
             self._offset,

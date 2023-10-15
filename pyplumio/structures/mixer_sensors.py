@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final
+from typing import Final, Generator
 
 from pyplumio import util
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
@@ -21,8 +21,8 @@ class MixerSensorsStructure(StructureDecoder):
 
     _offset: int = 0
 
-    def _unpack_mixer_sensor(self, message: bytearray) -> EventDataType:
-        """Unpack single mixer sensor."""
+    def _unpack_mixer_sensors(self, message: bytearray) -> EventDataType | None:
+        """Unpack a mixer sensors."""
         current_temp = util.unpack_float(message[self._offset : self._offset + 4])[0]
         try:
             if not math.isnan(current_temp):
@@ -36,6 +36,14 @@ class MixerSensorsStructure(StructureDecoder):
         finally:
             self._offset += MIXER_SENSOR_SIZE
 
+    def _mixer_sensors(
+        self, message: bytearray, mixers: int
+    ) -> Generator[tuple[int, EventDataType], None, None]:
+        """Get sensors for a mixer."""
+        for index in range(mixers):
+            if sensors := self._unpack_mixer_sensors(message):
+                yield (index, sensors)
+
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
@@ -46,14 +54,7 @@ class MixerSensorsStructure(StructureDecoder):
             ensure_device_data(
                 data,
                 {
-                    ATTR_MIXER_SENSORS: {
-                        index: mixer_sensor
-                        for index, mixer_sensor in [
-                            (index, self._unpack_mixer_sensor(message))
-                            for index in range(mixers)
-                        ]
-                        if mixer_sensor is not None
-                    },
+                    ATTR_MIXER_SENSORS: dict(self._mixer_sensors(message, mixers)),
                     ATTR_MIXER_COUNT: mixers,
                 },
             ),

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final
+from typing import Final, Generator
 
 from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
@@ -305,11 +305,14 @@ class EcomaxParametersStructure(StructureDecoder):
 
     _offset: int
 
-    def _unpack_ecomax_parameter(self, message: bytearray) -> ParameterDataType | None:
+    def _ecomax_parameter(
+        self, message: bytearray, start: int, end: int
+    ) -> Generator[tuple[int, ParameterDataType], None, None]:
         """Unpack an ecoMAX parameter."""
-        try:
-            return util.unpack_parameter(message, self._offset)
-        finally:
+        for index in range(start, start + end):
+            if parameter := util.unpack_parameter(message, self._offset):
+                yield (index, parameter)
+
             self._offset += ECOMAX_PARAMETER_SIZE
 
     def decode(
@@ -323,14 +326,9 @@ class EcomaxParametersStructure(StructureDecoder):
             ensure_device_data(
                 data,
                 {
-                    ATTR_ECOMAX_PARAMETERS: [
-                        (index, parameter)
-                        for index, parameter in [
-                            (index, self._unpack_ecomax_parameter(message))
-                            for index in range(start, start + end)
-                        ]
-                        if parameter is not None
-                    ]
+                    ATTR_ECOMAX_PARAMETERS: list(
+                        self._ecomax_parameter(message, start, end)
+                    )
                 },
             ),
             self._offset,

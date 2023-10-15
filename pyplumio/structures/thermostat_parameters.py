@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, Generator
 
 from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
@@ -127,28 +127,28 @@ class ThermostatParametersStructure(StructureDecoder):
 
     _offset: int
 
-    def _unpack_thermostat_parameter(
-        self, message: bytearray, index: int
-    ) -> ParameterDataType | None:
-        """Unpack a single thermostat parameter."""
-        description = THERMOSTAT_PARAMETERS[index]
-        try:
-            return util.unpack_parameter(message, self._offset, size=description.size)
-        finally:
+    def _thermostat_parameter(
+        self, message: bytearray, thermostats: int, start: int, end: int
+    ) -> Generator[tuple[int, ParameterDataType], None, None]:
+        """Get a thermostat parameter."""
+        for index in range(start, (start + end) // thermostats):
+            description = THERMOSTAT_PARAMETERS[index]
+            if parameter := util.unpack_parameter(
+                message, self._offset, size=description.size
+            ):
+                yield (index, parameter)
+
             self._offset += THERMOSTAT_PARAMETER_SIZE * description.size
 
-    def _unpack_thermostat_parameters(
-        self, message: bytearray, thermostats: int, start: int, end: int
-    ) -> list[tuple[int, ParameterDataType]]:
-        """Unpack thermostat parameters."""
-        return [
-            (index, thermostat_parameter)
-            for index, thermostat_parameter in [
-                (index, self._unpack_thermostat_parameter(message, index))
-                for index in range(start, (start + end) // thermostats)
-            ]
-            if thermostat_parameter is not None
-        ]
+    def _thermostat_parameters(
+        self, message: bytearray, thermostats, start, end
+    ) -> Generator[tuple[int, list[tuple[int, ParameterDataType]]], None, None]:
+        """Get parameters for a thermostat."""
+        for index in range(thermostats):
+            if parameters := list(
+                self._thermostat_parameter(message, thermostats, start, end)
+            ):
+                yield (index, parameters)
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
@@ -168,19 +168,9 @@ class ThermostatParametersStructure(StructureDecoder):
                 data,
                 {
                     ATTR_THERMOSTAT_PROFILE: thermostat_profile,
-                    ATTR_THERMOSTAT_PARAMETERS: {
-                        index: thermostat_parameters
-                        for index, thermostat_parameters in [
-                            (
-                                index,
-                                self._unpack_thermostat_parameters(
-                                    message, thermostats, start, end
-                                ),
-                            )
-                            for index in range(thermostats)
-                        ]
-                        if thermostat_parameters
-                    },
+                    ATTR_THERMOSTAT_PARAMETERS: dict(
+                        self._thermostat_parameters(message, thermostats, start, end)
+                    ),
                 },
             ),
             self._offset,

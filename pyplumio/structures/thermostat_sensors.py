@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final
+from typing import Final, Generator
 
 from pyplumio import util
 from pyplumio.const import (
@@ -32,7 +32,7 @@ class ThermostatSensorsStructure(StructureDecoder):
     def _unpack_thermostat_sensors(
         self, message: bytearray, contacts: int
     ) -> EventDataType | None:
-        """Unpack a thermostat sensor."""
+        """Unpack thermostat sensors."""
         current_temp = util.unpack_float(message[self._offset + 1 : self._offset + 5])[
             0
         ]
@@ -56,6 +56,14 @@ class ThermostatSensorsStructure(StructureDecoder):
             self._schedule_mask <<= 1
             self._offset += THERMOSTAT_SENSORS_SIZE
 
+    def _thermostat_sensors(
+        self, message: bytearray, thermostats: int, contacts: int
+    ) -> Generator[tuple[int, EventDataType], None, None]:
+        """Get sensors for a thermostat."""
+        for index in range(thermostats):
+            if sensors := self._unpack_thermostat_sensors(message, contacts):
+                yield (index, sensors)
+
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
@@ -70,14 +78,9 @@ class ThermostatSensorsStructure(StructureDecoder):
             ensure_device_data(
                 data,
                 {
-                    ATTR_THERMOSTAT_SENSORS: {
-                        index: thermostat_sensors
-                        for index, thermostat_sensors in [
-                            (index, self._unpack_thermostat_sensors(message, contacts))
-                            for index in range(thermostats)
-                        ]
-                        if thermostat_sensors is not None
-                    },
+                    ATTR_THERMOSTAT_SENSORS: dict(
+                        self._thermostat_sensors(message, thermostats, contacts)
+                    ),
                     ATTR_THERMOSTAT_COUNT: thermostats,
                 },
             ),
