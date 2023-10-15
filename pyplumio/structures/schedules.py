@@ -140,7 +140,7 @@ def _join_bits(bits: Sequence[int | bool]) -> int:
 class SchedulesStructure(Structure):
     """Represents a schedule data structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def encode(self, data: EventDataType) -> bytearray:
         """Encode data to the bytearray message."""

@@ -19,7 +19,7 @@ MIXER_SENSOR_SIZE: Final = 8
 class MixerSensorsStructure(StructureDecoder):
     """Represents a mixer sensors data structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def _unpack_mixer_sensors(self, message: bytearray) -> EventDataType | None:
         """Unpack sensors for a mixer."""

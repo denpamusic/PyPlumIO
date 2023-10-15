@@ -121,7 +121,7 @@ ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
 class MixerParametersStructure(StructureDecoder):
     """Represents a mixer parameters data structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def _mixer_parameter(
         self, message: bytearray, start: int, end: int

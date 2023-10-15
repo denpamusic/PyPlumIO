@@ -25,7 +25,7 @@ THERMOSTAT_SENSORS_SIZE: Final = 9
 class ThermostatSensorsStructure(StructureDecoder):
     """Represents a thermostats sensors data structure."""
 
-    _offset: int = 0
+    _offset: int
     _contact_mask: int = 1
     _schedule_mask: int = 1 << 3
 

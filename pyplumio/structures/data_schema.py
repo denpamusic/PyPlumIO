@@ -16,7 +16,7 @@ BLOCK_SIZE: Final = 3
 class DataSchemaStructure(StructureDecoder):
     """Represents a data schema structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def _unpack_block(self, message: bytearray) -> tuple[int, DataType]:
         """Unpack a block."""

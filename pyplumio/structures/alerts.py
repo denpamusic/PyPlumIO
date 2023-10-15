@@ -54,7 +54,7 @@ class Alert:
 class AlertsStructure(StructureDecoder):
     """Represents an alerts data structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def _unpack_alert(self, message: bytearray) -> Alert:
         """Unpack an alert."""

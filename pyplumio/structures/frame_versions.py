@@ -16,7 +16,7 @@ FRAME_VERSION_SIZE: Final = 3
 class FrameVersionsStructure(StructureDecoder):
     """Represents a frame version data structure."""
 
-    _offset: int = 0
+    _offset: int
 
     def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:
         """Unpack frame versions."""
