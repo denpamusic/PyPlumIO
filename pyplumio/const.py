@@ -47,12 +47,18 @@ class EncryptionType(IntEnum):
     WPA2 = 4
 
 
+EXTRA_STATES: Final = (
+    12,  # STABILIZATION: ecoMAX 810P-L TOUCH
+    23,  # STABILIZATION: ecoMAX 860P3-O
+)
+
+
 @unique
 class DeviceState(IntEnum):
     """Contains device states."""
 
     OFF = 0
-    STABILISATION = 1
+    STABILIZATION = 1
     KINDLING = 2
     WORKING = 3
     SUPERVISION = 4
@@ -63,6 +69,18 @@ class DeviceState(IntEnum):
     MANUAL = 9
     UNSEALING = 10
     OTHER = 11
+
+    @classmethod
+    def _missing_(cls, value):
+        """Look up state in extra state table.
+
+        Currently it's only used for stabilisation state,
+        since it differs between models.
+        """
+        if value in EXTRA_STATES:
+            return cls.STABILIZATION
+
+        return None
 
 
 @unique

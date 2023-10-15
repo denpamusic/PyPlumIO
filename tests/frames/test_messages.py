@@ -112,10 +112,15 @@ def test_sensor_data_decode_message(messages: dict[FrameType, bytearray]) -> Non
         },
     }
 
-    # Test with the unknown state.
+    # Test with extra state.
     test_message[INDEX_STATE] = 12
     frame = SensorDataMessage(message=test_message)
-    assert frame.data[ATTR_SENSORS][ATTR_STATE] == 12
+    assert frame.data[ATTR_SENSORS][ATTR_STATE] == DeviceState.STABILIZATION
+
+    # Test with the unknown state.
+    test_message[INDEX_STATE] = 99
+    frame = SensorDataMessage(message=test_message)
+    assert frame.data[ATTR_SENSORS][ATTR_STATE] == 99
 
 
 def test_sensor_data_without_fuel_level_and_load(
