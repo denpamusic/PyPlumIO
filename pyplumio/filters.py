@@ -47,7 +47,7 @@ def _diffence_between(old: list, new: list) -> list:
 
 @overload
 def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> list:
-    """Return a difference between substractable."""
+    """Return a difference between substractables."""
 
 
 def _diffence_between(old, new):
