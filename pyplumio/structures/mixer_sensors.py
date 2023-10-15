@@ -22,7 +22,7 @@ class MixerSensorsStructure(StructureDecoder):
     _offset: int = 0
 
     def _unpack_mixer_sensors(self, message: bytearray) -> EventDataType | None:
-        """Unpack a mixer sensors."""
+        """Unpack sensors for a mixer."""
         current_temp = util.unpack_float(message[self._offset : self._offset + 4])[0]
         try:
             if not math.isnan(current_temp):

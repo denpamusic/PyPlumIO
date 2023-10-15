@@ -32,7 +32,7 @@ class ThermostatSensorsStructure(StructureDecoder):
     def _unpack_thermostat_sensors(
         self, message: bytearray, contacts: int
     ) -> EventDataType | None:
-        """Unpack thermostat sensors."""
+        """Unpack sensors for a thermostat."""
         current_temp = util.unpack_float(message[self._offset + 1 : self._offset + 5])[
             0
         ]
