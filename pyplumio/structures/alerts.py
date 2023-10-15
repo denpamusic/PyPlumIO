@@ -64,19 +64,16 @@ class AlertsStructure(StructureDecoder):
         except ValueError:
             pass
 
-        from_dt = _convert_to_datetime(
-            util.unpack_uint(message[self._offset + 1 : self._offset + 5])[0]
+        from_dt_bytes = message[self._offset + 1 : self._offset + 5]
+        to_dt_bytes = message[self._offset + 5 : self._offset + ALERT_SIZE]
+        from_dt = _convert_to_datetime(util.unpack_uint(from_dt_bytes)[0])
+        to_dt = (
+            _convert_to_datetime(util.unpack_uint(to_dt_bytes)[0])
+            if util.check_parameter(to_dt_bytes)
+            else None
         )
-        to_dt = None
-        if util.check_parameter(message[self._offset + 5 : self._offset + ALERT_SIZE]):
-            to_dt = _convert_to_datetime(
-                util.unpack_uint(message[self._offset + 5 : self._offset + ALERT_SIZE])[
-                    0
-                ]
-            )
 
         self._offset += ALERT_SIZE
-
         return Alert(code, from_dt, to_dt)
 
     def decode(
