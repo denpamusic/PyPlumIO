@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from pyplumio.const import (
+    ATTR_COUNT,
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -58,11 +59,9 @@ class EcomaxParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_PARAMETERS
 
-    def create_message(self, _: EventDataType) -> bytearray:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        number_of_parameters = 255
-        first_index = 0
-        return bytearray([number_of_parameters, first_index])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
 
 
 class MixerParametersRequest(Request):
@@ -74,11 +73,9 @@ class MixerParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_MIXER_PARAMETERS
 
-    def create_message(self, _: EventDataType) -> bytearray:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        number_of_parameters = 255
-        first_index = 0
-        return bytearray([number_of_parameters, first_index])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
 
 
 class ThermostatParametersRequest(Request):
@@ -90,11 +87,9 @@ class ThermostatParametersRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
-    def create_message(self, _: EventDataType) -> bytearray:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        number_of_parameters = 255
-        first_index = 0
-        return bytearray([number_of_parameters, first_index])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
 
 
 class DataSchemaRequest(Request):
@@ -211,11 +206,10 @@ class AlertsRequest(Request):
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ALERTS
 
-    def create_message(self, _: EventDataType) -> bytearray:
+    def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        number_of_alerts = 100
-        first_index = 0
-        return bytearray([first_index, number_of_alerts])
+
+        return bytearray([data.get(ATTR_INDEX, 0), data.get(ATTR_COUNT, 100)])
 
 
 class SchedulesRequest(Request):

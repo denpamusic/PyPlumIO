@@ -12,6 +12,7 @@ STATE_OFF: Final = "off"
 
 # General attributes.
 ATTR_CONNECTED: Final = "connected"
+ATTR_COUNT: Final = "count"
 ATTR_CURRENT_TEMP: Final = "current_temp"
 ATTR_DEVICE_INDEX: Final = "device_index"
 ATTR_FRAME_ERRORS: Final = "frame_errors"
