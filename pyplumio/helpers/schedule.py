@@ -40,7 +40,7 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
     start_of_day_dt = dt.datetime.strptime(START_OF_DAY, TIME_FORMAT)
     if end_dt == start_of_day_dt:
         # Upper bound of interval is midnight.
-        end_dt += dt.timedelta(days=1)
+        end_dt += dt.timedelta(hours=23, minutes=30)
 
     if end_dt <= start_dt:
         raise ValueError(
@@ -48,9 +48,9 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
         )
 
     start_index = math.floor((start_dt - start_of_day_dt).total_seconds() // (60 * 30))
-    stop_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
+    end_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
 
-    return start_index, stop_index
+    return start_index, end_index
 
 
 class ScheduleDay(MutableMapping):
@@ -104,8 +104,8 @@ class ScheduleDay(MutableMapping):
         if state not in (STATES_ON + STATES_OFF):
             raise ValueError(f'state "{state}" is not allowed')
 
-        index, stop_index = _parse_interval(start, end)
-        while index < stop_index:
+        index, end_index = _parse_interval(start, end)
+        while index <= end_index:
             self._intervals[index] = state in STATES_ON
             index += 1
 

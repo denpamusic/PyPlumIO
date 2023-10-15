@@ -46,8 +46,10 @@ def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
 def test_schedule_day(schedule_day: ScheduleDay) -> None:
     """Test schedule day."""
     schedule_day.set_state(STATE_ON, "00:00", "01:00")
-    assert schedule_day.intervals[0]
-    assert schedule_day.intervals[1]
+    assert schedule_day.intervals[0]  # 00:00
+    assert schedule_day.intervals[1]  # 00:30
+    assert schedule_day.intervals[2]  # 01:00
+    assert not schedule_day.intervals[3]  # 01:30
     assert len(schedule_day) == 48
 
     # Test with incorrect interval.
