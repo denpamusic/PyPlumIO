@@ -25,11 +25,8 @@ def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
 
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
-    if old == UNDEFINED or (hasattr(old, "is_changed") and old.is_changed):
-        return True
-
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return (
+        return old.is_changed or (
             old.value != new.value
             or old.min_value != new.min_value
             or old.max_value != new.max_value
@@ -102,7 +99,7 @@ class _OnChange(Filter):
 
     async def __call__(self, new_value):
         """Set a new value for the callback."""
-        if _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             self._value = new_value
             return await self._callback(new_value)
 
@@ -135,7 +132,7 @@ class _Debounce(Filter):
 
     async def __call__(self, new_value):
         """Set a new value for the callback."""
-        if _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             self._calls += 1
         else:
             self._calls = 0
@@ -199,7 +196,7 @@ class _Delta(Filter):
 
     async def __call__(self, new_value):
         """Set a new value for the callback."""
-        if _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             old_value = self._value
             self._value = new_value
             if (difference := _diffence_between(old_value, new_value)) is not None:
