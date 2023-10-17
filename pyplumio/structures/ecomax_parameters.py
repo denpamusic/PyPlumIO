@@ -10,7 +10,11 @@ from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
+from pyplumio.helpers.typing import (
+    EventDataType,
+    ParameterTupleType,
+    ParameterValueType,
+)
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
@@ -307,7 +311,7 @@ class EcomaxParametersStructure(StructureDecoder):
 
     def _ecomax_parameter(
         self, message: bytearray, start: int, end: int
-    ) -> Generator[tuple[int, ParameterDataType], None, None]:
+    ) -> Generator[tuple[int, ParameterTupleType], None, None]:
         """Unpack an ecoMAX parameter."""
         for index in range(start, start + end):
             if parameter := util.unpack_parameter(message, self._offset):

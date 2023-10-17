@@ -5,7 +5,7 @@ import asyncio
 from typing import Sequence
 
 from pyplumio.devices import Addressable, SubDevice
-from pyplumio.helpers.typing import EventDataType, ParameterDataType
+from pyplumio.helpers.typing import EventDataType, ParameterTupleType
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
@@ -34,7 +34,7 @@ class Thermostat(SubDevice):
         return True
 
     async def _handle_parameters(
-        self, parameters: Sequence[tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterTupleType]]
     ) -> bool:
         """Handle thermostat parameters.
 

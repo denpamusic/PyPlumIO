@@ -6,7 +6,7 @@ from typing import Sequence
 
 from pyplumio.const import ProductType
 from pyplumio.devices import Addressable, SubDevice
-from pyplumio.helpers.typing import EventDataType, ParameterDataType
+from pyplumio.helpers.typing import EventDataType, ParameterTupleType
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
     ECOMAX_I_MIXER_PARAMETERS,
@@ -37,7 +37,7 @@ class Mixer(SubDevice):
         return True
 
     async def _handle_parameters(
-        self, parameters: Sequence[tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterTupleType]]
     ) -> bool:
         """Handle mixer parameters.
 

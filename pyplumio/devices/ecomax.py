@@ -32,7 +32,7 @@ from pyplumio.frames import (
 )
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import EventDataType, ParameterDataType
+from pyplumio.helpers.typing import EventDataType, ParameterTupleType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
@@ -184,7 +184,7 @@ class EcoMAX(Addressable):
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
     async def _handle_ecomax_parameters(
-        self, parameters: Sequence[tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterTupleType]]
     ) -> bool:
         """Handle ecoMAX parameters.
 
@@ -244,7 +244,7 @@ class EcoMAX(Addressable):
 
     async def _handle_mixer_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterTupleType]]] | None,
     ) -> bool:
         """Handle mixer parameters.
 
@@ -309,7 +309,7 @@ class EcoMAX(Addressable):
         }
 
     async def _add_schedule_parameters(
-        self, parameters: Sequence[tuple[int, ParameterDataType]]
+        self, parameters: Sequence[tuple[int, ParameterTupleType]]
     ) -> bool:
         """Add schedule parameters to the dataset."""
         for index, value in parameters:
@@ -356,7 +356,7 @@ class EcoMAX(Addressable):
 
     async def _handle_thermostat_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterDataType]]] | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterTupleType]]] | None,
     ) -> bool:
         """Handle thermostat parameters.
 
@@ -386,7 +386,7 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_thermostat_profile_parameter(
-        self, parameter: ParameterDataType
+        self, parameter: ParameterTupleType
     ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the dataset."""
         if parameter is not None:

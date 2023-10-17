@@ -9,7 +9,11 @@ from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import EventDataType, ParameterDataType, ParameterValueType
+from pyplumio.helpers.typing import (
+    EventDataType,
+    ParameterTupleType,
+    ParameterValueType,
+)
 from pyplumio.structures import StructureDecoder, ensure_device_data
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 
@@ -129,7 +133,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
-    ) -> Generator[tuple[int, ParameterDataType], None, None]:
+    ) -> Generator[tuple[int, ParameterTupleType], None, None]:
         """Get a thermostat parameter."""
         for index in range(start, (start + end) // thermostats):
             description = THERMOSTAT_PARAMETERS[index]
@@ -142,7 +146,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameters(
         self, message: bytearray, thermostats, start, end
-    ) -> Generator[tuple[int, list[tuple[int, ParameterDataType]]], None, None]:
+    ) -> Generator[tuple[int, list[tuple[int, ParameterTupleType]]], None, None]:
         """Get parameters for a thermostat."""
         for index in range(thermostats):
             if parameters := list(

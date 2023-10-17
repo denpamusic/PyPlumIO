@@ -7,7 +7,7 @@ from pyplumio.const import STATE_OFF, STATE_ON
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import ParameterDataType
+from pyplumio.helpers.typing import ParameterTupleType
 
 
 class TestParameter(Parameter):
@@ -116,7 +116,7 @@ def test_parameter_relational(parameter: Parameter):
 def test_parameter_compare(parameter: Parameter) -> None:
     """Test a parameter comparison."""
     assert parameter == 1
-    parameter_tuple: ParameterDataType = (1, 0, 5)
+    parameter_tuple: ParameterTupleType = (1, 0, 5)
     assert parameter == parameter_tuple
     assert not parameter != parameter_tuple
     assert parameter < 2

@@ -11,7 +11,7 @@ from pyplumio.devices import Addressable, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
-from pyplumio.helpers.typing import EventDataType, ParameterDataType
+from pyplumio.helpers.typing import EventDataType, ParameterTupleType
 from pyplumio.structures import Structure, ensure_device_data
 from pyplumio.util import unpack_parameter
 
@@ -179,7 +179,7 @@ class SchedulesStructure(Structure):
         end = message[offset + 2]
         self._offset = offset + 3
         schedules: list[tuple[int, list[list[bool]]]] = []
-        parameters: list[tuple[int, ParameterDataType]] = []
+        parameters: list[tuple[int, ParameterTupleType]] = []
 
         for _ in range(start, start + end):
             index = message[self._offset]
