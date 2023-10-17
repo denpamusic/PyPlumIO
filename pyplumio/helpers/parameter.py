@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Final
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
 from pyplumio.helpers.typing import ParameterTupleType, ParameterValueType
-from pyplumio.util import unpack_ushort
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -27,11 +26,15 @@ def unpack_parameter(
     if not check_parameter(data[offset : offset + size * 3]):
         return None
 
-    value = unpack_ushort(data[offset : offset + size])
-    min_value = unpack_ushort(data[offset + size : offset + 2 * size])
-    max_value = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
+    value = data[offset : offset + size]
+    min_value = data[offset + size : offset + 2 * size]
+    max_value = data[offset + 2 * size : offset + 3 * size]
 
-    return value, min_value, max_value
+    return (
+        int.from_bytes(value, byteorder="little"),
+        int.from_bytes(min_value, byteorder="little"),
+        int.from_bytes(max_value, byteorder="little"),
+    )
 
 
 def check_parameter(data: bytearray) -> bool:

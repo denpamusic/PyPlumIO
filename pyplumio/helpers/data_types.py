@@ -119,7 +119,7 @@ class UnsignedShort(DataType):
     @property
     def value(self) -> int:
         """A data value."""
-        return util.unpack_ushort(self._data)
+        return util.unpack_ushort(self._data)[0]
 
     @property
     def size(self) -> int:

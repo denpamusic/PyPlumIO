@@ -22,7 +22,7 @@ class OutputFlagsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        output_flags = util.unpack_ushort(message[offset : offset + OUTPUT_FLAGS_SIZE])
+        output_flags = util.unpack_uint(message[offset : offset + OUTPUT_FLAGS_SIZE])[0]
         return (
             ensure_device_data(
                 data,

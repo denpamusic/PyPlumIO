@@ -28,7 +28,7 @@ class FrameVersionsStructure(StructureDecoder):
 
         version = util.unpack_ushort(
             message[self._offset + 1 : self._offset + FRAME_VERSION_SIZE]
-        )
+        )[0]
 
         try:
             return frame_type, version

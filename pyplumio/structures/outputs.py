@@ -54,7 +54,7 @@ class OutputsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        outputs = util.unpack_ushort(message[offset : offset + OUTPUTS_SIZE])
+        outputs = util.unpack_uint(message[offset : offset + OUTPUTS_SIZE])[0]
         return (
             ensure_device_data(
                 data,

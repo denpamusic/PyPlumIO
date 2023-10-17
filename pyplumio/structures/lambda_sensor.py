@@ -26,7 +26,7 @@ class LambaSensorStructure(StructureDecoder):
         if message[offset] == BYTE_UNDEFINED:
             return ensure_device_data(data), offset + 1
 
-        level = util.unpack_ushort(message[offset + 2 : offset + LAMBDA_LEVEL_SIZE])
+        level = util.unpack_ushort(message[offset + 2 : offset + LAMBDA_LEVEL_SIZE])[0]
         return (
             ensure_device_data(
                 data,
