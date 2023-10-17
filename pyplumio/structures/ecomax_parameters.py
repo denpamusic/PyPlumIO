@@ -4,12 +4,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final, Generator
 
-from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
 from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.parameter import (
+    BinaryParameter,
+    Parameter,
+    ParameterDescription,
+    unpack_parameter,
+)
 from pyplumio.helpers.typing import (
     EventDataType,
     ParameterTupleType,
@@ -314,7 +318,7 @@ class EcomaxParametersStructure(StructureDecoder):
     ) -> Generator[tuple[int, ParameterTupleType], None, None]:
         """Unpack an ecoMAX parameter."""
         for index in range(start, start + end):
-            if parameter := util.unpack_parameter(message, self._offset):
+            if parameter := unpack_parameter(message, self._offset):
                 yield (index, parameter)
 
             self._offset += ECOMAX_PARAMETER_SIZE

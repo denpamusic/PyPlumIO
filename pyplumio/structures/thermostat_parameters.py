@@ -4,11 +4,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Generator
 
-from pyplumio import util
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.parameter import (
+    BinaryParameter,
+    Parameter,
+    ParameterDescription,
+    unpack_parameter,
+)
 from pyplumio.helpers.typing import (
     EventDataType,
     ParameterTupleType,
@@ -137,7 +141,7 @@ class ThermostatParametersStructure(StructureDecoder):
         """Get a thermostat parameter."""
         for index in range(start, (start + end) // thermostats):
             description = THERMOSTAT_PARAMETERS[index]
-            if parameter := util.unpack_parameter(
+            if parameter := unpack_parameter(
                 message, self._offset, size=description.size
             ):
                 yield (index, parameter)
@@ -165,7 +169,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
         start = message[offset + 1]
         end = message[offset + 2]
-        thermostat_profile = util.unpack_parameter(message, offset + 3)
+        thermostat_profile = unpack_parameter(message, offset + 3)
         self._offset = offset + 6
         return (
             ensure_device_data(

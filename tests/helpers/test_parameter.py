@@ -3,10 +3,15 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pyplumio.const import STATE_OFF, STATE_ON
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames import Request
-from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.parameter import (
+    BinaryParameter,
+    Parameter,
+    ParameterDescription,
+    check_parameter,
+)
 from pyplumio.helpers.typing import ParameterTupleType
 
 
@@ -46,6 +51,20 @@ def fixture_binary_parameter(ecomax: EcoMAX) -> BinaryParameter:
         min_value=STATE_OFF,
         max_value=STATE_ON,
         description=ParameterDescription(name="test_binary_parameter"),
+    )
+
+
+def test_check_parameter_valid() -> None:
+    """Test checking if parameter is valid."""
+    assert check_parameter(
+        bytearray([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED])
+    )
+
+
+def test_check_parameter_invalid() -> None:
+    """Test checking if parameter is invalid."""
+    assert not check_parameter(
+        bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED])
     )
 
 

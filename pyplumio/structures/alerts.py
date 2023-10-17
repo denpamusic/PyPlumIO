@@ -7,6 +7,7 @@ from typing import Any, Final, Generator
 
 from pyplumio import util
 from pyplumio.const import AlertType
+from pyplumio.helpers.parameter import check_parameter
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -69,7 +70,7 @@ class AlertsStructure(StructureDecoder):
         from_dt = _convert_to_datetime(util.unpack_uint(from_dt_bytes)[0])
         to_dt = (
             _convert_to_datetime(util.unpack_uint(to_dt_bytes)[0])
-            if util.check_parameter(to_dt_bytes)
+            if check_parameter(to_dt_bytes)
             else None
         )
 

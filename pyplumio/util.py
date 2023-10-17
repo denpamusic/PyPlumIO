@@ -5,9 +5,6 @@ import functools
 import socket
 import struct
 
-from pyplumio.const import BYTE_UNDEFINED
-from pyplumio.helpers.typing import ParameterTupleType
-
 unpack_float = struct.Struct("<f").unpack
 unpack_char = struct.Struct("<b").unpack
 unpack_short = struct.Struct("<h").unpack
@@ -35,25 +32,6 @@ def unpack_string(data: bytearray, offset: int = 0) -> str:
     strlen = data[offset]
     offset += 1
     return data[offset : offset + strlen + 1].decode()
-
-
-def unpack_parameter(
-    data: bytearray, offset: int = 0, size: int = 1
-) -> ParameterTupleType | None:
-    """Unpack a device parameter."""
-    if not check_parameter(data[offset : offset + size * 3]):
-        return None
-
-    value = unpack_ushort(data[offset : offset + size])
-    min_value = unpack_ushort(data[offset + size : offset + 2 * size])
-    max_value = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
-
-    return value, min_value, max_value
-
-
-def check_parameter(data: bytearray) -> bool:
-    """Check if parameter contains any bytes besides 0xFF."""
-    return any(x for x in data if x != BYTE_UNDEFINED)
 
 
 def ip4_to_bytes(address: str) -> bytes:

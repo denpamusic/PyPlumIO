@@ -10,10 +10,14 @@ from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import Addressable, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.parameter import (
+    BinaryParameter,
+    Parameter,
+    ParameterDescription,
+    unpack_parameter,
+)
 from pyplumio.helpers.typing import EventDataType, ParameterTupleType
 from pyplumio.structures import Structure, ensure_device_data
-from pyplumio.util import unpack_parameter
 
 if TYPE_CHECKING:
     from pyplumio.frames import Request

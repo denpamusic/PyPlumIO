@@ -6,9 +6,10 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Final
 
-from pyplumio.const import STATE_OFF, STATE_ON
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
-from pyplumio.helpers.typing import ParameterValueType
+from pyplumio.helpers.typing import ParameterTupleType, ParameterValueType
+from pyplumio.util import unpack_ushort
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -17,6 +18,25 @@ _LOGGER = logging.getLogger(__name__)
 
 SET_TIMEOUT: Final = 5
 SET_RETRIES: Final = 5
+
+
+def unpack_parameter(
+    data: bytearray, offset: int = 0, size: int = 1
+) -> ParameterTupleType | None:
+    """Unpack a device parameter."""
+    if not check_parameter(data[offset : offset + size * 3]):
+        return None
+
+    value = unpack_ushort(data[offset : offset + size])
+    min_value = unpack_ushort(data[offset + size : offset + 2 * size])
+    max_value = unpack_ushort(data[offset + 2 * size : offset + 3 * size])
+
+    return value, min_value, max_value
+
+
+def check_parameter(data: bytearray) -> bool:
+    """Check if parameter contains any bytes besides 0xFF."""
+    return any(x for x in data if x != BYTE_UNDEFINED)
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:

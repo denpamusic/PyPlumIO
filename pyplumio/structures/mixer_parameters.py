@@ -4,11 +4,15 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Generator
 
-from pyplumio import util
 from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
-from pyplumio.helpers.parameter import BinaryParameter, Parameter, ParameterDescription
+from pyplumio.helpers.parameter import (
+    BinaryParameter,
+    Parameter,
+    ParameterDescription,
+    unpack_parameter,
+)
 from pyplumio.helpers.typing import (
     EventDataType,
     ParameterTupleType,
@@ -132,7 +136,7 @@ class MixerParametersStructure(StructureDecoder):
     ) -> Generator[tuple[int, ParameterTupleType], None, None]:
         """Get a mixer parameter."""
         for index in range(start, start + end):
-            if parameter := util.unpack_parameter(message, self._offset):
+            if parameter := unpack_parameter(message, self._offset):
                 yield (index, parameter)
 
             self._offset += MIXER_PARAMETER_SIZE
