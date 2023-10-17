@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import functools
-import socket
 import struct
 
 unpack_float = struct.Struct("<f").unpack
@@ -32,26 +31,6 @@ def unpack_string(data: bytearray, offset: int = 0) -> str:
     strlen = data[offset]
     offset += 1
     return data[offset : offset + strlen + 1].decode()
-
-
-def ip4_to_bytes(address: str) -> bytes:
-    """Convert an IPv4 address to bytes."""
-    return socket.inet_aton(address)
-
-
-def ip4_from_bytes(data: bytes) -> str:
-    """Convert bytes to an IPv4 address."""
-    return socket.inet_ntoa(data)
-
-
-def ip6_to_bytes(address: str) -> bytes:
-    """Convert an IPv6 address to bytes."""
-    return socket.inet_pton(socket.AF_INET6, address)
-
-
-def ip6_from_bytes(data: bytes) -> str:
-    """Convert bytes to an IPv6 address."""
-    return socket.inet_ntop(socket.AF_INET6, data)
 
 
 def to_camelcase(text: str, overrides: dict[str, str] = None) -> str:

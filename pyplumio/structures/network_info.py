@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import socket
 from typing import Final
 
 from pyplumio import util
@@ -51,13 +52,13 @@ class NetworkInfoStructure(Structure):
         message = bytearray()
         message += b"\x01"
         network_info = data[ATTR_NETWORK] if ATTR_NETWORK in data else NetworkInfo()
-        message += util.ip4_to_bytes(network_info.eth.ip)
-        message += util.ip4_to_bytes(network_info.eth.netmask)
-        message += util.ip4_to_bytes(network_info.eth.gateway)
+        message += socket.inet_aton(network_info.eth.ip)
+        message += socket.inet_aton(network_info.eth.netmask)
+        message += socket.inet_aton(network_info.eth.gateway)
         message.append(network_info.eth.status)
-        message += util.ip4_to_bytes(network_info.wlan.ip)
-        message += util.ip4_to_bytes(network_info.wlan.netmask)
-        message += util.ip4_to_bytes(network_info.wlan.gateway)
+        message += socket.inet_aton(network_info.wlan.ip)
+        message += socket.inet_aton(network_info.wlan.netmask)
+        message += socket.inet_aton(network_info.wlan.gateway)
         message.append(network_info.server_status)
         message.append(network_info.wlan.encryption)
         message.append(network_info.wlan.signal_quality)
@@ -78,21 +79,17 @@ class NetworkInfoStructure(Structure):
                 {
                     ATTR_NETWORK: NetworkInfo(
                         eth=EthernetParameters(
-                            ip=util.ip4_from_bytes(message[offset : offset + 4]),
-                            netmask=util.ip4_from_bytes(
-                                message[offset + 4 : offset + 8]
-                            ),
-                            gateway=util.ip4_from_bytes(
-                                message[offset + 8 : offset + 12]
-                            ),
+                            ip=socket.inet_ntoa(message[offset : offset + 4]),
+                            netmask=socket.inet_ntoa(message[offset + 4 : offset + 8]),
+                            gateway=socket.inet_ntoa(message[offset + 8 : offset + 12]),
                             status=bool(message[offset + 13]),
                         ),
                         wlan=WirelessParameters(
-                            ip=util.ip4_from_bytes(message[offset + 13 : offset + 17]),
-                            netmask=util.ip4_from_bytes(
+                            ip=socket.inet_ntoa(message[offset + 13 : offset + 17]),
+                            netmask=socket.inet_ntoa(
                                 message[offset + 17 : offset + 21]
                             ),
-                            gateway=util.ip4_from_bytes(
+                            gateway=socket.inet_ntoa(
                                 message[offset + 21 : offset + 25]
                             ),
                             encryption=EncryptionType(int(message[offset + 26])),

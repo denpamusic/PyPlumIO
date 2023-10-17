@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import socket
 from typing import Type
 
 from pyplumio import util
@@ -246,7 +247,7 @@ class IPv4(DataType):
     @property
     def value(self) -> str:
         """A data value."""
-        return util.ip4_from_bytes(self._data)
+        return socket.inet_ntoa(self._data)
 
     @property
     def size(self) -> int:
@@ -260,7 +261,7 @@ class IPv6(DataType):
     @property
     def value(self) -> str:
         """A data value."""
-        return util.ip6_from_bytes(self._data)
+        return socket.inet_ntop(socket.AF_INET6, self._data)
 
     @property
     def size(self) -> int:
