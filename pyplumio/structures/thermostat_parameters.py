@@ -138,7 +138,7 @@ class ThermostatParametersStructure(StructureDecoder):
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
     ) -> Generator[tuple[int, ParameterTupleType], None, None]:
-        """Get a thermostat parameter."""
+        """Get a single thermostat parameter."""
         for index in range(start, (start + end) // thermostats):
             description = THERMOSTAT_PARAMETERS[index]
             if parameter := unpack_parameter(

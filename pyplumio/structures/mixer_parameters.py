@@ -134,7 +134,7 @@ class MixerParametersStructure(StructureDecoder):
     def _mixer_parameter(
         self, message: bytearray, start: int, end: int
     ) -> Generator[tuple[int, ParameterTupleType], None, None]:
-        """Get a mixer parameter."""
+        """Get a single mixer parameter."""
         for index in range(start, start + end):
             if parameter := unpack_parameter(message, self._offset):
                 yield (index, parameter)
