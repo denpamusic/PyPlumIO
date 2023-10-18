@@ -91,7 +91,7 @@ def test_boolean() -> None:
     """Test boolean data_type."""
     data_type = data_types.Boolean.from_bytes(bytearray([0x55]))
     for index, value in enumerate([1, 0, 1, 0, 1, 0, 1, 0]):
-        next_bit = data_type.index(index)
+        next_bit = data_type.next(index)
         assert data_type.value == bool(value)
         if index < 7:
             assert next_bit == index + 1
@@ -163,13 +163,6 @@ def test_ipv6() -> None:
 
 def test_string() -> None:
     """Test string data_type."""
-    data_type = data_types.String.from_bytes(b"test\x00")
-    assert data_type.value == "test"
-    assert data_type.size == 5
-
-
-def test_string_unpack() -> None:
-    """Test string unpack."""
     data_type = data_types.String.from_bytes(b"test\x00")
     assert data_type.value == "test"
     assert data_type.size == 5
