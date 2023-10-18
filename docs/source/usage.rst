@@ -510,7 +510,7 @@ A callback is awaited once this filter function returns true.
 
 .. code-block:: python
 
-    from pyplumio.filter import delta
+    from pyplumio.filter import custom
 
     # Await the callback when temperature is higher that 10 degrees
     # Celsius.
