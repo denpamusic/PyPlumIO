@@ -3,184 +3,149 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import socket
-from typing import Type
+from typing import Any, Type
 
 from pyplumio import util
 
 
 class DataType(ABC):
-    """Represents base data type."""
+    """Represents a base data type."""
 
-    _data: bytes = bytearray()
+    _value: Any
+    _size: int | None = None
 
-    def __init__(self, data: bytes | None = None, size: int | None = None):
+    def __init__(self, value: Any = None):
         """Initialize a new data type."""
-        size = self.size if size is None else size
-
-        if data is not None:
-            self._data = data[0:size] if size > 0 else data
-
-    def __eq__(self, other) -> bool:
-        """Check if two data types are equal."""
-        return self._data == other._data and self.size == other.size
+        self._value = value
 
     def __repr__(self) -> str:
         """Return serializable string representation of the class."""
-        return f"{self.__class__.__name__}(data={self._data!r}, size={self.size})"
+        return f"{self.__class__.__name__}(value={self._value})"
 
-    def unpack(self, data: bytes):
-        """Unpack data to a given type."""
-        self._data = data[0 : self.size]
+    def _cut_data(self, data: bytes) -> bytes:
+        """Cut the data to a size."""
+        return data[0 : self.size] if self.size is not None else data
+
+    @classmethod
+    def from_bytes(cls, data: bytes):
+        """Initialize a new data type from bytes."""
+        data_type = cls()
+        data_type.unpack(data)
+        return data_type
 
     @property
-    @abstractmethod
     def value(self):
         """A data value."""
+        return self._value
 
     @property
+    def size(self) -> int | None:
+        """A data size."""
+        return self._size
+
     @abstractmethod
-    def size(self) -> int:
-        """A data length."""
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
 
 
 class Undefined0(DataType):
     """Represents an undefined zero-byte."""
 
-    @property
-    def value(self) -> None:
-        """A data value."""
-        return None
+    _size: int | None = 0
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 0
+    def unpack(self, _: bytes) -> None:
+        """Unpack the data."""
+        self._value = None
 
 
 class SignedChar(DataType):
     """Represents a signed char."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_char(self._data)[0]
+    _size: int | None = 1
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 1
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_char(self._cut_data(data))[0]
 
 
 class Short(DataType):
     """Represents a 16 bit integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_short(self._data)[0]
+    _size: int | None = 2
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 2
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_short(self._cut_data(data))[0]
 
 
 class Int(DataType):
     """Represents a 32 bit integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_int(self._data)[0]
+    _size: int | None = 4
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 4
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_int(self._cut_data(data))[0]
 
 
 class Byte(DataType):
     """Represents a byte."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return ord(self._data)
+    _size: int | None = 1
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 1
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = ord(self._cut_data(data))
 
 
 class UnsignedShort(DataType):
     """Represents an unsigned 16 bit integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_ushort(self._data)[0]
+    _size: int | None = 2
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 2
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_ushort(self._cut_data(data))[0]
 
 
 class UnsignedInt(DataType):
     """Represents a unsigned 32 bit integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_uint(self._data)[0]
+    _size: int | None = 4
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 4
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_uint(self._cut_data(data))[0]
 
 
 class Float(DataType):
-    """Representats a float."""
+    """Represents a float."""
 
-    @property
-    def value(self) -> float:
-        """A data value."""
-        return util.unpack_float(self._data)[0]
+    _size: int | None = 4
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 4
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_float(self._cut_data(data))[0]
 
 
 class Undefined8(DataType):
     """Represents an undefined."""
 
-    @property
-    def value(self) -> None:
-        """A data value."""
-        return None
+    _size: int | None = 0
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 0
+    def unpack(self, _: bytes) -> None:
+        """Unpack the data."""
+        self._value = None
 
 
 class Double(DataType):
     """Represents a double."""
 
-    @property
-    def value(self) -> float:
-        """A data value."""
-        return util.unpack_double(self._data)[0]
+    _size: int | None = 8
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 8
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_double(self._cut_data(data))[0]
 
 
 class Boolean(DataType):
@@ -188,115 +153,90 @@ class Boolean(DataType):
 
     _index: int = 0
 
-    def __init__(self, data: bytes | None = None, size: int | None = 1):
+    def __init__(self, value: Any = None):
         """Initialize a new boolean."""
         self._index = 0
-        super().__init__(data, size)
+        super().__init__(value)
 
-    def index(self, index: int) -> int:
-        """Return next bit index in the bit array."""
+    def next(self, index: int = 0) -> int:
+        """Set current bit and return the next index in the
+        bit array.
+        """
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
     def unpack(self, data: bytes) -> None:
-        """Unpack data to with given type."""
-        self._data = data[0:1]
+        """Unpack the data."""
+        self._value = ord(data[0:1])
 
     @property
-    def value(self) -> bool:
+    def value(self) -> bool | None:
         """A data value."""
-        return bool(ord(self._data) & (1 << self._index))
+        return None if self._value is None else bool(self._value & (1 << self._index))
 
     @property
-    def size(self) -> int:
-        """A data length."""
+    def size(self) -> int | None:
+        """A data size."""
         return 1 if self._index == 7 else 0
 
 
 class Int64(DataType):
     """Represents a 64 bit signed integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_int64(self._data)[0]
+    _size: int | None = 8
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 8
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_int64(self._cut_data(data))[0]
 
 
 class UInt64(DataType):
     """Represents a 64 bit unsigned integer."""
 
-    @property
-    def value(self) -> int:
-        """A data value."""
-        return util.unpack_uint64(self._data)[0]
+    _size: int | None = 8
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 8
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = util.unpack_uint64(self._cut_data(data))[0]
 
 
 class IPv4(DataType):
     """Represents an IPv4 address."""
 
-    @property
-    def value(self) -> str:
-        """A data value."""
-        return socket.inet_ntoa(self._data)
+    _size: int | None = 4
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 4
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = socket.inet_ntoa(self._cut_data(data))
 
 
 class IPv6(DataType):
     """Represents an IPv6 address."""
 
-    @property
-    def value(self) -> str:
-        """A data value."""
-        return socket.inet_ntop(socket.AF_INET6, self._data)
+    _size: int | None = 16
 
-    @property
-    def size(self) -> int:
-        """A data length."""
-        return 16
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = socket.inet_ntop(socket.AF_INET6, self._cut_data(data))
 
 
 class String(DataType):
     """Represents a string."""
 
-    def __init__(self, data: bytes | None = None, size: int | None = -1):
-        """Initialize a new string."""
-        super().__init__(data, size)
-
-    def unpack(self, data: bytes):
-        """Unpack data to a given type."""
-        self._data = data
-        super().unpack(self._data)
-
-    @property
-    def value(self) -> str:
-        """A data value."""
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
         value = ""
-        offset = 0
-        if offset in self._data:
-            while not self._data[offset] == 0:
-                value += chr(self._data[offset])
+        if (offset := 0) in data:
+            while not data[offset] == 0:
+                value += chr(data[offset])
                 offset += 1
 
-        return value
+        self._value = value
 
     @property
-    def size(self) -> int:
-        """A data length."""
-        return len(self.value) + 1
+    def size(self) -> int | None:
+        """A data size."""
+        return len(self.value) + 1 if self.value is not None else None
 
 
 DATA_TYPES: tuple[Type[DataType], ...] = (

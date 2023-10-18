@@ -29,13 +29,15 @@ class RegulatorDataStructure(StructureDecoder):
     def _unpack_regulator_data(self, message: bytearray, data_type: DataType):
         """Unpack a regulator data sensor."""
         if not isinstance(data_type, Boolean) and self._boolean_index > 0:
+            # Current data type is not boolean, but previous was, thus
+            # we skip single byte that was left from the boolean
+            # and reset boolean index.
             self._offset += 1
             self._boolean_index = 0
 
         data_type.unpack(message[self._offset :])
-
         if isinstance(data_type, Boolean):
-            self._boolean_index = data_type.index(self._boolean_index)
+            self._boolean_index = data_type.next(self._boolean_index)
 
         try:
             return data_type.value
