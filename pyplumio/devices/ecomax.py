@@ -17,7 +17,6 @@ from pyplumio.const import (
     DeviceState,
     DeviceType,
     FrameType,
-    ProductType,
 )
 from pyplumio.devices import Addressable
 from pyplumio.devices.mixer import Mixer
@@ -40,8 +39,7 @@ from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
     ECOMAX_CONTROL_PARAMETER,
-    ECOMAX_I_PARAMETERS,
-    ECOMAX_P_PARAMETERS,
+    ECOMAX_PARAMETERS,
     THERMOSTAT_PROFILE_PARAMETER,
     EcomaxParameter,
 )
@@ -50,7 +48,7 @@ from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
-from pyplumio.structures.product_info import ATTR_PRODUCT
+from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETERS,
@@ -191,13 +189,9 @@ class EcoMAX(Addressable):
         For each parameter dispatch an event with the parameter's name
         and value.
         """
-        product = await self.get(ATTR_PRODUCT)
+        product: ProductInfo = await self.get(ATTR_PRODUCT)
         for index, value in parameters:
-            description = (
-                ECOMAX_P_PARAMETERS[index]
-                if product.type == ProductType.ECOMAX_P
-                else ECOMAX_I_PARAMETERS[index]
-            )
+            description = ECOMAX_PARAMETERS[product.type][index]
             await self.dispatch(
                 description.name,
                 description.cls(

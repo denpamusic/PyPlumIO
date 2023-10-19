@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Generator
 
-from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE
+from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE, ProductType
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -84,46 +84,49 @@ class MixerParameterDescription(ParameterDescription):
     offset: int = 0
 
 
-ECOMAX_P_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
-    MixerParameterDescription(name="mixer_target_temp"),
-    MixerParameterDescription(name="min_target_temp"),
-    MixerParameterDescription(name="max_target_temp"),
-    MixerParameterDescription(name="low_target_temp"),
-    MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
-    MixerParameterDescription(name="heat_curve", multiplier=10),
-    MixerParameterDescription(name="parallel_offset_heat_curve"),
-    MixerParameterDescription(name="weather_temp_factor"),
-    MixerParameterDescription(name="work_mode"),
-    MixerParameterDescription(name="insensitivity", multiplier=10),
-    MixerParameterDescription(name="therm_operation"),
-    MixerParameterDescription(name="therm_mode"),
-    MixerParameterDescription(name="off_therm_pump", cls=MixerBinaryParameter),
-    MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
-)
-
-ECOMAX_I_MIXER_PARAMETERS: tuple[MixerParameterDescription, ...] = (
-    MixerParameterDescription(name="work_mode"),
-    MixerParameterDescription(name="mixer_target_temp"),
-    MixerParameterDescription(name="day_target_temp"),
-    MixerParameterDescription(name="night_target_temp"),
-    MixerParameterDescription(name="min_target_temp"),
-    MixerParameterDescription(name="max_target_temp"),
-    MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
-    MixerParameterDescription(name="support", cls=MixerBinaryParameter),
-    MixerParameterDescription(name="adjustment_method"),
-    MixerParameterDescription(name="constant_water_preset_temp"),
-    MixerParameterDescription(name="decreasing_constant_water_temp"),
-    MixerParameterDescription(name="thermostat_correction"),
-    MixerParameterDescription(name="thermostat_pump_lock", cls=MixerBinaryParameter),
-    MixerParameterDescription(name="valve_open_time"),
-    MixerParameterDescription(name="threshold"),
-    MixerParameterDescription(name="pid_k"),
-    MixerParameterDescription(name="pid_ti"),
-    MixerParameterDescription(name="heating_curve", multiplier=10),
-    MixerParameterDescription(name="heating_curve_shift", offset=20),
-    MixerParameterDescription(name="thermostat_function"),
-    MixerParameterDescription(name="thermostat_decrease_temp"),
-)
+MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
+    ProductType.ECOMAX_P: (
+        MixerParameterDescription(name="mixer_target_temp"),
+        MixerParameterDescription(name="min_target_temp"),
+        MixerParameterDescription(name="max_target_temp"),
+        MixerParameterDescription(name="low_target_temp"),
+        MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
+        MixerParameterDescription(name="heat_curve", multiplier=10),
+        MixerParameterDescription(name="parallel_offset_heat_curve"),
+        MixerParameterDescription(name="weather_temp_factor"),
+        MixerParameterDescription(name="work_mode"),
+        MixerParameterDescription(name="insensitivity", multiplier=10),
+        MixerParameterDescription(name="therm_operation"),
+        MixerParameterDescription(name="therm_mode"),
+        MixerParameterDescription(name="off_therm_pump", cls=MixerBinaryParameter),
+        MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
+    ),
+    ProductType.ECOMAX_I: (
+        MixerParameterDescription(name="work_mode"),
+        MixerParameterDescription(name="mixer_target_temp"),
+        MixerParameterDescription(name="day_target_temp"),
+        MixerParameterDescription(name="night_target_temp"),
+        MixerParameterDescription(name="min_target_temp"),
+        MixerParameterDescription(name="max_target_temp"),
+        MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
+        MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
+        MixerParameterDescription(name="adjustment_method"),
+        MixerParameterDescription(name="constant_water_preset_temp"),
+        MixerParameterDescription(name="decreasing_constant_water_temp"),
+        MixerParameterDescription(name="thermostat_correction"),
+        MixerParameterDescription(
+            name="thermostat_pump_lock", cls=MixerBinaryParameter
+        ),
+        MixerParameterDescription(name="valve_open_time"),
+        MixerParameterDescription(name="threshold"),
+        MixerParameterDescription(name="pid_k"),
+        MixerParameterDescription(name="pid_ti"),
+        MixerParameterDescription(name="heating_curve", multiplier=10),
+        MixerParameterDescription(name="heating_curve_shift", offset=20),
+        MixerParameterDescription(name="thermostat_function"),
+        MixerParameterDescription(name="thermostat_decrease_temp"),
+    ),
+}
 
 
 class MixerParametersStructure(StructureDecoder):

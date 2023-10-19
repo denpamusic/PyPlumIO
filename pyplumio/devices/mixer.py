@@ -4,16 +4,11 @@ from __future__ import annotations
 import asyncio
 from typing import Sequence
 
-from pyplumio.const import ProductType
 from pyplumio.devices import Addressable, SubDevice
 from pyplumio.helpers.typing import EventDataType, ParameterTupleType
-from pyplumio.structures.mixer_parameters import (
-    ATTR_MIXER_PARAMETERS,
-    ECOMAX_I_MIXER_PARAMETERS,
-    ECOMAX_P_MIXER_PARAMETERS,
-)
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS, MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
-from pyplumio.structures.product_info import ATTR_PRODUCT
+from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
 
 class Mixer(SubDevice):
@@ -44,14 +39,9 @@ class Mixer(SubDevice):
         For each parameter dispatch an event with the
         parameter's name and value.
         """
-        product = await self.parent.get(ATTR_PRODUCT)
-
+        product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
         for index, value in parameters:
-            description = (
-                ECOMAX_P_MIXER_PARAMETERS[index]
-                if product.type == ProductType.ECOMAX_P
-                else ECOMAX_I_MIXER_PARAMETERS[index]
-            )
+            description = MIXER_PARAMETERS[product.type][index]
             await self.dispatch(
                 description.name,
                 description.cls(
