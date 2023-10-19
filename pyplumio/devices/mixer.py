@@ -52,14 +52,16 @@ class Mixer(SubDevice):
                 if product.type == ProductType.ECOMAX_P
                 else ECOMAX_I_MIXER_PARAMETERS[index]
             )
-            parameter = description.cls(
-                device=self,
-                description=description,
-                index=index,
-                value=value[0],
-                min_value=value[1],
-                max_value=value[2],
+            await self.dispatch(
+                description.name,
+                description.cls(
+                    device=self,
+                    description=description,
+                    index=index,
+                    value=value[0],
+                    min_value=value[1],
+                    max_value=value[2],
+                ),
             )
-            await self.dispatch(description.name, parameter)
 
         return True
