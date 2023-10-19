@@ -26,6 +26,7 @@ def _convert_to_datetime(seconds: int) -> datetime:
     """Convert timestamp to a datetime object."""
 
     def _seconds_to_datetime_args(seconds: int) -> Generator[Any, None, None]:
+        """Convert seconds to a kwarg for a datetime class."""
         intervals: tuple[tuple[str, int, int], ...] = (
             (ATTR_YEAR, 32140800, 2000),  # 60sec * 60min * 24h * 31d * 12m
             (ATTR_MONTH, 2678400, 1),  # 60sec * 60min * 24h * 31d

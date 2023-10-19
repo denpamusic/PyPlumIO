@@ -4,6 +4,7 @@ from __future__ import annotations
 import functools
 import struct
 
+# Data type unpackers.
 unpack_float = struct.Struct("<f").unpack
 unpack_char = struct.Struct("<b").unpack
 unpack_short = struct.Struct("<h").unpack
@@ -13,8 +14,6 @@ unpack_uint = struct.Struct("<I").unpack
 unpack_double = struct.Struct("<d").unpack
 unpack_int64 = struct.Struct("<q").unpack
 unpack_uint64 = struct.Struct("<Q").unpack
-pack_header = struct.Struct("<BH4B").pack_into
-unpack_header = struct.Struct("<BH4B").unpack_from
 
 
 def unpack_string(data: bytearray, offset: int = 0) -> str:
@@ -22,6 +21,11 @@ def unpack_string(data: bytearray, offset: int = 0) -> str:
     strlen = data[offset]
     offset += 1
     return data[offset : offset + strlen + 1].decode()
+
+
+# Frame header packer/unpacker.
+pack_header = struct.Struct("<BH4B").pack_into
+unpack_header = struct.Struct("<BH4B").unpack_from
 
 
 def crc(data: bytes) -> int:

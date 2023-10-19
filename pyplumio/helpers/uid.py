@@ -4,9 +4,9 @@ from __future__ import annotations
 
 def unpack_uid(message: bytearray, offset: int = 0) -> str:
     """Decode and return a complete UID string."""
-    uid_length = message[offset]
+    length = message[offset]
     offset += 1
-    uid = message[offset : uid_length + offset]
+    uid = message[offset : length + offset]
 
     return _encode_base5(uid + _uid_crc(uid))
 
