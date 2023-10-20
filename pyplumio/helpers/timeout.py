@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import wraps
 import logging
 
 _LOGGER = logging.getLogger(__name__)
@@ -14,6 +15,7 @@ def timeout(seconds: int, raise_exception: bool = True):
     """
 
     def decorator(func):
+        @wraps(func)
         async def wrapper(*args, **kwargs):
             try:
                 return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
