@@ -228,7 +228,7 @@ def fixture_data() -> dict[FrameType, EventDataType]:
                 Alert(
                     code=AlertType.POWER_LOSS,
                     from_dt=datetime(2022, 7, 22, 22, 33),
-                    to_dt=datetime(2022, 7, 22, 22, 38, 11),
+                    to_dt=None,
                 ),
             ]
         },
@@ -402,7 +402,7 @@ A7A000A7B000A7C000A7D000A7E000A7F00048000048300048400049100049200049300049400049
             )
         ),
         FrameType.RESPONSE_ALERTS: bytearray.fromhex(
-            "6400021a5493382B9B94382B009C97372BD398372B"
+            "6400021a5493382B9B94382B009C97372B00000000"
         ),
         FrameType.RESPONSE_SCHEDULES: bytearray.fromhex(
             """100101000005001E0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFFFFE0000FFFFF

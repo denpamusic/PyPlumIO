@@ -7,7 +7,6 @@ from typing import Any, Final, Generator
 
 from pyplumio import util
 from pyplumio.const import AlertType
-from pyplumio.helpers.parameter import check_parameter
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -66,14 +65,13 @@ class AlertsStructure(StructureDecoder):
         except ValueError:
             pass
 
-        from_dt_bytes = message[self._offset + 1 : self._offset + 5]
-        to_dt_bytes = message[self._offset + 5 : self._offset + ALERT_SIZE]
-        from_dt = _convert_to_datetime(util.unpack_uint(from_dt_bytes)[0])
-        to_dt = (
-            _convert_to_datetime(util.unpack_uint(to_dt_bytes)[0])
-            if check_parameter(to_dt_bytes)
-            else None
-        )
+        from_seconds = util.unpack_uint(message[self._offset + 1 : self._offset + 5])[0]
+        to_seconds = util.unpack_uint(
+            message[self._offset + 5 : self._offset + ALERT_SIZE]
+        )[0]
+
+        from_dt = _convert_to_datetime(from_seconds)
+        to_dt = _convert_to_datetime(to_seconds) if to_seconds > 0 else None
 
         self._offset += ALERT_SIZE
         return Alert(code, from_dt, to_dt)
