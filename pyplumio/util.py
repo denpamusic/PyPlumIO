@@ -28,8 +28,8 @@ pack_header = struct.Struct("<BH4B").pack_into
 unpack_header = struct.Struct("<BH4B").unpack_from
 
 
-def crc(data: bytes) -> int:
-    """Return a checksum."""
+def bcc(data: bytes) -> int:
+    """Return a block check character."""
     return functools.reduce(lambda x, y: x ^ y, data)
 
 

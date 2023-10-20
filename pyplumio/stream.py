@@ -119,7 +119,7 @@ class FrameReader:
                 + f"'{length - HEADER_SIZE}' bytes"
             ) from e
 
-        if payload[-2] != util.crc(header + payload[:-2]):
+        if payload[-2] != util.bcc(header + payload[:-2]):
             raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
         frame = factory(

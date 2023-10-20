@@ -135,7 +135,7 @@ async def test_frame_reader_with_incomplete_read(
     return_value=b"\x31\xfe\x00\xc9\x16",
     new_callable=AsyncMock,
 )
-async def test_frame_reader_with_incorrect_crc(
+async def test_frame_reader_with_incorrect_bcc(
     mock_readexactly, mock_read, frame_reader: FrameReader
 ) -> None:
     """Test reader on frame with incorrect checksum."""

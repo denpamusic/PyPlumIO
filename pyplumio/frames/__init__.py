@@ -153,7 +153,7 @@ class Frame(ABC, FrameDataClass):
         data = self.header
         data.append(self.frame_type)
         data += self.message
-        data.append(util.crc(data))
+        data.append(util.bcc(data))
         data.append(FRAME_END)
         return bytes(data)
 

@@ -3,9 +3,9 @@
 from pyplumio import util
 
 
-def test_crc() -> None:
+def test_bcc() -> None:
     """Test CRC checksum calculation."""
-    assert util.crc(b"\x68\x0a\x00\x00\x56\x30\x05\x40") == 0x41
+    assert util.bcc(b"\x68\x0a\x00\x00\x56\x30\x05\x40") == 0x41
 
 
 def test_to_camelcase() -> None:
