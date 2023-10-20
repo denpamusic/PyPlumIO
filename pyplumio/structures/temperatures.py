@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Final
 
-from pyplumio import util
+from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -61,7 +61,7 @@ class TemperaturesStructure(StructureDecoder):
         offset += 1
         for _ in range(temperatures):
             index = message[offset]
-            temp = util.unpack_float(message[offset + 1 : offset + 5])[0]
+            temp = unpack_float(message[offset + 1 : offset + 5])[0]
 
             if (not math.isnan(temp)) and 0 <= index < len(TEMPERATURES):
                 # Temperature exists and index is in the correct range.

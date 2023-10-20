@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Final
 
-from pyplumio import util
+from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -20,7 +20,7 @@ class PowerStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        power = util.unpack_float(message[offset : offset + 4])[0]
+        power = unpack_float(message[offset : offset + 4])[0]
         if not math.isnan(power):
             return ensure_device_data(data, {ATTR_POWER: power}), offset + POWER_SIZE
 

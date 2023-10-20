@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from pyplumio import util
-from pyplumio.helpers.data_types import DATA_TYPES, DataType
+from pyplumio.helpers.data_types import DATA_TYPES, DataType, unpack_ushort
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -21,9 +20,9 @@ class DataSchemaStructure(StructureDecoder):
     def _unpack_block(self, message: bytearray) -> tuple[int, DataType]:
         """Unpack a block."""
         param_type = message[self._offset]
-        param_id = util.unpack_ushort(
-            message[self._offset + 1 : self._offset + BLOCK_SIZE]
-        )[0]
+        param_id = unpack_ushort(message[self._offset + 1 : self._offset + BLOCK_SIZE])[
+            0
+        ]
 
         try:
             return param_id, DATA_TYPES[param_type]()
@@ -34,7 +33,7 @@ class DataSchemaStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        blocks = util.unpack_ushort(message[offset : offset + 2])[0]
+        blocks = unpack_ushort(message[offset : offset + 2])[0]
         self._offset = offset + 2
         if blocks == 0:
             return ensure_device_data(data), self._offset

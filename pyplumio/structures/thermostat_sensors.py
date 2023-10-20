@@ -4,7 +4,6 @@ from __future__ import annotations
 import math
 from typing import Final, Generator
 
-from pyplumio import util
 from pyplumio.const import (
     ATTR_CURRENT_TEMP,
     ATTR_SCHEDULE,
@@ -12,6 +11,7 @@ from pyplumio.const import (
     ATTR_TARGET_TEMP,
     BYTE_UNDEFINED,
 )
+from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -33,10 +33,8 @@ class ThermostatSensorsStructure(StructureDecoder):
         self, message: bytearray, contacts: int
     ) -> EventDataType | None:
         """Unpack sensors for a thermostat."""
-        current_temp = util.unpack_float(message[self._offset + 1 : self._offset + 5])[
-            0
-        ]
-        target_temp = util.unpack_float(
+        current_temp = unpack_float(message[self._offset + 1 : self._offset + 5])[0]
+        target_temp = unpack_float(
             message[self._offset + 5 : self._offset + THERMOSTAT_SENSORS_SIZE]
         )[0]
 

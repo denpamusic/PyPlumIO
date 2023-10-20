@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from pyplumio import util
 from pyplumio.const import FrameType
+from pyplumio.helpers.data_types import unpack_ushort
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -26,7 +26,7 @@ class FrameVersionsStructure(StructureDecoder):
         except ValueError:
             pass
 
-        version = util.unpack_ushort(
+        version = unpack_ushort(
             message[self._offset + 1 : self._offset + FRAME_VERSION_SIZE]
         )[0]
 

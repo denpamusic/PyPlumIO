@@ -4,8 +4,8 @@ from __future__ import annotations
 import math
 from typing import Final, Generator
 
-from pyplumio import util
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
+from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -23,7 +23,7 @@ class MixerSensorsStructure(StructureDecoder):
 
     def _unpack_mixer_sensors(self, message: bytearray) -> EventDataType | None:
         """Unpack sensors for a mixer."""
-        current_temp = util.unpack_float(message[self._offset : self._offset + 4])[0]
+        current_temp = unpack_float(message[self._offset : self._offset + 4])[0]
         try:
             if not math.isnan(current_temp):
                 return {

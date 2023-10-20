@@ -5,8 +5,8 @@ from dataclasses import dataclass, field
 import socket
 from typing import Final
 
-from pyplumio import util
 from pyplumio.const import EncryptionType
+from pyplumio.helpers.data_types import unpack_string
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure, ensure_device_data
 
@@ -95,7 +95,7 @@ class NetworkInfoStructure(Structure):
                             encryption=EncryptionType(int(message[offset + 26])),
                             signal_quality=int(message[offset + 27]),
                             status=bool(message[offset + 28]),
-                            ssid=util.unpack_string(message, offset + 33),
+                            ssid=unpack_string(message, offset + 33),
                         ),
                         server_status=bool(message[offset + 25]),
                     )

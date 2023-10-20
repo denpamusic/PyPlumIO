@@ -3,9 +3,26 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import socket
+import struct
 from typing import Any, Type
 
-from pyplumio import util
+# Data type unpackers.
+unpack_float = struct.Struct("<f").unpack
+unpack_char = struct.Struct("<b").unpack
+unpack_short = struct.Struct("<h").unpack
+unpack_ushort = struct.Struct("<H").unpack
+unpack_int = struct.Struct("<i").unpack
+unpack_uint = struct.Struct("<I").unpack
+unpack_double = struct.Struct("<d").unpack
+unpack_int64 = struct.Struct("<q").unpack
+unpack_uint64 = struct.Struct("<Q").unpack
+
+
+def unpack_string(data: bytearray, offset: int = 0) -> str:
+    """Unpack a string."""
+    strlen = data[offset]
+    offset += 1
+    return data[offset : offset + strlen + 1].decode()
 
 
 class DataType(ABC):
@@ -65,7 +82,7 @@ class SignedChar(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_char(self._cut_data(data))[0]
+        self._value = unpack_char(self._cut_data(data))[0]
 
 
 class Short(DataType):
@@ -75,7 +92,7 @@ class Short(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_short(self._cut_data(data))[0]
+        self._value = unpack_short(self._cut_data(data))[0]
 
 
 class Int(DataType):
@@ -85,7 +102,7 @@ class Int(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_int(self._cut_data(data))[0]
+        self._value = unpack_int(self._cut_data(data))[0]
 
 
 class Byte(DataType):
@@ -105,7 +122,7 @@ class UnsignedShort(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_ushort(self._cut_data(data))[0]
+        self._value = unpack_ushort(self._cut_data(data))[0]
 
 
 class UnsignedInt(DataType):
@@ -115,7 +132,7 @@ class UnsignedInt(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_uint(self._cut_data(data))[0]
+        self._value = unpack_uint(self._cut_data(data))[0]
 
 
 class Float(DataType):
@@ -125,7 +142,7 @@ class Float(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_float(self._cut_data(data))[0]
+        self._value = unpack_float(self._cut_data(data))[0]
 
 
 class Undefined8(DataType):
@@ -145,7 +162,7 @@ class Double(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_double(self._cut_data(data))[0]
+        self._value = unpack_double(self._cut_data(data))[0]
 
 
 class Boolean(DataType):
@@ -187,7 +204,7 @@ class Int64(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_int64(self._cut_data(data))[0]
+        self._value = unpack_int64(self._cut_data(data))[0]
 
 
 class UInt64(DataType):
@@ -197,7 +214,7 @@ class UInt64(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = util.unpack_uint64(self._cut_data(data))[0]
+        self._value = unpack_uint64(self._cut_data(data))[0]
 
 
 class IPv4(DataType):

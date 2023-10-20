@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Final
 
-from pyplumio import util
+from pyplumio.helpers.data_types import unpack_uint
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder, ensure_device_data
 
@@ -54,7 +54,7 @@ class OutputsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        outputs = util.unpack_uint(message[offset : offset + OUTPUTS_SIZE])[0]
+        outputs = unpack_uint(message[offset : offset + OUTPUTS_SIZE])[0]
         return (
             ensure_device_data(
                 data,

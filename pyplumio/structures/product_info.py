@@ -5,8 +5,8 @@ from dataclasses import dataclass
 import struct
 from typing import Final
 
-from pyplumio import util
 from pyplumio.const import ProductType
+from pyplumio.helpers.data_types import unpack_string
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder, ensure_device_data
@@ -45,7 +45,7 @@ class ProductInfoStructure(StructureDecoder):
                         uid=unpack_uid(message, offset),
                         logo=logo,
                         image=image,
-                        model=util.unpack_string(message, offset + 16),
+                        model=unpack_string(message, offset + 16),
                     )
                 },
             ),
