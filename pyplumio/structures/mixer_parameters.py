@@ -110,6 +110,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="min_target_temp"),
         MixerParameterDescription(name="max_target_temp"),
         MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
+        MixerParameterDescription(name="support"),
         MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
         MixerParameterDescription(name="adjustment_method"),
         MixerParameterDescription(name="constant_water_preset_temp"),
