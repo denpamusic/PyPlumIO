@@ -6,7 +6,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_FUEL_CONSUMPTION: Final = "fuel_consumption"
 
@@ -23,8 +24,8 @@ class FuelConsumptionStructure(StructureDecoder):
         fuel_consumption = unpack_float(message[offset : offset + 4])[0]
         if not math.isnan(fuel_consumption):
             return (
-                ensure_device_data(data, {ATTR_FUEL_CONSUMPTION: fuel_consumption}),
+                ensure_dict(data, {ATTR_FUEL_CONSUMPTION: fuel_consumption}),
                 offset + FUEL_CONSUMPTION_SIZE,
             )
 
-        return ensure_device_data(data), offset + FUEL_CONSUMPTION_SIZE
+        return ensure_dict(data), offset + FUEL_CONSUMPTION_SIZE

@@ -5,7 +5,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_uint
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_HEATING_PUMP_FLAG: Final = "heating_pump_flag"
 ATTR_WATER_HEATER_PUMP_FLAG: Final = "water_heater_pump_flag"
@@ -24,7 +25,7 @@ class OutputFlagsStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         output_flags = unpack_uint(message[offset : offset + OUTPUT_FLAGS_SIZE])[0]
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_HEATING_PUMP_FLAG: bool(output_flags & 0x04),

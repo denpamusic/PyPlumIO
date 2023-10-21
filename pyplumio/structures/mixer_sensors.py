@@ -7,7 +7,8 @@ from typing import Final, Generator
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_PUMP: Final = "pump"
 ATTR_MIXER_COUNT: Final = "mixer_count"
@@ -51,7 +52,7 @@ class MixerSensorsStructure(StructureDecoder):
         mixers = message[offset]
         self._offset = offset + 1
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_MIXER_SENSORS: dict(self._mixer_sensors(message, mixers)),

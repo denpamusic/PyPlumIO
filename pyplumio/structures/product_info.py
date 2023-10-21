@@ -9,7 +9,8 @@ from pyplumio.const import ProductType
 from pyplumio.helpers.data_types import unpack_string
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.uid import unpack_uid
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_PRODUCT: Final = "product"
 
@@ -36,7 +37,7 @@ class ProductInfoStructure(StructureDecoder):
         product_type, product_id = struct.unpack_from("<BH", message)
         logo, image = struct.unpack_from("<HH", message)
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_PRODUCT: ProductInfo(

@@ -18,7 +18,8 @@ from pyplumio.helpers.typing import (
     ParameterTupleType,
     ParameterValueType,
 )
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
     from pyplumio.devices.mixer import Mixer
@@ -161,7 +162,7 @@ class MixerParametersStructure(StructureDecoder):
         mixers = message[offset + 3]
         self._offset = offset + 4
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_MIXER_PARAMETERS: dict(

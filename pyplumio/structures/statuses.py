@@ -4,7 +4,8 @@ from __future__ import annotations
 from typing import Final
 
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_HEATING_TARGET: Final = "heating_target"
 ATTR_HEATING_STATUS: Final = "heating_status"
@@ -29,7 +30,7 @@ class StatusesStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     status: message[offset + index]

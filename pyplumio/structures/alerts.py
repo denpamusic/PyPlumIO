@@ -8,7 +8,8 @@ from typing import Any, Final, Generator
 from pyplumio.const import AlertType
 from pyplumio.helpers.data_types import unpack_uint
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_ALERTS: Final = "alerts"
 ATTR_YEAR: Final = "year"
@@ -84,7 +85,7 @@ class AlertsStructure(StructureDecoder):
         end = message[offset + 2]
         self._offset = offset + 3
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_ALERTS: [

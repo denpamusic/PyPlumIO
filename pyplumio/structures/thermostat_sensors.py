@@ -13,7 +13,8 @@ from pyplumio.const import (
 )
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
 ATTR_THERMOSTAT_COUNT: Final = "thermostat_count"
@@ -67,13 +68,13 @@ class ThermostatSensorsStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
-            return ensure_device_data(data), offset + 1
+            return ensure_dict(data), offset + 1
 
         contacts = message[offset]
         thermostats = message[offset + 1]
         self._offset = offset + 2
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_THERMOSTAT_SENSORS: dict(

@@ -7,10 +7,10 @@ from functools import reduce
 import struct
 from typing import ClassVar, Final
 
-from pyplumio import util
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import EventDataType
+from pyplumio.utils import to_camelcase
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -32,7 +32,7 @@ def _handler_class_path(frame_type_name: str) -> str:
     name.
     """
     module, type_name = frame_type_name.split("_", 1)
-    type_name = util.to_camelcase(type_name, overrides={"uid": "UID"})
+    type_name = to_camelcase(type_name, overrides={"uid": "UID"})
     return f"{module.lower()}s.{type_name}{module.capitalize()}"
 
 

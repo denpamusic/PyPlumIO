@@ -18,8 +18,9 @@ from pyplumio.helpers.typing import (
     ParameterTupleType,
     ParameterValueType,
 )
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
+from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
     from pyplumio.devices.thermostat import Thermostat
@@ -122,7 +123,7 @@ def _empty_response(
 ) -> tuple[EventDataType, int]:
     """Return an empty response."""
     return (
-        ensure_device_data(
+        ensure_dict(
             data,
             {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
         ),
@@ -162,7 +163,7 @@ class ThermostatParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_device_data(data)
+        data = ensure_dict(data)
         thermostats = data.get(ATTR_THERMOSTAT_COUNT, 0)
         if thermostats == 0:
             return _empty_response(offset, data)
@@ -172,7 +173,7 @@ class ThermostatParametersStructure(StructureDecoder):
         thermostat_profile = unpack_parameter(message, offset + 3)
         self._offset = offset + 6
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_THERMOSTAT_PROFILE: thermostat_profile,

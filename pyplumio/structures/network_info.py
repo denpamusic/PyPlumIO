@@ -8,7 +8,8 @@ from typing import Final
 from pyplumio.const import EncryptionType
 from pyplumio.helpers.data_types import unpack_string
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import Structure, ensure_device_data
+from pyplumio.structures import Structure
+from pyplumio.utils import ensure_dict
 
 ATTR_NETWORK: Final = "network"
 
@@ -74,7 +75,7 @@ class NetworkInfoStructure(Structure):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_NETWORK: NetworkInfo(

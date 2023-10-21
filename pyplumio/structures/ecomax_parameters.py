@@ -19,8 +19,9 @@ from pyplumio.helpers.typing import (
     ParameterTupleType,
     ParameterValueType,
 )
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
+from pyplumio.utils import ensure_dict
 
 ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
 ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
@@ -338,7 +339,7 @@ class EcomaxParametersStructure(StructureDecoder):
         end = message[offset + 2]
         self._offset = offset + 3
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_ECOMAX_PARAMETERS: list(

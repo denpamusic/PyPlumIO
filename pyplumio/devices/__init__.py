@@ -5,7 +5,6 @@ import asyncio
 import logging
 from typing import ClassVar
 
-from pyplumio import util
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
@@ -14,13 +13,14 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures.network_info import NetworkInfo
+from pyplumio.utils import to_camelcase
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def _handler_class_path(device_type_name: str) -> str:
     """Return the handler class path for a given device type name."""
-    device_type_name = util.to_camelcase(
+    device_type_name = to_camelcase(
         device_type_name, overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"}
     )
     return f"{device_type_name.lower()}.{device_type_name}"

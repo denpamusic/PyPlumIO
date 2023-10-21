@@ -17,7 +17,8 @@ from pyplumio.helpers.parameter import (
     unpack_parameter,
 )
 from pyplumio.helpers.typing import EventDataType, ParameterTupleType
-from pyplumio.structures import Structure, ensure_device_data
+from pyplumio.structures import Structure
+from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
     from pyplumio.frames import Request
@@ -195,7 +196,7 @@ class SchedulesStructure(Structure):
             parameters.append((index * 2 + 1, parameter))
 
         return (
-            ensure_device_data(
+            ensure_dict(
                 data, {ATTR_SCHEDULES: schedules, ATTR_SCHEDULE_PARAMETERS: parameters}
             ),
             self._offset,

@@ -7,7 +7,8 @@ from typing import Final
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.data_types import unpack_ushort
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_LAMBDA_STATE: Final = "lambda_state"
 ATTR_LAMBDA_TARGET: Final = "lambda_target"
@@ -24,11 +25,11 @@ class LambaSensorStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
-            return ensure_device_data(data), offset + 1
+            return ensure_dict(data), offset + 1
 
         level = unpack_ushort(message[offset + 2 : offset + LAMBDA_LEVEL_SIZE])[0]
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_LAMBDA_STATE: message[offset],

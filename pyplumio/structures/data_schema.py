@@ -5,7 +5,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import DATA_TYPES, DataType, unpack_ushort
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_SCHEMA: Final = "schema"
 
@@ -36,10 +37,10 @@ class DataSchemaStructure(StructureDecoder):
         blocks = unpack_ushort(message[offset : offset + 2])[0]
         self._offset = offset + 2
         if blocks == 0:
-            return ensure_device_data(data), self._offset
+            return ensure_dict(data), self._offset
 
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {ATTR_SCHEMA: [self._unpack_block(message) for _ in range(blocks)]},
             ),

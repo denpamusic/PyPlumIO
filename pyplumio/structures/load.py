@@ -5,7 +5,8 @@ from typing import Final
 
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_LOAD: Final = "load"
 
@@ -20,9 +21,9 @@ class LoadStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
-            return ensure_device_data(data), offset + LOAD_SIZE
+            return ensure_dict(data), offset + LOAD_SIZE
 
         return (
-            ensure_device_data(data, {ATTR_LOAD: message[offset]}),
+            ensure_dict(data, {ATTR_LOAD: message[offset]}),
             offset + LOAD_SIZE,
         )

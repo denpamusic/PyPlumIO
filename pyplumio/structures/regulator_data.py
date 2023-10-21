@@ -6,9 +6,10 @@ from typing import Final
 from pyplumio.helpers.data_types import Boolean, DataType
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
+from pyplumio.utils import ensure_dict
 
 ATTR_REGDATA: Final = "regdata"
 ATTR_REGDATA_DECODER: Final = "regdata_decoder"
@@ -48,7 +49,7 @@ class RegulatorDataStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_device_data(data)
+        data = ensure_dict(data)
         schema = data.get(ATTR_SCHEMA, [])
         offset += 2
         regdata_version = f"{message[offset+1]}.{message[offset]}"
@@ -67,4 +68,4 @@ class RegulatorDataStructure(StructureDecoder):
                 }
             )
 
-        return ensure_device_data(data), self._offset
+        return ensure_dict(data), self._offset

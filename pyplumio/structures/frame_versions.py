@@ -6,7 +6,8 @@ from typing import Final
 from pyplumio.const import FrameType
 from pyplumio.helpers.data_types import unpack_ushort
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_FRAME_VERSIONS: Final = "frame_versions"
 
@@ -42,7 +43,7 @@ class FrameVersionsStructure(StructureDecoder):
         frame_versions = message[offset]
         self._offset = offset + 1
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     ATTR_FRAME_VERSIONS: dict(

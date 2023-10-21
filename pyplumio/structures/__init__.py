@@ -8,15 +8,6 @@ from pyplumio.frames import Frame
 from pyplumio.helpers.typing import EventDataType
 
 
-def ensure_device_data(data: EventDataType | None, *args) -> EventDataType:
-    """Create or merge multiple device datasets."""
-    data = data if data is not None else {}
-    for new_data in args:
-        data |= new_data
-
-    return data
-
-
 @dataclass
 class StructureDataClass:
     "Represents a structure dataclass mixin."

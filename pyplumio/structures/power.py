@@ -6,7 +6,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_POWER: Final = "power"
 
@@ -22,6 +23,6 @@ class PowerStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         power = unpack_float(message[offset : offset + 4])[0]
         if not math.isnan(power):
-            return ensure_device_data(data, {ATTR_POWER: power}), offset + POWER_SIZE
+            return ensure_dict(data, {ATTR_POWER: power}), offset + POWER_SIZE
 
-        return ensure_device_data(data), offset + POWER_SIZE
+        return ensure_dict(data), offset + POWER_SIZE

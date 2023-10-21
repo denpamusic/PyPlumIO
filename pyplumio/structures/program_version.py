@@ -7,7 +7,8 @@ from typing import Final
 
 from pyplumio._version import __version_tuple__
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import Structure, ensure_device_data
+from pyplumio.structures import Structure
+from pyplumio.utils import ensure_dict
 
 ATTR_VERSION: Final = "version"
 
@@ -69,4 +70,4 @@ class ProgramVersionStructure(Structure):
             map(str, [software_version1, software_version2, software_version3])
         )
 
-        return ensure_device_data(data, {ATTR_VERSION: version_info}), offset + 15
+        return ensure_dict(data, {ATTR_VERSION: version_info}), offset + 15

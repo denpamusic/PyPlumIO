@@ -6,7 +6,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_uint
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_FAN: Final = "fan"
 ATTR_FEEDER: Final = "feeder"
@@ -56,7 +57,7 @@ class OutputsStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         outputs = unpack_uint(message[offset : offset + OUTPUTS_SIZE])[0]
         return (
-            ensure_device_data(
+            ensure_dict(
                 data,
                 {
                     output: bool(outputs & int(math.pow(2, index)))

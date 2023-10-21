@@ -6,7 +6,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_FAN_POWER: Final = "fan_power"
 
@@ -22,6 +23,6 @@ class FanPowerStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         fan_power = unpack_float(message[offset : offset + FAN_POWER_SIZE])[0]
         if not math.isnan(fan_power):
-            data = ensure_device_data(data, {ATTR_FAN_POWER: fan_power})
+            data = ensure_dict(data, {ATTR_FAN_POWER: fan_power})
 
         return data, offset + FAN_POWER_SIZE

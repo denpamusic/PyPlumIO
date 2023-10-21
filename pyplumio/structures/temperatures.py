@@ -6,7 +6,8 @@ from typing import Final
 
 from pyplumio.helpers.data_types import unpack_float
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder, ensure_device_data
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict
 
 ATTR_HEATING_TEMP: Final = "heating_temp"
 ATTR_FEEDER_TEMP: Final = "feeder_temp"
@@ -56,7 +57,7 @@ class TemperaturesStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_device_data(data)
+        data = ensure_dict(data)
         temperatures = message[offset]
         offset += 1
         for _ in range(temperatures):
