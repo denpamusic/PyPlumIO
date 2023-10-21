@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from functools import cache
-import logging
 from typing import ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
@@ -15,8 +14,6 @@ from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def _handler_class_path(device_type_name: str) -> str:
