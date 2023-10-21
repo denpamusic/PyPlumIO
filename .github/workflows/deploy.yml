@@ -7,7 +7,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    environment:
+      name: pypi
+      url: https://pypi.org/p/PyPlumIO
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -25,8 +29,5 @@ jobs:
         run: |
           python -m build
 
-      - name: Publish package
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
