@@ -5,10 +5,16 @@ from asyncio import IncompleteReadError, StreamReader, StreamWriter
 import logging
 from typing import Final
 
-from pyplumio import util
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import ChecksumError, ReadError
-from pyplumio.frames import FRAME_START, HEADER_SIZE, Frame, get_frame_handler
+from pyplumio.frames import (
+    FRAME_START,
+    HEADER_SIZE,
+    Frame,
+    bcc,
+    get_frame_handler,
+    unpack_header,
+)
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.timeout import timeout
 
@@ -76,7 +82,7 @@ class FrameReader:
                 sender,
                 sender_type,
                 econet_version,
-            ] = util.unpack_header(buffer)
+            ] = unpack_header(buffer)
 
             return (
                 buffer,
@@ -119,7 +125,7 @@ class FrameReader:
                 + f"'{length - HEADER_SIZE}' bytes"
             ) from e
 
-        if payload[-2] != util.bcc(header + payload[:-2]):
+        if payload[-2] != bcc(header + payload[:-2]):
             raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
         frame = factory(

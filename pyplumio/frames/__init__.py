@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from functools import reduce
+import struct
 from typing import ClassVar, Final
 
 from pyplumio import util
@@ -20,6 +22,10 @@ DELIMITER_SIZE: Final = 1
 ECONET_TYPE: Final = 48
 ECONET_VERSION: Final = 5
 
+# Frame header packer and unpacker.
+pack_header = struct.Struct("<BH4B").pack_into
+unpack_header = struct.Struct("<BH4B").unpack_from
+
 
 def _handler_class_path(frame_type_name: str) -> str:
     """Return handler class path from module name and frame type
@@ -36,6 +42,11 @@ def _handler_class_path(frame_type_name: str) -> str:
 FRAME_TYPES: dict[int, str] = {
     frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
 }
+
+
+def bcc(data: bytes) -> int:
+    """Return a block check character."""
+    return reduce(lambda x, y: x ^ y, data)
 
 
 def is_known_frame_type(frame_type: int) -> bool:
@@ -134,7 +145,7 @@ class Frame(ABC, FrameDataClass):
     def header(self) -> bytearray:
         """A frame header."""
         buffer = bytearray(HEADER_SIZE)
-        util.pack_header(
+        pack_header(
             buffer,
             HEADER_OFFSET,
             FRAME_START,
@@ -153,7 +164,7 @@ class Frame(ABC, FrameDataClass):
         data = self.header
         data.append(self.frame_type)
         data += self.message
-        data.append(util.bcc(data))
+        data.append(bcc(data))
         data.append(FRAME_END)
         return bytes(data)
 
