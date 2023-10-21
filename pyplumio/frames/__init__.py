@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from functools import reduce
+from functools import cache, reduce
 import struct
 from typing import ClassVar, Final
 
@@ -27,23 +27,6 @@ pack_header = struct.Struct("<BH4B").pack_into
 unpack_header = struct.Struct("<BH4B").unpack_from
 
 
-def _handler_class_path(frame_type_name: str) -> str:
-    """Return handler class path from module name and frame type
-    name.
-    """
-    module, type_name = frame_type_name.split("_", 1)
-    type_name = to_camelcase(type_name, overrides={"uid": "UID"})
-    return f"{module.lower()}s.{type_name}{module.capitalize()}"
-
-
-# Dictionary of frame handler classes indexed by frame types.
-#
-# Example: "24: requests.StopMasterRequest"
-FRAME_TYPES: dict[int, str] = {
-    frame_type.value: _handler_class_path(frame_type.name) for frame_type in FrameType
-}
-
-
 def bcc(data: bytes) -> int:
     """Return a block check character."""
     return reduce(lambda x, y: x ^ y, data)
@@ -59,12 +42,17 @@ def is_known_frame_type(frame_type: int) -> bool:
     return True
 
 
+@cache
 def get_frame_handler(frame_type: int) -> str:
     """Return handler class path for the frame type."""
-    if frame_type in FRAME_TYPES:
-        return f"frames.{FRAME_TYPES[frame_type]}"
+    try:
+        frame_type = FrameType(frame_type)
+    except ValueError as e:
+        raise UnknownFrameError(f"Unknown frame ({frame_type})") from e
 
-    raise UnknownFrameError(f"Unknown frame type ({frame_type})")
+    module, type_name = frame_type.name.split("_", 1)
+    type_name = to_camelcase(type_name, overrides={"uid": "UID"})
+    return f"frames.{module.lower()}s.{type_name}{module.capitalize()}"
 
 
 @dataclass

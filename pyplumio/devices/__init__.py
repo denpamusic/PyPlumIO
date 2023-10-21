@@ -16,29 +16,18 @@ from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
 
-def _handler_class_path(device_type_name: str) -> str:
-    """Return the handler class path for a given device type name."""
-    device_type_name = to_camelcase(
-        device_type_name, overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"}
-    )
-    return f"{device_type_name.lower()}.{device_type_name}"
-
-
-# Dictionary of device handler classes indexed by device types.
-#
-# Example: "69: ecomax.EcoMAX"
-DEVICE_TYPES: dict[int, str] = {
-    device_type.value: _handler_class_path(device_type.name)
-    for device_type in DeviceType
-}
-
-
+@cache
 def get_device_handler(device_type: int) -> str:
     """Return module name and class name for a given device type."""
-    if device_type in DEVICE_TYPES:
-        return "devices." + DEVICE_TYPES[device_type]
+    try:
+        device_type = DeviceType(device_type)
+    except ValueError as e:
+        raise UnknownDeviceError(f"Unknown device ({device_type})") from e
 
-    raise UnknownDeviceError(f"Unknown device ({device_type})")
+    type_name = to_camelcase(
+        device_type.name, overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"}
+    )
+    return f"devices.{type_name.lower()}.{type_name}"
 
 
 @cache
