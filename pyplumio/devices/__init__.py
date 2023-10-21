@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import cache
 import logging
 from typing import ClassVar
 
@@ -43,10 +44,11 @@ def get_device_handler(device_type: int) -> str:
     raise UnknownDeviceError(f"Unknown device ({device_type})")
 
 
+@cache
 def get_device_handler_and_name(device_type: int) -> tuple[str, str]:
     """Get device handler full path and lowercased class name."""
     handler = get_device_handler(device_type)
-    _, class_name = handler.rsplit(".", 1)
+    class_name = handler.rsplit(".", 1)[1]
     return handler, class_name.lower()
 
 

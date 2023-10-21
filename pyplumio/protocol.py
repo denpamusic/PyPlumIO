@@ -143,17 +143,20 @@ class Protocol(EventManager):
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
         """Setup the device entry."""
         handler, name = get_device_handler_and_name(device_type)
-        write_queue: asyncio.Queue = self.queues[1]
+
         if name not in self.data:
-            device: Addressable = factory(
-                handler, queue=write_queue, network=self._network
-            )
-            device.dispatch_nowait(ATTR_CONNECTED, True)
-            self.create_task(device.async_setup())
-            self.data[name] = device
-            self.set_event(name)
+            self._create_device_entry(name, handler)
 
         return self.data[name]
+
+    def _create_device_entry(self, name: str, handler: str) -> None:
+        """Create the device entry."""
+        write_queue = self.queues[1]
+        device: Addressable = factory(handler, queue=write_queue, network=self._network)
+        device.dispatch_nowait(ATTR_CONNECTED, True)
+        self.create_task(device.async_setup())
+        self.data[name] = device
+        self.set_event(name)
 
     async def _remove_writer(self):
         """Attempt to gracefully remove the frame writer."""
