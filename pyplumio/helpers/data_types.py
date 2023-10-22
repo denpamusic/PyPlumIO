@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import socket
 import struct
-from typing import Any, Type
+from typing import Any
 
 # Data type unpackers.
 unpack_float = struct.Struct("<f").unpack
@@ -256,7 +256,7 @@ class String(DataType):
         return len(self.value) + 1 if self.value is not None else None
 
 
-DATA_TYPES: tuple[Type[DataType], ...] = (
+DATA_TYPES: tuple[type[DataType], ...] = (
     Undefined0,
     SignedChar,
     Short,
