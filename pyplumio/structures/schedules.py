@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
+from functools import reduce
 from itertools import chain
 from typing import TYPE_CHECKING, Final
 
@@ -135,11 +136,7 @@ def _split_byte(byte: int) -> list[bool]:
 
 def _join_bits(bits: Sequence[int | bool]) -> int:
     """Join eight bits into a single byte."""
-    result = 0
-    for bit in bits:
-        result = (result << 1) | bit
-
-    return result
+    return reduce(lambda x, y: (x << 1) | y, bits)
 
 
 class SchedulesStructure(Structure):
