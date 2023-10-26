@@ -247,7 +247,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="circulation_pause_time"),
         EcomaxParameterDescription(name="circulation_work_time"),
         EcomaxParameterDescription(name="circulation_start_temp"),
-        EcomaxParameterDescription(name="buffer_control"),
+        EcomaxParameterDescription(name="buffer_control", cls=EcomaxBinaryParameter),
         EcomaxParameterDescription(name="max_buffer_temp"),
         EcomaxParameterDescription(name="min_buffer_temp"),
         EcomaxParameterDescription(name="buffer_hysteresis"),
