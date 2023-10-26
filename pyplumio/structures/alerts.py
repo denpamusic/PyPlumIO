@@ -83,6 +83,11 @@ class AlertsStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         start = message[offset + 1]
         end = message[offset + 2]
+
+        if end == 0:
+            # No alerts found.
+            return ensure_dict(data), offset + 1
+
         self._offset = offset + 3
         return (
             ensure_dict(

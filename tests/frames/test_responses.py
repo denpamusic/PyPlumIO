@@ -14,6 +14,7 @@ from pyplumio.frames.responses import (
     UIDResponse,
 )
 from pyplumio.helpers.typing import EventDataType
+from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.thermostat_parameters import (
@@ -169,11 +170,20 @@ def test_alerts_response(
     data: dict[FrameType, EventDataType],
     messages: dict[FrameType, bytearray],
 ) -> None:
-    """Test alert response."""
+    """Test alerts response."""
     frame1 = AlertsResponse(message=messages[FrameType.RESPONSE_ALERTS])
     frame2 = AlertsResponse(data=data[FrameType.RESPONSE_ALERTS])
     assert frame1.data == data[FrameType.RESPONSE_ALERTS]
     assert not frame2.message
+
+
+def test_alerts_response_with_no_alerts(
+    data: dict[FrameType, EventDataType],
+    messages: dict[FrameType, bytearray],
+) -> None:
+    """Test alerts response with no alerts."""
+    frame = AlertsResponse(message=bytearray.fromhex("000000"))
+    assert ATTR_ALERTS not in frame.data
 
 
 def test_schedule_response(
