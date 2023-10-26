@@ -17,7 +17,7 @@ def unpack_uid(message: bytearray, offset: int = 0) -> str:
 def _base5(data: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
     key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
-    number = int.from_bytes(data, "little")
+    number = int.from_bytes(data, byteorder="little")
     output = ""
     while number:
         output = key_string[number & 0b00011111] + output
