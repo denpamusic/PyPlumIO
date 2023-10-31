@@ -10,15 +10,13 @@ from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BinaryParameter,
+    BinaryParameterDescription,
     Parameter,
     ParameterDescription,
+    ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import (
-    EventDataType,
-    ParameterTupleType,
-    ParameterValueType,
-)
+from pyplumio.helpers.typing import EventDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 from pyplumio.utils import ensure_dict
@@ -101,9 +99,15 @@ class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
 class EcomaxParameterDescription(ParameterDescription):
     """Represents an ecoMAX parameter description."""
 
-    cls: type[EcomaxParameter] = EcomaxParameter
     multiplier: int = 1
     offset: int = 0
+
+
+@dataclass
+class EcomaxBinaryParameterDescription(
+    BinaryParameterDescription, EcomaxParameterDescription
+):
+    """Represents an ecoMAX binary parameter description."""
 
 
 ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
@@ -126,7 +130,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="h2_hysteresis"),
         EcomaxParameterDescription(name="h1_hysteresis"),
         EcomaxParameterDescription(name="heating_hysteresis"),
-        EcomaxParameterDescription(name="fuzzy_logic", cls=EcomaxBinaryParameter),
+        EcomaxBinaryParameterDescription(name="fuzzy_logic"),
         EcomaxParameterDescription(name="min_fuzzy_logic_power"),
         EcomaxParameterDescription(name="max_fuzzy_logic_power"),
         EcomaxParameterDescription(name="min_boiler_power"),
@@ -187,7 +191,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="warming_up_brake_time"),
         EcomaxParameterDescription(name="warming_up_cycle_time"),
         EcomaxParameterDescription(name="remind_time"),
-        EcomaxParameterDescription(name="lambda_work", cls=EcomaxBinaryParameter),
+        EcomaxBinaryParameterDescription(name="lambda_work"),
         EcomaxParameterDescription(name="lambda_correction_range"),
         EcomaxParameterDescription(name="oxygen_100"),
         EcomaxParameterDescription(name="oxygen_50"),
@@ -214,14 +218,12 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="pause_term"),
         EcomaxParameterDescription(name="work_term"),
         EcomaxParameterDescription(name="increase_heating_temp_for_water_heater"),
-        EcomaxParameterDescription(
-            name="heating_weather_control", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="heating_weather_control"),
         EcomaxParameterDescription(name="heating_heat_curve", multiplier=10),
         EcomaxParameterDescription(name="heating_heat_curve_shift", offset=-20),
         EcomaxParameterDescription(name="weather_factor"),
         EcomaxParameterDescription(name="term_boiler_operation"),
-        EcomaxParameterDescription(name="term_boiler_mode", cls=EcomaxBinaryParameter),
+        EcomaxBinaryParameterDescription(name="term_boiler_mode"),
         EcomaxParameterDescription(name="decrease_set_heating_term"),
         EcomaxParameterDescription(name="term_pump_off"),
         EcomaxParameterDescription(name="boiler_alert_temp"),
@@ -234,20 +236,16 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="max_water_heater_target_temp"),
         EcomaxParameterDescription(name="water_heater_work_mode"),
         EcomaxParameterDescription(name="water_heater_hysteresis"),
-        EcomaxParameterDescription(
-            name="water_heater_disinfection", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="water_heater_disinfection"),
         EcomaxParameterDescription(name="summer_mode"),
         EcomaxParameterDescription(name="summer_mode_on_temp"),
         EcomaxParameterDescription(name="summer_mode_off_temp"),
         EcomaxParameterDescription(name="water_heater_feeding_extension"),
-        EcomaxParameterDescription(
-            name="circulation_control", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="circulation_control"),
         EcomaxParameterDescription(name="circulation_pause_time"),
         EcomaxParameterDescription(name="circulation_work_time"),
         EcomaxParameterDescription(name="circulation_start_temp"),
-        EcomaxParameterDescription(name="buffer_control", cls=EcomaxBinaryParameter),
+        EcomaxBinaryParameterDescription(name="buffer_control"),
         EcomaxParameterDescription(name="max_buffer_temp"),
         EcomaxParameterDescription(name="min_buffer_temp"),
         EcomaxParameterDescription(name="buffer_hysteresis"),
@@ -256,19 +254,15 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ),
     ProductType.ECOMAX_I: (
         EcomaxParameterDescription(name="water_heater_target_temp"),
-        EcomaxParameterDescription(
-            name="water_heater_priority", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="water_heater_priority"),
         EcomaxParameterDescription(name="water_heater_support"),
         EcomaxParameterDescription(name="min_water_heater_target_temp"),
         EcomaxParameterDescription(name="max_water_heater_target_temp"),
         EcomaxParameterDescription(name="water_heater_feeding_extension_time"),
         EcomaxParameterDescription(name="water_heater_hysteresis"),
-        EcomaxParameterDescription(
-            name="water_heater_disinfection", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="water_heater_disinfection"),
         EcomaxParameterDescription(name="water_heater_work_mode"),
-        EcomaxParameterDescription(name="solar_support", cls=EcomaxBinaryParameter),
+        EcomaxBinaryParameterDescription(name="solar_support"),
         EcomaxParameterDescription(name="solar_pump_on_delta_temp", multiplier=10),
         EcomaxParameterDescription(name="solar_pump_off_delta_temp", multiplier=10),
         EcomaxParameterDescription(name="min_collector_temp"),
@@ -276,9 +270,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="collector_off_temp"),
         EcomaxParameterDescription(name="min_pump_revolutions"),
         EcomaxParameterDescription(name="solar_antifreeze"),
-        EcomaxParameterDescription(
-            name="circulation_control", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="circulation_control"),
         EcomaxParameterDescription(name="circulation_pause_time"),
         EcomaxParameterDescription(name="circulation_work_time"),
         EcomaxParameterDescription(name="circulation_start_temp"),
@@ -289,9 +281,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="critical_main_heat_source_temp"),
         EcomaxParameterDescription(name="main_heat_source_pump_extension_time"),
         EcomaxParameterDescription(name="additional_heat_source"),
-        EcomaxParameterDescription(
-            name="main_heat_source_off_temp", cls=EcomaxBinaryParameter
-        ),
+        EcomaxBinaryParameterDescription(name="main_heat_source_off_temp"),
         EcomaxParameterDescription(name="additional_heat_source_pump_startup_temp"),
         EcomaxParameterDescription(name="hydraulic_diagram"),
         EcomaxParameterDescription(name="antifreeze"),
@@ -309,10 +299,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ),
 }
 
-ECOMAX_CONTROL_PARAMETER = EcomaxParameterDescription(
-    name=ATTR_ECOMAX_CONTROL, cls=EcomaxBinaryParameter
-)
-
+ECOMAX_CONTROL_PARAMETER = EcomaxBinaryParameterDescription(name=ATTR_ECOMAX_CONTROL)
 THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_PROFILE)
 
 
@@ -323,7 +310,7 @@ class EcomaxParametersStructure(StructureDecoder):
 
     def _ecomax_parameter(
         self, message: bytearray, start: int, end: int
-    ) -> Generator[tuple[int, ParameterTupleType], None, None]:
+    ) -> Generator[tuple[int, ParameterValues], None, None]:
         """Unpack an ecoMAX parameter."""
         for index in range(start, start + end):
             if parameter := unpack_parameter(message, self._offset):

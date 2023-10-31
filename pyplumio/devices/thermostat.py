@@ -5,10 +5,13 @@ import asyncio
 from typing import Sequence
 
 from pyplumio.devices import Addressable, SubDevice
-from pyplumio.helpers.typing import EventDataType, ParameterTupleType
+from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
+    ThermostatBinaryParameter,
+    ThermostatParameter,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
@@ -34,24 +37,29 @@ class Thermostat(SubDevice):
         return True
 
     async def _handle_parameters(
-        self, parameters: Sequence[tuple[int, ParameterTupleType]]
+        self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle thermostat parameters.
 
         For each parameter dispatch an event with the
         parameter's name and value.
         """
-        for index, value in parameters:
+        for index, values in parameters:
             description = THERMOSTAT_PARAMETERS[index]
+            cls = (
+                ThermostatBinaryParameter
+                if description.is_binary
+                else ThermostatParameter
+            )
             await self.dispatch(
                 description.name,
-                description.cls(
+                cls(
                     device=self,
                     description=description,
                     index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
+                    value=values.value,
+                    min_value=values.min_value,
+                    max_value=values.max_value,
                     offset=(self.index * len(parameters)),
                 ),
             )

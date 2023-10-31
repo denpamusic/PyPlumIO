@@ -30,8 +30,9 @@ from pyplumio.frames import (
     is_known_frame_type,
 )
 from pyplumio.helpers.factory import factory
+from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import EventDataType, ParameterTupleType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
@@ -41,6 +42,7 @@ from pyplumio.structures.ecomax_parameters import (
     ECOMAX_CONTROL_PARAMETER,
     ECOMAX_PARAMETERS,
     THERMOSTAT_PROFILE_PARAMETER,
+    EcomaxBinaryParameter,
     EcomaxParameter,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
@@ -55,6 +57,8 @@ from pyplumio.structures.schedules import (
     ATTR_SCHEDULES,
     SCHEDULE_PARAMETERS,
     SCHEDULES,
+    ScheduleBinaryParameter,
+    ScheduleParameter,
 )
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -182,7 +186,7 @@ class EcoMAX(Addressable):
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
     async def _handle_ecomax_parameters(
-        self, parameters: Sequence[tuple[int, ParameterTupleType]]
+        self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle ecoMAX parameters.
 
@@ -190,17 +194,18 @@ class EcoMAX(Addressable):
         and value.
         """
         product: ProductInfo = await self.get(ATTR_PRODUCT)
-        for index, value in parameters:
+        for index, values in parameters:
             description = ECOMAX_PARAMETERS[product.type][index]
+            cls = EcomaxBinaryParameter if description.is_binary else EcomaxParameter
             await self.dispatch(
                 description.name,
-                description.cls(
+                cls(
                     device=self,
                     description=description,
                     index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
+                    value=values.value,
+                    min_value=values.min_value,
+                    max_value=values.max_value,
                 ),
             )
 
@@ -238,7 +243,7 @@ class EcoMAX(Addressable):
 
     async def _handle_mixer_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterTupleType]]] | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle mixer parameters.
 
@@ -303,20 +308,23 @@ class EcoMAX(Addressable):
         }
 
     async def _add_schedule_parameters(
-        self, parameters: Sequence[tuple[int, ParameterTupleType]]
+        self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Add schedule parameters to the dataset."""
-        for index, value in parameters:
+        for index, values in parameters:
             description = SCHEDULE_PARAMETERS[index]
+            cls = (
+                ScheduleBinaryParameter if description.is_binary else ScheduleParameter
+            )
             await self.dispatch(
                 description.name,
-                description.cls(
+                cls(
                     device=self,
                     description=description,
                     index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
+                    value=values.value,
+                    min_value=values.min_value,
+                    max_value=values.max_value,
                 ),
             )
 
@@ -339,7 +347,7 @@ class EcoMAX(Addressable):
         """
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
-            ECOMAX_CONTROL_PARAMETER.cls(
+            EcomaxBinaryParameter(
                 device=self,
                 description=ECOMAX_CONTROL_PARAMETER,
                 value=(mode != DeviceState.OFF),
@@ -350,7 +358,7 @@ class EcoMAX(Addressable):
 
     async def _handle_thermostat_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterTupleType]]] | None,
+        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle thermostat parameters.
 
@@ -380,16 +388,16 @@ class EcoMAX(Addressable):
         return True
 
     async def _add_thermostat_profile_parameter(
-        self, parameter: ParameterTupleType
+        self, values: ParameterValues
     ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the dataset."""
-        if parameter is not None:
-            return THERMOSTAT_PROFILE_PARAMETER.cls(
+        if values is not None:
+            return EcomaxParameter(
                 device=self,
                 description=THERMOSTAT_PROFILE_PARAMETER,
-                value=parameter[0],
-                min_value=parameter[1],
-                max_value=parameter[2],
+                value=values.value,
+                min_value=values.min_value,
+                max_value=values.max_value,
             )
 
         return None

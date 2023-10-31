@@ -10,9 +10,9 @@ from pyplumio.helpers.parameter import (
     BinaryParameter,
     Parameter,
     ParameterDescription,
+    ParameterValues,
     check_parameter,
 )
-from pyplumio.helpers.typing import ParameterTupleType
 
 
 class TestParameter(Parameter):
@@ -135,9 +135,9 @@ def test_parameter_relational(parameter: Parameter):
 def test_parameter_compare(parameter: Parameter) -> None:
     """Test a parameter comparison."""
     assert parameter == 1
-    parameter_tuple: ParameterTupleType = (1, 0, 5)
-    assert parameter == parameter_tuple
-    assert not parameter != parameter_tuple
+    parameter_values = ParameterValues(value=1, min_value=0, max_value=5)
+    assert parameter == parameter_values
+    assert not parameter != parameter_values
     assert parameter < 2
     assert parameter > 0
     assert 0 <= parameter <= 1
@@ -152,7 +152,7 @@ def test_parameter_repr(parameter: Parameter) -> None:
     """Test a parameter representation."""
     assert repr(parameter) == (
         "TestParameter(device=EcoMAX, "
-        + "description=ParameterDescription(name='test_parameter'), "
+        + "description=ParameterDescription(name='test_parameter', is_binary=False), "
         + "value=1, min_value=0, max_value=5)"
     )
 

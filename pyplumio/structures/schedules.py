@@ -13,11 +13,13 @@ from pyplumio.exceptions import FrameDataError
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BinaryParameter,
+    BinaryParameterDescription,
     Parameter,
     ParameterDescription,
+    ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import EventDataType, ParameterTupleType
+from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
@@ -100,16 +102,20 @@ class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
 class ScheduleParameterDescription(ParameterDescription):
     """Represents a schedule parameter description."""
 
-    cls: type[ScheduleParameter] = ScheduleParameter
+
+@dataclass
+class ScheduleBinaryParameterDescription(
+    BinaryParameterDescription, ScheduleParameterDescription
+):
+    """Represents a schedule binary parameter description."""
 
 
 SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
     chain.from_iterable(
         [
             [
-                ScheduleParameterDescription(
-                    name=f"{name}_{ATTR_SCHEDULE_SWITCH}",
-                    cls=ScheduleBinaryParameter,
+                ScheduleBinaryParameterDescription(
+                    name=f"{name}_{ATTR_SCHEDULE_SWITCH}"
                 ),
                 ScheduleParameterDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
             ]
@@ -181,11 +187,13 @@ class SchedulesStructure(Structure):
         end = message[offset + 2]
         self._offset = offset + 3
         schedules: list[tuple[int, list[list[bool]]]] = []
-        parameters: list[tuple[int, ParameterTupleType]] = []
+        parameters: list[tuple[int, ParameterValues]] = []
 
         for _ in range(start, start + end):
             index = message[self._offset]
-            switch = (message[self._offset + 1], 0, 1)
+            switch = ParameterValues(
+                value=message[self._offset + 1], min_value=0, max_value=1
+            )
             parameter = unpack_parameter(message, self._offset + 2)
             self._offset += 5
             schedules.append((index, self._unpack_schedule(message)))

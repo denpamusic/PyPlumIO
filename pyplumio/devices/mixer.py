@@ -5,8 +5,14 @@ import asyncio
 from typing import Sequence
 
 from pyplumio.devices import Addressable, SubDevice
-from pyplumio.helpers.typing import EventDataType, ParameterTupleType
-from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS, MIXER_PARAMETERS
+from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.typing import EventDataType
+from pyplumio.structures.mixer_parameters import (
+    ATTR_MIXER_PARAMETERS,
+    MIXER_PARAMETERS,
+    MixerBinaryParameter,
+    MixerParameter,
+)
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
@@ -32,7 +38,7 @@ class Mixer(SubDevice):
         return True
 
     async def _handle_parameters(
-        self, parameters: Sequence[tuple[int, ParameterTupleType]]
+        self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle mixer parameters.
 
@@ -40,17 +46,18 @@ class Mixer(SubDevice):
         parameter's name and value.
         """
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
-        for index, value in parameters:
+        for index, values in parameters:
             description = MIXER_PARAMETERS[product.type][index]
+            cls = MixerBinaryParameter if description.is_binary else MixerParameter
             await self.dispatch(
                 description.name,
-                description.cls(
+                cls(
                     device=self,
                     description=description,
                     index=index,
-                    value=value[0],
-                    min_value=value[1],
-                    max_value=value[2],
+                    value=values.value,
+                    min_value=values.min_value,
+                    max_value=values.max_value,
                 ),
             )
 

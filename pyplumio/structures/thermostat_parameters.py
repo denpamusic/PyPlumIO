@@ -9,15 +9,13 @@ from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BinaryParameter,
+    BinaryParameterDescription,
     Parameter,
     ParameterDescription,
+    ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import (
-    EventDataType,
-    ParameterTupleType,
-    ParameterValueType,
-)
+from pyplumio.helpers.typing import EventDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
 from pyplumio.utils import ensure_dict
@@ -92,9 +90,15 @@ class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
 class ThermostatParameterDescription(ParameterDescription):
     """Represents a thermostat parameter description."""
 
-    cls: type[ThermostatParameter] = ThermostatParameter
     multiplier: int = 1
     size: int = 1
+
+
+@dataclass
+class ThermostatBinaryParameterDescription(
+    BinaryParameterDescription, ThermostatParameterDescription
+):
+    """Represents a thermostat binary parameter description."""
 
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
@@ -138,7 +142,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
-    ) -> Generator[tuple[int, ParameterTupleType], None, None]:
+    ) -> Generator[tuple[int, ParameterValues], None, None]:
         """Get a single thermostat parameter."""
         for index in range(start, (start + end) // thermostats):
             description = THERMOSTAT_PARAMETERS[index]
@@ -151,7 +155,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameters(
         self, message: bytearray, thermostats, start, end
-    ) -> Generator[tuple[int, list[tuple[int, ParameterTupleType]]], None, None]:
+    ) -> Generator[tuple[int, list[tuple[int, ParameterValues]]], None, None]:
         """Get parameters for a thermostat."""
         for index in range(thermostats):
             if parameters := list(

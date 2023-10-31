@@ -9,15 +9,13 @@ from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BinaryParameter,
+    BinaryParameterDescription,
     Parameter,
     ParameterDescription,
+    ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import (
-    EventDataType,
-    ParameterTupleType,
-    ParameterValueType,
-)
+from pyplumio.helpers.typing import EventDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -80,9 +78,15 @@ class MixerBinaryParameter(BinaryParameter, MixerParameter):
 class MixerParameterDescription(ParameterDescription):
     """Represents a mixer parameter description."""
 
-    cls: type[MixerParameter] = MixerParameter
     multiplier: int = 1
     offset: int = 0
+
+
+@dataclass
+class MixerBinaryParameterDescription(
+    BinaryParameterDescription, MixerParameterDescription
+):
+    """Represents a mixer binary parameter description."""
 
 
 MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
@@ -91,7 +95,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="min_target_temp"),
         MixerParameterDescription(name="max_target_temp"),
         MixerParameterDescription(name="low_target_temp"),
-        MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
+        MixerBinaryParameterDescription(name="weather_control"),
         MixerParameterDescription(name="heat_curve", multiplier=10),
         MixerParameterDescription(name="parallel_offset_heat_curve"),
         MixerParameterDescription(name="weather_temp_factor"),
@@ -99,8 +103,8 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="insensitivity", multiplier=10),
         MixerParameterDescription(name="therm_operation"),
         MixerParameterDescription(name="therm_mode"),
-        MixerParameterDescription(name="off_therm_pump", cls=MixerBinaryParameter),
-        MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
+        MixerBinaryParameterDescription(name="off_therm_pump"),
+        MixerBinaryParameterDescription(name="summer_work"),
     ),
     ProductType.ECOMAX_I: (
         MixerParameterDescription(name="work_mode"),
@@ -109,15 +113,13 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="night_target_temp"),
         MixerParameterDescription(name="min_target_temp"),
         MixerParameterDescription(name="max_target_temp"),
-        MixerParameterDescription(name="summer_work", cls=MixerBinaryParameter),
-        MixerParameterDescription(name="weather_control", cls=MixerBinaryParameter),
+        MixerBinaryParameterDescription(name="summer_work"),
+        MixerBinaryParameterDescription(name="weather_control"),
         MixerParameterDescription(name="support"),
         MixerParameterDescription(name="constant_water_preset_temp"),
         MixerParameterDescription(name="thermostat_decrease_temp"),
         MixerParameterDescription(name="thermostat_correction"),
-        MixerParameterDescription(
-            name="thermostat_pump_lock", cls=MixerBinaryParameter
-        ),
+        MixerBinaryParameterDescription(name="thermostat_pump_lock"),
         MixerParameterDescription(name="valve_full_opening_time"),
         MixerParameterDescription(name="mixer_dead_zone", multiplier=10),
         MixerParameterDescription(name="proportional_range"),
@@ -137,7 +139,7 @@ class MixerParametersStructure(StructureDecoder):
 
     def _mixer_parameter(
         self, message: bytearray, start: int, end: int
-    ) -> Generator[tuple[int, ParameterTupleType], None, None]:
+    ) -> Generator[tuple[int, ParameterValues], None, None]:
         """Get a single mixer parameter."""
         for index in range(start, start + end):
             if parameter := unpack_parameter(message, self._offset):
@@ -147,7 +149,7 @@ class MixerParametersStructure(StructureDecoder):
 
     def _mixer_parameters(
         self, message: bytearray, mixers: int, start: int, end: int
-    ) -> Generator[tuple[int, list[tuple[int, ParameterTupleType]]], None, None]:
+    ) -> Generator[tuple[int, list[tuple[int, ParameterValues]]], None, None]:
         """Get parameters for a mixer."""
         for index in range(mixers):
             if parameters := list(self._mixer_parameter(message, start, end)):

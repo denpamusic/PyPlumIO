@@ -126,7 +126,7 @@ async def test_async_setup() -> None:
     assert mock_request.await_count == len(DATA_FRAME_TYPES)
 
 
-async def test_async_setup_error(caplog) -> None:
+async def test_async_setup_error() -> None:
     """Test with error during requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
 

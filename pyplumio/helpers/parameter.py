@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
 from pyplumio.frames import Request
-from pyplumio.helpers.typing import ParameterTupleType, ParameterValueType
+from pyplumio.helpers.typing import ParameterValueType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -21,7 +21,7 @@ SET_RETRIES: Final = 5
 
 def unpack_parameter(
     data: bytearray, offset: int = 0, size: int = 1
-) -> ParameterTupleType | None:
+) -> ParameterValues | None:
     """Unpack a device parameter."""
     if not check_parameter(data[offset : offset + size * 3]):
         return None
@@ -30,10 +30,10 @@ def unpack_parameter(
     min_value = data[offset + size : offset + 2 * size]
     max_value = data[offset + 2 * size : offset + 3 * size]
 
-    return (
-        int.from_bytes(value, byteorder="little"),
-        int.from_bytes(min_value, byteorder="little"),
-        int.from_bytes(max_value, byteorder="little"),
+    return ParameterValues(
+        value=int.from_bytes(value, byteorder="little"),
+        min_value=int.from_bytes(min_value, byteorder="little"),
+        max_value=int.from_bytes(max_value, byteorder="little"),
     )
 
 
@@ -47,11 +47,19 @@ def _normalize_parameter_value(value: ParameterValueType) -> int:
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
 
-    if isinstance(value, tuple):
-        # Value is parameter tuple.
-        value = value[0]
+    if isinstance(value, ParameterValues):
+        value = value.value
 
     return int(value)
+
+
+@dataclass
+class ParameterValues:
+    """Represents a parameter values."""
+
+    value: int
+    min_value: int
+    max_value: int
 
 
 @dataclass
@@ -59,6 +67,14 @@ class ParameterDescription:
     """Represents a parameter description."""
 
     name: str
+    is_binary: bool = False
+
+
+@dataclass
+class BinaryParameterDescription(ParameterDescription):
+    """Represent a binary parameter description."""
+
+    is_binary: bool = True
 
 
 class Parameter:
