@@ -39,6 +39,13 @@ class DataType(ABC):
         """Return serializable string representation of the class."""
         return f"{self.__class__.__name__}(value={self._value})"
 
+    def __eq__(self, other) -> bool:
+        """Compare if data type  is equal to other."""
+        if isinstance(other, DataType):
+            return self._value == other._value
+
+        return self._value == other
+
     def _cut_data(self, data: bytes) -> bytes:
         """Cut the data to a size."""
         return data[0 : self.size] if self.size is not None else data
