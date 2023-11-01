@@ -1,4 +1,4 @@
-"""Contains tests for the task manager."""
+"""Contains tests for the task manager helper class."""
 
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
@@ -10,7 +10,7 @@ from pyplumio.helpers.task_manager import TaskManager
 
 @pytest.fixture(name="task_manager")
 async def fixture_task_manager() -> TaskManager:
-    """Return the task manager."""
+    """Return a task manager object."""
     task_manager = TaskManager()
     with patch("asyncio.create_task"):
         task_manager.create_task(Mock())
@@ -19,7 +19,7 @@ async def fixture_task_manager() -> TaskManager:
 
 
 def test_create_task(task_manager: TaskManager) -> None:
-    """Test create task."""
+    """Test creating a task."""
     mock_coro = Mock()
     mock_task = Mock(spec=asyncio.Task)
     with patch("asyncio.create_task", return_value=mock_task) as create_task_mock:
@@ -30,7 +30,7 @@ def test_create_task(task_manager: TaskManager) -> None:
 
 
 def test_cancel_task(task_manager: TaskManager) -> None:
-    """Test cancel task."""
+    """Test canceling a task."""
     mock_coro = Mock()
     mock_task = Mock(spec=asyncio.Task)
     with patch("asyncio.create_task", return_value=mock_task):
@@ -41,7 +41,7 @@ def test_cancel_task(task_manager: TaskManager) -> None:
 
 
 async def test_wait_until_done(task_manager: TaskManager) -> None:
-    """Test wait until done."""
+    """Test waiting until all tasks are done."""
     with patch("asyncio.gather", new_callable=AsyncMock) as mock_gather:
         await task_manager.wait_until_done()
 

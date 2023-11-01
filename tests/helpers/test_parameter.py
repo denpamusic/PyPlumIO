@@ -16,23 +16,25 @@ from pyplumio.helpers.parameter import (
 
 
 class TestParameter(Parameter):
-    """Concrete implementation of the parameter class."""
+    """Represents a concrete implementation of the parameter class."""
 
     __test__: bool = False
 
     @property
     def request(self) -> Request:
-        """Return request to change the parameter."""
+        """A request to change the parameter."""
         return Request()
 
 
 class TestBinaryParameter(BinaryParameter, TestParameter):
-    """Concrete implementation of the binary parameter class."""
+    """Represents a concrete implementation of the binary parameter
+    class.
+    """
 
 
 @pytest.fixture(name="parameter")
 def fixture_parameter(ecomax: EcoMAX) -> Parameter:
-    """Return an instance of the parameter."""
+    """Return a parameter object."""
     return TestParameter(
         device=ecomax,
         value=1,
@@ -44,7 +46,7 @@ def fixture_parameter(ecomax: EcoMAX) -> Parameter:
 
 @pytest.fixture(name="binary_parameter")
 def fixture_binary_parameter(ecomax: EcoMAX) -> BinaryParameter:
-    """Return an instance of the parameter."""
+    """Return a binary parameter object."""
     return TestBinaryParameter(
         device=ecomax,
         value=STATE_OFF,
@@ -76,7 +78,7 @@ async def test_parameter_values(parameter: Parameter) -> None:
 
 
 def test_base_parameter_request(ecomax: EcoMAX) -> None:
-    """Test that base class request throws not implemented error."""
+    """Test that a base class request throws not implemented error."""
     parameter = Parameter(
         device=ecomax,
         value=1,
@@ -93,7 +95,7 @@ def test_base_parameter_request(ecomax: EcoMAX) -> None:
 async def test_parameter_set(
     mock_subscribe_once, parameter: Parameter, bypass_asyncio_sleep
 ) -> None:
-    """Test setting parameter."""
+    """Test setting a parameter."""
     await parameter.set(5)
     assert parameter == 5
     mock_subscribe_once.assert_called_once()
@@ -110,7 +112,7 @@ async def test_parameter_set(
 @patch("pyplumio.devices.Device.create_task")
 @patch("pyplumio.helpers.parameter.Parameter.set", new_callable=Mock)
 async def test_parameter_set_nowait(mock_set, mock_create_task, parameter: Parameter):
-    """Test setting parameter without waiting for result."""
+    """Test setting a parameter without waiting for result."""
     parameter.set_nowait(1)
     await parameter.device.wait_until_done()
     mock_create_task.assert_called_once()
@@ -124,7 +126,7 @@ async def test_parameter_set_out_of_range(parameter: Parameter) -> None:
 
 
 def test_parameter_relational(parameter: Parameter):
-    """Test a parameter subtraction."""
+    """Test parameter relational methods."""
     assert (parameter - 1) == 0
     assert (parameter + 1) == 2
     assert (parameter * 5) == 5
@@ -133,7 +135,7 @@ def test_parameter_relational(parameter: Parameter):
 
 
 def test_parameter_compare(parameter: Parameter) -> None:
-    """Test a parameter comparison."""
+    """Test parameter comparison."""
     assert parameter == 1
     parameter_values = ParameterValues(value=1, min_value=0, max_value=5)
     assert parameter == parameter_values
@@ -144,7 +146,7 @@ def test_parameter_compare(parameter: Parameter) -> None:
 
 
 def test_parameter_int(parameter: Parameter) -> None:
-    """Test a parameter conversion to integer."""
+    """Test parameter conversion to an integer."""
     assert int(parameter) == 1
 
 
@@ -161,8 +163,8 @@ def test_parameter_repr(parameter: Parameter) -> None:
 async def test_parameter_request_with_unchanged_value(
     mock_put, parameter: Parameter, bypass_asyncio_sleep, caplog
 ) -> None:
-    """Test that frame doesn't get dispatched if it's
-    value is not changed."""
+    """Test that a frame doesn't get dispatched if it's
+    value is unchanged."""
     assert not parameter.is_changed
     assert not await parameter.set(5, retries=3)
     assert parameter.is_changed
@@ -177,7 +179,7 @@ async def test_parameter_request_with_unchanged_value(
 async def test_binary_parameter_turn_on(
     mock_set, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that binary parameter can be turned on."""
+    """Test that a binary parameter can be turned on."""
     await binary_parameter.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
 
@@ -186,7 +188,7 @@ async def test_binary_parameter_turn_on(
 async def test_binary_parameter_turn_off(
     mock_set, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that binary parameter can be turned off."""
+    """Test that a binary parameter can be turned off."""
     await binary_parameter.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)
 
@@ -195,7 +197,7 @@ async def test_binary_parameter_turn_off(
 async def test_binary_parameter_turn_on_nowait(
     mock_set_nowait, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that binary parameter can be turned on without waiting."""
+    """Test that a binary parameter can be turned on without waiting."""
     binary_parameter.turn_on_nowait()
     mock_set_nowait.assert_called_once_with(STATE_ON)
 
@@ -204,13 +206,15 @@ async def test_binary_parameter_turn_on_nowait(
 async def test_binary_parameter_turn_off_nowait(
     mock_set_nowait, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that binary parameter can be turned off without waiting."""
+    """Test that a binary parameter can be turned off without
+    waiting.
+    """
     binary_parameter.turn_off_nowait()
     mock_set_nowait.assert_called_once_with(STATE_OFF)
 
 
 async def test_binary_parameter_values(binary_parameter: BinaryParameter) -> None:
-    """Test the binary parameter values."""
+    """Test a binary parameter values."""
     assert binary_parameter.value == STATE_OFF
     assert binary_parameter.min_value == STATE_OFF
     assert binary_parameter.max_value == STATE_ON

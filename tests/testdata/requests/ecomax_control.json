@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ecomax_control_turn_on",
+    "message": {
+      "items": [
+        "01"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "value": 1
+    }
+  },
+  {
+    "id": "ecomax_control_turn_off",
+    "message": {
+      "items": [
+        "00"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "value": 0
+    }
+  }
+]

@@ -1,0 +1,481 @@
+[
+  {
+    "id": "EM350P2_data_schema",
+    "message": {
+      "items": [
+        "28000400070A00060A02060A06060A05060A05000A03000A07060A08060A09060A0A060A0B060",
+        "A0C060A0D060A02000A06000A0600070004070304070204070604070104071D00070404070804",
+        "070704070504071900071B00071D00071D00071D00071D0004000504030504020504070504010",
+        "5040805040008"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "schema": [
+        {
+          "items": [
+            1792,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1536,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1538,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1542,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1541,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            5,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            3,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1543,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1544,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1545,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1546,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1547,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1548,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1549,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            2,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            6,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            6,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1024,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1027,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1026,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1030,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1025,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            29,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1028,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1032,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1031,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1029,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            25,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            27,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            29,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            29,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            29,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            29,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Float"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1280,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1283,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1282,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1287,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1281,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1288,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            2048,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        }
+      ]
+    }
+  },
+  {
+    "id": "empty_data_schema",
+    "message": {
+      "items": [
+        "0000"
+      ],
+      "__bytearray__": true
+    },
+    "data": {}
+  },
+  {
+    "id": "incomplete_boolean",
+    "message": {
+      "items": [
+        "04000A02060A00060A0106040007"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "schema": [
+        {
+          "items": [
+            1538,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1536,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1537,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Boolean"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1792,
+            {
+              "__module__": "pyplumio.helpers.data_types",
+              "__class__": "Byte"
+            }
+          ],
+          "__tuple__": true
+        }
+      ]
+    }
+  }
+]

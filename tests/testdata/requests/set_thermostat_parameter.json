@@ -1,0 +1,32 @@
+[
+  {
+    "id": "set_thermostat_0_correction_to_5",
+    "message": {
+      "items": [
+        "0305"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 3,
+      "value": 5,
+      "offset": 0,
+      "size": 1
+    }
+  },
+  {
+    "id": "set_thermostat_1_party_target_temp_to_42",
+    "message": {
+      "items": [
+        "0D2A00"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 1,
+      "value": 42,
+      "offset": 12,
+      "size": 2
+    }
+  }
+]

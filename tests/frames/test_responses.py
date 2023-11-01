@@ -1,6 +1,8 @@
-"""Test PyPlumIO response frames."""
+"""Contains tests for the response frame classes."""
 
-from pyplumio.const import DeviceType, FrameType
+import pytest
+
+from pyplumio.const import DeviceType
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -13,20 +15,13 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures.alerts import ATTR_ALERTS
-from pyplumio.structures.data_schema import ATTR_SCHEMA
-from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PARAMETERS_DECODER,
-    ATTR_THERMOSTAT_PROFILE,
-)
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS_DECODER
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
+from tests import load_json_parameters
 
 
 def test_responses_type() -> None:
-    """Test if response is instance of frame class."""
+    """Test if response is an instance of frame class."""
 
     for response in (
         ProgramVersionResponse,
@@ -42,155 +37,108 @@ def test_responses_type() -> None:
         assert isinstance(frame, response)
 
 
-def test_program_version_response(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test creating program version message."""
-    frame1 = ProgramVersionResponse(data=data[FrameType.RESPONSE_PROGRAM_VERSION])
-    frame2 = ProgramVersionResponse(
-        message=messages[FrameType.RESPONSE_PROGRAM_VERSION]
-    )
-    assert frame1.message == messages[FrameType.RESPONSE_PROGRAM_VERSION]
-    assert frame2.data == data[FrameType.RESPONSE_PROGRAM_VERSION]
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/alerts.json"),
+)
+def test_alerts_response(message, data) -> None:
+    """Test an alerts response."""
+    assert AlertsResponse(message=message).data == data
+    assert not AlertsResponse(data=data).message
 
 
-def test_device_available_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test creating device available message."""
-    frame1 = DeviceAvailableResponse(data=data[FrameType.RESPONSE_DEVICE_AVAILABLE])
-    frame2 = DeviceAvailableResponse(
-        message=messages[FrameType.RESPONSE_DEVICE_AVAILABLE]
-    )
-    assert frame1.message == messages[FrameType.RESPONSE_DEVICE_AVAILABLE]
-    assert frame2.data == data[FrameType.RESPONSE_DEVICE_AVAILABLE]
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/data_schema.json"),
+)
+def test_data_schema_response(message, data) -> None:
+    """Test a data schema response."""
+    assert DataSchemaResponse(message=message).data == data
+    assert not DataSchemaResponse(data=data).message
 
 
-def test_uid_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test parsing UID message."""
-    frame1 = UIDResponse(message=messages[FrameType.RESPONSE_UID])
-    frame2 = UIDResponse(data=data[FrameType.RESPONSE_UID])
-    assert frame1.data == data[FrameType.RESPONSE_UID]
-    assert not frame2.message
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/device_available.json"),
+)
+def test_device_available_response(message, data) -> None:
+    """Test a device available response."""
+    assert DeviceAvailableResponse(data=data).message == message
+    assert DeviceAvailableResponse(message=message).data == data
 
 
-def test_password_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/ecomax_parameters.json"),
+)
+def test_ecomax_parameters_response(message, data) -> None:
+    """Test a ecoMAX parameters response."""
+    assert EcomaxParametersResponse(message=message).data == data
+    assert not EcomaxParametersResponse(data=data).message
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/mixer_parameters.json"),
+)
+def test_mixer_parameters_response(message, data) -> None:
+    """Test a mixer parameters response."""
+    assert MixerParametersResponse(message=message).data == data
+    assert not MixerParametersResponse(data=data).message
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/password.json"),
+)
+def test_password_response(message, data) -> None:
     """Test parsing password message."""
-    frame1 = PasswordResponse(message=messages[FrameType.RESPONSE_PASSWORD])
-    frame2 = PasswordResponse(data=data[FrameType.RESPONSE_PASSWORD])
-    assert frame1.data == data[FrameType.RESPONSE_PASSWORD]
-    assert not frame2.message
+    assert PasswordResponse(message=message).data == data
+    assert not PasswordResponse(data=data).message
 
 
-def test_ecomax_parameters_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test parsing ecoMAX parameters message."""
-    frame1 = EcomaxParametersResponse(
-        message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS]
-    )
-    frame2 = EcomaxParametersResponse(data=data[FrameType.RESPONSE_ECOMAX_PARAMETERS])
-    assert frame1.data == data[FrameType.RESPONSE_ECOMAX_PARAMETERS]
-    assert not frame2.message
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/program_version.json"),
+)
+def test_program_version_response(message, data) -> None:
+    """Test a program version response."""
+    assert ProgramVersionResponse(data=data).message == message
+    assert ProgramVersionResponse(message=message).data == data
 
 
-def test_mixer_parameters_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test parsing message for mixer parameters response."""
-    frame1 = MixerParametersResponse(
-        message=messages[FrameType.RESPONSE_MIXER_PARAMETERS]
-    )
-    frame2 = MixerParametersResponse(data=data[FrameType.RESPONSE_MIXER_PARAMETERS])
-    assert frame1.data == data[FrameType.RESPONSE_MIXER_PARAMETERS]
-    assert not frame2.message
-
-    # Test with empty parameters.
-    frame1 = MixerParametersResponse(message=bytearray.fromhex("00000201"))
-    assert frame1.data == {ATTR_MIXER_PARAMETERS: {}}
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/schedules.json"),
+)
+def test_schedules_response(message, data) -> None:
+    """Test a schedules response."""
+    assert SchedulesResponse(message=message).data == data
+    assert not SchedulesResponse(data=data).message
 
 
-def test_thermostat_parameters_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test parsing message for thermostat parameters response."""
-    frame = ThermostatParametersResponse(
-        message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-    )
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/thermostat_parameters.json"),
+)
+def test_thermostat_parameters_response(message, data) -> None:
+    """Test a thermostat parameters response."""
+    frame = ThermostatParametersResponse(message=message)
     decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
-    frame_data = decoder.decode(
-        message=frame.message,
-        data={ATTR_THERMOSTAT_COUNT: 3},
-    )[0]
-    assert frame_data == data[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-
-
-def test_thermostat_parameters_response_with_no_parameters() -> None:
-    """Test parsing message for the thermosat parameters response
-    with no parameters."""
-    frame = ThermostatParametersResponse(
-        message=bytearray.fromhex("00000300FFFFFFFFFFFFFFFFFF")
+    assert (
+        decoder.decode(
+            message=frame.message,
+            data={ATTR_THERMOSTAT_COUNT: 3},
+        )[0]
+        == data
     )
-    decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
-    frame_data = decoder.decode(
-        message=frame.message,
-        data={ATTR_THERMOSTAT_COUNT: 2},
-    )[0]
-    assert frame_data == {
-        ATTR_THERMOSTAT_COUNT: 2,
-        ATTR_THERMOSTAT_PROFILE: None,
-        ATTR_THERMOSTAT_PARAMETERS: {},
-    }
 
 
-def test_data_schema_response(messages: dict[FrameType, bytearray]) -> None:
-    """Test parsing message for data schema response."""
-    frame = DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
-    assert ATTR_SCHEMA in frame.data
-    assert len(frame.data[ATTR_SCHEMA]) == 257
-
-
-def test_data_schema_response_with_no_parameters() -> None:
-    """Test parsing message for data schema with no parameters."""
-    frame = DataSchemaResponse(message=bytearray.fromhex("0000"))
-    assert ATTR_SCHEMA not in frame.data
-
-
-def test_alerts_response(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test alerts response."""
-    frame1 = AlertsResponse(message=messages[FrameType.RESPONSE_ALERTS])
-    frame2 = AlertsResponse(data=data[FrameType.RESPONSE_ALERTS])
-    assert frame1.data == data[FrameType.RESPONSE_ALERTS]
-    assert not frame2.message
-
-
-def test_alerts_response_with_no_alerts(
-    data: dict[FrameType, EventDataType],
-    messages: dict[FrameType, bytearray],
-) -> None:
-    """Test alerts response with no alerts."""
-    frame = AlertsResponse(message=bytearray.fromhex("000000"))
-    assert ATTR_ALERTS not in frame.data
-
-
-def test_schedule_response(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test schedule response."""
-    frame1 = SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])
-    frame2 = SchedulesResponse(data=data[FrameType.RESPONSE_SCHEDULES])
-    assert frame1.data == data[FrameType.RESPONSE_SCHEDULES]
-    assert not frame2.message
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/uid.json"),
+)
+def test_uid_response(message, data) -> None:
+    """Test an UID response."""
+    assert UIDResponse(message=message).data == data
+    assert not UIDResponse(data=data).message

@@ -1,4 +1,4 @@
-"""Contains tests for callback filters."""
+"""Contains tests for the filter classes."""
 
 from datetime import datetime
 from unittest.mock import AsyncMock, patch

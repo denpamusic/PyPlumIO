@@ -1,0 +1,18 @@
+[
+  {
+    "id": "EN300_program_version",
+    "message": {
+      "items": [
+        "FFFF057A0000000001000000000056"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "version": {
+        "software": "1.0.0",
+        "__module__": "pyplumio.structures.program_version",
+        "__class__": "VersionInfo"
+      }
+    }
+  }
+]

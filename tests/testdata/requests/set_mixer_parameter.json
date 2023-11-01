@@ -1,0 +1,30 @@
+[
+  {
+    "id": "set_mixer_0_target_temp_to_40",
+    "message": {
+      "items": [
+        "000028"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "value": 40,
+      "device_index": 0
+    }
+  },
+  {
+    "id": "set_mixer_1_min_target_temp_to_30",
+    "message": {
+      "items": [
+        "01001E"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "value": 30,
+      "device_index": 1
+    }
+  }
+]

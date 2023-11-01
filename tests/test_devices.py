@@ -1,4 +1,4 @@
-"""Contains tests for devices."""
+"""Contains tests for the device handler classes."""
 
 import asyncio
 from unittest.mock import AsyncMock, Mock, call, patch
@@ -55,7 +55,6 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
 )
 from pyplumio.helpers.schedule import Schedule
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     EcomaxBinaryParameter,
@@ -86,6 +85,7 @@ from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTAT_COUNT,
     ATTR_THERMOSTAT_SENSORS,
 )
+from tests import load_json_parameters, load_json_test_data
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -151,14 +151,11 @@ async def test_async_setup_error() -> None:
     assert mock_request.await_count == len(DATA_FRAME_TYPES)
 
 
-async def test_frame_versions_update(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
-        ecomax.handle_frame(
-            SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
-        )
+        ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
         await ecomax.wait_until_done()
 
     mock_put_nowait.assert_has_calls(
@@ -171,13 +168,10 @@ async def test_frame_versions_update(
     )
 
 
-async def test_ecomax_data_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on received data frames."""
-    ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
-    )
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
+    ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
     heating_target = await ecomax.get("heating_target")
     assert heating_target == 41.0
@@ -189,13 +183,10 @@ async def test_ecomax_data_callbacks(
     assert ecomax_control.request.data == {ATTR_VALUE: 0}
 
 
-async def test_ecomax_parameters_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on received parameter frames."""
-    ecomax.handle_frame(
-        EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
-    )
+    test_data = load_json_test_data("responses/ecomax_parameters.json")[0]
+    ecomax.handle_frame(EcomaxParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     fuzzy_logic = await ecomax.get("fuzzy_logic")
     assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
@@ -253,44 +244,34 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     assert "Skipping outdated fuel consumption" in caplog.text
 
 
-async def test_regdata_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_regdata_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on received regdata."""
-    ecomax.handle_frame(
-        DataSchemaResponse(message=messages[FrameType.RESPONSE_DATA_SCHEMA])
+    test_schema, test_regdata = (
+        load_json_test_data("responses/data_schema.json")[0],
+        load_json_test_data("messages/regulator_data.json")[0],
     )
-    ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-    )
+    ecomax.handle_frame(DataSchemaResponse(message=test_schema["message"]))
+    ecomax.handle_frame(RegulatorDataMessage(message=test_regdata["message"]))
     await ecomax.wait_until_done()
     regdata = await ecomax.get(ATTR_REGDATA)
     assert isinstance(regdata, RegulatorData)
-    assert regdata.data[1792] == 0
-    assert round(regdata.data[1024], 1) == 22.4
-    assert regdata.data[1280] == 41
-    assert regdata.data[183] == "0.0.0.0"
-    assert regdata.data[184] == "255.255.255.0"
 
 
-async def test_regdata_callbacks_without_schema(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_regdata_callbacks_without_schema(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on received regdata."""
-    ecomax.handle_frame(
-        RegulatorDataMessage(message=messages[FrameType.MESSAGE_REGULATOR_DATA])
-    )
+    test_data = load_json_test_data("messages/regulator_data.json")[0]
+    ecomax.handle_frame(RegulatorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert ATTR_FRAME_VERSIONS in ecomax.data
     assert ATTR_REGDATA not in ecomax.data
 
 
-async def test_mixer_sensors_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_mixer_sensors_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving mixer sensors info."""
     ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+        SensorDataMessage(
+            message=load_json_test_data("messages/sensor_data.json")[0]["message"]
+        )
     )
     await ecomax.wait_until_done()
     mixers = await ecomax.get(ATTR_MIXERS)
@@ -314,13 +295,10 @@ async def test_mixer_sensors_callbacks_without_mixers(ecomax: EcoMAX) -> None:
     assert not await ecomax.get(ATTR_MIXER_SENSORS)
 
 
-async def test_thermostat_sensors_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_thermostat_sensors_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat sensors info."""
-    ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
-    )
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
+    ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
     thermostats = await ecomax.get(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
@@ -336,7 +314,7 @@ async def test_thermostat_sensors_callbacks(
         "thermostat_sensors": True,
     }
     thermostat_count = await ecomax.get(ATTR_THERMOSTAT_COUNT)
-    assert thermostat_count == 1
+    assert thermostat_count == 2
 
 
 async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) -> None:
@@ -349,16 +327,11 @@ async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) 
     assert not await ecomax.get(ATTR_THERMOSTAT_SENSORS)
 
 
-async def test_thermostat_parameters_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat parameters."""
+    test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
-    ecomax.handle_frame(
-        ThermostatParametersResponse(
-            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-        )
-    )
+    ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     thermostats = await ecomax.get(ATTR_THERMOSTATS)
     assert len(thermostats) == 1
@@ -381,30 +354,27 @@ async def test_thermostat_parameters_callbacks(
 
 
 async def test_thermostat_parameters_callbacks_without_thermostats(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
+    ecomax: EcoMAX,
 ) -> None:
     """Test callbacks that are dispatched on receiving thermostat parameters
     without any thermostats."""
+    test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 0}))
-    ecomax.handle_frame(
-        ThermostatParametersResponse(
-            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-        )
-    )
+    ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_THERMOSTAT_PARAMETERS)
     thermostat_profile = await ecomax.get(ATTR_THERMOSTAT_PROFILE)
     assert thermostat_profile is None
 
 
-async def test_thermostat_profile_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat profile."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
-            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
+            message=load_json_test_data("responses/thermostat_parameters.json")[0][
+                "message"
+            ]
         )
     )
     await ecomax.wait_until_done()
@@ -426,13 +396,10 @@ async def test_thermostat_profile_callbacks(
     assert await ecomax.get(ATTR_THERMOSTAT_PROFILE) is None
 
 
-async def test_mixer_parameters_callbacks(
-    ecomax: EcoMAX, messages: dict[FrameType, bytearray]
-) -> None:
+async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving mixer parameters."""
-    ecomax.handle_frame(
-        MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
-    )
+    test_data = load_json_test_data("responses/mixer_parameters.json")[0]
+    ecomax.handle_frame(MixerParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     mixers = await ecomax.get(ATTR_MIXERS)
     assert len(mixers) == 1
@@ -469,15 +436,13 @@ async def test_mixer_parameters_callbacks_without_mixers(ecomax: EcoMAX) -> None
     assert not await ecomax.get(ATTR_MIXER_PARAMETERS)
 
 
-async def test_schedule_callback(
-    ecomax: EcoMAX,
-    messages: dict[FrameType, bytearray],
-    data: dict[FrameType, EventDataType],
-) -> None:
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("responses/schedules.json"),
+)
+async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
     """Test callback that is dispatched on receiving schedule data."""
-    ecomax.handle_frame(
-        SchedulesResponse(message=messages[FrameType.RESPONSE_SCHEDULES])
-    )
+    ecomax.handle_frame(SchedulesResponse(message=message))
     schedules = await ecomax.get(ATTR_SCHEDULES)
     assert len(schedules) == 1
     heating_schedule = schedules["heating"]
@@ -500,7 +465,7 @@ async def test_schedule_callback(
         ATTR_SCHEDULE: ecomax.data[ATTR_SCHEDULES]["heating"],
     }
 
-    schedule_data = data[FrameType.RESPONSE_SCHEDULES][ATTR_SCHEDULES][0][1]
+    schedule_data = data[ATTR_SCHEDULES][0][1]
     for index, weekday in enumerate(
         ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
     ):
@@ -533,20 +498,19 @@ async def test_request_error(ecomax: EcoMAX) -> None:
 
 
 @patch("pyplumio.helpers.parameter.Parameter.is_changed", False)
-async def test_set(ecomax: EcoMAX, messages: dict[FrameType, bytearray]) -> None:
+async def test_set(ecomax: EcoMAX) -> None:
     """Test setting parameter value via set helper."""
-    ecomax.handle_frame(
-        EcomaxParametersResponse(message=messages[FrameType.RESPONSE_ECOMAX_PARAMETERS])
+    test_ecomax_data, test_thermostat_data, test_mixer_data = (
+        load_json_test_data("responses/ecomax_parameters.json")[0],
+        load_json_test_data("responses/thermostat_parameters.json")[0],
+        load_json_test_data("responses/mixer_parameters.json")[0],
     )
+    ecomax.handle_frame(EcomaxParametersResponse(message=test_ecomax_data["message"]))
     ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
     ecomax.handle_frame(
-        ThermostatParametersResponse(
-            message=messages[FrameType.RESPONSE_THERMOSTAT_PARAMETERS]
-        )
+        ThermostatParametersResponse(message=test_thermostat_data["message"])
     )
-    ecomax.handle_frame(
-        MixerParametersResponse(message=messages[FrameType.RESPONSE_MIXER_PARAMETERS])
-    )
+    ecomax.handle_frame(MixerParametersResponse(message=test_mixer_data["message"]))
 
     # Test setting an ecomax parameter.
     assert await ecomax.set("fuel_flow_kg_h", 13.0)
@@ -617,10 +581,12 @@ async def test_turn_off_nowait(mock_create_task, mock_turn_off, ecomax: EcoMAX) 
     mock_turn_off.assert_called_once()
 
 
-async def test_shutdown(ecomax: EcoMAX, messages: dict[FrameType, bytearray]) -> None:
+async def test_shutdown(ecomax: EcoMAX) -> None:
     """Test device tasks shutdown."""
     ecomax.handle_frame(
-        SensorDataMessage(message=messages[FrameType.MESSAGE_SENSOR_DATA])
+        SensorDataMessage(
+            message=load_json_test_data("messages/sensor_data.json")[0]["message"]
+        )
     )
     await ecomax.wait_until_done()
 

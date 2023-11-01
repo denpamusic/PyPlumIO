@@ -1,8 +1,8 @@
-"""Test PyPlumIO request frames."""
+"""Contains a tests for the request frame classes."""
 
 import pytest
 
-from pyplumio.const import DeviceType, FrameType
+from pyplumio.const import DeviceType
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.frames.requests import (
@@ -24,16 +24,16 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
-from pyplumio.helpers.typing import EventDataType
+from tests import load_json_parameters
 
 
-def test_base_class_response() -> None:
-    """Test response for base class."""
+def test_request_class_response_property() -> None:
+    """Test response property for a abstract request class."""
     assert Request().response() is None
 
 
 def test_request_type() -> None:
-    """Test if request is instance of frame class."""
+    """Test if request is an instance of frame class."""
     for request in (
         ProgramVersionRequest,
         CheckDeviceRequest,
@@ -65,79 +65,85 @@ def test_check_device_response_recipient_and_type() -> None:
     assert frame.response().recipient == DeviceType.ECONET
 
 
-def test_parameters(messages: dict[FrameType, bytearray]) -> None:
-    """Test parameters request bytes."""
-    frame = EcomaxParametersRequest()
-    assert frame.message == messages[FrameType.REQUEST_ECOMAX_PARAMETERS]
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/ecomax_control.json"),
+)
+def test_ecomax_control(message, data) -> None:
+    """Test an ecoMAX control parameter request."""
+    assert EcomaxControlRequest(data=data).message == message
 
 
-def test_set_parameter(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test set parameter request bytes."""
-    frame = SetEcomaxParameterRequest(data=data[FrameType.REQUEST_SET_ECOMAX_PARAMETER])
-    assert frame.message == messages[FrameType.REQUEST_SET_ECOMAX_PARAMETER]
-
-
-def test_set_parameter_with_no_data() -> None:
-    """Test set parameter request with no data."""
-    with pytest.raises(FrameDataError):
-        SetEcomaxParameterRequest()
-
-
-def test_set_mixer_parameter(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test set mixer parameter request bytes."""
-    frame = SetMixerParameterRequest(data=data[FrameType.REQUEST_SET_MIXER_PARAMETER])
-    assert frame.message == messages[FrameType.REQUEST_SET_MIXER_PARAMETER]
-
-
-def test_set_mixer_parameter_with_no_data() -> None:
-    """Test set mixer parameter request with no data."""
-    with pytest.raises(FrameDataError):
-        SetMixerParameterRequest()
-
-
-def test_set_thermostat_parameter(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test set thermostat parameter request bytes."""
-    frame = SetThermostatParameterRequest(
-        data=data[FrameType.REQUEST_SET_THERMOSTAT_PARAMETER]
-    )
-    assert frame.message == messages[FrameType.REQUEST_SET_THERMOSTAT_PARAMETER]
-
-
-def test_set_thermostat_parameter_with_no_data() -> None:
-    """Test set thermostat parameter request with no data."""
-    with pytest.raises(FrameDataError):
-        SetThermostatParameterRequest()
-
-
-def test_ecomax_control(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test ecoMAX control parameter request bytes."""
-    frame = EcomaxControlRequest(data=data[FrameType.REQUEST_ECOMAX_CONTROL])
-    assert frame.message == messages[FrameType.REQUEST_ECOMAX_CONTROL]
-
-
-def test_ecomax_control_with_no_data() -> None:
-    """Test ecoMAX control request with no data."""
+def test_ecomax_control_without_data() -> None:
+    """Test an ecoMAX control request without any data."""
     with pytest.raises(FrameDataError):
         EcomaxControlRequest()
 
 
-def test_set_schedule(
-    data: dict[FrameType, EventDataType], messages: dict[FrameType, bytearray]
-) -> None:
-    """Test set schedule request bytes."""
-    frame = SetScheduleRequest(data=data[FrameType.REQUEST_SET_SCHEDULE])
-    assert frame.message == messages[FrameType.REQUEST_SET_SCHEDULE]
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/ecomax_parameters.json"),
+)
+def test_ecomax_parameters(message, data) -> None:
+    """Test an ecoMAX parameters request."""
+    assert EcomaxParametersRequest(data=data).message == message
 
 
-def test_set_schedule_with_no_data() -> None:
-    """Test set schedule request with no data."""
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/set_ecomax_parameter.json"),
+)
+def test_set_ecomax_parameter(message, data) -> None:
+    """Test a set ecoMAX parameter request."""
+    assert SetEcomaxParameterRequest(data=data).message == message
+
+
+def test_set_ecomax_parameter_without_data() -> None:
+    """Test a set ecoMAX parameter request without any data."""
+    with pytest.raises(FrameDataError):
+        SetEcomaxParameterRequest()
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/set_mixer_parameter.json"),
+)
+def test_set_mixer_parameter(message, data) -> None:
+    """Test a set mixer parameter request."""
+    assert SetMixerParameterRequest(data=data).message == message
+
+
+def test_set_mixer_parameter_without_data() -> None:
+    """Test a set mixer parameter request without any data."""
+    with pytest.raises(FrameDataError):
+        SetMixerParameterRequest()
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/set_schedule.json"),
+)
+def test_set_schedule(message, data) -> None:
+    """Test a set schedule request bytes."""
+    assert SetScheduleRequest(data=data).message == message
+
+
+def test_set_schedule_without_data() -> None:
+    """Test a set schedule request without any data."""
     with pytest.raises(FrameDataError):
         SetScheduleRequest()
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/set_thermostat_parameter.json"),
+)
+def test_set_thermostat_parameter(message, data) -> None:
+    """Test a set thermostat parameter request."""
+    assert SetThermostatParameterRequest(data=data).message == message
+
+
+def test_set_thermostat_parameter_without_data() -> None:
+    """Test a set thermostat parameter request without any data."""
+    with pytest.raises(FrameDataError):
+        SetThermostatParameterRequest()

@@ -1,0 +1,175 @@
+[
+  {
+    "id": "full_sensor_data",
+    "message": {
+      "items": [
+        "0755F7B15420BE5698FA3601003802003901003D18310000000000FF0300000900D012B34101F",
+        "FFFFFFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF",
+        "29002D800020000000000000000000000000000001120B3A4B01FFFFFFFF120A4801022800050",
+        "20300002E42000048420200000E420000000005FFFFFFFF28000800FFFFFFFF28000800FFFFFF",
+        "FF28000800FFFFFFFF280008000000A04128000800"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "sensors": {
+        "frame_versions": {
+          "85": 45559,
+          "84": 48672,
+          "86": 64152,
+          "54": 1,
+          "56": 2,
+          "57": 1,
+          "61": 12568
+        },
+        "state": {
+          "value": 0,
+          "__module__": "pyplumio.const",
+          "__class__": "DeviceState"
+        },
+        "fan": false,
+        "feeder": false,
+        "heating_pump": false,
+        "water_heater_pump": false,
+        "circulation_pump": false,
+        "lighter": false,
+        "alarm": false,
+        "outer_boiler": false,
+        "fan2_exhaust": false,
+        "feeder2": false,
+        "outer_feeder": false,
+        "solar_pump": false,
+        "fireplace_pump": false,
+        "gcz_contact": false,
+        "blow_fan1": false,
+        "blow_fan2": false,
+        "heating_pump_flag": true,
+        "water_heater_pump_flag": true,
+        "circulation_pump_flag": true,
+        "solar_pump_flag": false,
+        "heating_temp": 22.384185791015625,
+        "optical_temp": 0.0,
+        "heating_target": 41,
+        "heating_status": 0,
+        "water_heater_target": 45,
+        "water_heater_status": 128,
+        "pending_alerts": 0,
+        "fuel_level": 32,
+        "transmission": 0,
+        "fan_power": 0.0,
+        "load": 0,
+        "power": 0.0,
+        "fuel_consumption": 0.0,
+        "thermostat": 1,
+        "modules": {
+          "module_a": "18.11.58.K1",
+          "module_b": null,
+          "module_c": null,
+          "ecolambda": null,
+          "ecoster": null,
+          "panel": "18.10.72",
+          "__module__": "pyplumio.structures.modules",
+          "__class__": "ConnectedModules"
+        },
+        "lambda_level": 4.0,
+        "lambda_state": 1,
+        "lambda_target": 2,
+        "thermostat_sensors": {
+          "0": {
+            "state": 3,
+            "current_temp": 43.5,
+            "target_temp": 50.0,
+            "contacts": true,
+            "schedule": false
+          }
+        },
+        "thermostat_count": 2,
+        "mixer_sensors": {
+          "4": {
+            "current_temp": 20.0,
+            "target_temp": 40,
+            "pump": false
+          }
+        },
+        "mixer_count": 5
+      }
+    }
+  },
+  {
+    "id": "short_sensor_data_without_thermostats",
+    "message": {
+      "items": [
+        "0755F7B15420BE5698FA3601003802003901003D18310C00000000FF0300000900D012B34101F",
+        "FFFFFFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF",
+        "29002D8000FF00FFFFFFFFFFFFFFFFFFFFFFFFFF01120B3A4B01FFFFFFFF120A48FFFF05FFFFF",
+        "FFF28000800FFFFFFFF28000800FFFFFFFF28000800FFFFFFFF280008000000A04128000800"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "sensors": {
+        "frame_versions": {
+          "85": 45559,
+          "84": 48672,
+          "86": 64152,
+          "54": 1,
+          "56": 2,
+          "57": 1,
+          "61": 12568
+        },
+        "state": {
+          "value": 1,
+          "__module__": "pyplumio.const",
+          "__class__": "DeviceState"
+        },
+        "fan": false,
+        "feeder": false,
+        "heating_pump": false,
+        "water_heater_pump": false,
+        "circulation_pump": false,
+        "lighter": false,
+        "alarm": false,
+        "outer_boiler": false,
+        "fan2_exhaust": false,
+        "feeder2": false,
+        "outer_feeder": false,
+        "solar_pump": false,
+        "fireplace_pump": false,
+        "gcz_contact": false,
+        "blow_fan1": false,
+        "blow_fan2": false,
+        "heating_pump_flag": true,
+        "water_heater_pump_flag": true,
+        "circulation_pump_flag": true,
+        "solar_pump_flag": false,
+        "heating_temp": 22.384185791015625,
+        "optical_temp": 0.0,
+        "heating_target": 41,
+        "heating_status": 0,
+        "water_heater_target": 45,
+        "water_heater_status": 128,
+        "pending_alerts": 0,
+        "transmission": 0,
+        "thermostat": 1,
+        "modules": {
+          "module_a": "18.11.58.K1",
+          "module_b": null,
+          "module_c": null,
+          "ecolambda": null,
+          "ecoster": null,
+          "panel": "18.10.72",
+          "__module__": "pyplumio.structures.modules",
+          "__class__": "ConnectedModules"
+        },
+        "mixer_sensors": {
+          "4": {
+            "current_temp": 20.0,
+            "target_temp": 40,
+            "pump": false
+          }
+        },
+        "mixer_count": 5
+      }
+    }
+  }
+]

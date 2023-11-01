@@ -1,4 +1,4 @@
-"""Contains tests for the timeout decorator."""
+"""Contains tests for the timeout decorator class."""
 
 import asyncio
 import logging
@@ -11,7 +11,7 @@ from pyplumio.helpers.timeout import timeout
 
 @patch("asyncio.wait_for", new_callable=AsyncMock, side_effect=(asyncio.TimeoutError))
 async def test_timeout(mock_wait_for, caplog) -> None:
-    """Test timeout decorator."""
+    """Test a timeout decorator."""
     # Mock function to pass to the decorator.
     mock_func = Mock()
     mock_func.return_value = "test"

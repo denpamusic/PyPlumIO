@@ -1,0 +1,23 @@
+[
+  {
+    "id": "EM350P2_uid",
+    "message": {
+      "items": [
+        "005A000B001600110D3833383655395A0000000A454D33353050322D5A46"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "product": {
+        "type": 0,
+        "id": 90,
+        "uid": "D251PAKR3GCPZ1K8G05G0",
+        "logo": 23040,
+        "image": 2816,
+        "model": "EM350P2-ZF",
+        "__module__": "pyplumio.structures.product_info",
+        "__class__": "ProductInfo"
+      }
+    }
+  }
+]

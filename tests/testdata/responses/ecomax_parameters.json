@@ -1,0 +1,714 @@
+[
+  {
+    "id": "EM350P2_parameters",
+    "message": {
+      "items": [
+        "00008B3D3D643C293C28143BFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "FFFFFFFFFFFFF1401FA03011E01011E05011E01000100003C3C0064FFFFFFFFFFFF140A64FFFF",
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1E146404011E000",
+        "0640801FA3228550A0A1E1E1432FFFFFFFFFFFF0A0AF0FFFFFFFFFFFF0F0A14FFFFFFFFFFFF32",
+        "2896FFFFFFFFFFFF02010F03010A28143CFFFFFFFFFFFFFFFFFFFFFFFF3C01FA1E1432FFFFFFF",
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7D01FAFFFFFF0201642F01F",
+        "A0A0A1EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF413250321E50503C5A321E",
+        "50000063FFFFFFFFFFFF05030F0000010D0128140028FFFFFFFFFFFF00000105001EFFFFFF5A5",
+        "55F3C285AFFFFFFFFFFFFFFFFFF3328462814374628500200020A011E00000100000210051E0A",
+        "010F030063FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "ecomax_parameters": [
+        {
+          "items": [
+            0,
+            {
+              "value": 61,
+              "min_value": 61,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            1,
+            {
+              "value": 60,
+              "min_value": 41,
+              "max_value": 60,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            2,
+            {
+              "value": 40,
+              "min_value": 20,
+              "max_value": 59,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            14,
+            {
+              "value": 20,
+              "min_value": 1,
+              "max_value": 250,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            15,
+            {
+              "value": 3,
+              "min_value": 1,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            16,
+            {
+              "value": 1,
+              "min_value": 1,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            17,
+            {
+              "value": 5,
+              "min_value": 1,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            18,
+            {
+              "value": 1,
+              "min_value": 0,
+              "max_value": 1,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            19,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 60,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            20,
+            {
+              "value": 60,
+              "min_value": 0,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            23,
+            {
+              "value": 20,
+              "min_value": 10,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            35,
+            {
+              "value": 30,
+              "min_value": 20,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            36,
+            {
+              "value": 4,
+              "min_value": 1,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            37,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            38,
+            {
+              "value": 8,
+              "min_value": 1,
+              "max_value": 250,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            39,
+            {
+              "value": 50,
+              "min_value": 40,
+              "max_value": 85,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            40,
+            {
+              "value": 10,
+              "min_value": 10,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            41,
+            {
+              "value": 30,
+              "min_value": 20,
+              "max_value": 50,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            44,
+            {
+              "value": 10,
+              "min_value": 10,
+              "max_value": 240,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            47,
+            {
+              "value": 15,
+              "min_value": 10,
+              "max_value": 20,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            50,
+            {
+              "value": 50,
+              "min_value": 40,
+              "max_value": 150,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            53,
+            {
+              "value": 2,
+              "min_value": 1,
+              "max_value": 15,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            54,
+            {
+              "value": 3,
+              "min_value": 1,
+              "max_value": 10,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            55,
+            {
+              "value": 40,
+              "min_value": 20,
+              "max_value": 60,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            60,
+            {
+              "value": 60,
+              "min_value": 1,
+              "max_value": 250,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            61,
+            {
+              "value": 30,
+              "min_value": 20,
+              "max_value": 50,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            85,
+            {
+              "value": 125,
+              "min_value": 1,
+              "max_value": 250,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            87,
+            {
+              "value": 2,
+              "min_value": 1,
+              "max_value": 100,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            88,
+            {
+              "value": 47,
+              "min_value": 1,
+              "max_value": 250,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            89,
+            {
+              "value": 10,
+              "min_value": 10,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            98,
+            {
+              "value": 65,
+              "min_value": 50,
+              "max_value": 80,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            99,
+            {
+              "value": 50,
+              "min_value": 30,
+              "max_value": 80,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            100,
+            {
+              "value": 80,
+              "min_value": 60,
+              "max_value": 90,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            101,
+            {
+              "value": 50,
+              "min_value": 30,
+              "max_value": 80,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            102,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 99,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            105,
+            {
+              "value": 5,
+              "min_value": 3,
+              "max_value": 15,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            106,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 1,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            107,
+            {
+              "value": 13,
+              "min_value": 1,
+              "max_value": 40,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            108,
+            {
+              "value": 20,
+              "min_value": 0,
+              "max_value": 40,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            111,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 1,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            112,
+            {
+              "value": 5,
+              "min_value": 0,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            114,
+            {
+              "value": 90,
+              "min_value": 85,
+              "max_value": 95,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            115,
+            {
+              "value": 60,
+              "min_value": 40,
+              "max_value": 90,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            119,
+            {
+              "value": 51,
+              "min_value": 40,
+              "max_value": 70,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            120,
+            {
+              "value": 40,
+              "min_value": 20,
+              "max_value": 55,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            121,
+            {
+              "value": 70,
+              "min_value": 40,
+              "max_value": 80,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            122,
+            {
+              "value": 2,
+              "min_value": 0,
+              "max_value": 2,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            123,
+            {
+              "value": 10,
+              "min_value": 1,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            124,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 1,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            125,
+            {
+              "value": 0,
+              "min_value": 0,
+              "max_value": 2,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            126,
+            {
+              "value": 16,
+              "min_value": 5,
+              "max_value": 30,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            127,
+            {
+              "value": 10,
+              "min_value": 1,
+              "max_value": 15,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        },
+        {
+          "items": [
+            128,
+            {
+              "value": 3,
+              "min_value": 0,
+              "max_value": 99,
+              "__module__": "pyplumio.helpers.parameter",
+              "__class__": "ParameterValues"
+            }
+          ],
+          "__tuple__": true
+        }
+      ]
+    }
+  }
+]

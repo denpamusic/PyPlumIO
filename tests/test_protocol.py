@@ -1,4 +1,4 @@
-"""Contains tests for protocol."""
+"""Contains tests for the protocol classes."""
 
 import asyncio
 import logging

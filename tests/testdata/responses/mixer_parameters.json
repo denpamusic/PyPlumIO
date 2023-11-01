@@ -1,0 +1,107 @@
+[
+  {
+    "id": "1_mixer_detected",
+    "message": {
+      "items": [
+        "00000601281E3C141E2850465A140A1E0100010D0A1E"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "mixer_parameters": {
+        "0": [
+          {
+            "items": [
+              0,
+              {
+                "value": 40,
+                "min_value": 30,
+                "max_value": 60,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              1,
+              {
+                "value": 20,
+                "min_value": 30,
+                "max_value": 40,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              2,
+              {
+                "value": 80,
+                "min_value": 70,
+                "max_value": 90,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              3,
+              {
+                "value": 20,
+                "min_value": 10,
+                "max_value": 30,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              4,
+              {
+                "value": 1,
+                "min_value": 0,
+                "max_value": 1,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              5,
+              {
+                "value": 13,
+                "min_value": 10,
+                "max_value": 30,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "no_mixers_detected",
+    "message": {
+      "items": [
+        "00000201"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "mixer_parameters": {}
+    }
+  }
+]

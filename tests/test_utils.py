@@ -1,4 +1,4 @@
-"""Contains tests for utility functions."""
+"""Contains tests for the utility functions."""
 
 from pyplumio import utils
 

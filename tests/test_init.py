@@ -1,4 +1,4 @@
-"""Contains tests for init."""
+"""Contains tests for the init module."""
 
 from typing import Final
 

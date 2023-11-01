@@ -1,4 +1,4 @@
-"""Contains tests for connection."""
+"""Contains tests for the connection classes."""
 
 from asyncio import StreamReader, StreamWriter
 import logging
@@ -20,14 +20,14 @@ DEVICE: Final = "/dev/ttyUSB0"
 
 @pytest.fixture(name="stream_writer")
 def fixture_stream_writer():
-    """Return mock of asyncio stream writer."""
+    """Return a mock of asyncio stream writer."""
     with patch("asyncio.StreamWriter", autospec=True) as mock_stream_writer:
         yield mock_stream_writer
 
 
 @pytest.fixture(name="stream_reader")
 def fixture_stream_reader():
-    """Return mock of asyncio stream reader."""
+    """Return a mock of asyncio stream reader."""
     with patch("asyncio.StreamReader", autospec=True) as mock_stream_reader:
         yield mock_stream_reader
 
@@ -57,25 +57,25 @@ def fixture_serial_asyncio_open_serial_connection(
 
 @pytest.fixture(name="tcp_connection")
 def fixture_tcp_connection() -> TcpConnection:
-    """Return tcp connection object."""
+    """Return at TCP connection object."""
     return TcpConnection(host=HOST, port=PORT, test="test")
 
 
 @pytest.fixture(name="serial_connection")
 def fixture_serial_connection() -> SerialConnection:
-    """Return serial connection object."""
+    """Return a serial connection object."""
     return SerialConnection(device="/dev/ttyUSB0", test="test")
 
 
 @pytest.fixture(name="mock_protocol")
 def fixture_mock_protocol():
-    """Return mock Protocol object."""
+    """Return a mock protocol object."""
     with patch("pyplumio.connection.Protocol", autospec=True) as mock_protocol:
         yield mock_protocol
 
 
 async def test_tcp_connect(mock_protocol: Protocol, asyncio_open_connection) -> None:
-    """Test tcp connection logic."""
+    """Test TCP connection logic."""
 
     with patch(
         "pyplumio.connection.Connection._connection_lost"
@@ -98,7 +98,7 @@ async def test_tcp_connect(mock_protocol: Protocol, asyncio_open_connection) -> 
 
 @pytest.mark.usefixtures("mock_protocol")
 async def test_serial_connect(serial_asyncio_open_serial_connection) -> None:
-    """Test serial connection logic."""
+    """Test a serial connection logic."""
     serial_connection = SerialConnection(
         device=DEVICE, test="test", reconnect_on_failure=False
     )
@@ -120,7 +120,7 @@ async def test_serial_connect(serial_asyncio_open_serial_connection) -> None:
 
 @pytest.mark.usefixtures("mock_protocol", "asyncio_open_connection")
 async def test_reconnect(tcp_connection: TcpConnection, caplog) -> None:
-    """Test reconnect logic."""
+    """Test a reconnect logic."""
     with caplog.at_level(logging.ERROR), patch(
         "pyplumio.connection.Connection._connect",
         side_effect=(ConnectionFailedError, None),

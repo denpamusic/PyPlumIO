@@ -1,0 +1,35 @@
+[
+  {
+    "id": "EN300_device_available",
+    "message": {
+      "items": [
+        "01C0A80102FFFFFF00C0A8010101C0A80202FFFFFF00C0A802010101640100000000057465737",
+        "473"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "network": {
+        "eth": {
+          "ip": "192.168.1.2",
+          "netmask": "255.255.255.0",
+          "gateway": "192.168.1.1",
+          "status": true,
+          "__module__": "pyplumio.structures.network_info",
+          "__class__": "EthernetParameters"
+        },
+        "wlan": {
+          "ip": "192.168.2.2",
+          "netmask": "255.255.255.0",
+          "gateway": "192.168.2.1",
+          "status": true,
+          "ssid": "tests",
+          "__module__": "pyplumio.structures.network_info",
+          "__class__": "WirelessParameters"
+        },
+        "__module__": "pyplumio.structures.network_info",
+        "__class__": "NetworkInfo"
+      }
+    }
+  }
+]

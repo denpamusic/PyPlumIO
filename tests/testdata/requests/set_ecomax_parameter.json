@@ -1,0 +1,15 @@
+[
+  {
+    "id": "set_airflow_power_100_to_80",
+    "message": {
+      "items": [
+        "0050"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "value": 80
+    }
+  }
+]

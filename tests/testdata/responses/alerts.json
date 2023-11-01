@@ -1,0 +1,68 @@
+[
+  {
+    "id": "alerts",
+    "message": {
+      "items": [
+        "6400021A5493382B9B94382B009C97372B00000000"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "alerts": [
+        {
+          "code": 26,
+          "from_dt": {
+            "year": 2022,
+            "month": 7,
+            "day": 23,
+            "hour": 16,
+            "minute": 27,
+            "__module__": "datetime",
+            "__class__": "datetime"
+          },
+          "to_dt": {
+            "year": 2022,
+            "month": 7,
+            "day": 23,
+            "hour": 16,
+            "minute": 32,
+            "second": 27,
+            "__module__": "datetime",
+            "__class__": "datetime"
+          },
+          "__module__": "pyplumio.structures.alerts",
+          "__class__": "Alert"
+        },
+        {
+          "code": {
+            "value": 0,
+            "__module__": "pyplumio.const",
+            "__class__": "AlertType"
+          },
+          "from_dt": {
+            "year": 2022,
+            "month": 7,
+            "day": 22,
+            "hour": 22,
+            "minute": 33,
+            "__module__": "datetime",
+            "__class__": "datetime"
+          },
+          "to_dt": null,
+          "__module__": "pyplumio.structures.alerts",
+          "__class__": "Alert"
+        }
+      ]
+    }
+  },
+  {
+    "id": "empty_alerts",
+    "message": {
+      "items": [
+        "000000"
+      ],
+      "__bytearray__": true
+    },
+    "data": {}
+  }
+]

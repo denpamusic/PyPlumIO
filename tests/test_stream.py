@@ -1,4 +1,4 @@
-"""Contains tests for frame reader and writer."""
+"""Contains tests for the frame reader and writer classes."""
 
 import asyncio
 from collections.abc import Generator

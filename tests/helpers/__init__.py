@@ -1,1 +1,1 @@
-"""Contains tests for helper classes."""
+"""Contains tests for the helper classes."""

@@ -1,0 +1,199 @@
+[
+  {
+    "id": "3_thermostats_connected",
+    "message": {
+      "items": [
+        "000025000005000007DC0064005E01960064005E01643C8C02003C01003C01003C0A003C09003",
+        "2DE0064005E01D40064005E015A0032002C01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        "FFFFFFFFFF"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "thermostat_count": 3,
+      "thermostat_profile": {
+        "value": 0,
+        "min_value": 0,
+        "max_value": 5,
+        "__module__": "pyplumio.helpers.parameter",
+        "__class__": "ParameterValues"
+      },
+      "thermostat_parameters": {
+        "0": [
+          {
+            "items": [
+              0,
+              {
+                "value": 0,
+                "min_value": 0,
+                "max_value": 7,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              1,
+              {
+                "value": 220,
+                "min_value": 100,
+                "max_value": 350,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              2,
+              {
+                "value": 150,
+                "min_value": 100,
+                "max_value": 350,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              3,
+              {
+                "value": 100,
+                "min_value": 60,
+                "max_value": 140,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              4,
+              {
+                "value": 2,
+                "min_value": 0,
+                "max_value": 60,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              5,
+              {
+                "value": 1,
+                "min_value": 0,
+                "max_value": 60,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              6,
+              {
+                "value": 1,
+                "min_value": 0,
+                "max_value": 60,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              7,
+              {
+                "value": 10,
+                "min_value": 0,
+                "max_value": 60,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              8,
+              {
+                "value": 9,
+                "min_value": 0,
+                "max_value": 50,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              9,
+              {
+                "value": 222,
+                "min_value": 100,
+                "max_value": 350,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              10,
+              {
+                "value": 212,
+                "min_value": 100,
+                "max_value": 350,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          },
+          {
+            "items": [
+              11,
+              {
+                "value": 90,
+                "min_value": 50,
+                "max_value": 300,
+                "__module__": "pyplumio.helpers.parameter",
+                "__class__": "ParameterValues"
+              }
+            ],
+            "__tuple__": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "no_thermostats_connected",
+    "message": {
+      "items": [
+        "00000300FFFFFFFFFFFFFFFFFF"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "thermostat_count": 3,
+      "thermostat_profile": null,
+      "thermostat_parameters": {}
+    }
+  }
+]
