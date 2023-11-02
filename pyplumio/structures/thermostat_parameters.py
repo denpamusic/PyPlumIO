@@ -96,7 +96,7 @@ class ThermostatParameterDescription(ParameterDescription):
 
 @dataclass
 class ThermostatBinaryParameterDescription(
-    BinaryParameterDescription, ThermostatParameterDescription
+    ThermostatParameterDescription, BinaryParameterDescription
 ):
     """Represents a thermostat binary parameter description."""
 

@@ -43,6 +43,7 @@ from pyplumio.structures.ecomax_parameters import (
     ECOMAX_PARAMETERS,
     THERMOSTAT_PROFILE_PARAMETER,
     EcomaxBinaryParameter,
+    EcomaxBinaryParameterDescription,
     EcomaxParameter,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
@@ -58,6 +59,7 @@ from pyplumio.structures.schedules import (
     SCHEDULE_PARAMETERS,
     SCHEDULES,
     ScheduleBinaryParameter,
+    ScheduleBinaryParameterDescription,
     ScheduleParameter,
 )
 from pyplumio.structures.thermostat_parameters import (
@@ -196,7 +198,11 @@ class EcoMAX(Addressable):
         product: ProductInfo = await self.get(ATTR_PRODUCT)
         for index, values in parameters:
             description = ECOMAX_PARAMETERS[product.type][index]
-            cls = EcomaxBinaryParameter if description.is_binary else EcomaxParameter
+            cls = (
+                EcomaxBinaryParameter
+                if isinstance(description, EcomaxBinaryParameterDescription)
+                else EcomaxParameter
+            )
             await self.dispatch(
                 description.name,
                 cls(
@@ -314,7 +320,9 @@ class EcoMAX(Addressable):
         for index, values in parameters:
             description = SCHEDULE_PARAMETERS[index]
             cls = (
-                ScheduleBinaryParameter if description.is_binary else ScheduleParameter
+                ScheduleBinaryParameter
+                if isinstance(description, ScheduleBinaryParameterDescription)
+                else ScheduleParameter
             )
             await self.dispatch(
                 description.name,

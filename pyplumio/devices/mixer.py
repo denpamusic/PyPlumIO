@@ -11,6 +11,7 @@ from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
     MIXER_PARAMETERS,
     MixerBinaryParameter,
+    MixerBinaryParameterDescription,
     MixerParameter,
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
@@ -48,7 +49,11 @@ class Mixer(SubDevice):
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
         for index, values in parameters:
             description = MIXER_PARAMETERS[product.type][index]
-            cls = MixerBinaryParameter if description.is_binary else MixerParameter
+            cls = (
+                MixerBinaryParameter
+                if isinstance(description, MixerBinaryParameterDescription)
+                else MixerParameter
+            )
             await self.dispatch(
                 description.name,
                 cls(

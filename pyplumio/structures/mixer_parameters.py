@@ -84,7 +84,7 @@ class MixerParameterDescription(ParameterDescription):
 
 @dataclass
 class MixerBinaryParameterDescription(
-    BinaryParameterDescription, MixerParameterDescription
+    MixerParameterDescription, BinaryParameterDescription
 ):
     """Represents a mixer binary parameter description."""
 

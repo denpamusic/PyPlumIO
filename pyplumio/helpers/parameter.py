@@ -67,14 +67,11 @@ class ParameterDescription:
     """Represents a parameter description."""
 
     name: str
-    is_binary: bool = False
 
 
 @dataclass
 class BinaryParameterDescription(ParameterDescription):
     """Represent a binary parameter description."""
-
-    is_binary: bool = True
 
 
 class Parameter:

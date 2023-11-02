@@ -11,6 +11,7 @@ from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
     ThermostatBinaryParameter,
+    ThermostatBinaryParameterDescription,
     ThermostatParameter,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
@@ -48,7 +49,7 @@ class Thermostat(SubDevice):
             description = THERMOSTAT_PARAMETERS[index]
             cls = (
                 ThermostatBinaryParameter
-                if description.is_binary
+                if isinstance(description, ThermostatBinaryParameterDescription)
                 else ThermostatParameter
             )
             await self.dispatch(

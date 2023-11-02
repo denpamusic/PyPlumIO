@@ -105,7 +105,7 @@ class EcomaxParameterDescription(ParameterDescription):
 
 @dataclass
 class EcomaxBinaryParameterDescription(
-    BinaryParameterDescription, EcomaxParameterDescription
+    EcomaxParameterDescription, BinaryParameterDescription
 ):
     """Represents an ecoMAX binary parameter description."""
 
