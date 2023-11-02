@@ -26,7 +26,7 @@ def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return old.is_changed or (
+        return old.pending_update or (
             old.value != new.value
             or old.min_value != new.min_value
             or old.max_value != new.max_value

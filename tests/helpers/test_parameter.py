@@ -100,10 +100,10 @@ async def test_parameter_set(
     assert parameter == 5
     mock_subscribe_once.assert_called_once()
     callback = mock_subscribe_once.call_args.args[1]
-    assert parameter.is_changed
+    assert parameter.pending_update
     await callback(parameter)
-    assert not parameter.is_changed
-    with patch("pyplumio.helpers.parameter.Parameter.is_changed", False):
+    assert not parameter.pending_update
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
         assert await parameter.set(3)
 
     assert parameter == 3
@@ -165,9 +165,9 @@ async def test_parameter_request_with_unchanged_value(
 ) -> None:
     """Test that a frame doesn't get dispatched if it's
     value is unchanged."""
-    assert not parameter.is_changed
+    assert not parameter.pending_update
     assert not await parameter.set(5, retries=3)
-    assert parameter.is_changed
+    assert parameter.pending_update
     assert mock_put.await_count == 3
     mock_put.reset_mock()
     assert "Timed out while trying to set 'test_parameter' parameter" in caplog.text

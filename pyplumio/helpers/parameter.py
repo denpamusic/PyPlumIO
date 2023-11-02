@@ -85,8 +85,8 @@ class Parameter:
     _value: int
     _min_value: int
     _max_value: int
-    _is_changed: bool = False
     _index: int
+    _pending_update: bool = False
 
     def __init__(
         self,
@@ -104,7 +104,7 @@ class Parameter:
         self._value = _normalize_parameter_value(value)
         self._min_value = _normalize_parameter_value(min_value)
         self._max_value = _normalize_parameter_value(max_value)
-        self._is_changed = False
+        self._pending_update = False
         self._index = index
 
     def __repr__(self) -> str:
@@ -169,7 +169,7 @@ class Parameter:
         """A callback for when parameter change is confirmed on
         the device.
         """
-        self._is_changed = False
+        self._pending_update = False
 
     async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
         """Set a parameter value."""
@@ -182,11 +182,11 @@ class Parameter:
             )
 
         self._value = value
-        self._is_changed = True
+        self._pending_update = True
         self.device.subscribe_once(
             self.description.name, self._confirm_parameter_change
         )
-        while self.is_changed:
+        while self.pending_update:
             if retries <= 0:
                 _LOGGER.error(
                     "Timed out while trying to set '%s' parameter",
@@ -208,9 +208,9 @@ class Parameter:
         self.device.create_task(self.set(value, retries))
 
     @property
-    def is_changed(self) -> bool:
-        """Check if parameter change is confirmed on the device."""
-        return self._is_changed
+    def pending_update(self) -> bool:
+        """Check if parameter update is confirmed on the device."""
+        return self._pending_update
 
     @property
     def value(self) -> ParameterValueType:

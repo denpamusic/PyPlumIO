@@ -39,7 +39,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.value = 0
     test_parameter.min_value = 0
     test_parameter.max_value = 1
-    test_parameter.is_changed = False
+    test_parameter.pending_update = False
     wrapped_callback = on_change(test_callback)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
@@ -54,7 +54,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.value = 1
     test_parameter.min_value = 0
     test_parameter.max_value = 1
-    test_parameter.is_changed = True
+    test_parameter.pending_update = True
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -64,7 +64,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.value = 1
     test_parameter.min_value = 0
     test_parameter.max_value = 1
-    test_parameter.is_changed = False
+    test_parameter.pending_update = False
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -74,7 +74,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.value = 1
     test_parameter.min_value = 1
     test_parameter.max_value = 1
-    test_parameter.is_changed = False
+    test_parameter.pending_update = False
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -84,7 +84,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.value = 1
     test_parameter.min_value = 1
     test_parameter.max_value = 2
-    test_parameter.is_changed = False
+    test_parameter.pending_update = False
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
 

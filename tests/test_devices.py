@@ -497,7 +497,7 @@ async def test_request_error(ecomax: EcoMAX) -> None:
         await ecomax.request("foo", FrameType.REQUEST_ALERTS, retries=1)
 
 
-@patch("pyplumio.helpers.parameter.Parameter.is_changed", False)
+@patch("pyplumio.helpers.parameter.Parameter.pending_update", False)
 async def test_set(ecomax: EcoMAX) -> None:
     """Test setting parameter value via set helper."""
     test_ecomax_data, test_thermostat_data, test_mixer_data = (
