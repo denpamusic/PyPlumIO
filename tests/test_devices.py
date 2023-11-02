@@ -422,7 +422,7 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert isinstance(weather_control, MixerBinaryParameter)
     assert weather_control.value == STATE_ON
 
-    heat_curve = await mixer.get("heat_curve")
+    heat_curve = await mixer.get("heating_curve")
     assert isinstance(heat_curve, MixerParameter)
     assert heat_curve.value == 1.3
     assert heat_curve.min_value == 1.0
