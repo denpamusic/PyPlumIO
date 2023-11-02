@@ -70,6 +70,8 @@ def test_setting_whole_day_schedule(schedule_day: ScheduleDay) -> None:
     """Test setting schedule for a whole day."""
     schedule_day.set_on()
     assert schedule_day.intervals == [True for _ in range(48)]
+    schedule_day.set_off()
+    assert schedule_day.intervals == [False for _ in range(48)]
 
 
 def test_setting_schedule_with_sequence(schedule_day: ScheduleDay) -> None:
