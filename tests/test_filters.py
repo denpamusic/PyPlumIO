@@ -191,12 +191,15 @@ async def test_custom() -> None:
     test_callback = AsyncMock()
     wrapped_callback = custom(test_callback, lambda x: len(x) == 4)
 
+    # Test that callback is not called when a list contains 2 items.
     await wrapped_callback([1, 2])
     test_callback.assert_not_awaited()
 
+    # Test that callback is called when a list contains 4 items.
     await wrapped_callback([1, 2, 3, 4])
     test_callback.assert_awaited_once_with([1, 2, 3, 4])
     test_callback.reset_mock()
 
+    # Test that callback is not called when list is empty.
     await wrapped_callback([])
     test_callback.assert_not_awaited()
