@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable
 import logging
-from typing import Final
+from typing import Final, cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import Addressable, get_device_handler_and_name
@@ -14,6 +14,7 @@ from pyplumio.exceptions import (
     ReadError,
     UnknownDeviceError,
 )
+from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
@@ -45,11 +46,10 @@ class Protocol(EventManager):
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
     ):
-        """Initialize new Protocol object."""
+        """Initialize a new protocol."""
         super().__init__()
         self.writer = None
         self.reader = None
-        self.data = {}
         self.connected = asyncio.Event()
         read_queue: asyncio.Queue = asyncio.Queue()
         write_queue: asyncio.Queue = asyncio.Queue()
@@ -97,7 +97,7 @@ class Protocol(EventManager):
         """Handle frame processing."""
         await self.connected.wait()
         while self.connected.is_set():
-            device, frame = await read_queue.get()
+            device, frame = cast(tuple[Addressable, Frame], await read_queue.get())
             device.handle_frame(frame)
             read_queue.task_done()
 
@@ -134,7 +134,6 @@ class Protocol(EventManager):
         """Shutdown protocol tasks."""
         await asyncio.gather(*[queue.join() for queue in self.queues])
         await super().shutdown()
-
         for device in self.data.values():
             await device.shutdown()
 
@@ -143,7 +142,6 @@ class Protocol(EventManager):
     def setup_device_entry(self, device_type: DeviceType) -> Addressable:
         """Setup the device entry."""
         handler, name = get_device_handler_and_name(device_type)
-
         if name not in self.data:
             self._create_device_entry(name, handler)
 

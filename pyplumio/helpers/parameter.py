@@ -206,7 +206,7 @@ class Parameter:
 
     @property
     def pending_update(self) -> bool:
-        """Check if parameter update is confirmed on the device."""
+        """Check if parameter is pending update on the device."""
         return self._pending_update
 
     @property
