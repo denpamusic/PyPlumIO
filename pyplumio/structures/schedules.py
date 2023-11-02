@@ -5,11 +5,12 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
 from itertools import chain
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import Addressable, Device
 from pyplumio.exceptions import FrameDataError
+from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
     BinaryParameter,
@@ -22,10 +23,6 @@ from pyplumio.helpers.parameter import (
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
-
-if TYPE_CHECKING:
-    from pyplumio.frames import Request
-
 
 ATTR_SCHEDULES: Final = "schedules"
 ATTR_SCHEDULE_PARAMETERS: Final = "schedule_parameters"
