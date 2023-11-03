@@ -4,7 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Generator
 
-from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
+from pyplumio.const import (
+    ATTR_INDEX,
+    ATTR_OFFSET,
+    ATTR_SIZE,
+    ATTR_VALUE,
+    UnitOfMeasurement,
+)
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -103,20 +109,60 @@ class ThermostatBinaryParameterDescription(
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatParameterDescription(name="mode"),
-    ThermostatParameterDescription(name="party_target_temp", size=2, multiplier=0.1),
-    ThermostatParameterDescription(name="holidays_target_temp", size=2, multiplier=0.1),
-    ThermostatParameterDescription(name="correction"),
-    ThermostatParameterDescription(name="away_timer"),
-    ThermostatParameterDescription(name="airing_timer"),
-    ThermostatParameterDescription(name="party_timer"),
-    ThermostatParameterDescription(name="holidays_timer"),
-    ThermostatParameterDescription(name="hysteresis", multiplier=0.1),
-    ThermostatParameterDescription(name="day_target_temp", size=2, multiplier=0.1),
-    ThermostatParameterDescription(name="night_target_temp", size=2, multiplier=0.1),
     ThermostatParameterDescription(
-        name="antifreeze_target_temp", size=2, multiplier=0.1
+        name="party_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(name="heating_target_temp", size=2, multiplier=0.1),
+    ThermostatParameterDescription(
+        name="holidays_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
+    ),
+    ThermostatParameterDescription(
+        name="correction", unit_of_measurement=UnitOfMeasurement.CELSIUS
+    ),
+    ThermostatParameterDescription(
+        name="away_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+    ),
+    ThermostatParameterDescription(
+        name="airing_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+    ),
+    ThermostatParameterDescription(
+        name="party_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+    ),
+    ThermostatParameterDescription(
+        name="holidays_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+    ),
+    ThermostatParameterDescription(
+        name="hysteresis", multiplier=0.1, unit_of_measurement=UnitOfMeasurement.CELSIUS
+    ),
+    ThermostatParameterDescription(
+        name="day_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
+    ),
+    ThermostatParameterDescription(
+        name="night_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
+    ),
+    ThermostatParameterDescription(
+        name="antifreeze_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
+    ),
+    ThermostatParameterDescription(
+        name="heating_target_temp",
+        size=2,
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
+    ),
     ThermostatParameterDescription(name="heating_timer"),
     ThermostatParameterDescription(name="off_timer"),
 )

@@ -4,7 +4,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final, Generator
 
-from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE, ProductType
+from pyplumio.const import (
+    ATTR_DEVICE_INDEX,
+    ATTR_INDEX,
+    ATTR_VALUE,
+    ProductType,
+    UnitOfMeasurement,
+)
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -90,43 +96,91 @@ class MixerBinaryParameterDescription(
 
 MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
     ProductType.ECOMAX_P: (
-        MixerParameterDescription(name="mixer_target_temp"),
-        MixerParameterDescription(name="min_target_temp"),
-        MixerParameterDescription(name="max_target_temp"),
-        MixerParameterDescription(name="low_target_temp"),
+        MixerParameterDescription(
+            name="mixer_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="min_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="max_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="thermostat_decrease_target_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
         MixerBinaryParameterDescription(name="weather_control"),
         MixerParameterDescription(name="heating_curve", multiplier=0.1),
-        MixerParameterDescription(name="heating_curve_shift", offset=20),
-        MixerParameterDescription(name="weather_temp_factor"),
+        MixerParameterDescription(
+            name="heating_curve_shift",
+            offset=20,
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        MixerParameterDescription(name="weather_factor"),
         MixerParameterDescription(name="work_mode"),
-        MixerParameterDescription(name="insensitivity", multiplier=0.1),
-        MixerParameterDescription(name="thermostat_operation"),
+        MixerParameterDescription(
+            name="mixer_input_dead_zone",
+            multiplier=0.1,
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        MixerBinaryParameterDescription(name="thermostat_operation"),
         MixerParameterDescription(name="thermostat_mode"),
-        MixerBinaryParameterDescription(name="off_therm_pump"),
+        MixerBinaryParameterDescription(name="thermostat_disable_pump"),
         MixerBinaryParameterDescription(name="summer_work"),
     ),
     ProductType.ECOMAX_I: (
         MixerParameterDescription(name="work_mode"),
-        MixerParameterDescription(name="circuit_target_temp"),
-        MixerParameterDescription(name="day_target_temp"),
-        MixerParameterDescription(name="night_target_temp"),
-        MixerParameterDescription(name="min_target_temp"),
-        MixerParameterDescription(name="max_target_temp"),
+        MixerParameterDescription(
+            name="circuit_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="day_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="night_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="min_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+        MixerParameterDescription(
+            name="max_target_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
         MixerBinaryParameterDescription(name="summer_work"),
         MixerBinaryParameterDescription(name="weather_control"),
         MixerParameterDescription(name="enable_circuit"),
-        MixerParameterDescription(name="constant_water_preset_temp"),
-        MixerParameterDescription(name="thermostat_decrease_temp"),
-        MixerParameterDescription(name="thermostat_correction"),
+        MixerParameterDescription(
+            name="constant_water_preset_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        MixerParameterDescription(
+            name="thermostat_decrease_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        MixerParameterDescription(
+            name="thermostat_correction", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
         MixerBinaryParameterDescription(name="thermostat_pump_lock"),
-        MixerParameterDescription(name="valve_full_opening_time"),
-        MixerParameterDescription(name="mixer_dead_zone", multiplier=0.1),
+        MixerParameterDescription(
+            name="valve_opening_time", unit_of_measurement=UnitOfMeasurement.SECONDS
+        ),
+        MixerParameterDescription(
+            name="mixer_input_dead_zone",
+            multiplier=0.1,
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
         MixerParameterDescription(name="proportional_range"),
         MixerParameterDescription(name="integration_time_constant"),
         MixerParameterDescription(name="heating_curve", multiplier=0.1),
-        MixerParameterDescription(name="heating_curve_shift", offset=20),
-        MixerParameterDescription(name="thermostat_function"),
-        MixerParameterDescription(name="decreasing_constant_water_temp"),
+        MixerParameterDescription(
+            name="heating_curve_shift",
+            offset=20,
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        MixerParameterDescription(name="thermostat_mode"),
+        MixerParameterDescription(
+            name="decreasing_constant_water_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
     ),
 }
 

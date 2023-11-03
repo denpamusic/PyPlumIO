@@ -4,9 +4,9 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Final, Literal
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.frames import Request
 from pyplumio.helpers.typing import ParameterValueType
 
@@ -67,6 +67,7 @@ class ParameterDescription:
     """Represents a parameter description."""
 
     name: str
+    unit_of_measurement: UnitOfMeasurement | Literal["%"] | None = None
 
 
 @dataclass

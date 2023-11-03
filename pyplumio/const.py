@@ -1,7 +1,7 @@
 """Contains constants."""
 from __future__ import annotations
 
-from enum import IntEnum, unique
+from enum import IntEnum, StrEnum, unique
 from typing import Final
 
 UNDEFINED: Final = "undefined"
@@ -152,3 +152,21 @@ class FrameType(IntEnum):
     RESPONSE_SET_THERMOSTAT_PARAMETER = 221
     MESSAGE_REGULATOR_DATA = 8
     MESSAGE_SENSOR_DATA = 53
+
+
+PERCENTAGE: Final = "%"
+
+
+@unique
+class UnitOfMeasurement(StrEnum):
+    """Contains units of measurement."""
+
+    CELSIUS = "°C"
+    KILO_WATT = "kW"
+    GRAMS = "g"
+    KILOGRAMS = "kg"
+    KILO_WATT_HOUR_PER_KILOGRAM = "kWh/kg"
+    KILOGRAMS_PER_HOUR = "kg/h"
+    SECONDS = "s"
+    MINUTES = "min"
+    DAYS = "days"

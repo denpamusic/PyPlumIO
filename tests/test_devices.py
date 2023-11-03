@@ -200,7 +200,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     }
 
     # Test parameter with the multiplier (heating_heat_curve)
-    heating_heat_curve = await ecomax.get("heating_heat_curve")
+    heating_heat_curve = await ecomax.get("heating_curve")
     assert heating_heat_curve.value == 1.3
     assert heating_heat_curve.min_value == 0.1
     assert heating_heat_curve.max_value == 4.0
@@ -214,7 +214,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     mock_set.assert_awaited_once_with(25, 5)
 
     # Test parameter with the offset (heating_heat_curve_shift)
-    heating_heat_curve_shift = await ecomax.get("heating_heat_curve_shift")
+    heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
     assert heating_heat_curve_shift.value == 0.0
     assert heating_heat_curve_shift.min_value == -20.0
     assert heating_heat_curve_shift.max_value == 20.0
