@@ -36,25 +36,24 @@ class MixerParameter(Parameter):
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
         if isinstance(value, (int, float)):
-            value *= self.description.multiplier
-            value -= self.description.offset
+            value = int((value + self.description.offset) / self.description.multiplier)
 
         return await super().set(value, retries)
 
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return (self._value / self.description.multiplier) - self.description.offset
+        return (self._value - self.description.offset) * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
-        return (self._min_value / self.description.multiplier) - self.description.offset
+        return (self._min_value - self.description.offset) * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
-        return (self._max_value / self.description.multiplier) - self.description.offset
+        return (self._max_value - self.description.offset) * self.description.multiplier
 
     @property
     def request(self) -> Request:
@@ -78,7 +77,7 @@ class MixerBinaryParameter(BinaryParameter, MixerParameter):
 class MixerParameterDescription(ParameterDescription):
     """Represents a mixer parameter description."""
 
-    multiplier: int = 1
+    multiplier: float = 1
     offset: int = 0
 
 
@@ -96,11 +95,11 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="max_target_temp"),
         MixerParameterDescription(name="low_target_temp"),
         MixerBinaryParameterDescription(name="weather_control"),
-        MixerParameterDescription(name="heating_curve", multiplier=10),
-        MixerParameterDescription(name="heating_curve_shift", offset=-20),
+        MixerParameterDescription(name="heating_curve", multiplier=0.1),
+        MixerParameterDescription(name="heating_curve_shift", offset=20),
         MixerParameterDescription(name="weather_temp_factor"),
         MixerParameterDescription(name="work_mode"),
-        MixerParameterDescription(name="insensitivity", multiplier=10),
+        MixerParameterDescription(name="insensitivity", multiplier=0.1),
         MixerParameterDescription(name="thermostat_operation"),
         MixerParameterDescription(name="thermostat_mode"),
         MixerBinaryParameterDescription(name="off_therm_pump"),
@@ -121,10 +120,10 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerParameterDescription(name="thermostat_correction"),
         MixerBinaryParameterDescription(name="thermostat_pump_lock"),
         MixerParameterDescription(name="valve_full_opening_time"),
-        MixerParameterDescription(name="mixer_dead_zone", multiplier=10),
+        MixerParameterDescription(name="mixer_dead_zone", multiplier=0.1),
         MixerParameterDescription(name="proportional_range"),
         MixerParameterDescription(name="integration_time_constant"),
-        MixerParameterDescription(name="heating_curve", multiplier=10),
+        MixerParameterDescription(name="heating_curve", multiplier=0.1),
         MixerParameterDescription(name="heating_curve_shift", offset=20),
         MixerParameterDescription(name="thermostat_function"),
         MixerParameterDescription(name="decreasing_constant_water_temp"),

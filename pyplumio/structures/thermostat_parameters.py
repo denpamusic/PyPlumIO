@@ -46,24 +46,24 @@ class ThermostatParameter(Parameter):
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
         if isinstance(value, (int, float)):
-            value *= self.description.multiplier
+            value = int(value / self.description.multiplier)
 
-        return await super().set(int(value), retries)
+        return await super().set(value, retries)
 
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return self._value / self.description.multiplier
+        return self._value * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
-        return self._min_value / self.description.multiplier
+        return self._min_value * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
-        return self._max_value / self.description.multiplier
+        return self._max_value * self.description.multiplier
 
     @property
     def request(self) -> Request:
@@ -90,7 +90,7 @@ class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
 class ThermostatParameterDescription(ParameterDescription):
     """Represents a thermostat parameter description."""
 
-    multiplier: int = 1
+    multiplier: float = 1.0
     size: int = 1
 
 
@@ -103,20 +103,20 @@ class ThermostatBinaryParameterDescription(
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatParameterDescription(name="mode"),
-    ThermostatParameterDescription(name="party_target_temp", size=2, multiplier=10),
-    ThermostatParameterDescription(name="holidays_target_temp", size=2, multiplier=10),
+    ThermostatParameterDescription(name="party_target_temp", size=2, multiplier=0.1),
+    ThermostatParameterDescription(name="holidays_target_temp", size=2, multiplier=0.1),
     ThermostatParameterDescription(name="correction"),
     ThermostatParameterDescription(name="away_timer"),
     ThermostatParameterDescription(name="airing_timer"),
     ThermostatParameterDescription(name="party_timer"),
     ThermostatParameterDescription(name="holidays_timer"),
-    ThermostatParameterDescription(name="hysteresis", multiplier=10),
-    ThermostatParameterDescription(name="day_target_temp", size=2, multiplier=10),
-    ThermostatParameterDescription(name="night_target_temp", size=2, multiplier=10),
+    ThermostatParameterDescription(name="hysteresis", multiplier=0.1),
+    ThermostatParameterDescription(name="day_target_temp", size=2, multiplier=0.1),
+    ThermostatParameterDescription(name="night_target_temp", size=2, multiplier=0.1),
     ThermostatParameterDescription(
-        name="antifreeze_target_temp", size=2, multiplier=10
+        name="antifreeze_target_temp", size=2, multiplier=0.1
     ),
-    ThermostatParameterDescription(name="heating_target_temp", size=2, multiplier=10),
+    ThermostatParameterDescription(name="heating_target_temp", size=2, multiplier=0.1),
     ThermostatParameterDescription(name="heating_timer"),
     ThermostatParameterDescription(name="off_timer"),
 )

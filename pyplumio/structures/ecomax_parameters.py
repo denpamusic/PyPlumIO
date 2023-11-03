@@ -36,25 +36,24 @@ class EcomaxParameter(Parameter):
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
         if isinstance(value, (int, float)):
-            value *= self.description.multiplier
-            value -= self.description.offset
+            value = int((value + self.description.offset) / self.description.multiplier)
 
         return await super().set(value, retries)
 
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return (self._value + self.description.offset) / self.description.multiplier
+        return (self._value - self.description.offset) * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
-        return (self._min_value + self.description.offset) / self.description.multiplier
+        return (self._min_value - self.description.offset) * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
-        return (self._max_value + self.description.offset) / self.description.multiplier
+        return (self._max_value - self.description.offset) * self.description.multiplier
 
     @property
     def request(self) -> Request:
@@ -99,7 +98,7 @@ class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
 class EcomaxParameterDescription(ParameterDescription):
     """Represents an ecoMAX parameter description."""
 
-    multiplier: int = 1
+    multiplier: float = 1
     offset: int = 0
 
 
@@ -197,10 +196,10 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="oxygen_50"),
         EcomaxParameterDescription(name="oxygen_30"),
         EcomaxParameterDescription(name="oxygen_correction_fl"),
-        EcomaxParameterDescription(name="fuel_flow_kg_h", multiplier=10),
+        EcomaxParameterDescription(name="fuel_flow_kg_h", multiplier=0.1),
         EcomaxParameterDescription(name="feeder_calibration"),
         EcomaxParameterDescription(name="fuel_factor"),
-        EcomaxParameterDescription(name="fuel_calorific_value_kwh_kg", multiplier=10),
+        EcomaxParameterDescription(name="fuel_calorific_value_kwh_kg", multiplier=0.1),
         EcomaxParameterDescription(name="fuel_detection_time"),
         EcomaxParameterDescription(name="fuel_detection_fumes_temp"),
         EcomaxParameterDescription(name="schedule_feeder_2"),
@@ -219,8 +218,8 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="work_term"),
         EcomaxParameterDescription(name="increase_heating_temp_for_water_heater"),
         EcomaxBinaryParameterDescription(name="heating_weather_control"),
-        EcomaxParameterDescription(name="heating_heat_curve", multiplier=10),
-        EcomaxParameterDescription(name="heating_heat_curve_shift", offset=-20),
+        EcomaxParameterDescription(name="heating_heat_curve", multiplier=0.1),
+        EcomaxParameterDescription(name="heating_heat_curve_shift", offset=20),
         EcomaxParameterDescription(name="weather_factor"),
         EcomaxParameterDescription(name="term_boiler_operation"),
         EcomaxBinaryParameterDescription(name="term_boiler_mode"),
@@ -263,8 +262,8 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxBinaryParameterDescription(name="water_heater_disinfection"),
         EcomaxParameterDescription(name="water_heater_work_mode"),
         EcomaxBinaryParameterDescription(name="solar_support"),
-        EcomaxParameterDescription(name="solar_pump_on_delta_temp", multiplier=10),
-        EcomaxParameterDescription(name="solar_pump_off_delta_temp", multiplier=10),
+        EcomaxParameterDescription(name="solar_pump_on_delta_temp", multiplier=0.1),
+        EcomaxParameterDescription(name="solar_pump_off_delta_temp", multiplier=0.1),
         EcomaxParameterDescription(name="min_collector_temp"),
         EcomaxParameterDescription(name="max_collector_temp"),
         EcomaxParameterDescription(name="collector_off_temp"),
@@ -290,7 +289,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(name="circuit_work_time"),
         EcomaxParameterDescription(name="alarm_out_c"),
         EcomaxParameterDescription(name="alarm_on_out_c"),
-        EcomaxParameterDescription(name="thermostat_hysteresis", multiplier=10),
+        EcomaxParameterDescription(name="thermostat_hysteresis", multiplier=0.1),
         EcomaxParameterDescription(name="critial_additional_heat_source_temp"),
         EcomaxParameterDescription(name="automatic_pump_lock_time"),
         EcomaxParameterDescription(name="summer_mode"),
