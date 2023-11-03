@@ -19,15 +19,9 @@ END_OF_DAY: Final = "00:00"
 STATE_NIGHT: Final = "night"
 STATE_DAY: Final = "day"
 
-STATES_ON: Final = (
-    STATE_ON,
-    STATE_DAY,
-)
-
-STATES_OFF: Final = (
-    STATE_OFF,
-    STATE_NIGHT,
-)
+ON_STATES: Final = (STATE_ON, STATE_DAY)
+OFF_STATES: Final = (STATE_OFF, STATE_NIGHT)
+ALLOWED_STATES: Final = ON_STATES + OFF_STATES
 
 
 def _parse_interval(start: str, end: str) -> tuple[int, int]:
@@ -101,12 +95,12 @@ class ScheduleDay(MutableMapping):
         Can be on of the following:
         'on', 'off', 'day' or 'night'.
         """
-        if state not in (STATES_ON + STATES_OFF):
+        if state not in (ALLOWED_STATES):
             raise ValueError(f'state "{state}" is not allowed')
 
         index, end_index = _parse_interval(start, end)
         while index <= end_index:
-            self._intervals[index] = state in STATES_ON
+            self._intervals[index] = state in ON_STATES
             index += 1
 
     def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
