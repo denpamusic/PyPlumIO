@@ -95,7 +95,7 @@ class ScheduleDay(MutableMapping):
         Can be on of the following:
         'on', 'off', 'day' or 'night'.
         """
-        if state not in (ALLOWED_STATES):
+        if state not in ALLOWED_STATES:
             raise ValueError(f'state "{state}" is not allowed')
 
         index, end_index = _parse_interval(start, end)
