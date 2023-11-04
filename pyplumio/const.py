@@ -1,7 +1,7 @@
 """Contains constants."""
 from __future__ import annotations
 
-from enum import IntEnum, StrEnum, unique
+from enum import Enum, IntEnum, unique
 from typing import Final
 
 UNDEFINED: Final = "undefined"
@@ -158,7 +158,7 @@ PERCENTAGE: Final = "%"
 
 
 @unique
-class UnitOfMeasurement(StrEnum):
+class UnitOfMeasurement(Enum):
     """Contains units of measurement."""
 
     CELSIUS = "°C"
