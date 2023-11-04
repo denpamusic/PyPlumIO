@@ -21,6 +21,7 @@ from pyplumio.const import (
     STATE_ON,
     DeviceType,
     FrameType,
+    UnitOfMeasurement,
 )
 from pyplumio.devices import get_device_handler
 from pyplumio.devices.ecomax import (
@@ -58,6 +59,7 @@ from pyplumio.helpers.schedule import Schedule
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     EcomaxBinaryParameter,
+    EcomaxParameter,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
@@ -214,10 +216,14 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     mock_set.assert_awaited_once_with(25, 5)
 
     # Test parameter with the offset (heating_heat_curve_shift)
-    heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
+    heating_heat_curve_shift: EcomaxParameter = await ecomax.get("heating_curve_shift")
     assert heating_heat_curve_shift.value == 0.0
     assert heating_heat_curve_shift.min_value == -20.0
     assert heating_heat_curve_shift.max_value == 20.0
+    assert (
+        heating_heat_curve_shift.description.unit_of_measurement
+        == UnitOfMeasurement.CELSIUS
+    )
 
     # Test setting the parameter with the offset.
     with patch(
@@ -513,15 +519,15 @@ async def test_set(ecomax: EcoMAX) -> None:
     ecomax.handle_frame(MixerParametersResponse(message=test_mixer_data["message"]))
 
     # Test setting an ecomax parameter.
-    assert await ecomax.set("fuel_flow_kg_h", 13.0)
-    fuel_flow_kg_h = await ecomax.get("fuel_flow_kg_h")
-    assert fuel_flow_kg_h.value == 13.0
+    assert await ecomax.set("max_fuel_flow", 13.0)
+    max_fuel_flow = await ecomax.get("max_fuel_flow")
+    assert max_fuel_flow.value == 13.0
 
     # Test setting an ecomax parameter without blocking.
     with patch("pyplumio.devices.Device.set", new_callable=Mock), patch(
         "pyplumio.helpers.task_manager.TaskManager.create_task"
     ) as mock_create_task:
-        ecomax.set_nowait("fuel_flow_kg_h", 10)
+        ecomax.set_nowait("max_fuel_flow", 10)
 
     mock_create_task.assert_called_once()
 

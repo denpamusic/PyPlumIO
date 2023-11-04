@@ -186,7 +186,7 @@
     "id": "no_thermostats_connected",
     "message": {
       "items": [
-        "00000300FFFFFFFFFFFFFFFFFF"
+        "000003FFFFFFFFFFFFFFFFFFFF"
       ],
       "__bytearray__": true
     },

@@ -154,8 +154,8 @@ def test_parameter_repr(parameter: Parameter) -> None:
     """Test a parameter representation."""
     assert repr(parameter) == (
         "TestParameter(device=EcoMAX, "
-        + "description=ParameterDescription(name='test_parameter'), "
-        + "value=1, min_value=0, max_value=5)"
+        + "description=ParameterDescription(name='test_parameter', "
+        + "unit_of_measurement=None), value=1, min_value=0, max_value=5)"
     )
 
 
