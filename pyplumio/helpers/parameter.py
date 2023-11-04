@@ -39,7 +39,7 @@ def unpack_parameter(
 
 def check_parameter(data: bytearray) -> bool:
     """Check if parameter contains any bytes besides 0xFF."""
-    return bool([x for x in data if x != BYTE_UNDEFINED])
+    return any(x for x in data if x != BYTE_UNDEFINED)
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
