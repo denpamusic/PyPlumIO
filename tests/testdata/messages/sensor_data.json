@@ -83,7 +83,8 @@
             "schedule": false
           }
         },
-        "thermostat_count": 2,
+        "thermostats_available": 2,
+        "thermostats_connected": 1,
         "mixer_sensors": {
           "4": {
             "current_temp": 20.0,
@@ -91,7 +92,8 @@
             "pump": false
           }
         },
-        "mixer_count": 5
+        "mixers_available": 5,
+        "mixers_connected": 1
       }
     }
   },
@@ -168,7 +170,8 @@
             "pump": false
           }
         },
-        "mixer_count": 5
+        "mixers_available": 5,
+        "mixers_connected": 1
       }
     }
   }

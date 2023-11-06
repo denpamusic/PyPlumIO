@@ -16,7 +16,7 @@ from pyplumio.frames.responses import (
     UIDResponse,
 )
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS_DECODER
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
 from tests import load_json_parameters
 
 
@@ -128,7 +128,7 @@ def test_thermostat_parameters_response(message, data) -> None:
     assert (
         decoder.decode(
             message=frame.message,
-            data={ATTR_THERMOSTAT_COUNT: 3},
+            data={ATTR_THERMOSTATS_CONNECTED: 3},
         )[0]
         == data
     )

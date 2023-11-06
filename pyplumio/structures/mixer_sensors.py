@@ -11,7 +11,8 @@ from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_PUMP: Final = "pump"
-ATTR_MIXER_COUNT: Final = "mixer_count"
+ATTR_MIXERS_AVAILABLE: Final = "mixers_available"
+ATTR_MIXERS_CONNECTED: Final = "mixers_connected"
 ATTR_MIXER_SENSORS: Final = "mixer_sensors"
 
 MIXER_SENSOR_SIZE: Final = 8
@@ -51,12 +52,14 @@ class MixerSensorsStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         mixers = message[offset]
         self._offset = offset + 1
+        mixer_sensors = dict(self._mixer_sensors(message, mixers))
         return (
             ensure_dict(
                 data,
                 {
-                    ATTR_MIXER_SENSORS: dict(self._mixer_sensors(message, mixers)),
-                    ATTR_MIXER_COUNT: mixers,
+                    ATTR_MIXER_SENSORS: mixer_sensors,
+                    ATTR_MIXERS_AVAILABLE: mixers,
+                    ATTR_MIXERS_CONNECTED: len(mixer_sensors),
                 },
             ),
             self._offset,

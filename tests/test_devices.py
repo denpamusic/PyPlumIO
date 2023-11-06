@@ -84,8 +84,9 @@ from pyplumio.structures.thermostat_parameters import (
     ThermostatParameter,
 )
 from pyplumio.structures.thermostat_sensors import (
-    ATTR_THERMOSTAT_COUNT,
     ATTR_THERMOSTAT_SENSORS,
+    ATTR_THERMOSTATS_AVAILABLE,
+    ATTR_THERMOSTATS_CONNECTED,
 )
 from tests import load_json_parameters, load_json_test_data
 
@@ -319,8 +320,8 @@ async def test_thermostat_sensors_callbacks(ecomax: EcoMAX) -> None:
         "schedule": False,
         "thermostat_sensors": True,
     }
-    thermostat_count = await ecomax.get(ATTR_THERMOSTAT_COUNT)
-    assert thermostat_count == 2
+    assert await ecomax.get(ATTR_THERMOSTATS_AVAILABLE) == 2
+    assert await ecomax.get(ATTR_THERMOSTATS_CONNECTED) == 1
 
 
 async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) -> None:
@@ -336,7 +337,7 @@ async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) 
 async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat parameters."""
     test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     thermostats = await ecomax.get(ATTR_THERMOSTATS)
@@ -365,7 +366,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
     """Test callbacks that are dispatched on receiving thermostat parameters
     without any thermostats."""
     test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 0}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 0}))
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_THERMOSTAT_PARAMETERS)
@@ -375,7 +376,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
 
 async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat profile."""
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(
             message=load_json_test_data("responses/thermostat_parameters.json")[0][
@@ -512,7 +513,7 @@ async def test_set(ecomax: EcoMAX) -> None:
         load_json_test_data("responses/mixer_parameters.json")[0],
     )
     ecomax.handle_frame(EcomaxParametersResponse(message=test_ecomax_data["message"]))
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTAT_COUNT: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
     ecomax.handle_frame(
         ThermostatParametersResponse(message=test_thermostat_data["message"])
     )

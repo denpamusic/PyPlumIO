@@ -17,7 +17,8 @@ from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
-ATTR_THERMOSTAT_COUNT: Final = "thermostat_count"
+ATTR_THERMOSTATS_AVAILABLE: Final = "thermostats_available"
+ATTR_THERMOSTATS_CONNECTED: Final = "thermostats_connected"
 ATTR_CONTACTS: Final = "contacts"
 
 THERMOSTAT_SENSORS_SIZE: Final = 9
@@ -73,14 +74,16 @@ class ThermostatSensorsStructure(StructureDecoder):
         contacts = message[offset]
         thermostats = message[offset + 1]
         self._offset = offset + 2
+        thermostat_sensors = dict(
+            self._thermostat_sensors(message, thermostats, contacts)
+        )
         return (
             ensure_dict(
                 data,
                 {
-                    ATTR_THERMOSTAT_SENSORS: dict(
-                        self._thermostat_sensors(message, thermostats, contacts)
-                    ),
-                    ATTR_THERMOSTAT_COUNT: thermostats,
+                    ATTR_THERMOSTAT_SENSORS: thermostat_sensors,
+                    ATTR_THERMOSTATS_AVAILABLE: thermostats,
+                    ATTR_THERMOSTATS_CONNECTED: len(thermostat_sensors),
                 },
             ),
             self._offset,

@@ -23,7 +23,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.typing import EventDataType, ParameterValueType
 from pyplumio.structures import StructureDecoder
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_COUNT
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
 from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
@@ -214,8 +214,7 @@ class ThermostatParametersStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         data = ensure_dict(data)
-        thermostats = data.get(ATTR_THERMOSTAT_COUNT, 0)
-        if thermostats == 0:
+        if (thermostats := data.get(ATTR_THERMOSTATS_CONNECTED, 0)) == 0:
             return _empty_response(offset, data)
 
         start = message[offset + 1]
