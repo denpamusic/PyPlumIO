@@ -12,9 +12,93 @@
         "type": 0,
         "id": 90,
         "uid": "D251PAKR3GCPZ1K8G05G0",
-        "logo": 23040,
-        "image": 2816,
-        "model": "EM350P2-ZF",
+        "logo": 90,
+        "image": 0,
+        "model": "ecoMAX 350P2-ZF",
+        "__module__": "pyplumio.structures.product_info",
+        "__class__": "ProductInfo"
+      }
+    }
+  },
+  {
+    "id": "ecoMAX_850P2_C_uid",
+    "message": {
+      "items": [
+        "0004000B001600110D383338365539040000000D65636F4D415838353050322D43"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "product": {
+        "type": 0,
+        "id": 4,
+        "uid": "D251PAKR3GCPZ1K8G05G0",
+        "logo": 4,
+        "image": 0,
+        "model": "ecoMAX 850P2-C",
+        "__module__": "pyplumio.structures.product_info",
+        "__class__": "ProductInfo"
+      }
+    }
+  },
+  {
+    "id": "ecoMAX_850i_uid",
+    "message": {
+      "items": [
+        "0100000B001600110D383338365539000001000B65636F4D41582038353069"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "product": {
+        "type": 1,
+        "id": 0,
+        "uid": "D251PAKR3GCPZ1K8G05G0",
+        "logo": 0,
+        "image": 1,
+        "model": "ecoMAX 850i",
+        "__module__": "pyplumio.structures.product_info",
+        "__class__": "ProductInfo"
+      }
+    }
+  },
+  {
+    "id": "ecoMAXX_800R3_uid",
+    "message": {
+      "items": [
+        "0024000B001600110D383338365539240000000C65636F4D4158583830305233"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "product": {
+        "type": 0,
+        "id": 36,
+        "uid": "D251PAKR3GCPZ1K8G05G0",
+        "logo": 36,
+        "image": 0,
+        "model": "ecoMAXX 800R3",
+        "__module__": "pyplumio.structures.product_info",
+        "__class__": "ProductInfo"
+      }
+    }
+  },
+  {
+    "id": "UNKNOWN_model_uid",
+    "message": {
+      "items": [
+        "0000000B001600110D3833383655390000000007554e4b4e4f574e"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "product": {
+        "type": 0,
+        "id": 0,
+        "uid": "D251PAKR3GCPZ1K8G05G0",
+        "logo": 0,
+        "image": 0,
+        "model": "UNKNOWN",
         "__module__": "pyplumio.structures.product_info",
         "__class__": "ProductInfo"
       }

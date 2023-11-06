@@ -2,17 +2,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 import struct
 from typing import Final
 
 from pyplumio.const import ProductType
-from pyplumio.helpers.data_types import unpack_string
+from pyplumio.helpers.data_types import unpack_string, unpack_ushort
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_PRODUCT: Final = "product"
+
+
+def format_model_name(model_name: str) -> str:
+    """Format a device model name."""
+    if m := re.match(r"^([A-Z]+)\s{0,}([0-9]{3,})(.+)$", model_name, re.IGNORECASE):
+        model_device, model_number, model_suffix = m.groups()
+        model_device = "ecoMAX" if model_device == "EM" else model_device
+        return f"{model_device} {model_number}{model_suffix}"
+
+    return model_name
 
 
 @dataclass
@@ -35,7 +46,7 @@ class ProductInfoStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
-        logo, image = struct.unpack_from("<HH", message)
+
         return (
             ensure_dict(
                 data,
@@ -44,11 +55,11 @@ class ProductInfoStructure(StructureDecoder):
                         type=ProductType(product_type),
                         id=product_id,
                         uid=unpack_uid(message, offset),
-                        logo=logo,
-                        image=image,
-                        model=unpack_string(message, offset + 16),
+                        logo=unpack_ushort(message[offset : offset + 2])[0],
+                        image=unpack_ushort(message[offset + 2 : offset + 4])[0],
+                        model=format_model_name(unpack_string(message, offset + 4)),
                     )
                 },
             ),
-            offset,
+            offset + 4,
         )

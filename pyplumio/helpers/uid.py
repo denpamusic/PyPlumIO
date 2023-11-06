@@ -5,11 +5,11 @@ from functools import reduce
 from typing import Final
 
 
-def unpack_uid(message: bytearray, offset: int = 0) -> str:
-    """Decode and return a complete UID string."""
-    length = message[offset]
-    offset += 1
-    uid = message[offset : length + offset]
+def unpack_uid(buffer: bytearray, offset: int = 0) -> str:
+    """Decode and return a complete UID string from the buffer."""
+    length = buffer.pop(offset)
+    uid = buffer[offset : length + offset]
+    del buffer[offset : length + offset]
 
     return _base5(uid + _crc16(uid))
 
@@ -30,9 +30,9 @@ CRC: Final = 0xA3A3
 POLYNOMIAL: Final = 0xA001
 
 
-def _crc16(message: bytes) -> bytes:
+def _crc16(buffer: bytes) -> bytes:
     """Return a CRC 16."""
-    crc16 = reduce(_crc16_byte, message, CRC)
+    crc16 = reduce(_crc16_byte, buffer, CRC)
     return crc16.to_bytes(byteorder="little", length=2)
 
 
