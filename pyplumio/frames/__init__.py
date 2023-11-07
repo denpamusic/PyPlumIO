@@ -15,16 +15,14 @@ from pyplumio.utils import to_camelcase
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
 HEADER_OFFSET: Final = 0
-HEADER_SIZE: Final = 7
 FRAME_TYPE_SIZE: Final = 1
 CRC_SIZE: Final = 1
 DELIMITER_SIZE: Final = 1
 ECONET_TYPE: Final = 48
 ECONET_VERSION: Final = 5
 
-# Frame header packer and unpacker.
-pack_header = struct.Struct("<BH4B").pack_into
-unpack_header = struct.Struct("<BH4B").unpack_from
+# Frame header structure.
+struct_header = struct.Struct("<BH4B")
 
 
 def bcc(data: bytes) -> int:
@@ -122,7 +120,7 @@ class Frame(ABC, FrameDataClass):
     def length(self) -> int:
         """Frame length in bytes."""
         return (
-            HEADER_SIZE
+            struct_header.size
             + FRAME_TYPE_SIZE
             + len(self.message)
             + CRC_SIZE
@@ -132,8 +130,8 @@ class Frame(ABC, FrameDataClass):
     @property
     def header(self) -> bytearray:
         """A frame header."""
-        buffer = bytearray(HEADER_SIZE)
-        pack_header(
+        buffer = bytearray(struct_header.size)
+        struct_header.pack_into(
             buffer,
             HEADER_OFFSET,
             FRAME_START,

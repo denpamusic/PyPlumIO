@@ -9,10 +9,10 @@ from pyplumio.exceptions import UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
     ECONET_VERSION,
-    HEADER_SIZE,
     Request,
     Response,
     get_frame_handler,
+    struct_header,
 )
 from pyplumio.frames.responses import ProgramVersionResponse
 
@@ -99,8 +99,8 @@ def test_frame_attributes(frames: tuple[Request, Response]) -> None:
 def test_frame_length_without_data(frames: tuple[Request, Response]) -> None:
     """Test a frame length without any data."""
     for frame in frames:
-        assert frame.length == HEADER_SIZE + 3
-        assert len(frame) == HEADER_SIZE + 3
+        assert frame.length == struct_header.size + 3
+        assert len(frame) == struct_header.size + 3
 
 
 def test_get_header(frames: tuple[Request, Response]) -> None:

@@ -7,14 +7,7 @@ from typing import Final
 
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import ChecksumError, ReadError
-from pyplumio.frames import (
-    FRAME_START,
-    HEADER_SIZE,
-    Frame,
-    bcc,
-    get_frame_handler,
-    unpack_header,
-)
+from pyplumio.frames import FRAME_START, Frame, bcc, get_frame_handler, struct_header
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.timeout import timeout
 
@@ -71,9 +64,9 @@ class FrameReader:
             if FRAME_START not in buffer:
                 continue
 
-            buffer += await self._reader.read(HEADER_SIZE - 1)
-            if len(buffer) < HEADER_SIZE:
-                raise ReadError(f"Header can't be less than {HEADER_SIZE} bytes")
+            buffer += await self._reader.read(struct_header.size - 1)
+            if len(buffer) < struct_header.size:
+                raise ReadError(f"Header can't be less than {struct_header.size} bytes")
 
             [
                 _,
@@ -82,7 +75,7 @@ class FrameReader:
                 sender,
                 sender_type,
                 econet_version,
-            ] = unpack_header(buffer)
+            ] = struct_header.unpack_from(buffer)
 
             return (
                 buffer,
@@ -118,11 +111,11 @@ class FrameReader:
             raise ReadError(f"Unexpected frame length ({length})")
 
         try:
-            payload = await self._reader.readexactly(length - HEADER_SIZE)
+            payload = await self._reader.readexactly(length - struct_header.size)
         except IncompleteReadError as e:
             raise ReadError(
                 "Got an incomplete frame while trying to read "
-                + f"'{length - HEADER_SIZE}' bytes"
+                + f"'{length - struct_header.size}' bytes"
             ) from e
 
         if payload[-2] != bcc(header + payload[:-2]):
