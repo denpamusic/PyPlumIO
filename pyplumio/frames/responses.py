@@ -93,10 +93,6 @@ class EcomaxParametersResponse(Response):
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
-        """Create a frame message."""
-        return EcomaxParametersStructure(self).encode(data)
-
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
         return EcomaxParametersStructure(self).decode(message)[0]
