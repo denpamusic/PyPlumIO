@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Final, Generator
 
 from pyplumio.const import AlertType
-from pyplumio.helpers.data_types import unpack_uint
+from pyplumio.helpers.data_types import UnsignedInt
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -66,15 +66,15 @@ class AlertsStructure(StructureDecoder):
         except ValueError:
             pass
 
-        from_seconds = unpack_uint(message[self._offset + 1 : self._offset + 5])[0]
-        to_seconds = unpack_uint(message[self._offset + 5 : self._offset + ALERT_SIZE])[
-            0
-        ]
+        self._offset += 1
+        from_seconds = UnsignedInt.from_bytes(message, self._offset)
+        self._offset += from_seconds.size
+        to_seconds = UnsignedInt.from_bytes(message, self._offset)
+        self._offset += to_seconds.size
 
-        from_dt = _convert_to_datetime(from_seconds)
-        to_dt = _convert_to_datetime(to_seconds) if to_seconds > 0 else None
+        from_dt = _convert_to_datetime(from_seconds.value)
+        to_dt = _convert_to_datetime(to_seconds.value) if to_seconds.value > 0 else None
 
-        self._offset += ALERT_SIZE
         return Alert(code, from_dt, to_dt)
 
     def decode(

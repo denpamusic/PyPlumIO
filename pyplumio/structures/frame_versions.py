@@ -4,14 +4,12 @@ from __future__ import annotations
 from typing import Final
 
 from pyplumio.const import FrameType
-from pyplumio.helpers.data_types import unpack_ushort
+from pyplumio.helpers.data_types import UnsignedShort
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_FRAME_VERSIONS: Final = "frame_versions"
-
-FRAME_VERSION_SIZE: Final = 3
 
 
 class FrameVersionsStructure(StructureDecoder):
@@ -27,14 +25,10 @@ class FrameVersionsStructure(StructureDecoder):
         except ValueError:
             pass
 
-        version = unpack_ushort(
-            message[self._offset + 1 : self._offset + FRAME_VERSION_SIZE]
-        )[0]
-
-        try:
-            return frame_type, version
-        finally:
-            self._offset += FRAME_VERSION_SIZE
+        self._offset += 1
+        version = UnsignedShort.from_bytes(message, self._offset)
+        self._offset += version.size
+        return frame_type, version.value
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None

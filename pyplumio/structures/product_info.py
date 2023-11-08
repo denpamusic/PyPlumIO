@@ -7,9 +7,8 @@ import struct
 from typing import Final
 
 from pyplumio.const import ProductType
-from pyplumio.helpers.data_types import unpack_string, unpack_ushort
+from pyplumio.helpers.data_types import UID, PString, UnsignedShort
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -46,6 +45,20 @@ class ProductInfoStructure(StructureDecoder):
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
+        offset += 3
+
+        uid = UID.from_bytes(message, offset)
+        offset += uid.size
+
+        offset += 1
+        logo = UnsignedShort.from_bytes(message, offset)
+        offset += logo.size
+
+        image = UnsignedShort.from_bytes(message, offset)
+        offset += image.size
+
+        model_name = PString.from_bytes(message, offset)
+        offset += model_name.size
 
         return (
             ensure_dict(
@@ -54,12 +67,12 @@ class ProductInfoStructure(StructureDecoder):
                     ATTR_PRODUCT: ProductInfo(
                         type=ProductType(product_type),
                         id=product_id,
-                        uid=unpack_uid(message, offset),
-                        logo=unpack_ushort(message[offset : offset + 2])[0],
-                        image=unpack_ushort(message[offset + 2 : offset + 4])[0],
-                        model=format_model_name(unpack_string(message, offset + 4)),
+                        uid=uid.value,
+                        logo=logo.value,
+                        image=image.value,
+                        model=format_model_name(model_name.value),
                     )
                 },
             ),
-            offset + 4,
+            offset,
         )

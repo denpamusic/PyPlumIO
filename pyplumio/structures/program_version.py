@@ -12,6 +12,8 @@ from pyplumio.utils import ensure_dict
 
 ATTR_VERSION: Final = "version"
 
+VERSION_INFO_SIZE: Final = 15
+
 
 def _formated_version(version_tuple=__version_tuple__) -> str:
     """Format version tuple for a program version response."""
@@ -70,4 +72,7 @@ class ProgramVersionStructure(Structure):
             map(str, [software_version1, software_version2, software_version3])
         )
 
-        return ensure_dict(data, {ATTR_VERSION: version_info}), offset + 15
+        return (
+            ensure_dict(data, {ATTR_VERSION: version_info}),
+            offset + VERSION_INFO_SIZE,
+        )

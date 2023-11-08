@@ -6,23 +6,18 @@ import socket
 import struct
 from typing import Any
 
-# Data type unpackers.
-unpack_float = struct.Struct("<f").unpack
-unpack_char = struct.Struct("<b").unpack
-unpack_short = struct.Struct("<h").unpack
-unpack_ushort = struct.Struct("<H").unpack
-unpack_int = struct.Struct("<i").unpack
-unpack_uint = struct.Struct("<I").unpack
-unpack_double = struct.Struct("<d").unpack
-unpack_int64 = struct.Struct("<q").unpack
-unpack_uint64 = struct.Struct("<Q").unpack
+from pyplumio.helpers.uid import decode_uid
 
-
-def unpack_string(data: bytearray, offset: int = 0) -> str:
-    """Unpack a string."""
-    strlen = data[offset]
-    offset += 1
-    return data[offset : offset + strlen + 1].decode()
+# Data type structures.
+struct_float = struct.Struct("<f")
+struct_char = struct.Struct("<b")
+struct_short = struct.Struct("<h")
+struct_ushort = struct.Struct("<H")
+struct_int = struct.Struct("<i")
+struct_uint = struct.Struct("<I")
+struct_double = struct.Struct("<d")
+struct_int64 = struct.Struct("<q")
+struct_uint64 = struct.Struct("<Q")
 
 
 class DataType(ABC):
@@ -46,15 +41,15 @@ class DataType(ABC):
 
         return self._value == other
 
-    def _cut_data(self, data: bytes) -> bytes:
-        """Cut the data to a size."""
+    def _slice_data(self, data: bytes) -> bytes:
+        """Slice the data to data type size."""
         return data[0 : self.size] if self.size is not None else data
 
     @classmethod
-    def from_bytes(cls, data: bytes):
+    def from_bytes(cls, data: bytes, offset: int = 0):
         """Initialize a new data type from bytes."""
         data_type = cls()
-        data_type.unpack(data)
+        data_type.unpack(data[offset:])
         return data_type
 
     @property
@@ -85,31 +80,31 @@ class Undefined0(DataType):
 class SignedChar(DataType):
     """Represents a signed char."""
 
-    _size: int | None = 1
+    _size: int | None = struct_char.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_char(self._cut_data(data))[0]
+        self._value = struct_char.unpack_from(data)[0]
 
 
 class Short(DataType):
     """Represents a 16 bit integer."""
 
-    _size: int | None = 2
+    _size: int | None = struct_short.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_short(self._cut_data(data))[0]
+        self._value = struct_short.unpack_from(data)[0]
 
 
 class Int(DataType):
     """Represents a 32 bit integer."""
 
-    _size: int | None = 4
+    _size: int | None = struct_int.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_int(self._cut_data(data))[0]
+        self._value = struct_int.unpack_from(data)[0]
 
 
 class Byte(DataType):
@@ -119,37 +114,37 @@ class Byte(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = ord(self._cut_data(data))
+        self._value = ord(self._slice_data(data))
 
 
 class UnsignedShort(DataType):
     """Represents an unsigned 16 bit integer."""
 
-    _size: int | None = 2
+    _size: int | None = struct_ushort.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_ushort(self._cut_data(data))[0]
+        self._value = struct_ushort.unpack_from(data)[0]
 
 
 class UnsignedInt(DataType):
     """Represents a unsigned 32 bit integer."""
 
-    _size: int | None = 4
+    _size: int | None = struct_uint.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_uint(self._cut_data(data))[0]
+        self._value = struct_uint.unpack_from(data)[0]
 
 
 class Float(DataType):
     """Represents a float."""
 
-    _size: int | None = 4
+    _size: int | None = struct_float.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_float(self._cut_data(data))[0]
+        self._value = struct_float.unpack_from(data)[0]
 
 
 class Undefined8(DataType):
@@ -165,11 +160,11 @@ class Undefined8(DataType):
 class Double(DataType):
     """Represents a double."""
 
-    _size: int | None = 8
+    _size: int | None = struct_double.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_double(self._cut_data(data))[0]
+        self._value = struct_double.unpack_from(data)[0]
 
 
 class Boolean(DataType):
@@ -207,21 +202,21 @@ class Boolean(DataType):
 class Int64(DataType):
     """Represents a 64 bit signed integer."""
 
-    _size: int | None = 8
+    _size: int | None = struct_int64.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_int64(self._cut_data(data))[0]
+        self._value = struct_int64.unpack_from(data)[0]
 
 
 class UInt64(DataType):
     """Represents a 64 bit unsigned integer."""
 
-    _size: int | None = 8
+    _size: int | None = struct_uint64.size
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = unpack_uint64(self._cut_data(data))[0]
+        self._value = struct_uint64.unpack_from(data)[0]
 
 
 class IPv4(DataType):
@@ -231,7 +226,7 @@ class IPv4(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = socket.inet_ntoa(self._cut_data(data))
+        self._value = socket.inet_ntoa(self._slice_data(data))
 
 
 class IPv6(DataType):
@@ -241,7 +236,7 @@ class IPv6(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = socket.inet_ntop(socket.AF_INET6, self._cut_data(data))
+        self._value = socket.inet_ntop(socket.AF_INET6, self._slice_data(data))
 
 
 class String(DataType):
@@ -263,6 +258,28 @@ class String(DataType):
         return len(self.value) + 1 if self.value is not None else None
 
 
+class PString(DataType):
+    """Represents a Pascal string."""
+
+    def unpack(self, data: bytes) -> None:
+        self._size = data[0]
+        offset = 1
+        self._value = data[offset : offset + self.size + 1].decode()
+
+
+class UID(DataType):
+    """Represents an UID string."""
+
+    def unpack(self, data: bytes) -> None:
+        offset = 0
+        self._size = data[offset]
+        offset += 1
+        self._value = decode_uid(data[offset : offset + self.size])
+
+
+# The regdata type map.
+# Links data type classes to their respective data type ids
+# in data schema.
 DATA_TYPES: tuple[type[DataType], ...] = (
     Undefined0,
     SignedChar,

@@ -68,7 +68,7 @@ class UIDResponse(Response):
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
-        return ProductInfoStructure(self).decode(message, offset=3)[0]
+        return ProductInfoStructure(self).decode(message)[0]
 
 
 class PasswordResponse(Response):

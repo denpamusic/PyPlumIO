@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Final
 
-from pyplumio.helpers.data_types import unpack_uint
+from pyplumio.helpers.data_types import UnsignedInt
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -45,8 +45,6 @@ OUTPUTS: tuple[str, ...] = (
     ATTR_BLOW_FAN2,
 )
 
-OUTPUTS_SIZE: Final = 4
-
 
 class OutputsStructure(StructureDecoder):
     """Represents an outputs data structure."""
@@ -55,14 +53,14 @@ class OutputsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        outputs = unpack_uint(message[offset : offset + OUTPUTS_SIZE])[0]
+        outputs = UnsignedInt.from_bytes(message, offset)
         return (
             ensure_dict(
                 data,
                 {
-                    output: bool(outputs & int(math.pow(2, index)))
+                    output: bool(outputs.value & int(math.pow(2, index)))
                     for index, output in enumerate(OUTPUTS)
                 },
             ),
-            offset + OUTPUTS_SIZE,
+            offset + outputs.size,
         )

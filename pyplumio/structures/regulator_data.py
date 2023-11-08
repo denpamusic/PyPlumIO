@@ -49,8 +49,6 @@ class RegulatorDataStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_dict(data)
-        schema = data.get(ATTR_SCHEMA, [])
         offset += 2
         regdata_version = f"{message[offset+1]}.{message[offset]}"
         if regdata_version != REGDATA_VERSION:
@@ -60,7 +58,7 @@ class RegulatorDataStructure(StructureDecoder):
             message, offset + 2, data
         )
 
-        if schema:
+        if schema := data.get(ATTR_SCHEMA, []):
             data.setdefault(ATTR_REGDATA, RegulatorData()).load(
                 {
                     param_id: self._unpack_regulator_data(message, data_type)

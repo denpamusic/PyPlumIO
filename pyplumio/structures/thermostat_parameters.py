@@ -219,8 +219,9 @@ class ThermostatParametersStructure(StructureDecoder):
 
         start = message[offset + 1]
         end = message[offset + 2]
-        thermostat_profile = unpack_parameter(message, offset + 3)
-        self._offset = offset + 6
+        offset += 3
+        thermostat_profile = unpack_parameter(message, offset)
+        self._offset = offset + THERMOSTAT_PARAMETER_SIZE
         return (
             ensure_dict(
                 data,

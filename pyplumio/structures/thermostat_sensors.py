@@ -11,7 +11,7 @@ from pyplumio.const import (
     ATTR_TARGET_TEMP,
     BYTE_UNDEFINED,
 )
-from pyplumio.helpers.data_types import unpack_float
+from pyplumio.helpers.data_types import Float
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -20,8 +20,6 @@ ATTR_THERMOSTAT_SENSORS: Final = "thermostat_sensors"
 ATTR_THERMOSTATS_AVAILABLE: Final = "thermostats_available"
 ATTR_THERMOSTATS_CONNECTED: Final = "thermostats_connected"
 ATTR_CONTACTS: Final = "contacts"
-
-THERMOSTAT_SENSORS_SIZE: Final = 9
 
 
 class ThermostatSensorsStructure(StructureDecoder):
@@ -35,17 +33,19 @@ class ThermostatSensorsStructure(StructureDecoder):
         self, message: bytearray, contacts: int
     ) -> EventDataType | None:
         """Unpack sensors for a thermostat."""
-        current_temp = unpack_float(message[self._offset + 1 : self._offset + 5])[0]
-        target_temp = unpack_float(
-            message[self._offset + 5 : self._offset + THERMOSTAT_SENSORS_SIZE]
-        )[0]
+        state = message[self._offset]
+        self._offset += 1
+        current_temp = Float.from_bytes(message, self._offset)
+        self._offset += current_temp.size
+        target_temp = Float.from_bytes(message, self._offset)
+        self._offset += target_temp.size
 
         try:
-            if not math.isnan(current_temp) and target_temp > 0:
+            if not math.isnan(current_temp.value) and target_temp.value > 0:
                 return {
-                    ATTR_STATE: message[self._offset],
-                    ATTR_CURRENT_TEMP: current_temp,
-                    ATTR_TARGET_TEMP: target_temp,
+                    ATTR_STATE: state,
+                    ATTR_CURRENT_TEMP: current_temp.value,
+                    ATTR_TARGET_TEMP: target_temp.value,
                     ATTR_CONTACTS: bool(contacts & self._contact_mask),
                     ATTR_SCHEDULE: bool(contacts & self._schedule_mask),
                 }
@@ -54,7 +54,6 @@ class ThermostatSensorsStructure(StructureDecoder):
         finally:
             self._contact_mask <<= 1
             self._schedule_mask <<= 1
-            self._offset += THERMOSTAT_SENSORS_SIZE
 
     def _thermostat_sensors(
         self, message: bytearray, thermostats: int, contacts: int

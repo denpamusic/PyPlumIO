@@ -5,19 +5,15 @@ from functools import reduce
 from typing import Final
 
 
-def unpack_uid(buffer: bytearray, offset: int = 0) -> str:
-    """Decode and return a complete UID string from the buffer."""
-    length = buffer.pop(offset)
-    uid = buffer[offset : length + offset]
-    del buffer[offset : length + offset]
-
-    return _base5(uid + _crc16(uid))
+def decode_uid(buffer: bytes) -> str:
+    """Decode an UID string."""
+    return _base5(buffer + _crc16(buffer))
 
 
-def _base5(data: bytes) -> str:
+def _base5(buffer: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
     key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
-    number = int.from_bytes(data, byteorder="little")
+    number = int.from_bytes(buffer, byteorder="little")
     output = ""
     while number:
         output = key_string[number & 0b00011111] + output

@@ -17,7 +17,7 @@ from pyplumio.structures.fan_power import FanPowerStructure
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.fuel_consumption import FuelConsumptionStructure
 from pyplumio.structures.fuel_level import FuelLevelStructure
-from pyplumio.structures.lambda_sensor import LambaSensorStructure
+from pyplumio.structures.lambda_sensor import LambdaSensorStructure
 from pyplumio.structures.load import LoadStructure
 from pyplumio.structures.mixer_sensors import MixerSensorsStructure
 from pyplumio.structures.modules import ModulesStructure
@@ -73,7 +73,7 @@ class SensorDataMessage(Message):
         )
         sensors[ATTR_THERMOSTAT] = message[offset]
         sensors, offset = ModulesStructure(self).decode(message, offset + 1, sensors)
-        sensors, offset = LambaSensorStructure(self).decode(message, offset, sensors)
+        sensors, offset = LambdaSensorStructure(self).decode(message, offset, sensors)
         sensors, offset = ThermostatSensorsStructure(self).decode(
             message, offset, sensors
         )

@@ -10,8 +10,6 @@ from pyplumio.utils import ensure_dict
 
 ATTR_LOAD: Final = "load"
 
-LOAD_SIZE: Final = 1
-
 
 class LoadStructure(StructureDecoder):
     """Represents a boiler load sensor data structure."""
@@ -20,10 +18,10 @@ class LoadStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        if message[offset] == BYTE_UNDEFINED:
-            return ensure_dict(data), offset + LOAD_SIZE
+        load = message[offset]
+        offset += 1
 
-        return (
-            ensure_dict(data, {ATTR_LOAD: message[offset]}),
-            offset + LOAD_SIZE,
-        )
+        if load == BYTE_UNDEFINED:
+            return ensure_dict(data), offset
+
+        return (ensure_dict(data, {ATTR_LOAD: message[offset]}), offset)

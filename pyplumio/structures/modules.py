@@ -50,13 +50,13 @@ class ModulesStructure(StructureDecoder):
             self._offset += 1
             return None
 
-        version_data = struct.unpack("<BBB", message[self._offset : self._offset + 3])
+        version_data = struct.unpack_from("<BBB", message, self._offset)
         version = ".".join(str(i) for i in version_data)
         self._offset += 3
 
         if module == ATTR_MODULE_A:
-            vendor_code, vendor_version = struct.unpack(
-                "<BB", message[self._offset : self._offset + 2]
+            vendor_code, vendor_version = struct.unpack_from(
+                "<BB", message, self._offset
             )
             version += f".{chr(vendor_code) + str(vendor_version)}"
             self._offset += 2

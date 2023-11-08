@@ -6,7 +6,7 @@ import socket
 from typing import Final
 
 from pyplumio.const import EncryptionType
-from pyplumio.helpers.data_types import unpack_string
+from pyplumio.helpers.data_types import PString
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
@@ -15,6 +15,8 @@ ATTR_NETWORK: Final = "network"
 
 DEFAULT_IP: Final = "0.0.0.0"
 DEFAULT_NETMASK: Final = "255.255.255.0"
+
+NETWORK_INFO_SIZE: Final = 25
 
 
 @dataclass
@@ -96,11 +98,11 @@ class NetworkInfoStructure(Structure):
                             encryption=EncryptionType(int(message[offset + 26])),
                             signal_quality=int(message[offset + 27]),
                             status=bool(message[offset + 28]),
-                            ssid=unpack_string(message, offset + 33),
+                            ssid=PString.from_bytes(message, offset + 33).value,
                         ),
                         server_status=bool(message[offset + 25]),
                     )
                 },
             ),
-            offset + 25,
+            offset + NETWORK_INFO_SIZE,
         )

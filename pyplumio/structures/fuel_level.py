@@ -10,8 +10,6 @@ from pyplumio.utils import ensure_dict
 
 ATTR_FUEL_LEVEL: Final = "fuel_level"
 
-FUEL_LEVEL_SIZE: Final = 1
-
 
 class FuelLevelStructure(StructureDecoder):
     """Represents a fuel level sensor data structure."""
@@ -20,10 +18,10 @@ class FuelLevelStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        if message[offset] == BYTE_UNDEFINED:
-            return ensure_dict(data), offset + FUEL_LEVEL_SIZE
+        fuel_level = message[offset]
+        offset += 1
 
-        return (
-            ensure_dict(data, {ATTR_FUEL_LEVEL: message[offset]}),
-            offset + FUEL_LEVEL_SIZE,
-        )
+        if fuel_level == BYTE_UNDEFINED:
+            return ensure_dict(data), offset
+
+        return (ensure_dict(data, {ATTR_FUEL_LEVEL: fuel_level}), offset)
