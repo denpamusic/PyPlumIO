@@ -6,8 +6,6 @@ import socket
 import struct
 from typing import Any
 
-from pyplumio.helpers.uid import decode_uid
-
 # Data type structures.
 struct_float = struct.Struct("<f")
 struct_char = struct.Struct("<b")
@@ -267,13 +265,13 @@ class PascalString(DataType):
         self._value = data[1 : self.size].decode()
 
 
-class UID(DataType):
-    """Represents an UID string."""
+class ByteString(DataType):
+    """Represents a byte string."""
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
         self._size = data[0] + 1
-        self._value = decode_uid(data[1 : self.size])
+        self._value = data[1 : self.size]
 
 
 # The regdata type map.

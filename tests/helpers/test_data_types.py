@@ -186,3 +186,17 @@ def test_string() -> None:
     data_type = data_types.String.from_bytes(b"test\x00")
     assert data_type.value == "test"
     assert data_type.size == 5
+
+
+def test_pascal_string() -> None:
+    """Test a pascal string data type."""
+    data_type = data_types.PascalString.from_bytes(bytearray([4]) + b"test")
+    assert data_type.value == "test"
+    assert data_type.size == 5
+
+
+def test_byte_string() -> None:
+    """Test a byte string data type."""
+    data_type = data_types.ByteString.from_bytes(bytearray([4]) + b"\xDE\xAD\xBE\xEF")
+    assert data_type.value == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
+    assert data_type.size == 5
