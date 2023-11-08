@@ -14,6 +14,8 @@ ATTR_VERSION: Final = "version"
 
 VERSION_INFO_SIZE: Final = 15
 
+struct_program_version = struct.Struct("<2sB2s3s3HB")
+
 
 def _formated_version(version_tuple=__version_tuple__) -> str:
     """Format version tuple for a program version response."""
@@ -40,8 +42,7 @@ class ProgramVersionStructure(Structure):
         """Encode data to the bytearray message."""
         message = bytearray(15)
         version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
-        struct.pack_into(
-            "<2sB2s3s3HB",
+        struct_program_version.pack_into(
             message,
             0,
             version_info.struct_tag,
@@ -67,7 +68,7 @@ class ProgramVersionStructure(Structure):
             software_version2,
             software_version3,
             self.frame.recipient,
-        ] = struct.unpack_from("<2sB2s3s3HB", message)
+        ] = struct_program_version.unpack_from(message)
         version_info.software = ".".join(
             map(str, [software_version1, software_version2, software_version3])
         )
