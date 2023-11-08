@@ -258,23 +258,22 @@ class String(DataType):
         return len(self.value) + 1 if self.value is not None else None
 
 
-class PString(DataType):
+class PascalString(DataType):
     """Represents a Pascal string."""
 
     def unpack(self, data: bytes) -> None:
-        self._size = data[0]
-        offset = 1
-        self._value = data[offset : offset + self.size + 1].decode()
+        """Unpack the data."""
+        self._size = data[0] + 1
+        self._value = data[1 : self.size].decode()
 
 
 class UID(DataType):
     """Represents an UID string."""
 
     def unpack(self, data: bytes) -> None:
-        offset = 0
-        self._size = data[offset]
-        offset += 1
-        self._value = decode_uid(data[offset : offset + self.size])
+        """Unpack the data."""
+        self._size = data[0] + 1
+        self._value = decode_uid(data[1 : self.size])
 
 
 # The regdata type map.

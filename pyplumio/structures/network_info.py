@@ -6,7 +6,7 @@ import socket
 from typing import Final
 
 from pyplumio.const import EncryptionType
-from pyplumio.helpers.data_types import PString
+from pyplumio.helpers.data_types import PascalString
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
@@ -98,7 +98,7 @@ class NetworkInfoStructure(Structure):
                             encryption=EncryptionType(int(message[offset + 26])),
                             signal_quality=int(message[offset + 27]),
                             status=bool(message[offset + 28]),
-                            ssid=PString.from_bytes(message, offset + 33).value,
+                            ssid=PascalString.from_bytes(message, offset + 33).value,
                         ),
                         server_status=bool(message[offset + 25]),
                     )

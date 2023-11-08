@@ -7,7 +7,7 @@ import struct
 from typing import Final
 
 from pyplumio.const import ProductType
-from pyplumio.helpers.data_types import UID, PString, UnsignedShort
+from pyplumio.helpers.data_types import UID, PascalString, UnsignedShort
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -50,14 +50,13 @@ class ProductInfoStructure(StructureDecoder):
         uid = UID.from_bytes(message, offset)
         offset += uid.size
 
-        offset += 1
         logo = UnsignedShort.from_bytes(message, offset)
         offset += logo.size
 
         image = UnsignedShort.from_bytes(message, offset)
         offset += image.size
 
-        model_name = PString.from_bytes(message, offset)
+        model_name = PascalString.from_bytes(message, offset)
         offset += model_name.size
 
         return (
