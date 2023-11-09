@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-import socket
 from typing import Final
 
 from pyplumio.const import EncryptionType
-from pyplumio.helpers.data_types import PascalString
+from pyplumio.helpers.data_types import IPv4, PascalString
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
@@ -55,20 +54,19 @@ class NetworkInfoStructure(Structure):
         message = bytearray()
         message += b"\x01"
         network_info = data[ATTR_NETWORK] if ATTR_NETWORK in data else NetworkInfo()
-        message += socket.inet_aton(network_info.eth.ip)
-        message += socket.inet_aton(network_info.eth.netmask)
-        message += socket.inet_aton(network_info.eth.gateway)
+        message += IPv4(network_info.eth.ip).to_bytes()
+        message += IPv4(network_info.eth.netmask).to_bytes()
+        message += IPv4(network_info.eth.gateway).to_bytes()
         message.append(network_info.eth.status)
-        message += socket.inet_aton(network_info.wlan.ip)
-        message += socket.inet_aton(network_info.wlan.netmask)
-        message += socket.inet_aton(network_info.wlan.gateway)
+        message += IPv4(network_info.wlan.ip).to_bytes()
+        message += IPv4(network_info.wlan.netmask).to_bytes()
+        message += IPv4(network_info.wlan.gateway).to_bytes()
         message.append(network_info.server_status)
         message.append(network_info.wlan.encryption)
         message.append(network_info.wlan.signal_quality)
         message.append(network_info.wlan.status)
         message += b"\x00" * 4
-        message.append(len(network_info.wlan.ssid))
-        message += network_info.wlan.ssid.encode("utf-8")
+        message += PascalString(network_info.wlan.ssid).to_bytes()
 
         return message
 
@@ -82,19 +80,15 @@ class NetworkInfoStructure(Structure):
                 {
                     ATTR_NETWORK: NetworkInfo(
                         eth=EthernetParameters(
-                            ip=socket.inet_ntoa(message[offset : offset + 4]),
-                            netmask=socket.inet_ntoa(message[offset + 4 : offset + 8]),
-                            gateway=socket.inet_ntoa(message[offset + 8 : offset + 12]),
+                            ip=IPv4.from_bytes(message, offset).value,
+                            netmask=IPv4.from_bytes(message, offset + 4).value,
+                            gateway=IPv4.from_bytes(message, offset + 8).value,
                             status=bool(message[offset + 13]),
                         ),
                         wlan=WirelessParameters(
-                            ip=socket.inet_ntoa(message[offset + 13 : offset + 17]),
-                            netmask=socket.inet_ntoa(
-                                message[offset + 17 : offset + 21]
-                            ),
-                            gateway=socket.inet_ntoa(
-                                message[offset + 21 : offset + 25]
-                            ),
+                            ip=IPv4.from_bytes(message, offset + 13).value,
+                            netmask=IPv4.from_bytes(message, offset + 17).value,
+                            gateway=IPv4.from_bytes(message, offset + 21).value,
                             encryption=EncryptionType(int(message[offset + 26])),
                             signal_quality=int(message[offset + 27]),
                             status=bool(message[offset + 28]),

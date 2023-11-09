@@ -4,25 +4,14 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import socket
 import struct
-from typing import Any
-
-# Data type structures.
-struct_float = struct.Struct("<f")
-struct_char = struct.Struct("<b")
-struct_short = struct.Struct("<h")
-struct_ushort = struct.Struct("<H")
-struct_int = struct.Struct("<i")
-struct_uint = struct.Struct("<I")
-struct_double = struct.Struct("<d")
-struct_int64 = struct.Struct("<q")
-struct_uint64 = struct.Struct("<Q")
+from typing import Any, ClassVar
 
 
 class DataType(ABC):
     """Represents a base data type."""
 
     _value: Any
-    _size: int | None = None
+    _size: int = 0
 
     def __init__(self, value: Any = None):
         """Initialize a new data type."""
@@ -50,119 +39,53 @@ class DataType(ABC):
         data_type.unpack(data[offset:])
         return data_type
 
+    def to_bytes(self):
+        """Convert data type to bytes."""
+        return self.pack()
+
     @property
     def value(self):
         """A data value."""
         return self._value
 
     @property
-    def size(self) -> int | None:
+    def size(self) -> int:
         """A data size."""
         return self._size
+
+    @abstractmethod
+    def pack(self) -> bytes:
+        """Pack the data."""
 
     @abstractmethod
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
 
 
-class Undefined0(DataType):
-    """Represents an undefined zero-byte."""
+class Undefined(DataType):
+    """Represents an undefined."""
 
-    _size: int | None = 0
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return bytes()
 
     def unpack(self, _: bytes) -> None:
         """Unpack the data."""
         self._value = None
-
-
-class SignedChar(DataType):
-    """Represents a signed char."""
-
-    _size: int | None = struct_char.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_char.unpack_from(data)[0]
-
-
-class Short(DataType):
-    """Represents a 16 bit integer."""
-
-    _size: int | None = struct_short.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_short.unpack_from(data)[0]
-
-
-class Int(DataType):
-    """Represents a 32 bit integer."""
-
-    _size: int | None = struct_int.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_int.unpack_from(data)[0]
 
 
 class Byte(DataType):
     """Represents a byte."""
 
-    _size: int | None = 1
+    _size: int = 1
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return self.value.to_bytes()
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
         self._value = ord(self._slice_data(data))
-
-
-class UnsignedShort(DataType):
-    """Represents an unsigned 16 bit integer."""
-
-    _size: int | None = struct_ushort.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_ushort.unpack_from(data)[0]
-
-
-class UnsignedInt(DataType):
-    """Represents a unsigned 32 bit integer."""
-
-    _size: int | None = struct_uint.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_uint.unpack_from(data)[0]
-
-
-class Float(DataType):
-    """Represents a float."""
-
-    _size: int | None = struct_float.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_float.unpack_from(data)[0]
-
-
-class Undefined8(DataType):
-    """Represents an undefined."""
-
-    _size: int | None = 0
-
-    def unpack(self, _: bytes) -> None:
-        """Unpack the data."""
-        self._value = None
-
-
-class Double(DataType):
-    """Represents a double."""
-
-    _size: int | None = struct_double.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_double.unpack_from(data)[0]
 
 
 class Boolean(DataType):
@@ -182,6 +105,10 @@ class Boolean(DataType):
         self._index = index
         return 0 if self._index == 7 else self._index + 1
 
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return self._value.to_bytes()
+
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
         self._value = ord(data[0:1])
@@ -192,35 +119,19 @@ class Boolean(DataType):
         return None if self._value is None else bool(self._value & (1 << self._index))
 
     @property
-    def size(self) -> int | None:
+    def size(self) -> int:
         """A data size."""
         return 1 if self._index == 7 else 0
-
-
-class Int64(DataType):
-    """Represents a 64 bit signed integer."""
-
-    _size: int | None = struct_int64.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_int64.unpack_from(data)[0]
-
-
-class UInt64(DataType):
-    """Represents a 64 bit unsigned integer."""
-
-    _size: int | None = struct_uint64.size
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = struct_uint64.unpack_from(data)[0]
 
 
 class IPv4(DataType):
     """Represents an IPv4 address."""
 
-    _size: int | None = 4
+    _size: int = 4
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return socket.inet_aton(self.value)
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -230,7 +141,11 @@ class IPv4(DataType):
 class IPv6(DataType):
     """Represents an IPv6 address."""
 
-    _size: int | None = 16
+    _size: int = 16
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return socket.inet_pton(socket.AF_INET6, self.value)
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -239,6 +154,10 @@ class IPv6(DataType):
 
 class String(DataType):
     """Represents a string."""
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return self.value.encode() + b"\x00"
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -251,34 +170,124 @@ class String(DataType):
         self._value = value
 
     @property
-    def size(self) -> int | None:
+    def size(self) -> int:
         """A data size."""
-        return len(self.value) + 1 if self.value is not None else None
-
-
-class PascalString(DataType):
-    """Represents a Pascal string."""
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._size = data[0] + 1
-        self._value = data[1 : self.size].decode()
+        return len(self.value) + 1 if self.value is not None else 0
 
 
 class ByteString(DataType):
     """Represents a byte string."""
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return bytearray([self.size - 1]) + self.value
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
         self._size = data[0] + 1
         self._value = data[1 : self.size]
 
+    @property
+    def size(self) -> int:
+        """A data size."""
+        if self._size > 0:
+            return self._size
 
-# The regdata type map.
-# Links data type classes to their respective data type ids
-# in data schema.
+        return len(self.value) + 1
+
+
+class PascalString(ByteString):
+    """Represents a Pascal string."""
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return bytearray([self.size - 1]) + self.value.encode()
+
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        super().unpack(data)
+        self._value = self.value.decode()
+
+
+class BuiltInDataType(DataType, ABC):
+    """Represents a data type that's supported by the built-in
+    struct module.
+    """
+
+    _struct: ClassVar[struct.Struct]
+
+    def pack(self) -> bytes:
+        """Pack the data."""
+        return self._struct.pack(self.value)
+
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        self._value = self._struct.unpack_from(data)[0]
+
+    @property
+    def size(self) -> int:
+        """A data size."""
+        return self._struct.size
+
+
+class SignedChar(BuiltInDataType):
+    """Represents a signed char."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<b")
+
+
+class Short(BuiltInDataType):
+    """Represents a 16 bit integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<h")
+
+
+class Int(BuiltInDataType):
+    """Represents a 32 bit integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<i")
+
+
+class UnsignedShort(BuiltInDataType):
+    """Represents an unsigned 16 bit integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<H")
+
+
+class UnsignedInt(BuiltInDataType):
+    """Represents a unsigned 32 bit integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<I")
+
+
+class Float(BuiltInDataType):
+    """Represents a float."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<f")
+
+
+class Double(BuiltInDataType):
+    """Represents a double."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<d")
+
+
+class Int64(BuiltInDataType):
+    """Represents a 64 bit signed integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<q")
+
+
+class UInt64(BuiltInDataType):
+    """Represents a 64 bit unsigned integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<Q")
+
+
+# The regdata type map links data type classes to their
+# respective type ids in the data schema.
 DATA_TYPES: tuple[type[DataType], ...] = (
-    Undefined0,
+    Undefined,
     SignedChar,
     Short,
     Int,
@@ -286,7 +295,7 @@ DATA_TYPES: tuple[type[DataType], ...] = (
     UnsignedShort,
     UnsignedInt,
     Float,
-    Undefined8,
+    Undefined,
     Double,
     Boolean,
     String,
