@@ -81,7 +81,7 @@ class Byte(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return self.value.to_bytes()
+        return self.value.to_bytes(length=self.size, byteorder="big")
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -107,7 +107,7 @@ class Boolean(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return self._value.to_bytes()
+        return self._value.to_bytes(length=1, byteorder="big")
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
