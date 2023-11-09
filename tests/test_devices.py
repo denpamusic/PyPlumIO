@@ -235,6 +235,14 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     mock_set.assert_awaited_once_with(21, 5)
 
 
+async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
+    """Test unknown ecoMAX parameter."""
+    test_data = load_json_test_data("unknown/unknown_ecomax_parameter.json")
+    ecomax.handle_frame(EcomaxParametersResponse(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    assert "unknown ecoMAX parameter (139)" in caplog.text
+
+
 @patch(
     "time.perf_counter_ns",
     side_effect=(0, 10 * 1000000000, 600 * 1000000000, 610 * 1000000000),
@@ -441,6 +449,14 @@ async def test_mixer_parameters_callbacks_without_mixers(ecomax: EcoMAX) -> None
     ecomax.handle_frame(MixerParametersResponse(data={ATTR_MIXER_PARAMETERS: {}}))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_MIXER_PARAMETERS)
+
+
+async def test_unknown_mixer_parameter(ecomax: EcoMAX, caplog) -> None:
+    """Test unknown mixer parameter."""
+    test_data = load_json_test_data("unknown/unknown_mixer_parameter.json")
+    ecomax.handle_frame(MixerParametersResponse(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    assert "unknown mixer parameter (14)" in caplog.text
 
 
 @pytest.mark.parametrize(

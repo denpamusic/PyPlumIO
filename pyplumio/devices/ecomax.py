@@ -197,7 +197,18 @@ class EcoMAX(Addressable):
         """
         product: ProductInfo = await self.get(ATTR_PRODUCT)
         for index, values in parameters:
-            description = ECOMAX_PARAMETERS[product.type][index]
+            try:
+                description = ECOMAX_PARAMETERS[product.type][index]
+            except IndexError:
+                _LOGGER.warning(
+                    "Encountered unknown ecoMAX parameter (%i). Your device isn't fully"
+                    + "compatible with this software and might not work properly. "
+                    + "Please visit the issue tracker and open a feature "
+                    + "request to support your device",
+                    index,
+                )
+                return False
+
             cls = (
                 EcomaxBinaryParameter
                 if isinstance(description, EcomaxBinaryParameterDescription)

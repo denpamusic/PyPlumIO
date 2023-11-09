@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Sequence
 
 from pyplumio.devices import Addressable, SubDevice
@@ -16,6 +17,8 @@ from pyplumio.structures.mixer_parameters import (
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class Mixer(SubDevice):
@@ -48,7 +51,18 @@ class Mixer(SubDevice):
         """
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
         for index, values in parameters:
-            description = MIXER_PARAMETERS[product.type][index]
+            try:
+                description = MIXER_PARAMETERS[product.type][index]
+            except IndexError:
+                _LOGGER.warning(
+                    "Encountered unknown mixer parameter (%i). Your device isn't fully"
+                    + "compatible with this software and might not work properly. "
+                    + "Please visit the issue tracker and open a feature "
+                    + "request to support your device",
+                    index,
+                )
+                return False
+
             cls = (
                 MixerBinaryParameter
                 if isinstance(description, MixerBinaryParameterDescription)
