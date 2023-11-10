@@ -77,12 +77,16 @@ class Undefined(DataType):
 class BitArray(DataType):
     """Represents a bit array."""
 
-    _index: int = 0
+    _index: int
 
-    def __init__(self, value: Any = None):
+    def __init__(self, value: Any = None, index: int = 0):
         """Initialize a new bit array."""
-        self._index = 0
         super().__init__(value)
+        self._index = index
+
+    def __repr__(self) -> str:
+        """Return serializable string representation of the class."""
+        return f"{self.__class__.__name__}(value={self._value}, index={self._index})"
 
     def next(self, index: int = 0) -> int:
         """Set current bit and return the next index in the
