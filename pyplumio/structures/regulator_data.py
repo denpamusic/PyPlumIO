@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from pyplumio.helpers.data_types import Boolean, DataType
+from pyplumio.helpers.data_types import BitArray, DataType
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
@@ -25,20 +25,20 @@ class RegulatorDataStructure(StructureDecoder):
     """Represents a regulator data structure."""
 
     _offset: int = 0
-    _boolean_index: int = 0
+    _bitarray_index: int = 0
 
     def _unpack_regulator_data(self, message: bytearray, data_type: DataType):
         """Unpack a regulator data sensor."""
-        if not isinstance(data_type, Boolean) and self._boolean_index > 0:
-            # Current data type is not boolean, but previous was, thus
-            # we skip single byte that was left from the boolean
-            # and reset boolean index.
+        if not isinstance(data_type, BitArray) and self._bitarray_index > 0:
+            # Current data type is not bitarray, but previous was, thus
+            # we skip a single byte that was left from the bitarray
+            # and reset bitarray index.
             self._offset += 1
-            self._boolean_index = 0
+            self._bitarray_index = 0
 
         data_type.unpack(message[self._offset :])
-        if isinstance(data_type, Boolean):
-            self._boolean_index = data_type.next(self._boolean_index)
+        if isinstance(data_type, BitArray):
+            self._bitarray_index = data_type.next(self._bitarray_index)
 
         try:
             return data_type.value

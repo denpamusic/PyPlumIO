@@ -17,7 +17,7 @@
             1792,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -27,7 +27,7 @@
             1536,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -37,7 +37,7 @@
             1538,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -47,7 +47,7 @@
             1542,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -57,7 +57,7 @@
             1541,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -67,7 +67,7 @@
             5,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -77,7 +77,7 @@
             3,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -87,7 +87,7 @@
             1543,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -97,7 +97,7 @@
             1544,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -107,7 +107,7 @@
             1545,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -117,7 +117,7 @@
             1546,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -127,7 +127,7 @@
             1547,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -137,7 +137,7 @@
             1548,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -147,7 +147,7 @@
             1549,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -157,7 +157,7 @@
             2,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -167,7 +167,7 @@
             6,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -177,7 +177,7 @@
             6,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -347,7 +347,7 @@
             1280,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -357,7 +357,7 @@
             1283,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -367,7 +367,7 @@
             1282,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -377,7 +377,7 @@
             1287,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -387,7 +387,7 @@
             1281,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -397,7 +397,7 @@
             1288,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -407,7 +407,7 @@
             2048,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true
@@ -440,7 +440,7 @@
             1538,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -450,7 +450,7 @@
             1536,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -460,7 +460,7 @@
             1537,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Boolean"
+              "__class__": "BitArray"
             }
           ],
           "__tuple__": true
@@ -470,7 +470,7 @@
             1792,
             {
               "__module__": "pyplumio.helpers.data_types",
-              "__class__": "Byte"
+              "__class__": "UnsignedChar"
             }
           ],
           "__tuple__": true

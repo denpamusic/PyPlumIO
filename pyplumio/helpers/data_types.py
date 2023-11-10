@@ -30,7 +30,7 @@ class DataType(ABC):
 
     def _slice_data(self, data: bytes) -> bytes:
         """Slice the data to data type size."""
-        return data[0 : self.size] if self.size is not None else data
+        return data[: self.size] if self.size is not None else data
 
     @classmethod
     def from_bytes(cls, data: bytes, offset: int = 0):
@@ -74,27 +74,13 @@ class Undefined(DataType):
         self._value = None
 
 
-class Byte(DataType):
-    """Represents a byte."""
-
-    _size: int = 1
-
-    def pack(self) -> bytes:
-        """Pack the data."""
-        return self.value.to_bytes(length=self.size, byteorder="big")
-
-    def unpack(self, data: bytes) -> None:
-        """Unpack the data."""
-        self._value = ord(self._slice_data(data))
-
-
-class Boolean(DataType):
-    """Represents a boolean."""
+class BitArray(DataType):
+    """Represents a bit array."""
 
     _index: int = 0
 
     def __init__(self, value: Any = None):
-        """Initialize a new boolean."""
+        """Initialize a new bit array."""
         self._index = 0
         super().__init__(value)
 
@@ -107,11 +93,11 @@ class Boolean(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return self._value.to_bytes(length=1, byteorder="big")
+        return UnsignedChar(self._value).to_bytes()
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = ord(data[0:1])
+        self._value = UnsignedChar.from_bytes(data[:1]).value
 
     @property
     def value(self) -> bool | None:
@@ -153,55 +139,47 @@ class IPv6(DataType):
 
 
 class String(DataType):
-    """Represents a string."""
+    """Represents a null terminated string."""
+
+    def __init__(self, value: Any = ""):
+        """Initialize a new null terminated string data type."""
+        super().__init__(value)
+        self._size = len(self.value) + 1
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return self.value.encode() + b"\x00"
+        return self.value.encode() + b"\0"
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        value = ""
-        if (offset := 0) in data:
-            while not data[offset] == 0:
-                value += chr(data[offset])
-                offset += 1
-
-        self._value = value
-
-    @property
-    def size(self) -> int:
-        """A data size."""
-        return len(self.value) + 1 if self.value is not None else 0
+        self._value = data.split(b"\0", 1)[0].decode()
+        self._size = len(self.value) + 1
 
 
-class ByteString(DataType):
-    """Represents a byte string."""
+class VarBytes(DataType):
+    """Represents a variable length bytes."""
+
+    def __init__(self, value: Any = b""):
+        """Initialize a new variable length bytes data type."""
+        super().__init__(value)
+        self._size = len(value) + 1
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return bytearray([self.size - 1]) + self.value
+        return UnsignedChar(self.size - 1).to_bytes() + self.value
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
         self._size = data[0] + 1
         self._value = data[1 : self.size]
 
-    @property
-    def size(self) -> int:
-        """A data size."""
-        if self._size > 0:
-            return self._size
 
-        return len(self.value) + 1
-
-
-class PascalString(ByteString):
-    """Represents a Pascal string."""
+class VarString(VarBytes):
+    """Represents a variable length string."""
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return bytearray([self.size - 1]) + self.value.encode()
+        return UnsignedChar(self.size - 1).to_bytes() + self.value.encode()
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -236,22 +214,28 @@ class SignedChar(BuiltInDataType):
     _struct: ClassVar[struct.Struct] = struct.Struct("<b")
 
 
+class UnsignedChar(BuiltInDataType):
+    """Represents an unsigned char."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<B")
+
+
 class Short(BuiltInDataType):
     """Represents a 16 bit integer."""
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<h")
 
 
-class Int(BuiltInDataType):
-    """Represents a 32 bit integer."""
-
-    _struct: ClassVar[struct.Struct] = struct.Struct("<i")
-
-
 class UnsignedShort(BuiltInDataType):
     """Represents an unsigned 16 bit integer."""
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<H")
+
+
+class Int(BuiltInDataType):
+    """Represents a 32 bit integer."""
+
+    _struct: ClassVar[struct.Struct] = struct.Struct("<i")
 
 
 class UnsignedInt(BuiltInDataType):
@@ -291,13 +275,13 @@ DATA_TYPES: tuple[type[DataType], ...] = (
     SignedChar,
     Short,
     Int,
-    Byte,
+    UnsignedChar,
     UnsignedShort,
     UnsignedInt,
     Float,
     Undefined,
     Double,
-    Boolean,
+    BitArray,
     String,
     String,
     Int64,

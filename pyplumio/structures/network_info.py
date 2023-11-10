@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Final
 
 from pyplumio.const import EncryptionType
-from pyplumio.helpers.data_types import IPv4, PascalString
+from pyplumio.helpers.data_types import IPv4, VarString
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
@@ -66,7 +66,7 @@ class NetworkInfoStructure(Structure):
         message.append(network_info.wlan.signal_quality)
         message.append(network_info.wlan.status)
         message += b"\x00" * 4
-        message += PascalString(network_info.wlan.ssid).to_bytes()
+        message += VarString(network_info.wlan.ssid).to_bytes()
 
         return message
 
@@ -92,7 +92,7 @@ class NetworkInfoStructure(Structure):
                             encryption=EncryptionType(int(message[offset + 26])),
                             signal_quality=int(message[offset + 27]),
                             status=bool(message[offset + 28]),
-                            ssid=PascalString.from_bytes(message, offset + 33).value,
+                            ssid=VarString.from_bytes(message, offset + 33).value,
                         ),
                         server_status=bool(message[offset + 25]),
                     )

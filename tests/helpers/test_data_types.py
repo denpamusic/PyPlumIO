@@ -70,10 +70,10 @@ def test_int() -> None:
     assert data_type.to_bytes() == buffer
 
 
-def test_byte() -> None:
-    """Test a byte data type."""
+def test_unsigned_char() -> None:
+    """Test an signed char data type."""
     buffer = bytearray([0x3])
-    data_type = data_types.Byte.from_bytes(buffer)
+    data_type = data_types.UnsignedChar.from_bytes(buffer)
     assert data_type.value == 3
     assert data_type.size == 1
     assert data_type.to_bytes() == buffer
@@ -115,10 +115,10 @@ def test_double() -> None:
     assert data_type.to_bytes() == buffer
 
 
-def test_boolean() -> None:
-    """Test a boolean data type."""
+def test_bitarray() -> None:
+    """Test a bit array data type."""
     buffer = bytearray([0x55])
-    data_type = data_types.Boolean.from_bytes(buffer)
+    data_type = data_types.BitArray.from_bytes(buffer)
     for index, value in enumerate([1, 0, 1, 0, 1, 0, 1, 0]):
         next_bit = data_type.next(index)
         assert data_type.value == bool(value)
@@ -197,19 +197,19 @@ def test_string() -> None:
     assert data_type.to_bytes() == buffer
 
 
-def test_pascal_string() -> None:
-    """Test a pascal string data type."""
-    buffer = b"\x04test"
-    data_type = data_types.PascalString.from_bytes(buffer)
-    assert data_type.value == "test"
+def test_var_bytes() -> None:
+    """Test a variable bytes data type."""
+    buffer = b"\x04\xDE\xAD\xBE\xEF"
+    data_type = data_types.VarBytes.from_bytes(buffer)
+    assert data_type.value == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
     assert data_type.size == 5
     assert data_type.to_bytes() == buffer
 
 
-def test_byte_string() -> None:
-    """Test a byte string data type."""
-    buffer = b"\x04\xDE\xAD\xBE\xEF"
-    data_type = data_types.ByteString.from_bytes(buffer)
-    assert data_type.value == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
+def test_var_string() -> None:
+    """Test a variable string data type."""
+    buffer = b"\x04test"
+    data_type = data_types.VarString.from_bytes(buffer)
+    assert data_type.value == "test"
     assert data_type.size == 5
     assert data_type.to_bytes() == buffer
