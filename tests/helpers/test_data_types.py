@@ -5,18 +5,6 @@ import pytest
 from pyplumio.helpers import data_types
 
 
-def test_type_repr():
-    """Test a serializable type representation."""
-    assert repr(data_types.SignedChar(22)) == "SignedChar(value=22)"
-
-
-def test_type_unpack() -> None:
-    """Test a generic type unpack."""
-    data_type = data_types.SignedChar.from_bytes(bytearray([0x16]))
-    assert data_type.value == 22
-    assert data_type.size == 1
-
-
 @pytest.mark.parametrize(
     "one, another",
     [
@@ -36,11 +24,14 @@ def test_type_eq(one, another):
 
 
 def test_undefined() -> None:
-    """Test an undefined0 data type."""
-    data_type = data_types.Undefined.from_bytes(bytearray())
+    """Test an undefined data type."""
+    buffer = bytearray()
+    data_type = data_types.Undefined.from_bytes(buffer)
     assert data_type.value is None
     assert data_type.size == 0
     assert not data_type.to_bytes()
+    assert repr(data_type) == "Undefined(value=None)"
+    assert data_type == data_types.Undefined.from_bytes(buffer)
 
 
 def test_signed_char() -> None:
@@ -50,6 +41,9 @@ def test_signed_char() -> None:
     assert data_type.value == 22
     assert data_type.size == 1
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "SignedChar(value=22)"
+    assert data_type == data_types.SignedChar.from_bytes(buffer)
+    assert data_type == 22
 
 
 def test_short() -> None:
@@ -59,6 +53,9 @@ def test_short() -> None:
     assert data_type.value == -20
     assert data_type.size == 2
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "Short(value=-20)"
+    assert data_type == data_types.Short.from_bytes(buffer)
+    assert data_type == -20
 
 
 def test_int() -> None:
@@ -68,6 +65,9 @@ def test_int() -> None:
     assert data_type.value == -26111
     assert data_type.size == 4
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "Int(value=-26111)"
+    assert data_type == data_types.Int.from_bytes(buffer)
+    assert data_type == -26111
 
 
 def test_unsigned_char() -> None:
@@ -77,6 +77,9 @@ def test_unsigned_char() -> None:
     assert data_type.value == 3
     assert data_type.size == 1
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "UnsignedChar(value=3)"
+    assert data_type == data_types.UnsignedChar.from_bytes(buffer)
+    assert data_type == 3
 
 
 def test_ushort() -> None:
@@ -86,6 +89,9 @@ def test_ushort() -> None:
     assert data_type.value == 298
     assert data_type.size == 2
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "UnsignedShort(value=298)"
+    assert data_type == data_types.UnsignedShort.from_bytes(buffer)
+    assert data_type == 298
 
 
 def test_uint() -> None:
@@ -95,6 +101,9 @@ def test_uint() -> None:
     assert data_type.value == 16282
     assert data_type.size == 4
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "UnsignedInt(value=16282)"
+    assert data_type == data_types.UnsignedInt.from_bytes(buffer)
+    assert data_type == 16282
 
 
 def test_float() -> None:
@@ -104,6 +113,9 @@ def test_float() -> None:
     assert data_type.value == 12.0
     assert data_type.size == 4
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "Float(value=12.0)"
+    assert data_type == data_types.Float.from_bytes(buffer)
+    assert data_type == 12.0
 
 
 def test_double() -> None:
@@ -113,6 +125,9 @@ def test_double() -> None:
     assert data_type.value == 12.12
     assert data_type.size == 8
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "Double(value=12.12)"
+    assert data_type == data_types.Double.from_bytes(buffer)
+    assert data_type == 12.12
 
 
 def test_bitarray() -> None:
@@ -130,6 +145,9 @@ def test_bitarray() -> None:
             assert data_type.size == 1
 
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "BitArray(value=85, index=7)"
+    assert data_type == data_types.BitArray.from_bytes(buffer)
+    assert data_type == 85
 
 
 def test_int64() -> None:
@@ -139,6 +157,9 @@ def test_int64() -> None:
     assert data_type.value == -1498954336607141889
     assert data_type.size == 8
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "Int64(value=-1498954336607141889)"
+    assert data_type == data_types.Int64.from_bytes(buffer)
+    assert data_type == -1498954336607141889
 
 
 def test_uint64() -> None:
@@ -148,6 +169,9 @@ def test_uint64() -> None:
     assert data_type.value == 6148631004284209477
     assert data_type.size == 8
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "UInt64(value=6148631004284209477)"
+    assert data_type == data_types.UInt64.from_bytes(buffer)
+    assert data_type == 6148631004284209477
 
 
 def test_ipv4() -> None:
@@ -157,6 +181,9 @@ def test_ipv4() -> None:
     assert data_type.value == "127.0.0.1"
     assert data_type.size == 4
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "IPv4(value=127.0.0.1)"
+    assert data_type == data_types.IPv4.from_bytes(buffer)
+    assert data_type == "127.0.0.1"
 
 
 def test_ipv6() -> None:
@@ -186,6 +213,9 @@ def test_ipv6() -> None:
     assert data_type.value == "feed:dead:beef::1"
     assert data_type.size == 16
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "IPv6(value=feed:dead:beef::1)"
+    assert data_type == data_types.IPv6.from_bytes(buffer)
+    assert data_type == "feed:dead:beef::1"
 
 
 def test_string() -> None:
@@ -195,6 +225,9 @@ def test_string() -> None:
     assert data_type.value == "test"
     assert data_type.size == 5
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "String(value=test)"
+    assert data_type == data_types.String.from_bytes(buffer)
+    assert data_type == "test"
 
 
 def test_var_bytes() -> None:
@@ -204,6 +237,9 @@ def test_var_bytes() -> None:
     assert data_type.value == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
     assert data_type.size == 5
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "VarBytes(value=b'\\xde\\xad\\xbe\\xef')"
+    assert data_type == data_types.VarBytes.from_bytes(buffer)
+    assert data_type == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
 
 
 def test_var_string() -> None:
@@ -213,3 +249,6 @@ def test_var_string() -> None:
     assert data_type.value == "test"
     assert data_type.size == 5
     assert data_type.to_bytes() == buffer
+    assert repr(data_type) == "VarString(value=test)"
+    assert data_type == data_types.VarString.from_bytes(buffer)
+    assert data_type == "test"
