@@ -254,8 +254,9 @@ class EcoMAX(Addressable):
             )
             return
 
-        fuel_burned = fuel_consumption / (3600 * 1000000000) * time_passed_ns
-        await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
+        await self.dispatch(
+            ATTR_FUEL_BURNED, fuel_consumption * time_passed_ns / (3600 * 1000000000)
+        )
         self._fuel_burned_timestamp_ns = current_timestamp_ns
 
     async def _handle_mixer_parameters(
