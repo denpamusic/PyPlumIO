@@ -168,19 +168,6 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
 )
 
 
-def _empty_response(
-    offset: int, data: EventDataType | None = None
-) -> tuple[EventDataType, int]:
-    """Return an empty response."""
-    return (
-        ensure_dict(
-            data,
-            {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
-        ),
-        offset,
-    )
-
-
 class ThermostatParametersStructure(StructureDecoder):
     """Represents a thermostat parameters data structure."""
 
@@ -215,7 +202,13 @@ class ThermostatParametersStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         data = ensure_dict(data)
         if (thermostats := data.get(ATTR_THERMOSTATS_CONNECTED, 0)) == 0:
-            return _empty_response(offset, data)
+            return (
+                ensure_dict(
+                    data,
+                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
+                ),
+                offset,
+            )
 
         start = message[offset + 1]
         end = message[offset + 2]
