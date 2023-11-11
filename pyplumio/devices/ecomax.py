@@ -237,7 +237,9 @@ class EcoMAX(Addressable):
                 and not self._has_frame_version(frame_type, version)
             ):
                 # We don't have this frame or it's version has changed.
-                request = factory(get_frame_handler(frame_type), recipient=self.address)
+                request: Request = factory(
+                    get_frame_handler(frame_type), recipient=self.address
+                )
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
 

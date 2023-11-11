@@ -121,7 +121,7 @@ class FrameReader:
         if payload[-2] != bcc(header + payload[:-2]):
             raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
-        frame = factory(
+        frame: Frame = factory(
             get_frame_handler(frame_type=payload[0]),
             recipient=recipient,
             message=payload[1:-2],
