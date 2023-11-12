@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import cache, reduce
 import struct
 from typing import ClassVar, Final
@@ -61,44 +61,75 @@ class DataFrameDescription:
     provides: str
 
 
-@dataclass
-class FrameDataClass:
-    """Represents a frame data class mixin."""
-
-    recipient: int = DeviceType.ALL
-    sender: int = DeviceType.ECONET
-    sender_type: int = ECONET_TYPE
-    econet_version: int = ECONET_VERSION
-    message: bytearray = field(default_factory=bytearray)
-    data: EventDataType = field(default_factory=dict)
-
-
-class Frame(ABC, FrameDataClass):
+class Frame(ABC):
     """Represents a frame."""
 
+    recipient: DeviceType | int
+    sender: DeviceType | int
+    sender_type: int
+    econet_version: int
     frame_type: ClassVar[int]
+    _message: bytearray | None
+    _data: EventDataType | None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+        self,
+        recipient: DeviceType | int = DeviceType.ALL,
+        sender: DeviceType | int = DeviceType.ECONET,
+        sender_type: int = ECONET_TYPE,
+        econet_version: int = ECONET_VERSION,
+        message: bytearray | None = None,
+        data: EventDataType | None = None,
+    ):
         """Process a frame data and message.
 
         If message is set, decode it, otherwise create message from the
         provided data.
         """
-        super().__init__(*args, **kwargs)
 
-        try:
-            self.sender = DeviceType(self.sender)
-            self.recipient = DeviceType(self.recipient)
-        except ValueError:
-            pass
+        for name, arg in (("recipient", recipient), ("sender", sender)):
+            try:
+                setattr(self, name, DeviceType(arg))
+            except ValueError:
+                setattr(self, name, arg)
 
-        if not self.message:
-            # Message not set, create message bytes from data.
-            self.message = self.create_message(self.data)
+        self.sender_type = sender_type
+        self.econet_version = econet_version
+        self._data = data
+        self._message = message
 
-        if self.message and not self.data:
-            # Message is set, but data is not, decode message.
-            self.data = self.decode_message(self.message)
+    def __eq__(self, other) -> bool:
+        """Compare if this frame is equal to other."""
+        if isinstance(other, Frame):
+            return (
+                self.recipient,
+                self.sender,
+                self.sender_type,
+                self.econet_version,
+                self._message,
+                self._data,
+            ) == (
+                self.recipient,
+                self.sender,
+                self.sender_type,
+                self.econet_version,
+                self._message,
+                self._data,
+            )
+
+        raise TypeError
+
+    def __repr__(self) -> str:
+        """Return a serializable string representation."""
+        return (
+            f"{self.__class__.__name__}("
+            f"recipient={repr(self.recipient)}, "
+            f"sender={repr(self.sender)}, "
+            f"sender_type={self.sender_type}, "
+            f"econet_version={self.econet_version}, "
+            f"message={self.message}, "
+            f"data={self.data})"
+        )
 
     def __len__(self) -> int:
         """Return a frame length."""
@@ -108,13 +139,37 @@ class Frame(ABC, FrameDataClass):
         """Return a frame message represented as hex string."""
         return self.bytes.hex(*args, **kwargs)
 
-    @abstractmethod
-    def create_message(self, data: EventDataType) -> bytearray:
-        """Create a frame message."""
+    @property
+    def data(self) -> EventDataType:
+        """A frame data."""
+        if self._data is None:
+            self._data = (
+                self.decode_message(self._message) if self._message is not None else {}
+            )
 
-    @abstractmethod
-    def decode_message(self, message: bytearray) -> EventDataType:
-        """Decode a frame message."""
+        return self._data
+
+    @data.setter
+    def data(self, data: EventDataType) -> None:
+        """A frame data setter."""
+        self._data = data
+        self._message = None
+
+    @property
+    def message(self) -> bytearray:
+        """A frame message."""
+        if self._message is None:
+            self._message = self.create_message(
+                self._data if self._data is not None else {}
+            )
+
+        return self._message
+
+    @message.setter
+    def message(self, message: bytearray) -> None:
+        """A frame message setter."""
+        self._message = message
+        self._data = None
 
     @property
     def length(self) -> int:
@@ -153,6 +208,14 @@ class Frame(ABC, FrameDataClass):
         data.append(bcc(data))
         data.append(FRAME_END)
         return bytes(data)
+
+    @abstractmethod
+    def create_message(self, data: EventDataType) -> bytearray:
+        """Create a frame message."""
+
+    @abstractmethod
+    def decode_message(self, message: bytearray) -> EventDataType:
+        """Decode a frame message."""
 
 
 class Request(Frame):

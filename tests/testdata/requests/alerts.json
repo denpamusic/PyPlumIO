@@ -1,0 +1,41 @@
+[
+  {
+    "id": "get_alerts_from_zero_no_limit",
+    "message": {
+      "items": [
+        "00FF"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "count": 255 
+    }
+  },
+  {
+    "id": "get_alerts_from_0_limit_10",
+    "message": {
+      "items": [
+        "000A"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "count": 10
+    }
+  },
+  {
+    "id": "get_alerts_from_50_limit_10",
+    "message": {
+      "items": [
+        "320A"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 50,
+      "count": 10
+    }
+  }
+]

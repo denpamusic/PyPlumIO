@@ -77,7 +77,7 @@ def test_ecomax_control(message, data) -> None:
 def test_ecomax_control_without_data() -> None:
     """Test an ecoMAX control request without any data."""
     with pytest.raises(FrameDataError):
-        EcomaxControlRequest()
+        print(EcomaxControlRequest().message)
 
 
 @pytest.mark.parametrize(
@@ -101,7 +101,16 @@ def test_set_ecomax_parameter(message, data) -> None:
 def test_set_ecomax_parameter_without_data() -> None:
     """Test a set ecoMAX parameter request without any data."""
     with pytest.raises(FrameDataError):
-        SetEcomaxParameterRequest()
+        print(SetEcomaxParameterRequest().message)
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/mixer_parameters.json"),
+)
+def test_mixer_parameters_request(message, data) -> None:
+    """Test a mixer parameters request."""
+    assert MixerParametersRequest(data=data).message == message
 
 
 @pytest.mark.parametrize(
@@ -116,7 +125,7 @@ def test_set_mixer_parameter(message, data) -> None:
 def test_set_mixer_parameter_without_data() -> None:
     """Test a set mixer parameter request without any data."""
     with pytest.raises(FrameDataError):
-        SetMixerParameterRequest()
+        print(SetMixerParameterRequest().message)
 
 
 @pytest.mark.parametrize(
@@ -131,7 +140,16 @@ def test_set_schedule(message, data) -> None:
 def test_set_schedule_without_data() -> None:
     """Test a set schedule request without any data."""
     with pytest.raises(FrameDataError):
-        SetScheduleRequest()
+        print(SetScheduleRequest().message)
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/thermostat_parameters.json"),
+)
+def test_thermostat_parameters_request(message, data) -> None:
+    """Test a thermostat parameters request."""
+    assert ThermostatParametersRequest(data=data).message == message
 
 
 @pytest.mark.parametrize(
@@ -146,4 +164,13 @@ def test_set_thermostat_parameter(message, data) -> None:
 def test_set_thermostat_parameter_without_data() -> None:
     """Test a set thermostat parameter request without any data."""
     with pytest.raises(FrameDataError):
-        SetThermostatParameterRequest()
+        print(SetThermostatParameterRequest().message)
+
+
+@pytest.mark.parametrize(
+    "message, data",
+    load_json_parameters("requests/alerts.json"),
+)
+def test_alerts_request(message, data) -> None:
+    """Test an alerts request."""
+    assert AlertsRequest(data=data).message == message

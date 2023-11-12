@@ -15,6 +15,7 @@ from pyplumio.frames import (
     struct_header,
 )
 from pyplumio.frames.responses import ProgramVersionResponse
+from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 
 UNKNOWN_DEVICE: Final = 99
 
@@ -131,6 +132,26 @@ def test_to_hex() -> None:
 def test_equality() -> None:
     """Test frame objects equality."""
     assert ProgramVersionResponse() == ProgramVersionResponse()
+    with pytest.raises(TypeError):
+        assert ProgramVersionResponse() == "melon"
+
+
+def test_data_setter():
+    """Test frame data setter."""
+    frame = ProgramVersionResponse()
+    assert frame.message.hex() == "ffff057a00000000000004000f0056"
+    frame.data = {ATTR_VERSION: VersionInfo(struct_version=6)}
+    assert frame.message.hex() == "ffff067a00000000000004000f0056"
+
+
+def test_message_setter():
+    """Test frame message setter."""
+    frame = ProgramVersionResponse(
+        message=bytearray.fromhex("ffff057a00000000000004000f0056")
+    )
+    assert frame.data[ATTR_VERSION].struct_version == 5
+    frame.message = bytearray.fromhex("ffff067a00000000000004000f0056")
+    assert frame.data[ATTR_VERSION].struct_version == 6
 
 
 def test_request_repr(request_frame: Request) -> None:

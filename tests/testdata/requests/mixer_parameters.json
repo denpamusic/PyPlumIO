@@ -1,0 +1,41 @@
+[
+  {
+    "id": "get_mixer_parameters_from_zero_no_limit",
+    "message": {
+      "items": [
+        "FF00"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "count": 255 
+    }
+  },
+  {
+    "id": "get_mixer_parameters_from_0_limit_10",
+    "message": {
+      "items": [
+        "0A00"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 0,
+      "count": 10
+    }
+  },
+  {
+    "id": "get_mixer_parameters_from_50_limit_10",
+    "message": {
+      "items": [
+        "0A32"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 50,
+      "count": 10
+    }
+  }
+]
