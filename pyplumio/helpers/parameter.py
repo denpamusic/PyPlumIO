@@ -108,10 +108,10 @@ class Parameter:
     def __repr__(self) -> str:
         """Return a serializable string representation."""
         return (
-            self.__class__.__name__
-            + f"(device={self.device.__class__.__name__}, "
-            + f"description={self.description}, value={self.value}, "
-            + f"min_value={self.min_value}, max_value={self.max_value})"
+            f"{self.__class__.__name__}("
+            f"device={self.device.__class__.__name__}, "
+            f"description={self.description}, value={self.value}, "
+            f"min_value={self.min_value}, max_value={self.max_value})"
         )
 
     def _call_relational_method(self, method_to_call, other):
