@@ -22,7 +22,7 @@ class DataType(ABC):
         return f"{self.__class__.__name__}(value={self._value})"
 
     def __eq__(self, other) -> bool:
-        """Compare if data type  is equal to other."""
+        """Compare if this data type is equal to other."""
         if isinstance(other, DataType):
             return self._value == other._value
 
