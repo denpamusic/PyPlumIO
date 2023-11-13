@@ -385,8 +385,6 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_THERMOSTAT_PARAMETERS)
-    thermostat_profile = await ecomax.get(ATTR_THERMOSTAT_PROFILE)
-    assert thermostat_profile is None
 
 
 async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:

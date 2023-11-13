@@ -206,10 +206,7 @@ class ThermostatParametersStructure(StructureDecoder):
             and (thermostats := sender.get_nowait(ATTR_THERMOSTATS_CONNECTED, 0)) == 0
         ):
             return (
-                ensure_dict(
-                    data,
-                    {ATTR_THERMOSTAT_PARAMETERS: None, ATTR_THERMOSTAT_PROFILE: None},
-                ),
+                ensure_dict(data, {ATTR_THERMOSTAT_PARAMETERS: None}),
                 offset,
             )
 
