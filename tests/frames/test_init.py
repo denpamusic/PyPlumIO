@@ -156,19 +156,25 @@ def test_message_setter():
 
 def test_request_repr(request_frame: Request) -> None:
     """Test a request class serialiazible representation."""
-    repr_string = (
-        "RequestFrame(recipient=<DeviceType.ALL: 0>, "
-        + "sender=<DeviceType.ECONET: 86>, sender_type=48, econet_version=5, "
-        + "message=bytearray(b''), data={})"
+    assert repr(request_frame) == (
+        "RequestFrame("
+        "recipient=<DeviceType.ALL: 0>, "
+        "sender=<DeviceType.ECONET: 86>, "
+        "sender_type=48, "
+        "econet_version=5, "
+        "message=bytearray(b''), "
+        "data={})"
     )
-    assert repr(request_frame) == repr_string
 
 
 def test_response_repr(response_frame: Response) -> None:
     """Test a response class serialiazible representation."""
-    repr_string = (
-        "ResponseFrame(recipient=<DeviceType.ALL: 0>, "
-        + "sender=<DeviceType.ECONET: 86>, sender_type=48, econet_version=5, "
-        + "message=bytearray(b''), data={})"
+    assert repr(response_frame) == (
+        "ResponseFrame("
+        "recipient=<DeviceType.ALL: 0>, "
+        "sender=<DeviceType.ECONET: 86>, "
+        "sender_type=48, "
+        "econet_version=5, "
+        "message=bytearray(b''), "
+        "data={})"
     )
-    assert repr(response_frame) == repr_string

@@ -129,8 +129,8 @@ class TcpConnection(Connection):
         self.host = host
         self.port = port
 
-    def __repr__(self):
-        """Return a string representation of the class."""
+    def __repr__(self) -> str:
+        """Return a serializable string representation."""
         return (
             f"TcpConnection(host={self.host}, port={self.port}, kwargs={self._kwargs})"
         )
@@ -157,11 +157,13 @@ class SerialConnection(Connection):
         self.device = device
         self.baudrate = baudrate
 
-    def __repr__(self):
-        """Return a string representation of the class."""
+    def __repr__(self) -> str:
+        """Return a serializable string representation."""
         return (
-            f"SerialConnection(device={self.device}, baudrate={self.baudrate}, "
-            + f"kwargs={self._kwargs})"
+            "SerialConnection("
+            f"device={self.device}, "
+            f"baudrate={self.baudrate}, "
+            f"kwargs={self._kwargs})"
         )
 
     @timeout(CONNECT_TIMEOUT)

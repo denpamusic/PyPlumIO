@@ -55,10 +55,13 @@ class Mixer(SubDevice):
                 description = MIXER_PARAMETERS[product.type][index]
             except IndexError:
                 _LOGGER.warning(
-                    "Encountered unknown mixer parameter (%i). Your device isn't fully"
-                    + "compatible with this software and might not work properly. "
-                    + "Please visit the issue tracker and open a feature "
-                    + "request to support your device",
+                    (
+                        "Encountered unknown mixer parameter (%i). Your device isn't "
+                        "fully compatible with this software and "
+                        "might not work properly."
+                        "Please visit the issue tracker and open a feature "
+                        "request to support your device"
+                    ),
                     index,
                 )
                 return False
