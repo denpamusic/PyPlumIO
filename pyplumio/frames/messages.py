@@ -25,10 +25,7 @@ from pyplumio.structures.output_flags import OutputFlagsStructure
 from pyplumio.structures.outputs import OutputsStructure
 from pyplumio.structures.pending_alerts import PendingAlertsStructure
 from pyplumio.structures.power import PowerStructure
-from pyplumio.structures.regulator_data import (
-    ATTR_REGDATA_DECODER,
-    RegulatorDataStructure,
-)
+from pyplumio.structures.regulator_data import RegulatorDataStructure
 from pyplumio.structures.statuses import StatusesStructure
 from pyplumio.structures.temperatures import TemperaturesStructure
 from pyplumio.structures.thermostat_sensors import ThermostatSensorsStructure
@@ -39,9 +36,10 @@ class RegulatorDataMessage(Message):
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
-    def decode_message(self, _: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
-        return {ATTR_REGDATA_DECODER: RegulatorDataStructure(self)}
+
+        return RegulatorDataStructure(self).decode(message)[0]
 
 
 class SensorDataMessage(Message):

@@ -3,6 +3,7 @@
 import pytest
 
 from pyplumio.const import DeviceType
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import (
     AlertsResponse,
     DataSchemaResponse,
@@ -15,7 +16,6 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS_DECODER
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
 from tests import load_json_parameters
 
@@ -121,17 +121,14 @@ def test_schedules_response(message, data) -> None:
     "message, data",
     load_json_parameters("responses/thermostat_parameters.json"),
 )
-def test_thermostat_parameters_response(message, data) -> None:
+async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> None:
     """Test a thermostat parameters response."""
     frame = ThermostatParametersResponse(message=message)
-    decoder = frame.data[ATTR_THERMOSTAT_PARAMETERS_DECODER]
-    assert (
-        decoder.decode(
-            message=frame.message,
-            data={ATTR_THERMOSTATS_CONNECTED: 3},
-        )[0]
-        == data
-    )
+    frame.sender = ecomax
+    frame.sender.load({ATTR_THERMOSTATS_CONNECTED: 3})
+    await frame.sender.wait_until_done()
+
+    assert frame.data == data
 
 
 @pytest.mark.parametrize(

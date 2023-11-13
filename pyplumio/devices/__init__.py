@@ -89,8 +89,13 @@ class Addressable(Device):
         super().__init__(queue)
         self._network = network
 
+    def __int__(self) -> int:
+        """Return the device address."""
+        return int(self.address)
+
     def handle_frame(self, frame: Frame) -> None:
         """Handle a frame received from the addressable device."""
+        frame.sender = self
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)

@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cache, reduce
 import struct
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
@@ -24,6 +24,9 @@ ECONET_VERSION: Final = 5
 # Frame header structure.
 struct_header = struct.Struct("<BH4B")
 
+if TYPE_CHECKING:
+    from pyplumio.devices import Addressable
+
 
 def bcc(data: bytes) -> int:
     """Return a block check character."""
@@ -34,10 +37,18 @@ def is_known_frame_type(frame_type: int) -> bool:
     """Check if frame type is known."""
     try:
         FrameType(frame_type)
+        return True
     except ValueError:
         return False
 
-    return True
+
+def is_known_device_type(device_type: int) -> bool:
+    """Check if device type is known."""
+    try:
+        DeviceType(device_type)
+        return True
+    except ValueError:
+        return False
 
 
 @cache
@@ -64,8 +75,8 @@ class DataFrameDescription:
 class Frame(ABC):
     """Represents a frame."""
 
-    recipient: DeviceType | int
-    sender: DeviceType | int
+    recipient: DeviceType | Addressable | int
+    sender: DeviceType | Addressable | int
     sender_type: int
     econet_version: int
     frame_type: ClassVar[int]
@@ -74,8 +85,8 @@ class Frame(ABC):
 
     def __init__(
         self,
-        recipient: DeviceType | int = DeviceType.ALL,
-        sender: DeviceType | int = DeviceType.ECONET,
+        recipient: DeviceType | Addressable | int = DeviceType.ALL,
+        sender: DeviceType | Addressable | int = DeviceType.ECONET,
         sender_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
         message: bytearray | None = None,
@@ -87,12 +98,12 @@ class Frame(ABC):
         provided data.
         """
 
-        for name, arg in (("recipient", recipient), ("sender", sender)):
-            try:
-                setattr(self, name, DeviceType(arg))
-            except ValueError:
-                setattr(self, name, arg)
+        args = [recipient, sender]
+        for key, arg in enumerate(args):
+            if isinstance(arg, int) and is_known_device_type(arg):
+                args[key] = DeviceType(arg)
 
+        self.recipient, self.sender = args
         self.sender_type = sender_type
         self.econet_version = econet_version
         self._data = data
@@ -191,8 +202,8 @@ class Frame(ABC):
             HEADER_OFFSET,
             FRAME_START,
             self.length,
-            self.recipient,
-            self.sender,
+            int(self.recipient),
+            int(self.sender),
             self.sender_type,
             self.econet_version,
         )

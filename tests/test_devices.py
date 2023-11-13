@@ -113,6 +113,11 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
+async def test_int(ecoster: EcoSTER) -> None:
+    """Test getting addressable device's address via int()."""
+    assert int(ecoster) == DeviceType.ECOSTER
+
+
 async def test_async_setup() -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
@@ -266,6 +271,7 @@ async def test_regdata_callbacks(ecomax: EcoMAX) -> None:
         load_json_test_data("messages/regulator_data.json")[0],
     )
     ecomax.handle_frame(DataSchemaResponse(message=test_schema["message"]))
+    await ecomax.wait_until_done()
     ecomax.handle_frame(RegulatorDataMessage(message=test_regdata["message"]))
     await ecomax.wait_until_done()
     regdata = await ecomax.get(ATTR_REGDATA)
@@ -346,6 +352,7 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat parameters."""
     test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
     ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    await ecomax.wait_until_done()
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     thermostats = await ecomax.get(ATTR_THERMOSTATS)
@@ -385,6 +392,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
 async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat profile."""
     ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    await ecomax.wait_until_done()
     ecomax.handle_frame(
         ThermostatParametersResponse(
             message=load_json_test_data("responses/thermostat_parameters.json")[0][
@@ -528,8 +536,9 @@ async def test_set(ecomax: EcoMAX) -> None:
         load_json_test_data("responses/thermostat_parameters.json")[0],
         load_json_test_data("responses/mixer_parameters.json")[0],
     )
-    ecomax.handle_frame(EcomaxParametersResponse(message=test_ecomax_data["message"]))
     ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    await ecomax.wait_until_done()
+    ecomax.handle_frame(EcomaxParametersResponse(message=test_ecomax_data["message"]))
     ecomax.handle_frame(
         ThermostatParametersResponse(message=test_thermostat_data["message"])
     )

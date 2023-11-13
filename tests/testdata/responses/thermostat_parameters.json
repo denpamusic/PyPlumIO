@@ -12,7 +12,6 @@
       "__bytearray__": true
     },
     "data": {
-      "thermostats_connected": 3,
       "thermostat_profile": {
         "value": 0,
         "min_value": 0,
@@ -191,7 +190,6 @@
       "__bytearray__": true
     },
     "data": {
-      "thermostats_connected": 3,
       "thermostat_profile": null,
       "thermostat_parameters": {}
     }

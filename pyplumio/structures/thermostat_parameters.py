@@ -11,6 +11,7 @@ from pyplumio.const import (
     ATTR_VALUE,
     UnitOfMeasurement,
 )
+from pyplumio.devices import Addressable
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -32,7 +33,6 @@ if TYPE_CHECKING:
 
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"
 ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
-ATTR_THERMOSTAT_PARAMETERS_DECODER: Final = "thermostat_parameters_decoder"
 
 THERMOSTAT_PARAMETER_SIZE: Final = 3
 
@@ -200,8 +200,11 @@ class ThermostatParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        data = ensure_dict(data)
-        if (thermostats := data.get(ATTR_THERMOSTATS_CONNECTED, 0)) == 0:
+        sender = self.frame.sender
+        if (
+            isinstance(sender, Addressable)
+            and (thermostats := sender.get_nowait(ATTR_THERMOSTATS_CONNECTED, 0)) == 0
+        ):
             return (
                 ensure_dict(
                     data,

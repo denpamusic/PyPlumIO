@@ -6,9 +6,10 @@ from typing import Final
 import pytest
 
 from pyplumio.const import ATTR_SENSORS, ATTR_STATE, DeviceType
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
-from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
+from pyplumio.structures.regulator_data import ATTR_REGDATA
 from tests import load_json_parameters, load_json_test_data
 
 INDEX_STATE: Final = 22
@@ -33,17 +34,20 @@ def test_messages_type() -> None:
         "incomplete_boolean",
     ],
 )
-async def test_regulator_data_message(schema, regdata) -> None:
+async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
     """Test a regulator data message."""
     frame = RegulatorDataMessage(message=regdata["message"])
-    decoder = frame.data[ATTR_REGDATA_DECODER]
-    result = decoder.decode(frame.message, data=schema["data"])[0]
+    frame.sender = ecomax
+    frame.sender.load(schema["data"])
+    await frame.sender.wait_until_done()
+
     if regdata["id"] == "unknown_regulator_data_version":
-        assert ATTR_FRAME_VERSIONS not in result
-        assert ATTR_REGDATA not in result
+        assert ATTR_FRAME_VERSIONS not in frame.data
+        assert ATTR_REGDATA not in frame.data
     else:
-        assert result[ATTR_FRAME_VERSIONS] == regdata["data"][ATTR_FRAME_VERSIONS]
-        assert result[ATTR_REGDATA].data == regdata["data"][ATTR_REGDATA]
+        print(frame.data)
+        assert frame.data[ATTR_FRAME_VERSIONS] == regdata["data"][ATTR_FRAME_VERSIONS]
+        assert frame.data[ATTR_REGDATA].data == regdata["data"][ATTR_REGDATA]
 
 
 @pytest.mark.parametrize(

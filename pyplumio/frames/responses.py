@@ -14,10 +14,7 @@ from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
 from pyplumio.structures.program_version import ProgramVersionStructure
 from pyplumio.structures.schedules import SchedulesStructure
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PARAMETERS_DECODER,
-    ThermostatParametersStructure,
-)
+from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
 
 class ProgramVersionResponse(Response):
@@ -119,9 +116,9 @@ class ThermostatParametersResponse(Response):
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
 
-    def decode_message(self, _: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
-        return {ATTR_THERMOSTAT_PARAMETERS_DECODER: ThermostatParametersStructure(self)}
+        return ThermostatParametersStructure(self).decode(message)[0]
 
 
 class DataSchemaResponse(Response):

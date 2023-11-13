@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Final
 
+from pyplumio.devices import Addressable
 from pyplumio.helpers.data_types import BitArray, DataType
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
@@ -12,7 +13,6 @@ from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.utils import ensure_dict
 
 ATTR_REGDATA: Final = "regdata"
-ATTR_REGDATA_DECODER: Final = "regdata_decoder"
 
 REGDATA_VERSION: Final = "1.0"
 
@@ -49,6 +49,7 @@ class RegulatorDataStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
+        data = ensure_dict(data)
         offset += 2
         regdata_version = f"{message[offset+1]}.{message[offset]}"
         if regdata_version != REGDATA_VERSION:
@@ -58,7 +59,10 @@ class RegulatorDataStructure(StructureDecoder):
             message, offset + 2, data
         )
 
-        if schema := data.get(ATTR_SCHEMA, []):
+        sender = self.frame.sender
+        if isinstance(sender, Addressable) and (
+            schema := sender.get_nowait(ATTR_SCHEMA, [])
+        ):
             data.setdefault(ATTR_REGDATA, RegulatorData()).load(
                 {
                     param_id: self._unpack_regulator_data(message, data_type)
@@ -66,4 +70,4 @@ class RegulatorDataStructure(StructureDecoder):
                 }
             )
 
-        return ensure_dict(data), self._offset
+        return data, self._offset

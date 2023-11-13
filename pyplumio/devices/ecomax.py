@@ -33,7 +33,6 @@ from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.structures import StructureDecoder
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.ecomax_parameters import (
@@ -52,7 +51,6 @@ from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
-from pyplumio.structures.regulator_data import ATTR_REGDATA, ATTR_REGDATA_DECODER
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETERS,
     ATTR_SCHEDULES,
@@ -64,7 +62,6 @@ from pyplumio.structures.schedules import (
 )
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PARAMETERS_DECODER,
     ATTR_THERMOSTAT_PROFILE,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
@@ -118,15 +115,11 @@ class EcoMAX(Addressable):
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
         self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
-        self.subscribe(ATTR_REGDATA_DECODER, self._decode_regulator_data)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules)
         self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
         self.subscribe(ATTR_SENSORS, self._handle_ecomax_sensors)
         self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
-        self.subscribe(
-            ATTR_THERMOSTAT_PARAMETERS_DECODER, self._decode_thermostat_parameters
-        )
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
 
@@ -294,20 +287,6 @@ class EcoMAX(Addressable):
 
         return True
 
-    async def _decode_regulator_data(self, decoder: StructureDecoder) -> bool:
-        """Decode an ecoMAX regulator data.
-
-        Dispatch 'frame_versions' and 'regdata' events.
-        """
-        data = decoder.decode(decoder.frame.message, data=self.data)[0]
-        for field in (ATTR_FRAME_VERSIONS, ATTR_REGDATA):
-            try:
-                await self.dispatch(field, data[field])
-            except KeyError:
-                continue
-
-        return True
-
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> EventDataType:
@@ -395,17 +374,6 @@ class EcoMAX(Addressable):
             await thermostat.dispatch(
                 ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
             )
-
-        return True
-
-    async def _decode_thermostat_parameters(self, decoder: StructureDecoder) -> bool:
-        """Decode thermostat parameters.
-
-        Dispatch 'thermostat_profile' and 'thermostat_parameters' event.
-        """
-        data = decoder.decode(decoder.frame.message, data=self.data)[0]
-        for field in (ATTR_THERMOSTAT_PROFILE, ATTR_THERMOSTAT_PARAMETERS):
-            await self.dispatch(field, data[field])
 
         return True
 
