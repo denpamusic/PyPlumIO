@@ -138,10 +138,10 @@ def test_equality() -> None:
 
 def test_data_setter():
     """Test frame data setter."""
-    frame = ProgramVersionResponse()
-    assert frame.message.hex() == "ffff057a00000000000004000f0056"
-    frame.data = {ATTR_VERSION: VersionInfo(struct_version=6)}
-    assert frame.message.hex() == "ffff067a00000000000004000f0056"
+    frame = ProgramVersionResponse(data={ATTR_VERSION: VersionInfo(software="1.0.0")})
+    assert frame.message.hex() == "ffff057a0000000001000000000056"
+    frame.data = {ATTR_VERSION: VersionInfo(software="1.0.0", struct_version=6)}
+    assert frame.message.hex() == "ffff067a0000000001000000000056"
 
 
 def test_message_setter():
