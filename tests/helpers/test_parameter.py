@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
@@ -40,7 +40,9 @@ def fixture_parameter(ecomax: EcoMAX) -> Parameter:
         value=1,
         min_value=0,
         max_value=5,
-        description=ParameterDescription(name="test_parameter"),
+        description=ParameterDescription(
+            name="test_parameter", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
     )
 
 
@@ -155,8 +157,14 @@ def test_parameter_repr(parameter: Parameter) -> None:
     assert repr(parameter) == (
         "TestParameter(device=EcoMAX, "
         "description=ParameterDescription(name='test_parameter', "
-        "unit_of_measurement=None), value=1, min_value=0, max_value=5)"
+        "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
+        "value=1, min_value=0, max_value=5)"
     )
+
+
+def test_parameter_getattr(parameter: Parameter):
+    """Test getting attributes from the parameters description."""
+    assert parameter.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
 
 @patch("asyncio.Queue.put")

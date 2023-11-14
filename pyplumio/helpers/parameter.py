@@ -114,6 +114,10 @@ class Parameter:
             f"min_value={self.min_value}, max_value={self.max_value})"
         )
 
+    def __getattr__(self, name: str):
+        """Return attributes from the parameter description."""
+        return getattr(self.description, name)
+
     def _call_relational_method(self, method_to_call, other):
         """Call a specified relational method."""
         func = getattr(self._value, method_to_call)
