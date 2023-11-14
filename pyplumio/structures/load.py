@@ -24,4 +24,4 @@ class LoadStructure(StructureDecoder):
         if load == BYTE_UNDEFINED:
             return ensure_dict(data), offset
 
-        return (ensure_dict(data, {ATTR_LOAD: message[offset]}), offset)
+        return (ensure_dict(data, {ATTR_LOAD: load}), offset)
