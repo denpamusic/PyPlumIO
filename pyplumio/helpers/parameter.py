@@ -222,7 +222,7 @@ class Parameter:
         return self._values.max_value
 
     @property
-    def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"]:
+    def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
         """A unit of measurement."""
         return self.description.unit_of_measurement
 
