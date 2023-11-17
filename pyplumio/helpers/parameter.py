@@ -57,6 +57,8 @@ def _normalize_parameter_value(value: ParameterValueType) -> int:
 class ParameterValues:
     """Represents a parameter values."""
 
+    __slots__ = "value", "min_value", "max_value"
+
     value: int
     min_value: int
     max_value: int
