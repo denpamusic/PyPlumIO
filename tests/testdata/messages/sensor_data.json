@@ -57,8 +57,8 @@
         "fuel_level": 32,
         "transmission": 0,
         "fan_power": 0.0,
-        "load": 16,
-        "power": 0.0,
+        "boiler_load": 16,
+        "boiler_power": 0.0,
         "fuel_consumption": 0.0,
         "thermostat": 1,
         "modules": {

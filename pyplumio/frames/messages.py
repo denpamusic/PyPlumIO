@@ -13,18 +13,18 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Message
 from pyplumio.helpers.typing import EventDataType
+from pyplumio.structures.boiler_load import BoilerLoadStructure
+from pyplumio.structures.boiler_power import BoilerPowerStructure
 from pyplumio.structures.fan_power import FanPowerStructure
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.fuel_consumption import FuelConsumptionStructure
 from pyplumio.structures.fuel_level import FuelLevelStructure
 from pyplumio.structures.lambda_sensor import LambdaSensorStructure
-from pyplumio.structures.load import LoadStructure
 from pyplumio.structures.mixer_sensors import MixerSensorsStructure
 from pyplumio.structures.modules import ModulesStructure
 from pyplumio.structures.output_flags import OutputFlagsStructure
 from pyplumio.structures.outputs import OutputsStructure
 from pyplumio.structures.pending_alerts import PendingAlertsStructure
-from pyplumio.structures.power import PowerStructure
 from pyplumio.structures.regulator_data import RegulatorDataStructure
 from pyplumio.structures.statuses import StatusesStructure
 from pyplumio.structures.temperatures import TemperaturesStructure
@@ -64,8 +64,8 @@ class SensorDataMessage(Message):
         sensors, offset = FuelLevelStructure(self).decode(message, offset, sensors)
         sensors[ATTR_TRANSMISSION] = message[offset]
         sensors, offset = FanPowerStructure(self).decode(message, offset + 1, sensors)
-        sensors, offset = LoadStructure(self).decode(message, offset, sensors)
-        sensors, offset = PowerStructure(self).decode(message, offset, sensors)
+        sensors, offset = BoilerLoadStructure(self).decode(message, offset, sensors)
+        sensors, offset = BoilerPowerStructure(self).decode(message, offset, sensors)
         sensors, offset = FuelConsumptionStructure(self).decode(
             message, offset, sensors
         )

@@ -8,20 +8,20 @@ from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
-ATTR_LOAD: Final = "load"
+ATTR_BOILER_LOAD: Final = "boiler_load"
 
 
-class LoadStructure(StructureDecoder):
+class BoilerLoadStructure(StructureDecoder):
     """Represents a boiler load sensor data structure."""
 
     def decode(
         self, message: bytearray, offset: int = 0, data: EventDataType | None = None
     ) -> tuple[EventDataType, int]:
         """Decode bytes and return message data and offset."""
-        load = message[offset]
+        boiler_load = message[offset]
         offset += 1
 
-        if load == BYTE_UNDEFINED:
+        if boiler_load == BYTE_UNDEFINED:
             return ensure_dict(data), offset
 
-        return (ensure_dict(data, {ATTR_LOAD: load}), offset)
+        return (ensure_dict(data, {ATTR_BOILER_LOAD: boiler_load}), offset)
