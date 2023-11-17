@@ -131,7 +131,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         ),
         MixerBinaryParameterDescription(name="thermostat_operation"),
         MixerParameterDescription(name="thermostat_mode"),
-        MixerBinaryParameterDescription(name="thermostat_disable_pump"),
+        MixerBinaryParameterDescription(name="disable_pump_on_thermostat"),
         MixerBinaryParameterDescription(name="summer_work"),
     ),
     ProductType.ECOMAX_I: (

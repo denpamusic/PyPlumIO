@@ -427,7 +427,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             name="thermostat_decrease_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(name="thermostat_disable_pump"),
+        EcomaxBinaryParameterDescription(name="disable_pump_on_thermostat"),
         EcomaxParameterDescription(
             name="boiler_alert_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
