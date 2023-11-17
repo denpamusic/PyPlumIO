@@ -226,10 +226,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert heating_heat_curve_shift.value == 0.0
     assert heating_heat_curve_shift.min_value == -20.0
     assert heating_heat_curve_shift.max_value == 20.0
-    assert (
-        heating_heat_curve_shift.description.unit_of_measurement
-        == UnitOfMeasurement.CELSIUS
-    )
+    assert heating_heat_curve_shift.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
     # Test setting the parameter with the offset.
     with patch(

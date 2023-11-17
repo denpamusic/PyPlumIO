@@ -12,8 +12,6 @@ from pyplumio.const import (
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
-    STATE_OFF,
-    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
@@ -212,14 +210,7 @@ class EcoMAX(Addressable):
             )
             await self.dispatch(
                 description.name,
-                cls(
-                    device=self,
-                    description=description,
-                    index=index,
-                    value=values.value,
-                    min_value=values.min_value,
-                    max_value=values.max_value,
-                ),
+                cls(device=self, description=description, index=index, values=values),
             )
 
         return True
@@ -322,14 +313,7 @@ class EcoMAX(Addressable):
             )
             await self.dispatch(
                 description.name,
-                cls(
-                    device=self,
-                    description=description,
-                    index=index,
-                    value=values.value,
-                    min_value=values.min_value,
-                    max_value=values.max_value,
-                ),
+                cls(device=self, description=description, index=index, values=values),
             )
 
         return True
@@ -354,9 +338,11 @@ class EcoMAX(Addressable):
             EcomaxBinaryParameter(
                 device=self,
                 description=ECOMAX_CONTROL_PARAMETER,
-                value=(mode != DeviceState.OFF),
-                min_value=STATE_OFF,
-                max_value=STATE_ON,
+                values=ParameterValues(
+                    value=int(mode != DeviceState.OFF),
+                    min_value=0,
+                    max_value=1,
+                ),
             ),
         )
 
@@ -386,11 +372,7 @@ class EcoMAX(Addressable):
         """Add thermostat profile parameter to the dataset."""
         if values is not None:
             return EcomaxParameter(
-                device=self,
-                description=THERMOSTAT_PROFILE_PARAMETER,
-                value=values.value,
-                min_value=values.min_value,
-                max_value=values.max_value,
+                device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
             )
 
         return None

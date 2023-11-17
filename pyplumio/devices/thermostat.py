@@ -58,9 +58,7 @@ class Thermostat(SubDevice):
                     device=self,
                     description=description,
                     index=index,
-                    value=values.value,
-                    min_value=values.min_value,
-                    max_value=values.max_value,
+                    values=values,
                     offset=(self.index * len(parameters)),
                 ),
             )

@@ -37,9 +37,7 @@ def fixture_parameter(ecomax: EcoMAX) -> Parameter:
     """Return a parameter object."""
     return TestParameter(
         device=ecomax,
-        value=1,
-        min_value=0,
-        max_value=5,
+        values=ParameterValues(value=1, min_value=0, max_value=5),
         description=ParameterDescription(
             name="test_parameter", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
@@ -51,9 +49,7 @@ def fixture_binary_parameter(ecomax: EcoMAX) -> BinaryParameter:
     """Return a binary parameter object."""
     return TestBinaryParameter(
         device=ecomax,
-        value=STATE_OFF,
-        min_value=STATE_OFF,
-        max_value=STATE_ON,
+        values=ParameterValues(value=0, min_value=0, max_value=1),
         description=ParameterDescription(name="test_binary_parameter"),
     )
 
@@ -83,9 +79,7 @@ def test_base_parameter_request(ecomax: EcoMAX) -> None:
     """Test that a base class request throws not implemented error."""
     parameter = Parameter(
         device=ecomax,
-        value=1,
-        min_value=0,
-        max_value=5,
+        values=ParameterValues(value=1, min_value=0, max_value=5),
         description=ParameterDescription(name="test_parameter"),
     )
 
@@ -156,15 +150,10 @@ def test_parameter_repr(parameter: Parameter) -> None:
     """Test a parameter representation."""
     assert repr(parameter) == (
         "TestParameter(device=EcoMAX, "
+        "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "description=ParameterDescription(name='test_parameter', "
-        "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
-        "value=1, min_value=0, max_value=5)"
+        "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>))"
     )
-
-
-def test_parameter_getattr(parameter: Parameter):
-    """Test getting attributes from the parameters description."""
-    assert parameter.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
 
 @patch("asyncio.Queue.put")

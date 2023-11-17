@@ -73,14 +73,7 @@ class Mixer(SubDevice):
             )
             await self.dispatch(
                 description.name,
-                cls(
-                    device=self,
-                    description=description,
-                    index=index,
-                    value=values.value,
-                    min_value=values.min_value,
-                    max_value=values.max_value,
-                ),
+                cls(device=self, description=description, index=index, values=values),
             )
 
         return True
