@@ -247,6 +247,8 @@ async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
     ecomax.handle_frame(EcomaxParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert "unknown ecoMAX parameter (139)" in caplog.text
+    assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
+    assert "ecoMAX 350P2-ZF" in caplog.text
 
 
 @patch(
@@ -478,6 +480,8 @@ async def test_unknown_mixer_parameter(ecomax: EcoMAX, caplog) -> None:
     ecomax.handle_frame(MixerParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert "unknown mixer parameter (14)" in caplog.text
+    assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
+    assert "ecoMAX 350P2-ZF" in caplog.text
 
 
 @pytest.mark.parametrize(

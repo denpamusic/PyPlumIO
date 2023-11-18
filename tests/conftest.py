@@ -21,7 +21,7 @@ def fixture_ecomax() -> EcoMAX:
         uid="TEST",
         logo=23040,
         image=2816,
-        model="EM350P2-ZF",
+        model="ecoMAX 350P2-ZF",
     )
     return ecomax
 
