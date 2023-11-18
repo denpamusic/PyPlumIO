@@ -82,7 +82,7 @@ class Parameter:
 
     device: Device
     description: ParameterDescription
-    _values: ParameterValues
+    values: ParameterValues
     _index: int
     _pending_update: bool = False
 
@@ -97,7 +97,7 @@ class Parameter:
         self.index = index
         self.device = device
         self.description = description
-        self._values = values
+        self.values = values
         self._pending_update = False
         self._index = index
 
@@ -113,12 +113,12 @@ class Parameter:
 
     def _call_relational_method(self, method_to_call, other):
         """Call a specified relational method."""
-        func = getattr(self._values.value, method_to_call)
+        func = getattr(self.values.value, method_to_call)
         return func(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
         """Return an integer representation of parameter's value."""
-        return self._values.value
+        return self.values.value
 
     def __add__(self, other) -> int:
         """Return result of addition."""
@@ -168,15 +168,15 @@ class Parameter:
 
     async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
         """Set a parameter value."""
-        if (value := _normalize_parameter_value(value)) == self._values.value:
+        if (value := _normalize_parameter_value(value)) == self.values.value:
             return True
 
-        if value < self._values.min_value or value > self._values.max_value:
+        if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
                 f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
-        self._values.value = value
+        self.values.value = value
         self._pending_update = True
         self.device.subscribe_once(self.description.name, self._confirm_update)
         while self.pending_update:
@@ -206,17 +206,17 @@ class Parameter:
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return self._values.value
+        return self.values.value
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
-        return self._values.min_value
+        return self.values.min_value
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
-        return self._values.max_value
+        return self.values.max_value
 
     @property
     def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
@@ -251,7 +251,7 @@ class BinaryParameter(Parameter):
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return STATE_ON if self._values.value == 1 else STATE_OFF
+        return STATE_ON if self.values.value == 1 else STATE_OFF
 
     @property
     def min_value(self) -> ParameterValueType:

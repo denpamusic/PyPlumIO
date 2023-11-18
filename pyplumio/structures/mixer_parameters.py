@@ -50,21 +50,21 @@ class MixerParameter(Parameter):
     def value(self) -> ParameterValueType:
         """A parameter value."""
         return (
-            self._values.value - self.description.offset
+            self.values.value - self.description.offset
         ) * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
         return (
-            self._values.min_value - self.description.offset
+            self.values.min_value - self.description.offset
         ) * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
         return (
-            self._values.max_value - self.description.offset
+            self.values.max_value - self.description.offset
         ) * self.description.multiplier
 
     @property
@@ -75,7 +75,7 @@ class MixerParameter(Parameter):
             recipient=self.device.parent.address,
             data={
                 ATTR_INDEX: self._index,
-                ATTR_VALUE: self._values.value,
+                ATTR_VALUE: self.values.value,
                 ATTR_DEVICE_INDEX: self.device.index,
             },
         )

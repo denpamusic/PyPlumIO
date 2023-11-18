@@ -66,17 +66,17 @@ class ThermostatParameter(Parameter):
     @property
     def value(self) -> ParameterValueType:
         """A parameter value."""
-        return self._values.value * self.description.multiplier
+        return self.values.value * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
         """Minimum allowed value."""
-        return self._values.min_value * self.description.multiplier
+        return self.values.min_value * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
         """Maximum allowed value."""
-        return self._values.max_value * self.description.multiplier
+        return self.values.max_value * self.description.multiplier
 
     @property
     def request(self) -> Request:
@@ -88,7 +88,7 @@ class ThermostatParameter(Parameter):
                 # Increase the index by one to account for thermostat
                 # profile, which is being set at ecoMAX device level.
                 ATTR_INDEX: self._index + 1,
-                ATTR_VALUE: self._values.value,
+                ATTR_VALUE: self.values.value,
                 ATTR_OFFSET: self.offset,
                 ATTR_SIZE: self.description.size,
             },

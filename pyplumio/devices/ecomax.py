@@ -203,14 +203,21 @@ class EcoMAX(Addressable):
                 )
                 return False
 
+            name = description.name
+            if name in self.data:
+                parameter: EcomaxParameter = self.data[name]
+                parameter.values = values
+                await self.dispatch(name, parameter)
+                continue
+
             cls = (
                 EcomaxBinaryParameter
                 if isinstance(description, EcomaxBinaryParameterDescription)
                 else EcomaxParameter
             )
             await self.dispatch(
-                description.name,
-                cls(device=self, description=description, index=index, values=values),
+                name,
+                cls(device=self, values=values, description=description, index=index),
             )
 
         return True
@@ -306,14 +313,21 @@ class EcoMAX(Addressable):
         """Add schedule parameters to the dataset."""
         for index, values in parameters:
             description = SCHEDULE_PARAMETERS[index]
+            name = description.name
+            if name in self.data:
+                parameter: ScheduleParameter = self.data[name]
+                parameter.values = values
+                await self.dispatch(name, parameter)
+                continue
+
             cls = (
                 ScheduleBinaryParameter
                 if isinstance(description, ScheduleBinaryParameterDescription)
                 else ScheduleParameter
             )
             await self.dispatch(
-                description.name,
-                cls(device=self, description=description, index=index, values=values),
+                name,
+                cls(device=self, values=values, description=description, index=index),
             )
 
         return True

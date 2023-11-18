@@ -199,13 +199,17 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     fuzzy_logic = await ecomax.get("fuzzy_logic")
     assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
     assert isinstance(fuzzy_logic.request, SetEcomaxParameterRequest)
+    assert fuzzy_logic == STATE_ON
     assert fuzzy_logic.value == STATE_ON
-    fuzzy_logic_value = await ecomax.get("fuzzy_logic")
-    assert fuzzy_logic_value == STATE_ON
     assert fuzzy_logic.request.data == {
         ATTR_INDEX: 18,
         ATTR_VALUE: 1,
     }
+
+    # Test that parameter instance is not recreated on subsequent calls.
+    ecomax.handle_frame(EcomaxParametersResponse(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    assert await ecomax.get("fuzzy_logic") is fuzzy_logic
 
     # Test parameter with the multiplier (heating_heat_curve)
     heating_heat_curve = await ecomax.get("heating_curve")
@@ -371,6 +375,13 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
         ATTR_SIZE: 2,
     }
 
+    # Test that parameter instance is not recreated on subsequent calls.
+    ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    thermostats = await ecomax.get(ATTR_THERMOSTATS)
+    thermostat = thermostats[0]
+    assert await thermostat.get("party_target_temp") is party_target_temp
+
 
 async def test_thermostat_parameters_callbacks_without_thermostats(
     ecomax: EcoMAX,
@@ -446,6 +457,13 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert heat_curve.min_value == 1.0
     assert heat_curve.max_value == 3.0
 
+    # Test that parameter instance is not recreated on subsequent calls.
+    ecomax.handle_frame(MixerParametersResponse(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    mixers = await ecomax.get(ATTR_MIXERS)
+    mixer = mixers[0]
+    assert await mixer.get("mixer_target_temp") is mixer_target_temp
+
 
 async def test_mixer_parameters_callbacks_without_mixers(ecomax: EcoMAX) -> None:
     """Test mixer parameters callbacks without any mixers."""
@@ -469,6 +487,7 @@ async def test_unknown_mixer_parameter(ecomax: EcoMAX, caplog) -> None:
 async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
     """Test callback that is dispatched on receiving schedule data."""
     ecomax.handle_frame(SchedulesResponse(message=message))
+    await ecomax.wait_until_done()
     schedules = await ecomax.get(ATTR_SCHEDULES)
     assert len(schedules) == 1
     heating_schedule = schedules["heating"]
@@ -497,6 +516,11 @@ async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
     ):
         schedule = getattr(heating_schedule, weekday)
         assert schedule.intervals == schedule_data[index]
+
+    # Test that parameter instance is not recreated on subsequent calls.
+    ecomax.handle_frame(SchedulesResponse(message=message))
+    await ecomax.wait_until_done()
+    assert await ecomax.get("heating_schedule_switch") is heating_schedule_switch
 
 
 async def test_request(ecomax: EcoMAX) -> None:
