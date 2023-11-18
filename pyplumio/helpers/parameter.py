@@ -160,8 +160,8 @@ class Parameter:
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
-    async def _confirm_parameter_change(self, _: Parameter) -> None:
-        """A callback for when parameter change is confirmed on
+    async def _confirm_update(self, _: Parameter) -> None:
+        """A callback for when parameter update is confirmed on
         the device.
         """
         self._pending_update = False
@@ -178,18 +178,14 @@ class Parameter:
 
         self._values.value = value
         self._pending_update = True
-        self.device.subscribe_once(
-            self.description.name, self._confirm_parameter_change
-        )
+        self.device.subscribe_once(self.description.name, self._confirm_update)
         while self.pending_update:
             if retries <= 0:
                 _LOGGER.error(
                     "Timed out while trying to set '%s' parameter",
                     self.description.name,
                 )
-                self.device.unsubscribe(
-                    self.description.name, self._confirm_parameter_change
-                )
+                self.device.unsubscribe(self.description.name, self._confirm_update)
                 return False
 
             await self.device.queue.put(self.request)
