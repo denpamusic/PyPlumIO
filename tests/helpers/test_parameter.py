@@ -152,7 +152,8 @@ def test_parameter_repr(parameter: Parameter) -> None:
         "TestParameter(device=EcoMAX, "
         "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "description=ParameterDescription(name='test_parameter', "
-        "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>))"
+        "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
+        "index=0)"
     )
 
 

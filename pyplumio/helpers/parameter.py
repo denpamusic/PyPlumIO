@@ -106,8 +106,9 @@ class Parameter:
         return (
             f"{self.__class__.__name__}("
             f"device={self.device.__class__.__name__}, "
-            f"values={self._values}, "
-            f"description={self.description})"
+            f"values={self.values}, "
+            f"description={self.description}, "
+            f"index={self._index})"
         )
 
     def _call_relational_method(self, method_to_call, other):
