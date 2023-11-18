@@ -44,10 +44,17 @@ class ThermostatParameter(Parameter):
     description: ThermostatParameterDescription
     offset: int
 
-    def __init__(self, offset: int, *args, **kwargs):
+    def __init__(
+        self,
+        device: Thermostat,
+        values: ParameterValues,
+        description: ParameterDescription,
+        index: int = 0,
+        offset: int = 0,
+    ):
         """Initialize a new thermostat parameter."""
         self.offset = offset
-        super().__init__(*args, **kwargs)
+        super().__init__(device, values, description, index)
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
