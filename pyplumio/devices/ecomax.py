@@ -195,7 +195,7 @@ class EcoMAX(Addressable):
                     (
                         "Encountered unknown ecoMAX parameter (%i)."
                         "Your device isn't fully compatible with this software and "
-                        "might not work properly."
+                        "may not work properly."
                         "Please visit the issue tracker and open a feature "
                         "request to support your device"
                     ),
