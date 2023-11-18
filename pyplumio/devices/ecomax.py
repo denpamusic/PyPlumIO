@@ -339,9 +339,7 @@ class EcoMAX(Addressable):
                 device=self,
                 description=ECOMAX_CONTROL_PARAMETER,
                 values=ParameterValues(
-                    value=int(mode != DeviceState.OFF),
-                    min_value=0,
-                    max_value=1,
+                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
                 ),
             ),
         )
