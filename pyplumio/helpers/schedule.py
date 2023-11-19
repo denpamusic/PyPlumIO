@@ -50,6 +50,8 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
 class ScheduleDay(MutableMapping):
     """Represents a single day of schedule."""
 
+    __slots__ = ("_intervals",)
+
     _intervals: list[bool]
 
     def __init__(self, intervals: list[bool]):
@@ -120,6 +122,18 @@ class ScheduleDay(MutableMapping):
 @dataclass
 class Schedule(Iterable):
     """Represents a weekly schedule."""
+
+    __slots__ = (
+        "name",
+        "device",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+    )
 
     name: str
     device: Addressable

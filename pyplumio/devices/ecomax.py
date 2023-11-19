@@ -70,7 +70,7 @@ ATTR_FUEL_BURNED: Final = "fuel_burned"
 
 MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * 1000000000
 
-DATA_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
+SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_DATA_SCHEMA, provides=ATTR_SCHEMA
@@ -99,9 +99,9 @@ class EcoMAX(Addressable):
     """Represents an ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
+    _setup_frames: Iterable[DataFrameDescription] = SETUP_FRAME_TYPES
     _frame_versions: dict[int, int]
-    _frame_types: tuple[DataFrameDescription, ...] = DATA_FRAME_TYPES
-    _fuel_burned_timestamp_ns: int = 0
+    _fuel_burned_timestamp_ns: int
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize a new ecoMAX controller."""

@@ -48,6 +48,8 @@ def _convert_to_datetime(seconds: int) -> datetime:
 class Alert:
     """Represents a device alert."""
 
+    __slots__ = ("code", "from_dt", "to_dt")
+
     code: int
     from_dt: datetime
     to_dt: datetime | None

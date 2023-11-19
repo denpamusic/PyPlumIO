@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC
 import asyncio
 from functools import cache
-from typing import ClassVar
+from typing import ClassVar, Iterable
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
@@ -83,7 +83,7 @@ class Addressable(Device, ABC):
 
     address: ClassVar[int]
     _network: NetworkInfo
-    _frame_types: tuple[DataFrameDescription, ...] = ()
+    _setup_frames: Iterable[DataFrameDescription]
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize a new addressable device."""
@@ -108,7 +108,7 @@ class Addressable(Device, ABC):
                 self.create_task(
                     self.request(description.provides, description.frame_type)
                 )
-                for description in self._frame_types
+                for description in self._setup_frames
             },
             return_exceptions=True,
         )

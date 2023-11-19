@@ -78,6 +78,8 @@ SCHEDULES: tuple[str, ...] = (
 class ScheduleParameter(Parameter):
     """Represents a schedule parameter."""
 
+    __slots__ = ()
+
     device: Addressable
 
     @property

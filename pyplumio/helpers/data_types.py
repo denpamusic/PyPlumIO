@@ -10,12 +10,15 @@ from typing import Any, ClassVar
 class DataType(ABC):
     """Represents a base data type."""
 
+    __slots__ = ("_value", "_size")
+
     _value: Any
-    _size: int = 0
+    _size: int
 
     def __init__(self, value: Any = None):
         """Initialize a new data type."""
         self._value = value
+        self._size = 0
 
     def __repr__(self) -> str:
         """Return serializable string representation of the class."""
@@ -77,6 +80,8 @@ class Undefined(DataType):
 class BitArray(DataType):
     """Represents a bit array."""
 
+    __slots__ = ("_index",)
+
     _index: int
 
     def __init__(self, value: Any = None, index: int = 0):
@@ -117,7 +122,10 @@ class BitArray(DataType):
 class IPv4(DataType):
     """Represents an IPv4 address."""
 
-    _size: int = 4
+    @property
+    def size(self) -> int:
+        """A data size."""
+        return 4
 
     def pack(self) -> bytes:
         """Pack the data."""
@@ -131,7 +139,10 @@ class IPv4(DataType):
 class IPv6(DataType):
     """Represents an IPv6 address."""
 
-    _size: int = 16
+    @property
+    def size(self) -> int:
+        """A data size."""
+        return 16
 
     def pack(self) -> bytes:
         """Pack the data."""
@@ -195,6 +206,8 @@ class BuiltInDataType(DataType, ABC):
     """Represents a data type that's supported by the built-in
     struct module.
     """
+
+    __slots__ = ("_struct",)
 
     _struct: ClassVar[struct.Struct]
 

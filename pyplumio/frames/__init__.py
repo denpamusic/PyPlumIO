@@ -68,12 +68,24 @@ def get_frame_handler(frame_type: int) -> str:
 class DataFrameDescription:
     """Describes what data is provided by the frame."""
 
+    __slots__ = ("frame_type", "provides")
+
     frame_type: FrameType
     provides: str
 
 
 class Frame(ABC):
     """Represents a frame."""
+
+    __slots__ = (
+        "recipient",
+        "sender",
+        "sender_type",
+        "econet_version",
+        "frame_type",
+        "_message",
+        "_data",
+    )
 
     recipient: DeviceType | Addressable | int
     sender: DeviceType | Addressable | int

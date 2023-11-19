@@ -30,6 +30,8 @@ def format_model_name(model_name: str) -> str:
 class ProductInfo:
     """Represents a product info provided by an UID response."""
 
+    __slots__ = ("type", "id", "uid", "logo", "image", "model")
+
     type: ProductType
     id: int
     uid: str

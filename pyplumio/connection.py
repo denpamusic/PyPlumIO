@@ -26,10 +26,12 @@ class Connection(ABC):
     All specific connection classes MUST be inherited from this class.
     """
 
+    __slots__ = ("_kwargs", "_protocol", "_closing", "_reconnect_on_failure")
+
     _kwargs: MutableMapping[str, Any]
     _protocol: Protocol
-    _closing: bool = False
-    _reconnect_on_failure: bool = True
+    _closing: bool
+    _reconnect_on_failure: bool
 
     def __init__(
         self,

@@ -64,8 +64,10 @@ def _diffence_between(old, new):
 class Filter(ABC):
     """Represents a filter."""
 
+    __slots__ = ("_callback", "_value")
+
     _callback: Any
-    _value: Any = UNDEFINED
+    _value: Any
 
     def __init__(self, callback: EventCallbackType):
         """Initialize a new filter."""
@@ -118,10 +120,12 @@ class _Debounce(Filter):
     filter calls.
     """
 
-    _calls: int = 0
-    _min_calls: int = 3
+    __slots__ = ("_calls", "_min_calls")
 
-    def __init__(self, callback: EventCallbackType, min_calls: int):
+    _calls: int
+    _min_calls: int
+
+    def __init__(self, callback: EventCallbackType, min_calls: int = 3):
         """Initialize a new debounce filter."""
         super().__init__(callback)
         self._calls = 0
@@ -155,6 +159,8 @@ class _Throttle(Filter):
     Calls a callback only when certain amount of seconds passed
     since the last call.
     """
+
+    __slots__ = ("_last_called", "_timeout")
 
     _last_called: float | None
     _timeout: float
@@ -218,6 +224,8 @@ class _Aggregate(Filter):
     Calls a callback with a sum of values collected over a specified
     time period.
     """
+
+    __slots__ = ("_sum", "_last_update", "_timeout")
 
     _sum: complex
     _last_update: float | None

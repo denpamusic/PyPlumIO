@@ -1,6 +1,7 @@
 """Contains a device parameter class."""
 from __future__ import annotations
 
+from abc import ABC
 import asyncio
 from dataclasses import dataclass
 import logging
@@ -77,14 +78,16 @@ class BinaryParameterDescription(ParameterDescription):
     """Represent a binary parameter description."""
 
 
-class Parameter:
+class Parameter(ABC):
     """Represents a parameter."""
 
+    __slots__ = ("device", "values", "description", "_index", "_pending_update")
+
     device: Device
-    description: ParameterDescription
     values: ParameterValues
+    description: ParameterDescription
     _index: int
-    _pending_update: bool = False
+    _pending_update: bool
 
     def __init__(
         self,
@@ -94,7 +97,6 @@ class Parameter:
         index: int = 0,
     ):
         """Initialize a new parameter."""
-        self.index = index
         self.device = device
         self.description = description
         self.values = values

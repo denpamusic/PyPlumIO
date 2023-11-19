@@ -40,6 +40,8 @@ THERMOSTAT_PARAMETER_SIZE: Final = 3
 class ThermostatParameter(Parameter):
     """Represents a thermostat parameter."""
 
+    __slots__ = ("offset",)
+
     device: Thermostat
     description: ThermostatParameterDescription
     offset: int

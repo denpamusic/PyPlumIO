@@ -4,6 +4,9 @@ from __future__ import annotations
 from functools import reduce
 from typing import Final
 
+CRC: Final = 0xA3A3
+POLYNOMIAL: Final = 0xA001
+
 
 def decode_uid(buffer: bytes) -> str:
     """Decode an UID string."""
@@ -20,10 +23,6 @@ def _base5(buffer: bytes) -> str:
         number >>= 5
 
     return output
-
-
-CRC: Final = 0xA3A3
-POLYNOMIAL: Final = 0xA001
 
 
 def _crc16(buffer: bytes) -> bytes:

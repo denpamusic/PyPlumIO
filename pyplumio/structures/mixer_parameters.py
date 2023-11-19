@@ -36,6 +36,8 @@ MIXER_PARAMETER_SIZE: Final = 3
 class MixerParameter(Parameter):
     """Represents a mixer parameter."""
 
+    __slots__ = ()
+
     device: Mixer
     description: MixerParameterDescription
 
