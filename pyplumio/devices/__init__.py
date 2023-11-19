@@ -1,6 +1,7 @@
 """Contains device classes."""
 from __future__ import annotations
 
+from abc import ABC
 import asyncio
 from functools import cache
 from typing import ClassVar
@@ -38,7 +39,7 @@ def get_device_handler_and_name(device_type: int) -> tuple[str, str]:
     return handler, class_name.lower()
 
 
-class Device(EventManager):
+class Device(ABC, EventManager):
     """Represents a device."""
 
     queue: asyncio.Queue
@@ -77,12 +78,12 @@ class Device(EventManager):
         self.create_task(self.set(name, value, timeout, retries))
 
 
-class Addressable(Device):
+class Addressable(Device, ABC):
     """Represents an addressable device."""
 
     address: ClassVar[int]
-    _frame_types: tuple[DataFrameDescription, ...] = ()
     _network: NetworkInfo
+    _frame_types: tuple[DataFrameDescription, ...] = ()
 
     def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
         """Initialize a new addressable device."""
@@ -145,7 +146,7 @@ class Addressable(Device):
         raise ValueError(f'could not request "{name}"', frame_type)
 
 
-class SubDevice(Device):
+class SubDevice(Device, ABC):
     """Represents the sub-device."""
 
     parent: Addressable
