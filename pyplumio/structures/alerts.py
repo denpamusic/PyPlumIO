@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from functools import lru_cache
 from typing import Any, Final, Generator
 
 from pyplumio.const import AlertType
@@ -22,6 +23,7 @@ ATTR_SECOND: Final = "second"
 ALERT_SIZE: Final = 9
 
 
+@lru_cache(maxsize=10)
 def _convert_to_datetime(seconds: int) -> datetime:
     """Convert timestamp to a datetime object."""
 
