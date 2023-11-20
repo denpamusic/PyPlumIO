@@ -11,7 +11,7 @@
       "__bytearray__": true
     },
     "data": {
-      "schema": [
+      "regdata_schema": [
         {
           "items": [
             1792,
@@ -434,7 +434,7 @@
       "__bytearray__": true
     },
     "data": {
-      "schema": [
+      "regdata_schema": [
         {
           "items": [
             1538,

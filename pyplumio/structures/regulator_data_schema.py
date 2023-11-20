@@ -8,11 +8,11 @@ from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
-ATTR_SCHEMA: Final = "schema"
+ATTR_REGDATA_SCHEMA: Final = "regdata_schema"
 
 
-class DataSchemaStructure(StructureDecoder):
-    """Represents a data schema structure."""
+class RegulatorDataSchemaStructure(StructureDecoder):
+    """Represents a regulator data schema structure."""
 
     _offset: int
 
@@ -37,7 +37,7 @@ class DataSchemaStructure(StructureDecoder):
             ensure_dict(
                 data,
                 {
-                    ATTR_SCHEMA: [
+                    ATTR_REGDATA_SCHEMA: [
                         self._unpack_block(message) for _ in range(blocks.value)
                     ]
                 },

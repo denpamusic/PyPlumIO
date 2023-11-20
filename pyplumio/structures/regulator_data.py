@@ -8,8 +8,8 @@ from pyplumio.helpers.data_types import BitArray, DataType
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
-from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.frame_versions import FrameVersionsStructure
+from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.utils import ensure_dict
 
 ATTR_REGDATA: Final = "regdata"
@@ -61,7 +61,7 @@ class RegulatorDataStructure(StructureDecoder):
 
         sender = self.frame.sender
         if isinstance(sender, AddressableDevice) and (
-            schema := sender.get_nowait(ATTR_SCHEMA, [])
+            schema := sender.get_nowait(ATTR_REGDATA_SCHEMA, [])
         ):
             data.setdefault(ATTR_REGDATA, RegulatorData()).load(
                 {

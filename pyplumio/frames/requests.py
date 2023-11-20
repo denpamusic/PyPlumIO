@@ -106,12 +106,12 @@ class ThermostatParametersRequest(Request):
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
 
 
-class DataSchemaRequest(Request):
-    """Represents data schema request."""
+class RegulatorDataSchemaRequest(Request):
+    """Represents regulator data schema request."""
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.REQUEST_DATA_SCHEMA
+    frame_type: ClassVar[int] = FrameType.REQUEST_REGULATOR_DATA_SCHEMA
 
 
 class SetEcomaxParameterRequest(Request):

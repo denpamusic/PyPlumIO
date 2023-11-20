@@ -7,12 +7,12 @@ from pyplumio.const import ATTR_PASSWORD, FrameType
 from pyplumio.frames import Response
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.alerts import AlertsStructure
-from pyplumio.structures.data_schema import DataSchemaStructure
 from pyplumio.structures.ecomax_parameters import EcomaxParametersStructure
 from pyplumio.structures.mixer_parameters import MixerParametersStructure
 from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
 from pyplumio.structures.program_version import ProgramVersionStructure
+from pyplumio.structures.regulator_data_schema import RegulatorDataSchemaStructure
 from pyplumio.structures.schedules import SchedulesStructure
 from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
@@ -135,8 +135,8 @@ class ThermostatParametersResponse(Response):
         return ThermostatParametersStructure(self).decode(message)[0]
 
 
-class DataSchemaResponse(Response):
-    """Represents a data schema response.
+class RegulatorDataSchemaResponse(Response):
+    """Represents a regulator data schema response.
 
     Contains schema, that describes structure of ecoMAX regulator data
     message.
@@ -144,11 +144,11 @@ class DataSchemaResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_DATA_SCHEMA
+    frame_type: ClassVar[int] = FrameType.RESPONSE_REGULATOR_DATA_SCHEMA
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
-        return DataSchemaStructure(self).decode(message)[0]
+        return RegulatorDataSchemaStructure(self).decode(message)[0]
 
 
 class SetEcomaxParameterResponse(Response):

@@ -6,12 +6,12 @@ from pyplumio.const import DeviceType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import (
     AlertsResponse,
-    DataSchemaResponse,
     DeviceAvailableResponse,
     EcomaxParametersResponse,
     MixerParametersResponse,
     PasswordResponse,
     ProgramVersionResponse,
+    RegulatorDataSchemaResponse,
     SchedulesResponse,
     ThermostatParametersResponse,
     UIDResponse,
@@ -30,7 +30,7 @@ def test_responses_type() -> None:
         PasswordResponse,
         EcomaxParametersResponse,
         MixerParametersResponse,
-        DataSchemaResponse,
+        RegulatorDataSchemaResponse,
         AlertsResponse,
     ):
         frame = response(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
@@ -49,12 +49,12 @@ def test_alerts_response(message, data) -> None:
 
 @pytest.mark.parametrize(
     "message, data",
-    load_json_parameters("responses/data_schema.json"),
+    load_json_parameters("responses/regulator_data_schema.json"),
 )
-def test_data_schema_response(message, data) -> None:
-    """Test a data schema response."""
-    assert DataSchemaResponse(message=message).data == data
-    assert not DataSchemaResponse(data=data).message
+def test_regulator_data_schema_response(message, data) -> None:
+    """Test a regulator data schema response."""
+    assert RegulatorDataSchemaResponse(message=message).data == data
+    assert not RegulatorDataSchemaResponse(data=data).message
 
 
 @pytest.mark.parametrize(

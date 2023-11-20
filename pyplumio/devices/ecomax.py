@@ -32,7 +32,6 @@ from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.alerts import ATTR_ALERTS
-from pyplumio.structures.data_schema import ATTR_SCHEMA
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
@@ -49,6 +48,7 @@ from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETERS,
     ATTR_SCHEDULES,
@@ -73,7 +73,7 @@ MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * 1000000000
 SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_DATA_SCHEMA, provides=ATTR_SCHEMA
+        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA, provides=ATTR_REGDATA_SCHEMA
     ),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS, provides=ATTR_ECOMAX_PARAMETERS

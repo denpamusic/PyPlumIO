@@ -39,8 +39,8 @@ from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
-    DataSchemaRequest,
     EcomaxControlRequest,
+    RegulatorDataSchemaRequest,
     SchedulesRequest,
     SetEcomaxParameterRequest,
     SetMixerParameterRequest,
@@ -49,9 +49,9 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import (
-    DataSchemaResponse,
     EcomaxParametersResponse,
     MixerParametersResponse,
+    RegulatorDataSchemaResponse,
     SchedulesResponse,
     ThermostatParametersResponse,
 )
@@ -168,7 +168,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
 
     mock_put_nowait.assert_has_calls(
         [
-            call(DataSchemaRequest(recipient=DeviceType.ECOMAX)),
+            call(RegulatorDataSchemaRequest(recipient=DeviceType.ECOMAX)),
             call(SchedulesRequest(recipient=DeviceType.ECOMAX)),
             call(UIDRequest(recipient=DeviceType.ECOMAX)),
             call(AlertsRequest(recipient=DeviceType.ECOMAX)),
@@ -270,10 +270,10 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
 async def test_regdata_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on received regdata."""
     test_schema, test_regdata = (
-        load_json_test_data("responses/data_schema.json")[0],
+        load_json_test_data("responses/regulator_data_schema.json")[0],
         load_json_test_data("messages/regulator_data.json")[0],
     )
-    ecomax.handle_frame(DataSchemaResponse(message=test_schema["message"]))
+    ecomax.handle_frame(RegulatorDataSchemaResponse(message=test_schema["message"]))
     await ecomax.wait_until_done()
     ecomax.handle_frame(RegulatorDataMessage(message=test_regdata["message"]))
     await ecomax.wait_until_done()
