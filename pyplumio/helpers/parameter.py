@@ -81,13 +81,13 @@ class BinaryParameterDescription(ParameterDescription):
 class Parameter(ABC):
     """Represents a parameter."""
 
-    __slots__ = ("device", "values", "description", "_index", "_pending_update")
+    __slots__ = ("device", "values", "description", "_pending_update", "_index")
 
     device: Device
     values: ParameterValues
     description: ParameterDescription
-    _index: int
     _pending_update: bool
+    _index: int
 
     def __init__(
         self,
@@ -98,8 +98,8 @@ class Parameter(ABC):
     ):
         """Initialize a new parameter."""
         self.device = device
-        self.description = description
         self.values = values
+        self.description = description
         self._pending_update = False
         self._index = index
 
