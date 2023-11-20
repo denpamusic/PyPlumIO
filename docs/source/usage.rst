@@ -746,12 +746,14 @@ It serves information purposes only and can be omitted.
 
     async def main():
         """Initialize a connection with network parameters."""
-        ethernet = pyplumio.ethernet_parameters(
+        ethernet = pyplumio.EthernetParameters(
+            status=True,
             ip="10.10.1.100",
             netmask="255.255.255.0",
             gateway="10.10.1.1",
         )
-        wireless = pyplumio.wireless_parameters(
+        wireless = pyplumio.WirelessParameters(
+            status=True,
             ip="10.10.2.100",
             netmask="255.255.255.0",
             gateway="10.10.2.1",
