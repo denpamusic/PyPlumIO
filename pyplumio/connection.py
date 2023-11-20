@@ -26,8 +26,6 @@ class Connection(ABC):
     All specific connection classes MUST be inherited from this class.
     """
 
-    __slots__ = ("_kwargs", "_protocol", "_closing", "_reconnect_on_failure")
-
     _kwargs: MutableMapping[str, Any]
     _protocol: Protocol
     _closing: bool
