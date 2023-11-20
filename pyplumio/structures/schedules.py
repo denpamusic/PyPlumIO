@@ -8,7 +8,7 @@ from itertools import chain
 from typing import Final
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
-from pyplumio.devices import Addressable, Device
+from pyplumio.devices import AddressableDevice, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
@@ -80,7 +80,7 @@ class ScheduleParameter(Parameter):
 
     __slots__ = ()
 
-    device: Addressable
+    device: AddressableDevice
 
     @property
     def request(self) -> Request:

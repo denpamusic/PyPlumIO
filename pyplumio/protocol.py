@@ -7,7 +7,7 @@ import logging
 from typing import Final, cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
-from pyplumio.devices import Addressable, get_device_handler_and_name
+from pyplumio.devices import AddressableDevice, get_device_handler_and_name
 from pyplumio.exceptions import (
     FrameDataError,
     FrameError,
@@ -97,7 +97,9 @@ class Protocol(EventManager):
         """Handle frame processing."""
         await self.connected.wait()
         while self.connected.is_set():
-            device, frame = cast(tuple[Addressable, Frame], await read_queue.get())
+            device, frame = cast(
+                tuple[AddressableDevice, Frame], await read_queue.get()
+            )
             device.handle_frame(frame)
             read_queue.task_done()
 
@@ -139,7 +141,7 @@ class Protocol(EventManager):
 
         await self._remove_writer()
 
-    def setup_device_entry(self, device_type: DeviceType) -> Addressable:
+    def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Setup the device entry."""
         handler, name = get_device_handler_and_name(device_type)
         if name not in self.data:
@@ -150,7 +152,9 @@ class Protocol(EventManager):
     def _create_device_entry(self, name: str, handler: str) -> None:
         """Create the device entry."""
         write_queue = self.queues[1]
-        device: Addressable = factory(handler, queue=write_queue, network=self._network)
+        device: AddressableDevice = factory(
+            handler, queue=write_queue, network=self._network
+        )
         device.dispatch_nowait(ATTR_CONNECTED, True)
         self.create_task(device.async_setup())
         self.data[name] = device

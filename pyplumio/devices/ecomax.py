@@ -16,7 +16,7 @@ from pyplumio.const import (
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import Addressable
+from pyplumio.devices import AddressableDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
@@ -95,7 +95,7 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 _LOGGER = logging.getLogger(__name__)
 
 
-class EcoMAX(Addressable):
+class EcoMAX(AddressableDevice):
     """Represents an ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX

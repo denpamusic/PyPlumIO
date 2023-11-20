@@ -13,7 +13,7 @@ from pyplumio.const import (
     ProductType,
     UnitOfMeasurement,
 )
-from pyplumio.devices import Addressable
+from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -38,7 +38,7 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 class EcomaxParameter(Parameter):
     """Represents an ecoMAX parameter."""
 
-    device: Addressable
+    device: AddressableDevice
     description: EcomaxParameterDescription
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:

@@ -8,7 +8,7 @@ import math
 from typing import Final, Literal
 
 from pyplumio.const import STATE_OFF, STATE_ON
-from pyplumio.devices import Addressable
+from pyplumio.devices import AddressableDevice
 from pyplumio.helpers.factory import factory
 from pyplumio.structures.schedules import collect_schedule_data
 
@@ -136,7 +136,7 @@ class Schedule(Iterable):
     )
 
     name: str
-    device: Addressable
+    device: AddressableDevice
     monday: ScheduleDay
     tuesday: ScheduleDay
     wednesday: ScheduleDay

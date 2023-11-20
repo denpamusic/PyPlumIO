@@ -11,7 +11,7 @@ from pyplumio.const import (
     ATTR_VALUE,
     UnitOfMeasurement,
 )
-from pyplumio.devices import Addressable
+from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import (
@@ -211,7 +211,7 @@ class ThermostatParametersStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         sender = self.frame.sender
         if (
-            isinstance(sender, Addressable)
+            isinstance(sender, AddressableDevice)
             and (thermostats := sender.get_nowait(ATTR_THERMOSTATS_CONNECTED, 0)) == 0
         ):
             return (

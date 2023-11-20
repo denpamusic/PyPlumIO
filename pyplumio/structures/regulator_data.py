@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from pyplumio.devices import Addressable
+from pyplumio.devices import AddressableDevice
 from pyplumio.helpers.data_types import BitArray, DataType
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
@@ -60,7 +60,7 @@ class RegulatorDataStructure(StructureDecoder):
         )
 
         sender = self.frame.sender
-        if isinstance(sender, Addressable) and (
+        if isinstance(sender, AddressableDevice) and (
             schema := sender.get_nowait(ATTR_SCHEMA, [])
         ):
             data.setdefault(ATTR_REGDATA, RegulatorData()).load(

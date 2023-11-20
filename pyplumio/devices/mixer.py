@@ -5,7 +5,7 @@ import asyncio
 import logging
 from typing import Sequence
 
-from pyplumio.devices import Addressable, SubDevice
+from pyplumio.devices import AddressableDevice, SubDevice
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.mixer_parameters import (
@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 class Mixer(SubDevice):
     """Represents an mixer."""
 
-    def __init__(self, queue: asyncio.Queue, parent: Addressable, index: int = 0):
+    def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
         """Initialize a new mixer."""
         super().__init__(queue, parent, index)
         self.subscribe(ATTR_MIXER_SENSORS, self._handle_sensors)

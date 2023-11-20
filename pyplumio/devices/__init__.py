@@ -78,7 +78,7 @@ class Device(ABC, EventManager):
         self.create_task(self.set(name, value, timeout, retries))
 
 
-class Addressable(Device, ABC):
+class AddressableDevice(Device, ABC):
     """Represents an addressable device."""
 
     address: ClassVar[int]
@@ -149,10 +149,10 @@ class Addressable(Device, ABC):
 class SubDevice(Device, ABC):
     """Represents the sub-device."""
 
-    parent: Addressable
+    parent: AddressableDevice
     index: int
 
-    def __init__(self, queue: asyncio.Queue, parent: Addressable, index: int = 0):
+    def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
         """Initialize a new sub-device object."""
         super().__init__(queue)
         self.parent = parent
