@@ -13,6 +13,7 @@ import serial_asyncio
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import Protocol
+from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,27 +27,27 @@ class Connection(ABC):
     All specific connection classes MUST be inherited from this class.
     """
 
-    _kwargs: MutableMapping[str, Any]
-    _protocol: Protocol
     _closing: bool
+    _protocol: Protocol
     _reconnect_on_failure: bool
+    _kwargs: MutableMapping[str, Any]
 
     def __init__(
         self,
+        ethernet_parameters: EthernetParameters | None = None,
+        wireless_parameters: WirelessParameters | None = None,
         reconnect_on_failure: bool = True,
-        ethernet_parameters=None,
-        wireless_parameters=None,
         **kwargs,
     ):
         """Initialize a new connection."""
-        self._kwargs = kwargs
         self._closing = False
+        self._reconnect_on_failure = reconnect_on_failure
         self._protocol = Protocol(
             self._connection_lost,
             ethernet_parameters,
             wireless_parameters,
         )
-        self._reconnect_on_failure = reconnect_on_failure
+        self._kwargs = kwargs
 
     async def __aenter__(self):
         """Provide an entry point for the context manager."""
@@ -123,9 +124,20 @@ class TcpConnection(Connection):
     host: str
     port: int
 
-    def __init__(self, host: str, port: int, **kwargs):
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        *,
+        ethernet_parameters: EthernetParameters | None = None,
+        wireless_parameters: WirelessParameters | None = None,
+        reconnect_on_failure: bool = True,
+        **kwargs,
+    ):
         """Initialize a new TCP connection."""
-        super().__init__(**kwargs)
+        super().__init__(
+            ethernet_parameters, wireless_parameters, reconnect_on_failure, **kwargs
+        )
         self.host = host
         self.port = port
 
@@ -151,9 +163,20 @@ class SerialConnection(Connection):
     device: str
     baudrate: int
 
-    def __init__(self, device: str, baudrate: int = 115200, **kwargs):
+    def __init__(
+        self,
+        device: str,
+        baudrate: int = 115200,
+        *,
+        ethernet_parameters: EthernetParameters | None = None,
+        wireless_parameters: WirelessParameters | None = None,
+        reconnect_on_failure: bool = True,
+        **kwargs,
+    ):
         """Initialize a new serial connection."""
-        super().__init__(**kwargs)
+        super().__init__(
+            ethernet_parameters, wireless_parameters, reconnect_on_failure, **kwargs
+        )
         self.device = device
         self.baudrate = baudrate
 
