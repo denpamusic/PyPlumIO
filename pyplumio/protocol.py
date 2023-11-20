@@ -56,10 +56,10 @@ class Protocol(EventManager):
         self._queues = (read_queue, write_queue)
         self._connection_lost_callback = connection_lost_callback
         if ethernet_parameters is None:
-            ethernet_parameters = EthernetParameters()
+            ethernet_parameters = EthernetParameters(status=False)
 
         if wireless_parameters is None:
-            wireless_parameters = WirelessParameters()
+            wireless_parameters = WirelessParameters(status=False)
 
         self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
 

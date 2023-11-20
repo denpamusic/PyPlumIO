@@ -25,7 +25,7 @@ class EthernetParameters:
     ip: str = DEFAULT_IP
     netmask: str = DEFAULT_NETMASK
     gateway: str = DEFAULT_IP
-    status: bool = False
+    status: bool = True
 
 
 @dataclass
