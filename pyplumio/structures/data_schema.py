@@ -10,8 +10,6 @@ from pyplumio.utils import ensure_dict
 
 ATTR_SCHEMA: Final = "schema"
 
-BLOCK_SIZE: Final = 3
-
 
 class DataSchemaStructure(StructureDecoder):
     """Represents a data schema structure."""

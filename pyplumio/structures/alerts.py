@@ -13,14 +13,6 @@ from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_ALERTS: Final = "alerts"
-ATTR_YEAR: Final = "year"
-ATTR_MONTH: Final = "month"
-ATTR_DAY: Final = "day"
-ATTR_HOUR: Final = "hour"
-ATTR_MINUTE: Final = "minute"
-ATTR_SECOND: Final = "second"
-
-ALERT_SIZE: Final = 9
 
 
 @lru_cache(maxsize=10)
@@ -30,12 +22,12 @@ def _convert_to_datetime(seconds: int) -> datetime:
     def _seconds_to_datetime_args(seconds: int) -> Generator[Any, None, None]:
         """Convert seconds to a kwarg for a datetime class."""
         intervals: tuple[tuple[str, int, int], ...] = (
-            (ATTR_YEAR, 32140800, 2000),  # 60sec * 60min * 24h * 31d * 12m
-            (ATTR_MONTH, 2678400, 1),  # 60sec * 60min * 24h * 31d
-            (ATTR_DAY, 86400, 1),  # 60sec * 60min * 24h
-            (ATTR_HOUR, 3600, 0),  # 60sec * 60min
-            (ATTR_MINUTE, 60, 0),
-            (ATTR_SECOND, 1, 0),
+            ("year", 32140800, 2000),  # 60sec * 60min * 24h * 31d * 12m
+            ("month", 2678400, 1),  # 60sec * 60min * 24h * 31d
+            ("day", 86400, 1),  # 60sec * 60min * 24h
+            ("hour", 3600, 0),  # 60sec * 60min
+            ("minute", 60, 0),
+            ("second", 1, 0),
         )
 
         for name, count, offset in intervals:

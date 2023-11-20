@@ -47,8 +47,6 @@ TEMPERATURES: tuple[str, ...] = (
     ATTR_AIR_OUT_TEMP,
 )
 
-TEMPERATURE_SIZE: Final = 5
-
 
 class TemperaturesStructure(StructureDecoder):
     """Represents a temperatures data structure."""
