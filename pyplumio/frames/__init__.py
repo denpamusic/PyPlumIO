@@ -82,7 +82,6 @@ class Frame(ABC):
         "sender",
         "sender_type",
         "econet_version",
-        "frame_type",
         "_message",
         "_data",
     )
@@ -244,6 +243,8 @@ class Frame(ABC):
 class Request(Frame):
     """Represents a request."""
 
+    __slots__ = ()
+
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         return bytearray()
@@ -260,6 +261,8 @@ class Request(Frame):
 class Response(Frame):
     """Represents a response."""
 
+    __slots__ = ()
+
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
         return bytearray()
@@ -271,3 +274,5 @@ class Response(Frame):
 
 class Message(Response):
     """Represents a message."""
+
+    __slots__ = ()
