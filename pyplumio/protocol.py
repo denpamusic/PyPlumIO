@@ -33,15 +33,6 @@ CONSUMERS_NUMBER: Final = 2
 class Protocol(EventManager):
     """Represents protocol."""
 
-    __slots__ = (
-        "writer",
-        "reader",
-        "connected",
-        "_network",
-        "_queues",
-        "_connection_lost_callback",
-    )
-
     writer: FrameWriter | None
     reader: FrameReader | None
     connected: asyncio.Event
