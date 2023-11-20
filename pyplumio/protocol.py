@@ -1,6 +1,7 @@
 """Contains protocol representation."""
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
 import logging
@@ -30,15 +31,14 @@ _LOGGER = logging.getLogger(__name__)
 CONSUMERS_NUMBER: Final = 2
 
 
-class Protocol(EventManager):
-    """Represents protocol."""
+class Protocol(ABC):
+    """Represents a protocol."""
 
     writer: FrameWriter | None
     reader: FrameReader | None
     connected: asyncio.Event
-    _network: NetworkInfo
-    _queues: tuple[asyncio.Queue, asyncio.Queue]
     _connection_lost_callback: Callable[[], Awaitable[None]] | None
+    _network: NetworkInfo
 
     def __init__(
         self,
@@ -51,9 +51,6 @@ class Protocol(EventManager):
         self.writer = None
         self.reader = None
         self.connected = asyncio.Event()
-        read_queue: asyncio.Queue = asyncio.Queue()
-        write_queue: asyncio.Queue = asyncio.Queue()
-        self._queues = (read_queue, write_queue)
         self._connection_lost_callback = connection_lost_callback
         if ethernet_parameters is None:
             ethernet_parameters = EthernetParameters(status=False)
@@ -62,6 +59,117 @@ class Protocol(EventManager):
             wireless_parameters = WirelessParameters(status=False)
 
         self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
+
+    async def close_writer(self) -> None:
+        """Ensure that writer is closed."""
+        if not self.writer:
+            return
+
+        try:
+            await self.writer.close()
+        except (OSError, asyncio.TimeoutError):
+            # Ignore any connection errors when closing the writer.
+            pass
+        finally:
+            self.writer = None
+
+    @abstractmethod
+    def connection_established(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ):
+        """Called when connection is established."""
+
+    @abstractmethod
+    async def connection_lost(self):
+        """Called when connection is lost."""
+
+    @abstractmethod
+    async def shutdown(self):
+        """Shutdown the protocol."""
+
+
+class DummyProtocol(Protocol):
+    """Represents a dummy protocol."""
+
+    def connection_established(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ):
+        """Called when connection is established."""
+        self.reader = FrameReader(reader)
+        self.writer = FrameWriter(writer)
+        self.connected.set()
+
+    async def connection_lost(self):
+        """Called when connection is lost."""
+        if self.connected.is_set():
+            self.connected.clear()
+            await self.close_writer()
+            if self._connection_lost_callback is not None:
+                await self._connection_lost_callback()
+
+    async def shutdown(self):
+        """Shutdown the protocol."""
+        if self.connected.is_set():
+            self.connected.clear()
+            await self.close_writer()
+
+
+class AsyncProtocol(Protocol, EventManager):
+    """Represents an async protocol."""
+
+    _queues: tuple[asyncio.Queue, asyncio.Queue]
+
+    def __init__(
+        self,
+        connection_lost_callback: Callable[[], Awaitable[None]] | None = None,
+        ethernet_parameters: EthernetParameters | None = None,
+        wireless_parameters: WirelessParameters | None = None,
+    ):
+        """Initialize a new default protocol."""
+        super().__init__(
+            connection_lost_callback, ethernet_parameters, wireless_parameters
+        )
+        self._queues = (asyncio.Queue(), asyncio.Queue())
+
+    def connection_established(
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+    ):
+        """Called when connection is established."""
+        self.reader = FrameReader(reader)
+        self.writer = FrameWriter(writer)
+        read_queue, write_queue = self.queues
+        write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
+        self.create_task(self.frame_producer(*self.queues))
+        for _ in range(CONSUMERS_NUMBER):
+            self.create_task(self.frame_consumer(read_queue))
+
+        for device in self.data.values():
+            device.dispatch_nowait(ATTR_CONNECTED, True)
+
+        self.connected.set()
+
+    async def connection_lost(self):
+        """Called when connection is lost."""
+        if self.connected.is_set():
+            self.connected.clear()
+            for device in self.data.values():
+                # Notify devices about connection loss.
+                await device.dispatch(ATTR_CONNECTED, False)
+
+            await self.close_writer()
+            if self._connection_lost_callback is not None:
+                await self._connection_lost_callback()
+
+    async def shutdown(self):
+        """Shutdown protocol tasks."""
+        await asyncio.gather(*[queue.join() for queue in self.queues])
+        await super(Protocol, self).shutdown()
+        for device in self.data.values():
+            await device.shutdown()
+
+        if self.connected.is_set():
+            self.connected.clear()
+            await self.close_writer()
 
     async def frame_producer(
         self, read_queue: asyncio.Queue, write_queue: asyncio.Queue
@@ -103,44 +211,6 @@ class Protocol(EventManager):
             device.handle_frame(frame)
             read_queue.task_done()
 
-    def connection_established(
-        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ):
-        """Start consumers and producer tasks."""
-        self.reader = FrameReader(reader)
-        self.writer = FrameWriter(writer)
-        read_queue, write_queue = self.queues
-        write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
-        self.create_task(self.frame_producer(*self.queues))
-        for _ in range(CONSUMERS_NUMBER):
-            self.create_task(self.frame_consumer(read_queue))
-
-        for device in self.data.values():
-            device.dispatch_nowait(ATTR_CONNECTED, True)
-
-        self.connected.set()
-
-    async def connection_lost(self):
-        """Shutdown consumers and call connection lost callback."""
-        if self.connected.is_set():
-            self.connected.clear()
-            for device in self.data.values():
-                # Notify devices about connection loss.
-                await device.dispatch(ATTR_CONNECTED, False)
-
-            await self._remove_writer()
-            if self._connection_lost_callback is not None:
-                await self._connection_lost_callback()
-
-    async def shutdown(self):
-        """Shutdown protocol tasks."""
-        await asyncio.gather(*[queue.join() for queue in self.queues])
-        await super().shutdown()
-        for device in self.data.values():
-            await device.shutdown()
-
-        await self._remove_writer()
-
     def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Setup the device entry."""
         handler, name = get_device_handler_and_name(device_type)
@@ -159,17 +229,6 @@ class Protocol(EventManager):
         self.create_task(device.async_setup())
         self.data[name] = device
         self.set_event(name)
-
-    async def _remove_writer(self):
-        """Attempt to gracefully remove the frame writer."""
-        if self.writer:
-            try:
-                await self.writer.close()
-            except (OSError, asyncio.TimeoutError):
-                # Ignore any connection errors when closing the writer.
-                pass
-            finally:
-                self.writer = None
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:

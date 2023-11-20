@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pyplumio._version import __version__, __version_tuple__
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
+from pyplumio.protocol import AsyncProtocol, Protocol
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 
 
@@ -13,6 +14,7 @@ def open_serial_connection(
     ethernet_parameters: EthernetParameters | None = None,
     wireless_parameters: WirelessParameters | None = None,
     reconnect_on_failure: bool = True,
+    protocol: type[Protocol] = AsyncProtocol,
     **kwargs,
 ) -> SerialConnection:
     """Create a serial connection."""
@@ -22,6 +24,7 @@ def open_serial_connection(
         ethernet_parameters=ethernet_parameters,
         wireless_parameters=wireless_parameters,
         reconnect_on_failure=reconnect_on_failure,
+        protocol=protocol,
         **kwargs,
     )
 
@@ -33,6 +36,7 @@ def open_tcp_connection(
     ethernet_parameters: EthernetParameters | None = None,
     wireless_parameters: WirelessParameters | None = None,
     reconnect_on_failure: bool = True,
+    protocol: type[Protocol] = AsyncProtocol,
     **kwargs,
 ) -> TcpConnection:
     """Create a TCP connection."""
@@ -42,6 +46,7 @@ def open_tcp_connection(
         ethernet_parameters=ethernet_parameters,
         wireless_parameters=wireless_parameters,
         reconnect_on_failure=reconnect_on_failure,
+        protocol=protocol,
         **kwargs,
     )
 
