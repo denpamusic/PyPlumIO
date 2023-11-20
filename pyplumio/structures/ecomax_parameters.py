@@ -38,6 +38,8 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 class EcomaxParameter(Parameter):
     """Represents an ecoMAX parameter."""
 
+    __slots__ = ()
+
     device: AddressableDevice
     description: EcomaxParameterDescription
 

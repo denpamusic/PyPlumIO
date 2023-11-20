@@ -96,6 +96,8 @@ class _OnChange(Filter):
     previous callback call.
     """
 
+    __slots__ = ()
+
     async def __call__(self, new_value):
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
@@ -197,6 +199,8 @@ class _Delta(Filter):
     Calls a callback with a difference between two subsequent values.
     """
 
+    __slots__ = ()
+
     async def __call__(self, new_value):
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
@@ -271,6 +275,10 @@ class _Custom(Filter):
     that's called by this class with the value as an argument
     returns true.
     """
+
+    __slots__ = ("_filter_fn",)
+
+    filter_fn: Callable[[Any], bool]
 
     def __init__(self, callback: EventCallbackType, filter_fn: Callable[[Any], bool]):
         """Initialize a new custom filter."""

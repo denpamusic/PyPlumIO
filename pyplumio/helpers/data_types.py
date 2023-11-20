@@ -68,6 +68,8 @@ class DataType(ABC):
 class Undefined(DataType):
     """Represents an undefined."""
 
+    __slots__ = ()
+
     def pack(self) -> bytes:
         """Pack the data."""
         return bytes()
@@ -122,6 +124,8 @@ class BitArray(DataType):
 class IPv4(DataType):
     """Represents an IPv4 address."""
 
+    __slots__ = ()
+
     @property
     def size(self) -> int:
         """A data size."""
@@ -139,6 +143,8 @@ class IPv4(DataType):
 class IPv6(DataType):
     """Represents an IPv6 address."""
 
+    __slots__ = ()
+
     @property
     def size(self) -> int:
         """A data size."""
@@ -155,6 +161,8 @@ class IPv6(DataType):
 
 class String(DataType):
     """Represents a null terminated string."""
+
+    __slots__ = ()
 
     def __init__(self, value: Any = ""):
         """Initialize a new null terminated string data type."""
@@ -174,6 +182,8 @@ class String(DataType):
 class VarBytes(DataType):
     """Represents a variable length bytes."""
 
+    __slots__ = ()
+
     def __init__(self, value: Any = b""):
         """Initialize a new variable length bytes data type."""
         super().__init__(value)
@@ -192,6 +202,8 @@ class VarBytes(DataType):
 class VarString(VarBytes):
     """Represents a variable length string."""
 
+    __slots__ = ()
+
     def pack(self) -> bytes:
         """Pack the data."""
         return UnsignedChar(self.size - 1).to_bytes() + self.value.encode()
@@ -207,7 +219,7 @@ class BuiltInDataType(DataType, ABC):
     struct module.
     """
 
-    __slots__ = ("_struct",)
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct]
 
@@ -228,11 +240,15 @@ class BuiltInDataType(DataType, ABC):
 class SignedChar(BuiltInDataType):
     """Represents a signed char."""
 
+    __slots__ = ()
+
     _struct: ClassVar[struct.Struct] = struct.Struct("<b")
 
 
 class UnsignedChar(BuiltInDataType):
     """Represents an unsigned char."""
+
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<B")
 
@@ -240,11 +256,15 @@ class UnsignedChar(BuiltInDataType):
 class Short(BuiltInDataType):
     """Represents a 16 bit integer."""
 
+    __slots__ = ()
+
     _struct: ClassVar[struct.Struct] = struct.Struct("<h")
 
 
 class UnsignedShort(BuiltInDataType):
     """Represents an unsigned 16 bit integer."""
+
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<H")
 
@@ -252,11 +272,15 @@ class UnsignedShort(BuiltInDataType):
 class Int(BuiltInDataType):
     """Represents a 32 bit integer."""
 
+    __slots__ = ()
+
     _struct: ClassVar[struct.Struct] = struct.Struct("<i")
 
 
 class UnsignedInt(BuiltInDataType):
     """Represents a unsigned 32 bit integer."""
+
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<I")
 
@@ -264,11 +288,15 @@ class UnsignedInt(BuiltInDataType):
 class Float(BuiltInDataType):
     """Represents a float."""
 
+    __slots__ = ()
+
     _struct: ClassVar[struct.Struct] = struct.Struct("<f")
 
 
 class Double(BuiltInDataType):
     """Represents a double."""
+
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct] = struct.Struct("<d")
 
@@ -276,12 +304,15 @@ class Double(BuiltInDataType):
 class Int64(BuiltInDataType):
     """Represents a 64 bit signed integer."""
 
+    __slots__ = ()
+
     _struct: ClassVar[struct.Struct] = struct.Struct("<q")
 
 
 class UInt64(BuiltInDataType):
     """Represents a 64 bit unsigned integer."""
 
+    __slots__ = ()
     _struct: ClassVar[struct.Struct] = struct.Struct("<Q")
 
 

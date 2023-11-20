@@ -22,6 +22,8 @@ from pyplumio.structures.schedules import SchedulesStructure
 class ProgramVersionRequest(Request):
     """Represents a program version request."""
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_PROGRAM_VERSION
 
     def response(self, **kwargs) -> Response | None:
@@ -31,6 +33,8 @@ class ProgramVersionRequest(Request):
 
 class CheckDeviceRequest(Request):
     """Represents a check device request."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_CHECK_DEVICE
 
@@ -42,11 +46,15 @@ class CheckDeviceRequest(Request):
 class UIDRequest(Request):
     """Represents an UID request."""
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_UID
 
 
 class PasswordRequest(Request):
     """Represents a password request."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_PASSWORD
 
@@ -56,6 +64,8 @@ class EcomaxParametersRequest(Request):
 
     Contains number of parameters and index of the first parameter.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_PARAMETERS
 
@@ -71,6 +81,8 @@ class MixerParametersRequest(Request):
     parameter.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_MIXER_PARAMETERS
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -85,6 +97,8 @@ class ThermostatParametersRequest(Request):
     parameter.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -95,6 +109,8 @@ class ThermostatParametersRequest(Request):
 class DataSchemaRequest(Request):
     """Represents data schema request."""
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_DATA_SCHEMA
 
 
@@ -103,6 +119,8 @@ class SetEcomaxParameterRequest(Request):
 
     Contains parameter index and new value.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_ECOMAX_PARAMETER
 
@@ -119,6 +137,8 @@ class SetMixerParameterRequest(Request):
 
     Contains parameter index, new value and mixer index.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_MIXER_PARAMETER
 
@@ -146,6 +166,8 @@ class SetThermostatParameterRequest(Request):
     and for the third thermostat is 24 (2 * 12).
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -167,6 +189,8 @@ class EcomaxControlRequest(Request):
     be turned off, 1 - means that it should be turned on.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_ECOMAX_CONTROL
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -184,6 +208,8 @@ class StartMasterRequest(Request):
     periodic messages.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_START_MASTER
 
 
@@ -194,6 +220,8 @@ class StopMasterRequest(Request):
     periodic messages.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_STOP_MASTER
 
 
@@ -203,6 +231,8 @@ class AlertsRequest(Request):
     Contains number of alerts to get and index of the first
     alert.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_ALERTS
 
@@ -215,11 +245,15 @@ class AlertsRequest(Request):
 class SchedulesRequest(Request):
     """Represents a schedules request."""
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.REQUEST_SCHEDULES
 
 
 class SetScheduleRequest(Request):
     """Represents a request to set a schedule."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.REQUEST_SET_SCHEDULE
 

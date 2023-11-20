@@ -34,6 +34,8 @@ from pyplumio.structures.thermostat_sensors import ThermostatSensorsStructure
 class RegulatorDataMessage(Message):
     """Represents a regulator data message."""
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: bytearray) -> EventDataType:
@@ -44,6 +46,8 @@ class RegulatorDataMessage(Message):
 
 class SensorDataMessage(Message):
     """Represents a sensor data message."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.MESSAGE_SENSOR_DATA
 

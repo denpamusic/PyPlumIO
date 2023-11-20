@@ -23,6 +23,8 @@ class ProgramVersionResponse(Response):
     Contains software version info.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_PROGRAM_VERSION
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -39,6 +41,8 @@ class DeviceAvailableResponse(Response):
 
     Contains network information and status.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_DEVICE_AVAILABLE
 
@@ -57,6 +61,8 @@ class UIDResponse(Response):
     Contains product info and product UID.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_UID
 
     def create_message(self, data: EventDataType) -> bytearray:
@@ -74,6 +80,8 @@ class PasswordResponse(Response):
     Contains device service password as plaintext.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_PASSWORD
 
     def decode_message(self, message: bytearray) -> EventDataType:
@@ -88,6 +96,8 @@ class EcomaxParametersResponse(Response):
     Contains editable ecoMAX parameters.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_PARAMETERS
 
     def decode_message(self, message: bytearray) -> EventDataType:
@@ -101,6 +111,8 @@ class MixerParametersResponse(Response):
     Contains editable mixer parameters.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_MIXER_PARAMETERS
 
     def decode_message(self, message: bytearray) -> EventDataType:
@@ -113,6 +125,8 @@ class ThermostatParametersResponse(Response):
 
     Contains editable thermostat parameters.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
 
@@ -128,6 +142,8 @@ class DataSchemaResponse(Response):
     message.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_DATA_SCHEMA
 
     def decode_message(self, message: bytearray) -> EventDataType:
@@ -142,6 +158,8 @@ class SetEcomaxParameterResponse(Response):
     successfully set.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_ECOMAX_PARAMETER
 
 
@@ -151,6 +169,8 @@ class SetMixerParameterResponse(Response):
     Empty response acknowledges, that mixer parameter was
     successfully set.
     """
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
 
@@ -162,6 +182,8 @@ class SetThermostatParameterResponse(Response):
     successfully set.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
 
 
@@ -172,11 +194,15 @@ class EcomaxControlResponse(Response):
     successfully processed.
     """
 
+    __slots__ = ()
+
     frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_CONTROL
 
 
 class AlertsResponse(Response):
     """Represents response to a device alerts request."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_ALERTS
 
@@ -187,6 +213,8 @@ class AlertsResponse(Response):
 
 class SchedulesResponse(Response):
     """Represents response to a device schedules request."""
+
+    __slots__ = ()
 
     frame_type: ClassVar[int] = FrameType.RESPONSE_SCHEDULES
 
