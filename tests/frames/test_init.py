@@ -1,4 +1,5 @@
 """Contains tests for the abstract frame class."""
+from __future__ import annotations
 
 from typing import ClassVar, Final
 
