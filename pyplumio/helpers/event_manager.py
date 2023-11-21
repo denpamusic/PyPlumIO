@@ -29,31 +29,74 @@ class EventManager(TaskManager):
             raise AttributeError from e
 
     async def wait_for(self, name: str | int, timeout: float | None = None) -> None:
-        """Wait for the value to become available."""
+        """Wait for the value to become available.
+
+        :param name: Event name or ID
+        :type name: str | int
+        :param timeout: Wait this amount of seconds for a data to
+            become available, defaults to `None`
+        :type timeout: float, optional
+        :raise asyncio.TimeoutError: when waiting past specified timeout
+        """
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
     async def get(self, name: str | int, timeout: float | None = None):
-        """Get the value."""
+        """Get the value by name.
+
+        :param name: Event name or ID
+        :type name: str | int
+        :param timeout: Wait this amount of seconds for a data to
+            become available, defaults to `None`
+        :type timeout: float, optional
+        :return: An event data
+        :raise asyncio.TimeoutError: when waiting past specified timeout
+        """
         await self.wait_for(name, timeout=timeout)
         return self.data[name]
 
     def get_nowait(self, name: str | int, default=None):
-        """Get the value without waiting."""
+        """Get the value by name without waiting.
+
+        If value is not available, default value will be
+        returned instead.
+
+        :param name: Event name or ID
+        :type name: str | int
+        :param default: default value to return if data is unavailable,
+            defaults to `None`
+        :type default: Any, optional
+        :return: An event data
+        """
         try:
             return self.data[name]
         except KeyError:
             return default
 
     def subscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe a callback to the event."""
+        """Subscribe a callback to the event.
+
+        :param name: Event name or ID
+        :type name: str
+        :param callback: A coroutine callback function, that will be
+            awaited on the with the event data as an argument.
+        :type callback: Callable[[Any], Awaitable[Any]]
+        """
         if name not in self._callbacks:
             self._callbacks[name] = []
 
         self._callbacks[name].append(callback)
 
     def subscribe_once(self, name: str | int, callback: EventCallbackType) -> None:
-        """Subscribe a callback to the single event."""
+        """Subscribe a callback to the event once. Callback will be
+        unsubscribed after single event.
+
+        :param name: Event name or ID
+        :type name: str
+        :param callback: A coroutine callback function, that will be
+            awaited on the with the event data as an argument.
+        :type callback: Callable[[Any], Awaitable[Any]]
+        """
 
         async def _callback(value):
             """Unsubscribe callback from the event and calls it."""
@@ -63,7 +106,15 @@ class EventManager(TaskManager):
         self.subscribe(name, _callback)
 
     def unsubscribe(self, name: str | int, callback: EventCallbackType) -> None:
-        """Usubscribe a callback from the event."""
+        """Usubscribe a callback from the event.
+
+        :param name: Event name or ID
+        :type name: str
+        :param callback: A coroutine callback function, previously
+            subscribed to an event using ``subscribe()`` or
+            ``subscribe_once()`` methods.
+        :type callback: Callable[[Any], Awaitable[Any]]
+        """
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 

@@ -1,4 +1,9 @@
 from importlib.metadata import version as pkg_version
+import os
+import sys
+
+sys.path.insert(0, os.path.abspath("../../"))
+
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -21,6 +26,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.githubpages",
+    "sphinx.ext.autosectionlabel",
 ]
 autosummary_generate = True
 

@@ -17,7 +17,29 @@ def open_serial_connection(
     protocol: type[Protocol] = AsyncProtocol,
     **kwargs,
 ) -> SerialConnection:
-    """Create a serial connection."""
+    r"""Create a serial connection.
+
+    :param device: Serial port device name. e. g. /dev/ttyUSB0
+    :type device: str
+    :param baudrate: Serial port baud rate, defaults to 115200
+    :type baudrate: int, optional
+    :param ethernet_parameters: Ethernet parameters to send to an
+        ecoMAX controller
+    :type ethernet_parameters: EthernetParameters, optional
+    :param wireless_parameters: Wireless parameters to send to an
+        ecoMAX controller
+    :type wireless_parameters: WirelessParameters, optional
+    :param reconnect_on_failure: `True` if PyPlumIO should try
+        reconnecting on failure, otherwise `False`, default to `True`
+    :type reconnect_on_failure: bool, optional
+    :param protocol: Protocol that will be used for communication with
+        the ecoMAX controller, default to AsyncProtocol
+    :type protocol: Protocol, optional
+    :param \**kwargs: Additional keyword arguments to be passed to
+        serial_asyncio.open_serial_connection()
+    :return: An instance of serial connection
+    :rtype: SerialConnection
+    """
     return SerialConnection(
         device,
         baudrate,
@@ -39,7 +61,29 @@ def open_tcp_connection(
     protocol: type[Protocol] = AsyncProtocol,
     **kwargs,
 ) -> TcpConnection:
-    """Create a TCP connection."""
+    r"""Create a TCP connection.
+
+    :param host: IP address or host name of the remote RS-485 server
+    :type host: str
+    :param port: Port that remote RS-485 server is listening to
+    :type port: int
+    :param ethernet_parameters: Ethernet parameters to send to an
+        ecoMAX controller
+    :type ethernet_parameters: EthernetParameters, optional
+    :param wireless_parameters: Wireless parameters to send to an
+        ecoMAX controller
+    :type wireless_parameters: WirelessParameters, optional
+    :param reconnect_on_failure: `True` if PyPlumIO should try
+        reconnecting on failure, otherwise `False`, default to `True`
+    :type reconnect_on_failure: bool, optional
+    :param protocol: Protocol that will be used for communication with
+        the ecoMAX controller, default to AsyncProtocol
+    :type protocol: Protocol, optional
+    :param \**kwargs: Additional keyword arguments to be passed to
+        asyncio.open_connection()
+    :return: An instance of TCP connection
+    :rtype: TcpConnection
+    """
     return TcpConnection(
         host,
         port,

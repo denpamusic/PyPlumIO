@@ -235,19 +235,29 @@ class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
     async def turn_on(self) -> bool:
-        """Set a parameter value to 'on'."""
+        """Set a parameter value to 'on'.
+
+        :return: `True` if parameter was successfully turned on, `False`
+            otherwise.
+        :rtype: bool
+        """
         return await self.set(STATE_ON)
 
     async def turn_off(self) -> bool:
-        """Set a parameter value to 'off'."""
+        """Set a parameter value to 'off'.
+
+        :return: `True` if parameter was successfully turned off, `False`
+            otherwise.
+        :rtype: bool
+        """
         return await self.set(STATE_OFF)
 
     def turn_on_nowait(self) -> None:
-        """Set a parameter state to 'on' without waiting."""
+        """Set a parameter value to 'on' without waiting."""
         self.set_nowait(STATE_ON)
 
     def turn_off_nowait(self) -> None:
-        """Set a parameter state to 'off' without waiting."""
+        """Set a parameter value to 'off' without waiting."""
         self.set_nowait(STATE_OFF)
 
     @property

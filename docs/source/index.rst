@@ -44,7 +44,12 @@ Documentation
    :maxdepth: 2
    :caption: Contents:
    
-   usage
+   connecting
+   reading
+   writing
+   callbacks
+   mixers_thermostats
+   schedules
    protocol
 
 .. autosummary::

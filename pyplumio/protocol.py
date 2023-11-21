@@ -89,7 +89,11 @@ class Protocol(ABC):
 
 
 class DummyProtocol(Protocol):
-    """Represents a dummy protocol."""
+    """Represents a dummy protocol.
+
+    This protocol sets frame reader and writer as attributes, then
+    sets connected event and does nothing.
+    """
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -115,7 +119,20 @@ class DummyProtocol(Protocol):
 
 
 class AsyncProtocol(Protocol, EventManager):
-    """Represents an async protocol."""
+    """Represents an async protocol.
+
+    This protocol implements producer-consumers pattern using
+    asyncio queues.
+
+    The frame producer tries to read frames from write queue, if any
+    available, and sends them to the device via frame writer.
+
+    It reads stream via frame reader, creates device handler entry
+    and puts received frame and handler into the read queue.
+
+    Frame consumers reads handler-frame tuples from the read queue and
+    sends frame to respective handler for further processing.
+    """
 
     _queues: tuple[asyncio.Queue, asyncio.Queue]
 

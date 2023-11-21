@@ -11,14 +11,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Fetch tags
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+
       - uses: actions/setup-python@v4
 
       - name: Install dependencies
         run: |
-          pip install pyplumio sphinx sphinx-book-theme
+          pip install pyplumio build sphinx sphinx-book-theme
 
       - name: Sphinx build
         run: |
+          python -m build --sdist
           sphinx-build ./docs/source ./docs/build
 
       - name: Deploy

@@ -1,5 +1,9 @@
 Protocol
 ========
+
+About Protocol
+--------------
+
 Plum devices use RS-485 standard for communication.
 
 Each frame consists of header (7 bytes), message type (1 byte),

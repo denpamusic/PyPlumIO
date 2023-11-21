@@ -111,6 +111,11 @@ def on_change(callback: EventCallbackType) -> _OnChange:
 
     A callback function will only be called if value is changed from the
     previous call.
+
+    :param callback: A callback function to be awaited on value change
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :return: A instance of callable filter
+    :rtype: _OnChange
     """
     return _OnChange(callback)
 
@@ -127,7 +132,7 @@ class _Debounce(Filter):
     _calls: int
     _min_calls: int
 
-    def __init__(self, callback: EventCallbackType, min_calls: int = 3):
+    def __init__(self, callback: EventCallbackType, min_calls: int):
         """Initialize a new debounce filter."""
         super().__init__(callback)
         self._calls = 0
@@ -151,6 +156,14 @@ def debounce(callback: EventCallbackType, min_calls) -> _Debounce:
 
     A callback function will only called once value is stabilized
     across multiple filter calls.
+
+    :param callback: A callback function to be awaited on value change
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :param min_calls: Value shouldn't change for this amount of
+        filter calls
+    :type min_calls: int
+    :return: A instance of callable filter
+    :rtype: _Debounce
     """
     return _Debounce(callback, min_calls)
 
@@ -189,6 +202,15 @@ def throttle(callback: EventCallbackType, seconds: float) -> _Throttle:
 
     A callback function will only be called once a certain amount of
     seconds passed since the last call.
+
+    :param callback: A callback function that will be awaited once
+        filter conditions are fulfilled
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :param seconds: A callback will be awaited at most once per
+        this amount of seconds
+    :type seconds: float
+    :return: A instance of callable filter
+    :rtype: _Throttle
     """
     return _Throttle(callback, seconds)
 
@@ -218,6 +240,12 @@ def delta(callback: EventCallbackType) -> _Delta:
 
     A callback function will be called with a difference between two
     subsequent value.
+
+    :param callback: A callback function that will be awaited with
+        difference between values in two subsequent calls
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :return: A instance of callable filter
+    :rtype: _Delta
     """
     return _Delta(callback)
 
@@ -263,7 +291,16 @@ def aggregate(callback: EventCallbackType, seconds: float) -> _Aggregate:
     """An aggregate filter.
 
     A callback function will be called with a sum of values collected
-    over a specified time period.
+    over a specified time period. Can only be used with numeric values.
+
+    :param callback: A callback function to be awaited once filter
+        conditions are fulfilled
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :param seconds: A callback will be awaited with a sum of values
+        aggregated over this amount of seconds.
+    :type seconds: float
+    :return: A instance of callable filter
+    :rtype: _Aggregate
     """
     return _Aggregate(callback, seconds)
 
@@ -297,5 +334,14 @@ def custom(callback: EventCallbackType, filter_fn: Callable[[Any], bool]) -> _Cu
     A callback function will be called when user-defined filter
     function, that's being called with the value as an argument,
     returns true.
+
+    :param callback: A callback function to be awaited when
+        filter function return true
+    :type callback: Callable[[Any], Awaitable[Any]]
+    :param filter_fn: Filter function, that will be called with a
+        value and should return `True` to await filter's callback
+    :type filter_fn: Callable[[Any], bool]
+    :return: A instance of callable filter
+    :rtype: _Custom
     """
     return _Custom(callback, filter_fn)

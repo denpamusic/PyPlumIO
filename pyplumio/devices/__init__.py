@@ -58,8 +58,23 @@ class Device(ABC, EventManager):
     ) -> bool:
         """Set a parameter value.
 
-        Name should point to a valid parameter object, otherwise
-        raise ParameterNotFoundError.
+        :param name: Name of the parameter
+        :type name: str
+        :param value: New value for the parameter
+        :type value: int | float | bool | Literal["on"] | Literal["off"]
+        :param timeout: Wait this amount of seconds for confirmation,
+            defaults to `None`
+        :type timeout: float, optional
+        :param retries: Try setting parameter for this amount of
+            times, defaults to 5
+        :type retries: int, optional
+        :return: `True` if parameter was successfully set, `False`
+            otherwise.
+        :rtype: bool
+        :raise pyplumio.exceptions.ParameterNotFoundError: when
+            parameter with the specified name is not found
+        :raise asyncio.TimeoutError: when waiting past specified timeout
+        :raise ValueError: when a new value is outside of allowed range
         """
         parameter = await self.get(name, timeout=timeout)
         if not isinstance(parameter, Parameter):
@@ -74,7 +89,24 @@ class Device(ABC, EventManager):
         timeout: float | None = None,
         retries: int = SET_RETRIES,
     ) -> None:
-        """Set a parameter value without waiting for the result."""
+        """Set a parameter value without waiting for the result.
+
+        :param name: Name of the parameter
+        :type name: str
+        :param value: New value for the parameter
+        :type value: int | float | bool | Literal["on"] | Literal["off"]
+        :param timeout: Wait this amount of seconds for confirmation.
+            As this method operates in the background without waiting,
+            this value is used to determine failure when
+            retrying and doesn't block, defaults to `None`
+        :type timeout: float, optional
+        :param retries: Try setting parameter for this amount of
+            times, defaults to 5
+        :type retries: int, optional
+        :return: `True` if parameter was successfully set, `False`
+            otherwise.
+        :rtype: bool
+        """
         self.create_task(self.set(name, value, timeout, retries))
 
 
