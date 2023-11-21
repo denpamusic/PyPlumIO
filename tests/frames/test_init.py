@@ -23,13 +23,13 @@ UNKNOWN_DEVICE: Final = 99
 class RequestFrame(Request):
     """Representation of a request frame."""
 
-    frame_type: ClassVar[int] = FrameType.REQUEST_PROGRAM_VERSION
+    frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_PROGRAM_VERSION
 
 
 class ResponseFrame(Response):
     """Representation of a response frame."""
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_PROGRAM_VERSION
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_PROGRAM_VERSION
 
 
 @pytest.fixture(name="request_frame")

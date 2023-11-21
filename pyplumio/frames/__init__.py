@@ -90,7 +90,7 @@ class Frame(ABC):
     sender: DeviceType | AddressableDevice | int
     sender_type: int
     econet_version: int
-    frame_type: ClassVar[int]
+    frame_type: ClassVar[FrameType | int]
     _message: bytearray | None
     _data: EventDataType | None
 

@@ -25,7 +25,7 @@ class ProgramVersionResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_PROGRAM_VERSION
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_PROGRAM_VERSION
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
@@ -44,7 +44,7 @@ class DeviceAvailableResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_DEVICE_AVAILABLE
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_DEVICE_AVAILABLE
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
@@ -63,7 +63,7 @@ class UIDResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_UID
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_UID
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
@@ -82,7 +82,7 @@ class PasswordResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_PASSWORD
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_PASSWORD
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -98,7 +98,7 @@ class EcomaxParametersResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_PARAMETERS
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_ECOMAX_PARAMETERS
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -113,7 +113,7 @@ class MixerParametersResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_MIXER_PARAMETERS
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_MIXER_PARAMETERS
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -128,7 +128,7 @@ class ThermostatParametersResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -144,7 +144,7 @@ class RegulatorDataSchemaResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_REGULATOR_DATA_SCHEMA
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_REGULATOR_DATA_SCHEMA
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -160,7 +160,7 @@ class SetEcomaxParameterResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_ECOMAX_PARAMETER
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_SET_ECOMAX_PARAMETER
 
 
 class SetMixerParameterResponse(Response):
@@ -172,7 +172,7 @@ class SetMixerParameterResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_SET_MIXER_PARAMETER
 
 
 class SetThermostatParameterResponse(Response):
@@ -184,7 +184,7 @@ class SetThermostatParameterResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
 
 
 class EcomaxControlResponse(Response):
@@ -196,7 +196,7 @@ class EcomaxControlResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_ECOMAX_CONTROL
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_ECOMAX_CONTROL
 
 
 class AlertsResponse(Response):
@@ -204,7 +204,7 @@ class AlertsResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_ALERTS
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_ALERTS
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -216,7 +216,7 @@ class SchedulesResponse(Response):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.RESPONSE_SCHEDULES
+    frame_type: ClassVar[FrameType | int] = FrameType.RESPONSE_SCHEDULES
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""

@@ -36,7 +36,7 @@ class RegulatorDataMessage(Message):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.MESSAGE_REGULATOR_DATA
+    frame_type: ClassVar[FrameType | int] = FrameType.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
@@ -49,7 +49,7 @@ class SensorDataMessage(Message):
 
     __slots__ = ()
 
-    frame_type: ClassVar[int] = FrameType.MESSAGE_SENSOR_DATA
+    frame_type: ClassVar[FrameType | int] = FrameType.MESSAGE_SENSOR_DATA
 
     def decode_message(self, message: bytearray) -> EventDataType:
         """Decode a frame message."""
