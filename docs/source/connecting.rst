@@ -63,7 +63,6 @@ working with device classes and queues.
     import pyplumio
 
     from pyplumio.const import DeviceType
-    from pyplumio.protocol import DummyProtocol
     from pyplumio.frames import requests, responses
 
     async def main():
@@ -71,12 +70,12 @@ working with device classes and queues.
         async with pyplumio.open_tcp_connection(
             host="localhost",
             port=8899,
-            protocol=DummyProtocol
+            protocol=pyplumio.DummyProtocol
         ) as connection:
-            await connection.write(request.AlertsRequest(recipient=DeviceType.ECOMAX))
+            await connection.writer.write(request.AlertsRequest(recipient=DeviceType.ECOMAX))
 
             while connection.connected:
-                if isinstance((frame := await connection.read()), responses.AlertsResponse):
+                if isinstance((frame := await connection.reader.read()), responses.AlertsResponse):
                     print(frame.data)
                     break
 

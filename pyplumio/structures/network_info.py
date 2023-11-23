@@ -22,16 +22,16 @@ NETWORK_INFO_SIZE: Final = 25
 class EthernetParameters:
     """Represents an ethernet parameters."""
 
-    #: IP address.
+    #: IP address
     ip: str = DEFAULT_IP
 
-    #: IP subnet mask.
+    #: IP subnet mask
     netmask: str = DEFAULT_NETMASK
 
-    #: Gateway IP address.
+    #: Gateway IP address
     gateway: str = DEFAULT_IP
 
-    #: Connection status. Parameters will be ignored if set to False.
+    #: Connection status. Parameters will be ignored if set to `False`
     status: bool = True
 
 
@@ -39,13 +39,14 @@ class EthernetParameters:
 class WirelessParameters(EthernetParameters):
     """Represents a wireless network parameters."""
 
-    #: Wireless Service Set IDentifier.
+    #: Wireless Service Set IDentifier
     ssid: str = ""
 
-    #: Wireless encryption standard.
+    #: Wireless encryption standard
+    #: (0 - unknown, 1 - no encryption, 2 - WEP, 3 - WPA, 4 - WPA2)
     encryption: EncryptionType = EncryptionType.NONE
 
-    #: Wireless signal strength in percentage.
+    #: Wireless signal strength in percentage
     signal_quality: int = 100
 
 
