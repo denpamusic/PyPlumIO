@@ -10,10 +10,6 @@ class ConnectionFailedError(PyPlumIOError):
     """Raised on connection failure."""
 
 
-class ParameterNotFoundError(PyPlumIOError):
-    """Raised when device parameter is not found."""
-
-
 class UnknownDeviceError(PyPlumIOError):
     """Raised on unsupported device."""
 

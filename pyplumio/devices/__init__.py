@@ -7,7 +7,7 @@ from functools import cache
 from typing import ClassVar, Iterable
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
-from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
+from pyplumio.exceptions import UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import factory
@@ -71,14 +71,13 @@ class Device(ABC, EventManager):
         :return: `True` if parameter was successfully set, `False`
             otherwise.
         :rtype: bool
-        :raise pyplumio.exceptions.ParameterNotFoundError: when
-            parameter with the specified name is not found
         :raise asyncio.TimeoutError: when waiting past specified timeout
         :raise ValueError: when a new value is outside of allowed range
+        :raise TypeError: when found data is not valid parameter
         """
         parameter = await self.get(name, timeout=timeout)
         if not isinstance(parameter, Parameter):
-            raise ParameterNotFoundError(f"Parameter not found ({name})")
+            raise TypeError(f"{name} is not valid parameter")
 
         return await parameter.set(value, retries=retries)
 

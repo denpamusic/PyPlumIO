@@ -34,7 +34,7 @@ from pyplumio.devices.ecomax import (
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
-from pyplumio.exceptions import ParameterNotFoundError, UnknownDeviceError
+from pyplumio.exceptions import UnknownDeviceError
 from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
@@ -594,7 +594,7 @@ async def test_set(ecomax: EcoMAX) -> None:
 
     # Test with invalid parameter.
     ecomax.data["bar"] = Mock()
-    with pytest.raises(ParameterNotFoundError):
+    with pytest.raises(TypeError):
         await ecomax.set("bar", 1)
 
 

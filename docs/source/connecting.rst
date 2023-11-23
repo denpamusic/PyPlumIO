@@ -47,7 +47,7 @@ connection is established.
 
 All protocols should inherit following abstract base class:
 
-.. autoclass:: pyplumio.protocol.Protocol
+.. autoclass:: pyplumio.Protocol
 
 Most of documentation assumes that protocol is left as is, which
 is by default AsyncProtocol. However, setting different protocol
@@ -84,8 +84,8 @@ working with device classes and queues.
 
 All built-in protocols are listed below.
 
-.. autoclass:: pyplumio.protocol.DummyProtocol
-.. autoclass:: pyplumio.protocol.AsyncProtocol
+.. autoclass:: pyplumio.DummyProtocol
+.. autoclass:: pyplumio.AsyncProtocol
 
 Network Information
 -------------------
@@ -93,10 +93,10 @@ When opening the connection, you can send ethernet and wireless
 network information to the ecoMAX controller using one or both
 of data classes below.
 
-.. autoclass:: pyplumio.structures.network_info.EthernetParameters
+.. autoclass:: pyplumio.EthernetParameters
     :members:
 
-.. autoclass:: pyplumio.structures.network_info.WirelessParameters
+.. autoclass:: pyplumio.WirelessParameters
     :members:
 
     .. autoattribute:: status
