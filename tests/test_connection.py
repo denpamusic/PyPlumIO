@@ -140,9 +140,9 @@ async def test_reconnect(tcp_connection: TcpConnection, caplog) -> None:
 async def test_connection_lost(mock_protocol, tcp_connection: TcpConnection) -> None:
     """Test that connection lost callback calls reconnect."""
     await tcp_connection.connect()
-    connection_lost_callback = mock_protocol.call_args.args[0]
+    on_connection_lost = mock_protocol.call_args.args[0]
     with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
-        await connection_lost_callback()
+        await on_connection_lost()
         mock_reconnect.assert_called_once()
 
 

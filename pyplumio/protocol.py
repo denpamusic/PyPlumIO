@@ -37,12 +37,12 @@ class Protocol(ABC):
     writer: FrameWriter | None
     reader: FrameReader | None
     connected: asyncio.Event
-    _connection_lost_callback: Callable[[], Awaitable[None]] | None
+    _on_connection_lost: Callable[[], Awaitable[None]] | None
     _network: NetworkInfo
 
     def __init__(
         self,
-        connection_lost_callback: Callable[[], Awaitable[None]] | None = None,
+        on_connection_lost: Callable[[], Awaitable[None]] | None = None,
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
     ):
@@ -51,7 +51,7 @@ class Protocol(ABC):
         self.writer = None
         self.reader = None
         self.connected = asyncio.Event()
-        self._connection_lost_callback = connection_lost_callback
+        self._on_connection_lost = on_connection_lost
         if ethernet_parameters is None:
             ethernet_parameters = EthernetParameters(status=False)
 
@@ -108,8 +108,8 @@ class DummyProtocol(Protocol):
         if self.connected.is_set():
             self.connected.clear()
             await self.close_writer()
-            if self._connection_lost_callback is not None:
-                await self._connection_lost_callback()
+            if self._on_connection_lost is not None:
+                await self._on_connection_lost()
 
     async def shutdown(self):
         """Shutdown the protocol."""
@@ -138,14 +138,12 @@ class AsyncProtocol(Protocol, EventManager):
 
     def __init__(
         self,
-        connection_lost_callback: Callable[[], Awaitable[None]] | None = None,
+        on_connection_lost: Callable[[], Awaitable[None]] | None = None,
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
     ):
         """Initialize a new default protocol."""
-        super().__init__(
-            connection_lost_callback, ethernet_parameters, wireless_parameters
-        )
+        super().__init__(on_connection_lost, ethernet_parameters, wireless_parameters)
         self._queues = (asyncio.Queue(), asyncio.Queue())
 
     def connection_established(
@@ -174,8 +172,8 @@ class AsyncProtocol(Protocol, EventManager):
                 await device.dispatch(ATTR_CONNECTED, False)
 
             await self.close_writer()
-            if self._connection_lost_callback is not None:
-                await self._connection_lost_callback()
+            if self._on_connection_lost is not None:
+                await self._on_connection_lost()
 
     async def shutdown(self):
         """Shutdown protocol tasks."""

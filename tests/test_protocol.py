@@ -71,10 +71,8 @@ def fixture_async_protocol() -> AsyncProtocol:
 
 async def test_dummy_protocol() -> None:
     """Test a dummy protocol."""
-    mock_connection_lost_callback = AsyncMock()
-    dummy_protocol = DummyProtocol(
-        connection_lost_callback=mock_connection_lost_callback
-    )
+    mock_on_connection_lost = AsyncMock()
+    dummy_protocol = DummyProtocol(on_connection_lost=mock_on_connection_lost)
 
     mock_reader = AsyncMock(spec=asyncio.StreamReader)
     mock_writer = AsyncMock(spec=asyncio.StreamWriter, new_callable=Mock)
@@ -97,7 +95,7 @@ async def test_dummy_protocol() -> None:
         mock_close_writer.assert_awaited_once()
 
     assert not dummy_protocol.connected.is_set()
-    mock_connection_lost_callback.assert_awaited_once()
+    mock_on_connection_lost.assert_awaited_once()
 
     # Test shutting down the connection.
     with patch("asyncio.Event.is_set", return_value=True), patch(
@@ -163,10 +161,8 @@ async def test_async_protocol_connection_lost(bypass_asyncio_events) -> None:
     mock_write_queue = Mock(spec=asyncio.Queue)
 
     # Create connection lost callback mock.
-    mock_connection_lost_callback = AsyncMock()
-    async_protocol = AsyncProtocol(
-        connection_lost_callback=mock_connection_lost_callback
-    )
+    mock_on_connection_lost = AsyncMock()
+    async_protocol = AsyncProtocol(on_connection_lost=mock_on_connection_lost)
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
@@ -185,7 +181,7 @@ async def test_async_protocol_connection_lost(bypass_asyncio_events) -> None:
 
     # Check that devices were notified and callback was called.
     mock_ecomax.dispatch.assert_called_once_with(ATTR_CONNECTED, False)
-    mock_connection_lost_callback.assert_called_once()
+    mock_on_connection_lost.assert_called_once()
 
     # Check that writer was closed.
     mock_writer.close.assert_awaited_once()
