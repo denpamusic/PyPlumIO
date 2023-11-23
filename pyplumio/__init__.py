@@ -2,8 +2,18 @@
 from __future__ import annotations
 
 from pyplumio._version import __version__, __version_tuple__
-from pyplumio.connection import Connection, SerialConnection, TcpConnection
-from pyplumio.protocol import AsyncProtocol, Protocol
+from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.exceptions import (
+    ChecksumError,
+    ConnectionFailedError,
+    FrameDataError,
+    FrameError,
+    PyPlumIOError,
+    ReadError,
+    UnknownDeviceError,
+    UnknownFrameError,
+)
+from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 
 
@@ -96,11 +106,21 @@ def open_tcp_connection(
 
 
 __all__ = [
-    "Connection",
     "SerialConnection",
     "TcpConnection",
+    "Protocol",
+    "AsyncProtocol",
+    "DummyProtocol",
     "EthernetParameters",
     "WirelessParameters",
+    "PyPlumIOError",
+    "ConnectionFailedError",
+    "UnknownDeviceError",
+    "ReadError",
+    "FrameError",
+    "ChecksumError",
+    "UnknownFrameError",
+    "FrameDataError",
     "open_serial_connection",
     "open_tcp_connection",
     "__version__",
