@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, ClassVar, Final
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.typing import EventDataType
-from pyplumio.utils import to_camelcase
+from pyplumio.utils import ensure_dict, to_camelcase
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -102,17 +102,17 @@ class Frame(ABC):
         econet_version: int = ECONET_VERSION,
         message: bytearray | None = None,
         data: EventDataType | None = None,
+        **kwargs,
     ):
-        """Process a frame data and message.
-
-        If message is set, decode it, otherwise create message from the
-        provided data.
-        """
+        """Process a frame data and message."""
 
         args = [recipient, sender]
         for key, arg in enumerate(args):
             if isinstance(arg, int) and is_known_device_type(arg):
                 args[key] = DeviceType(arg)
+
+        if kwargs:
+            data = kwargs if data is not None else ensure_dict(data, kwargs)
 
         self.recipient, self.sender = args
         self.sender_type = sender_type
