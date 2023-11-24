@@ -42,15 +42,6 @@ def is_known_frame_type(frame_type: int) -> bool:
         return False
 
 
-def is_known_device_type(device_type: int) -> bool:
-    """Check if device type is known."""
-    try:
-        DeviceType(device_type)
-        return True
-    except ValueError:
-        return False
-
-
 @cache
 def get_frame_handler(frame_type: int) -> str:
     """Return handler class path for the frame type."""
@@ -105,19 +96,19 @@ class Frame(ABC):
         **kwargs,
     ):
         """Process a frame data and message."""
+        try:
+            self.recipient = DeviceType(int(recipient))
+        except ValueError:
+            self.recipient = recipient
 
-        args = [recipient, sender]
-        for key, arg in enumerate(args):
-            if isinstance(arg, int) and is_known_device_type(arg):
-                args[key] = DeviceType(arg)
+        try:
+            self.sender = DeviceType(int(sender))
+        except ValueError:
+            self.sender = sender
 
-        if kwargs:
-            data = kwargs if data is not None else ensure_dict(data, kwargs)
-
-        self.recipient, self.sender = args
         self.sender_type = sender_type
         self.econet_version = econet_version
-        self._data = data
+        self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
 
     def __eq__(self, other) -> bool:
