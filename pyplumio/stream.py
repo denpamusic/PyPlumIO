@@ -31,9 +31,7 @@ class FrameWriter:
 
     @timeout(WRITER_TIMEOUT)
     async def write(self, frame: Frame) -> None:
-        """Write frame to the connection and
-        wait for buffer to drain.
-        """
+        """Send the frame and wait until send buffer is empty."""
         self._writer.write(frame.bytes)
         await self._writer.drain()
         _LOGGER.debug("Sent frame: %s", frame)
@@ -48,6 +46,8 @@ class FrameWriter:
 class FrameReader:
     """Represents a frame reader."""
 
+    __slots__ = ("_reader",)
+
     _reader: StreamReader
 
     def __init__(self, reader: StreamReader):
@@ -57,8 +57,8 @@ class FrameReader:
     async def _read_header(self) -> tuple[bytes, int, int, int, int, int]:
         """Locate and read a frame header.
 
-        Raises ReadError if header size is too small and OSError on
-        broken connection.
+        Raise pyplumio.ReadError if header size is too small and
+        OSError on broken connection.
         """
         while buffer := await self._reader.read(1):
             if FRAME_START not in buffer:
@@ -86,14 +86,15 @@ class FrameReader:
                 econet_version,
             )
 
-        raise OSError("No data can be read, RS485 connection broken")
+        raise OSError("Serial connection broken")
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object.
 
-        Raises ReadError on unexpected frame length or incomplete
-        frame and raises ChecksumError on incorrect frame checksum.
+        Raise pyplumio.ReadError on unexpected frame length or
+        incomplete frame and pyplumio.ChecksumError on incorrect frame
+        checksum.
         """
         (
             header,
