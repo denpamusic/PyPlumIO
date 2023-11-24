@@ -36,13 +36,13 @@ class ResponseFrame(Response):
 @pytest.fixture(name="request_frame")
 def fixture_request_frame() -> Request:
     """Return a request frame object."""
-    return RequestFrame()
+    return RequestFrame(foo=0)
 
 
 @pytest.fixture(name="response_frame")
 def fixture_response_frame() -> Response:
     """Return a response frame object."""
-    return ResponseFrame()
+    return ResponseFrame(foo=0)
 
 
 @pytest.fixture(name="frames")
@@ -61,9 +61,9 @@ def fixture_types() -> tuple[int, int]:
 
 def test_unknown_device_type() -> None:
     """Test creating frame with an unknown device type."""
-    frame = RequestFrame(sender=UNKNOWN_DEVICE)
-    assert frame.sender == UNKNOWN_DEVICE
-    assert not isinstance(frame.sender, DeviceType)
+    frame = RequestFrame(sender=UNKNOWN_DEVICE, recipient=UNKNOWN_DEVICE)
+    assert frame.sender is UNKNOWN_DEVICE
+    assert frame.recipient is UNKNOWN_DEVICE
 
 
 def test_decode_create_message(frames: tuple[Request, Response]) -> None:
@@ -96,6 +96,7 @@ def test_frame_attributes(frames: tuple[Request, Response]) -> None:
         assert frame.sender == DeviceType.ECONET
         assert frame.sender_type == ECONET_TYPE
         assert frame.econet_version == ECONET_VERSION
+        assert frame.data == {"foo": 0}
 
 
 def test_frame_length_without_data(frames: tuple[Request, Response]) -> None:
@@ -164,7 +165,7 @@ def test_request_repr(request_frame: Request) -> None:
         "sender_type=48, "
         "econet_version=5, "
         "message=bytearray(b''), "
-        "data={})"
+        "data={'foo': 0})"
     )
 
 
@@ -177,5 +178,5 @@ def test_response_repr(response_frame: Response) -> None:
         "sender_type=48, "
         "econet_version=5, "
         "message=bytearray(b''), "
-        "data={})"
+        "data={'foo': 0})"
     )
