@@ -9,6 +9,7 @@ from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
     ATTR_SIZE,
+    ATTR_START,
     ATTR_VALUE,
     FrameType,
 )
@@ -71,7 +72,7 @@ class EcomaxParametersRequest(Request):
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 class MixerParametersRequest(Request):
@@ -87,7 +88,7 @@ class MixerParametersRequest(Request):
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 class ThermostatParametersRequest(Request):
@@ -103,7 +104,7 @@ class ThermostatParametersRequest(Request):
 
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_INDEX, 0)])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 class RegulatorDataSchemaRequest(Request):
@@ -239,7 +240,7 @@ class AlertsRequest(Request):
     def create_message(self, data: EventDataType) -> bytearray:
         """Create a frame message."""
 
-        return bytearray([data.get(ATTR_INDEX, 0), data.get(ATTR_COUNT, 10)])
+        return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
 
 
 class SchedulesRequest(Request):

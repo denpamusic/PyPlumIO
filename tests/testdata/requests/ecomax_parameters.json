@@ -8,7 +8,7 @@
       "__bytearray__": true
     },
     "data": {
-      "index": 0,
+      "start": 0,
       "count": 255
     }
   },
@@ -21,7 +21,7 @@
       "__bytearray__": true
     },
     "data": {
-      "index": 0,
+      "start": 0,
       "count": 10
     }
   },
@@ -34,7 +34,7 @@
       "__bytearray__": true
     },
     "data": {
-      "index": 50,
+      "start": 50,
       "count": 10
     }
   }

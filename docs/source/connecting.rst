@@ -60,24 +60,28 @@ working with device classes and queues.
 .. code-block:: python
 
     import asyncio
-    import pyplumio
 
+    import pyplumio
     from pyplumio.const import DeviceType
     from pyplumio.frames import requests, responses
+
 
     async def main():
         """Open a connection and request alerts."""
         async with pyplumio.open_tcp_connection(
-            host="localhost",
-            port=8899,
-            protocol=pyplumio.DummyProtocol
+            host="localhost", port=8899, protocol=pyplumio.DummyProtocol
         ) as connection:
-            await connection.writer.write(request.AlertsRequest(recipient=DeviceType.ECOMAX))
+            await connection.writer.write(
+                requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
+            )
 
             while connection.connected:
-                if isinstance((frame := await connection.reader.read()), responses.AlertsResponse):
+                if isinstance(
+                    (frame := await connection.reader.read()), responses.AlertsResponse
+                ):
                     print(frame.data)
                     break
+
 
     asyncio.run(main())
 
