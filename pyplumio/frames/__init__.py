@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cache, reduce
 import struct
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final, cast
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
@@ -97,12 +97,12 @@ class Frame(ABC):
     ):
         """Process a frame data and message."""
         try:
-            self.recipient = DeviceType(int(recipient))
+            self.recipient = DeviceType(cast(int, recipient))
         except ValueError:
             self.recipient = recipient
 
         try:
-            self.sender = DeviceType(int(sender))
+            self.sender = DeviceType(cast(int, sender))
         except ValueError:
             self.sender = sender
 
