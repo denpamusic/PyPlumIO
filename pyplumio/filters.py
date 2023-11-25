@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 import math
 import time
-from typing import Any, Callable, Final, SupportsFloat, overload
+from typing import Any, Final, SupportsFloat, overload
 
 from pyplumio.const import UNDEFINED
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import EventCallbackType, SupportsSubtraction
+from pyplumio.helpers.typing import SupportsSubtraction
 
 TOLERANCE: Final = 0.1
 
@@ -69,7 +70,7 @@ class Filter(ABC):
     _callback: Any
     _value: Any
 
-    def __init__(self, callback: EventCallbackType):
+    def __init__(self, callback: Callable[[Any], Awaitable[Any]]):
         """Initialize a new filter."""
         self._callback = callback
         self._value = UNDEFINED
@@ -105,7 +106,7 @@ class _OnChange(Filter):
             return await self._callback(new_value)
 
 
-def on_change(callback: EventCallbackType) -> _OnChange:
+def on_change(callback: Callable[[Any], Awaitable[Any]]) -> _OnChange:
     """
     A value changed filter.
 
@@ -132,7 +133,7 @@ class _Debounce(Filter):
     _calls: int
     _min_calls: int
 
-    def __init__(self, callback: EventCallbackType, min_calls: int):
+    def __init__(self, callback: Callable[[Any], Awaitable[Any]], min_calls: int):
         """Initialize a new debounce filter."""
         super().__init__(callback)
         self._calls = 0
@@ -151,7 +152,7 @@ class _Debounce(Filter):
             return await self._callback(new_value)
 
 
-def debounce(callback: EventCallbackType, min_calls) -> _Debounce:
+def debounce(callback: Callable[[Any], Awaitable[Any]], min_calls) -> _Debounce:
     """A debounce filter.
 
     A callback function will only called once value is stabilized
@@ -180,7 +181,7 @@ class _Throttle(Filter):
     _last_called: float | None
     _timeout: float
 
-    def __init__(self, callback: EventCallbackType, seconds: float):
+    def __init__(self, callback: Callable[[Any], Awaitable[Any]], seconds: float):
         """Initialize a new throttle filter."""
         super().__init__(callback)
         self._last_called = None
@@ -197,7 +198,7 @@ class _Throttle(Filter):
             return await self._callback(new_value)
 
 
-def throttle(callback: EventCallbackType, seconds: float) -> _Throttle:
+def throttle(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Throttle:
     """A throttle filter.
 
     A callback function will only be called once a certain amount of
@@ -235,7 +236,7 @@ class _Delta(Filter):
                 return await self._callback(difference)
 
 
-def delta(callback: EventCallbackType) -> _Delta:
+def delta(callback: Callable[[Any], Awaitable[Any]]) -> _Delta:
     """A difference filter.
 
     A callback function will be called with a difference between two
@@ -263,7 +264,7 @@ class _Aggregate(Filter):
     _last_update: float | None
     _timeout: float
 
-    def __init__(self, callback: EventCallbackType, seconds: float):
+    def __init__(self, callback: Callable[[Any], Awaitable[Any]], seconds: float):
         """Initialize a new aggregate filter."""
         super().__init__(callback)
         self._last_update = time.monotonic()
@@ -287,7 +288,7 @@ class _Aggregate(Filter):
             return result
 
 
-def aggregate(callback: EventCallbackType, seconds: float) -> _Aggregate:
+def aggregate(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Aggregate:
     """An aggregate filter.
 
     A callback function will be called with a sum of values collected
@@ -317,7 +318,11 @@ class _Custom(Filter):
 
     filter_fn: Callable[[Any], bool]
 
-    def __init__(self, callback: EventCallbackType, filter_fn: Callable[[Any], bool]):
+    def __init__(
+        self,
+        callback: Callable[[Any], Awaitable[Any]],
+        filter_fn: Callable[[Any], bool],
+    ):
         """Initialize a new custom filter."""
         super().__init__(callback)
         self._filter_fn = filter_fn
@@ -328,7 +333,9 @@ class _Custom(Filter):
             await self._callback(new_value)
 
 
-def custom(callback: EventCallbackType, filter_fn: Callable[[Any], bool]) -> _Custom:
+def custom(
+    callback: Callable[[Any], Awaitable[Any]], filter_fn: Callable[[Any], bool]
+) -> _Custom:
     """A custom filter.
 
     A callback function will be called when user-defined filter

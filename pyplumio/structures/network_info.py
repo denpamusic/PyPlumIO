@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.const import EncryptionType
 from pyplumio.helpers.data_types import IPv4, VarString
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
@@ -62,7 +61,7 @@ class NetworkInfo:
 class NetworkInfoStructure(Structure):
     """Represents a network info data structure."""
 
-    def encode(self, data: EventDataType) -> bytearray:
+    def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
         message = bytearray()
         message += b"\x01"
@@ -84,8 +83,8 @@ class NetworkInfoStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         return (
             ensure_dict(

@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import struct
-from typing import Final
+from typing import Any, Final
 
 from pyplumio._version import __version_tuple__
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
@@ -38,7 +37,7 @@ class VersionInfo:
 class ProgramVersionStructure(Structure):
     """Represents a program version data structure."""
 
-    def encode(self, data: EventDataType) -> bytearray:
+    def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
         message = bytearray(15)
         version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
@@ -55,8 +54,8 @@ class ProgramVersionStructure(Structure):
         return message
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         version_info = VersionInfo()
         [

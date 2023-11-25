@@ -5,7 +5,7 @@ import asyncio
 from collections.abc import Generator, Iterable, Sequence
 import logging
 import time
-from typing import ClassVar, Final
+from typing import Any, ClassVar, Final
 
 from pyplumio.const import (
     ATTR_FRAME_ERRORS,
@@ -30,7 +30,6 @@ from pyplumio.frames import (
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.alerts import ATTR_ALERTS
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
@@ -275,7 +274,7 @@ class EcoMAX(AddressableDevice):
 
         return True
 
-    async def _handle_mixer_sensors(self, sensors: dict[int, EventDataType]) -> bool:
+    async def _handle_mixer_sensors(self, sensors: dict[int, dict[str, Any]]) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
@@ -292,7 +291,7 @@ class EcoMAX(AddressableDevice):
 
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
-    ) -> EventDataType:
+    ) -> dict[str, Any]:
         """Add schedules to the dataset."""
         return {
             SCHEDULES[index]: Schedule(
@@ -334,7 +333,7 @@ class EcoMAX(AddressableDevice):
 
         return True
 
-    async def _handle_ecomax_sensors(self, sensors: EventDataType) -> bool:
+    async def _handle_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle ecoMAX sensors.
 
         For each sensor dispatch an event with the sensor's name and
@@ -392,7 +391,7 @@ class EcoMAX(AddressableDevice):
         return None
 
     async def _handle_thermostat_sensors(
-        self, sensors: dict[int, EventDataType]
+        self, sensors: dict[int, dict[str, Any]]
     ) -> bool:
         """Handle thermostat sensors.
 

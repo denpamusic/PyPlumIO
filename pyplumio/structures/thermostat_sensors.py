@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Generator
+from typing import Any, Final, Generator
 
 from pyplumio.const import (
     ATTR_CURRENT_TEMP,
@@ -12,7 +12,6 @@ from pyplumio.const import (
     BYTE_UNDEFINED,
 )
 from pyplumio.helpers.data_types import Float
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -31,7 +30,7 @@ class ThermostatSensorsStructure(StructureDecoder):
 
     def _unpack_thermostat_sensors(
         self, message: bytearray, contacts: int
-    ) -> EventDataType | None:
+    ) -> dict[str, Any] | None:
         """Unpack sensors for a thermostat."""
         state = message[self._offset]
         self._offset += 1
@@ -57,15 +56,15 @@ class ThermostatSensorsStructure(StructureDecoder):
 
     def _thermostat_sensors(
         self, message: bytearray, thermostats: int, contacts: int
-    ) -> Generator[tuple[int, EventDataType], None, None]:
+    ) -> Generator[tuple[int, dict[str, Any]], None, None]:
         """Get sensors for a thermostat."""
         for index in range(thermostats):
             if sensors := self._unpack_thermostat_sensors(message, contacts):
                 yield (index, sensors)
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         if message[offset] == BYTE_UNDEFINED:
             return ensure_dict(data), offset + 1

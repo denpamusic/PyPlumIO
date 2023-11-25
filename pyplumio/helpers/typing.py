@@ -1,12 +1,9 @@
 """Contains type aliases."""
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from typing import Any, Literal, Protocol, Union
+from typing import Literal, Protocol, Union
 
 ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
-EventDataType = dict[str, Any]
-EventCallbackType = Callable[[Any], Awaitable[Any]]
 
 
 class SupportsSubtraction(Protocol):

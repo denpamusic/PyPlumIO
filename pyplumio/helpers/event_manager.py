@@ -2,17 +2,18 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.typing import EventCallbackType, EventDataType
 
 
 class EventManager(TaskManager):
     """Represents an event manager."""
 
-    data: EventDataType
+    data: dict[str, Any]
     _events: dict[str, asyncio.Event]
-    _callbacks: dict[str, list[EventCallbackType]]
+    _callbacks: dict[str, list[Callable[[Any], Awaitable[Any]]]]
 
     def __init__(self):
         """Initialize a new event manager."""
@@ -73,7 +74,7 @@ class EventManager(TaskManager):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: EventCallbackType) -> None:
+    def subscribe(self, name: str, callback: Callable[[Any], Awaitable[Any]]) -> None:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
@@ -87,7 +88,9 @@ class EventManager(TaskManager):
 
         self._callbacks[name].append(callback)
 
-    def subscribe_once(self, name: str, callback: EventCallbackType) -> None:
+    def subscribe_once(
+        self, name: str, callback: Callable[[Any], Awaitable[Any]]
+    ) -> None:
         """Subscribe a callback to the event once. Callback will be
         unsubscribed after single event.
 
@@ -105,7 +108,7 @@ class EventManager(TaskManager):
 
         self.subscribe(name, _callback)
 
-    def unsubscribe(self, name: str, callback: EventCallbackType) -> None:
+    def unsubscribe(self, name: str, callback: Callable[[Any], Awaitable[Any]]) -> None:
         """Usubscribe a callback from the event.
 
         :param name: Event name or ID
@@ -135,10 +138,10 @@ class EventManager(TaskManager):
         """
         self.create_task(self.dispatch(name, value))
 
-    def load(self, data: EventDataType) -> None:
+    def load(self, data: dict[str, Any]) -> None:
         """Load an event data."""
 
-        async def _dispatch_events(data: EventDataType) -> None:
+        async def _dispatch_events(data: dict[str, Any]) -> None:
             """Dispatch events for a loaded data."""
             for key, value in data.items():
                 await self.dispatch(key, value)

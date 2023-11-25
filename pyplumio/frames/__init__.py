@@ -5,11 +5,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cache, reduce
 import struct
-from typing import TYPE_CHECKING, ClassVar, Final, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.utils import ensure_dict, to_camelcase
 
 FRAME_START: Final = 0x68
@@ -83,7 +82,7 @@ class Frame(ABC):
     econet_version: int
     frame_type: ClassVar[FrameType | int]
     _message: bytearray | None
-    _data: EventDataType | None
+    _data: dict[str, Any] | None
 
     def __init__(
         self,
@@ -92,7 +91,7 @@ class Frame(ABC):
         sender_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
         message: bytearray | None = None,
-        data: EventDataType | None = None,
+        data: dict[str, Any] | None = None,
         **kwargs,
     ):
         """Process a frame data and message."""
@@ -153,7 +152,7 @@ class Frame(ABC):
         return self.bytes.hex(*args, **kwargs)
 
     @property
-    def data(self) -> EventDataType:
+    def data(self) -> dict[str, Any]:
         """A frame data."""
         if self._data is None:
             self._data = (
@@ -163,7 +162,7 @@ class Frame(ABC):
         return self._data
 
     @data.setter
-    def data(self, data: EventDataType) -> None:
+    def data(self, data: dict[str, Any]) -> None:
         """A frame data setter."""
         self._data = data
         self._message = None
@@ -223,11 +222,11 @@ class Frame(ABC):
         return bytes(data)
 
     @abstractmethod
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
 
     @abstractmethod
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
 
 
@@ -236,11 +235,11 @@ class Request(Frame):
 
     __slots__ = ()
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return bytearray()
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         return {}
 
@@ -254,11 +253,11 @@ class Response(Frame):
 
     __slots__ = ()
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return bytearray()
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         return {}
 

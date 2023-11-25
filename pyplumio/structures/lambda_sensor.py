@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import math
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers.data_types import UnsignedShort
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -19,8 +18,8 @@ class LambdaSensorStructure(StructureDecoder):
     """Represents a lambda sensor data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         lambda_state = message[offset]
         offset += 1

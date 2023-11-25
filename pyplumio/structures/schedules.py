@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
 from itertools import chain
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import AddressableDevice, Device
@@ -20,7 +20,6 @@ from pyplumio.helpers.parameter import (
     ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
@@ -124,7 +123,7 @@ SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
 )
 
 
-def collect_schedule_data(name: str, device: Device) -> EventDataType:
+def collect_schedule_data(name: str, device: Device) -> dict[str, Any]:
     """Return a schedule data collected from the device."""
     return {
         ATTR_TYPE: name,
@@ -149,7 +148,7 @@ class SchedulesStructure(Structure):
 
     _offset: int
 
-    def encode(self, data: EventDataType) -> bytearray:
+    def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
         message = bytearray([1])
         try:
@@ -179,8 +178,8 @@ class SchedulesStructure(Structure):
         return [schedule[i : i + 48] for i in range(0, len(schedule), 48)]
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         start = message[offset + 1]
         end = message[offset + 2]

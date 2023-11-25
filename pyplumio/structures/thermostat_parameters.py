@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Final, Generator
+from typing import TYPE_CHECKING, Any, Final, Generator
 
 from pyplumio.const import (
     ATTR_INDEX,
@@ -22,7 +22,7 @@ from pyplumio.helpers.parameter import (
     ParameterValues,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import EventDataType, ParameterValueType
+from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
 from pyplumio.utils import ensure_dict
@@ -206,8 +206,8 @@ class ThermostatParametersStructure(StructureDecoder):
                 yield (index, parameters)
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         sender = self.frame.sender
         if (

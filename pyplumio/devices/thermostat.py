@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Sequence
+from typing import Any, Sequence
 
 from pyplumio.devices import AddressableDevice, SubDevice
 from pyplumio.helpers.parameter import ParameterValues
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
@@ -26,7 +25,7 @@ class Thermostat(SubDevice):
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_sensors)
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_parameters)
 
-    async def _handle_sensors(self, sensors: EventDataType) -> bool:
+    async def _handle_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle thermostat sensors.
 
         For each sensor dispatch an event with the

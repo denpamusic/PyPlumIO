@@ -1,7 +1,7 @@
 """Contains request frames."""
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from pyplumio.const import (
     ATTR_COUNT,
@@ -16,7 +16,6 @@ from pyplumio.const import (
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request, Response
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.schedules import SchedulesStructure
 
 
@@ -70,7 +69,7 @@ class EcomaxParametersRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_ECOMAX_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
@@ -86,7 +85,7 @@ class MixerParametersRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_MIXER_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
@@ -102,7 +101,7 @@ class ThermostatParametersRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
@@ -125,7 +124,7 @@ class SetEcomaxParameterRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_SET_ECOMAX_PARAMETER
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         try:
             return bytearray([data[ATTR_INDEX], data[ATTR_VALUE]])
@@ -143,7 +142,7 @@ class SetMixerParameterRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_SET_MIXER_PARAMETER
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         try:
             return bytearray(
@@ -171,7 +170,7 @@ class SetThermostatParameterRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         try:
             index = data[ATTR_INDEX]
@@ -194,7 +193,7 @@ class EcomaxControlRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_ECOMAX_CONTROL
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         try:
             return bytearray([data[ATTR_VALUE]])
@@ -237,7 +236,7 @@ class AlertsRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_ALERTS
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
 
         return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
@@ -258,6 +257,6 @@ class SetScheduleRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_SET_SCHEDULE
 
-    def create_message(self, data: EventDataType) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return SchedulesStructure(self).encode(data)

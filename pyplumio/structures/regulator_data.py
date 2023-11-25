@@ -1,11 +1,10 @@
 """Contains a regulator data structure decoder."""
 from __future__ import annotations
 
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.devices import AddressableDevice
 from pyplumio.helpers.data_types import BitArray, DataType
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
@@ -41,8 +40,8 @@ class RegulatorDataStructure(StructureDecoder):
             self._offset += data_type.size
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         data = ensure_dict(data)
         offset += 2

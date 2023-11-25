@@ -2,10 +2,9 @@
 from __future__ import annotations
 
 import math
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.helpers.data_types import Float
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -16,8 +15,8 @@ class FanPowerStructure(StructureDecoder):
     """Represents a fan power sensor data structure."""
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         fan_power = Float.from_bytes(message, offset)
         offset += fan_power.size

@@ -1,7 +1,7 @@
 """Contains message frames."""
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from pyplumio.const import (
     ATTR_SENSORS,
@@ -12,7 +12,6 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.frames import Message
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures.boiler_load import BoilerLoadStructure
 from pyplumio.structures.boiler_power import BoilerPowerStructure
 from pyplumio.structures.fan_power import FanPowerStructure
@@ -38,7 +37,7 @@ class RegulatorDataMessage(Message):
 
     frame_type: ClassVar[FrameType | int] = FrameType.MESSAGE_REGULATOR_DATA
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
 
         return RegulatorDataStructure(self).decode(message)[0]
@@ -51,7 +50,7 @@ class SensorDataMessage(Message):
 
     frame_type: ClassVar[FrameType | int] = FrameType.MESSAGE_SENSOR_DATA
 
-    def decode_message(self, message: bytearray) -> EventDataType:
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
         try:

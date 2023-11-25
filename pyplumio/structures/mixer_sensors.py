@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import math
-from typing import Final, Generator
+from typing import Any, Final, Generator
 
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
 from pyplumio.helpers.data_types import Float
-from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -23,7 +22,7 @@ class MixerSensorsStructure(StructureDecoder):
 
     _offset: int
 
-    def _unpack_mixer_sensors(self, message: bytearray) -> EventDataType | None:
+    def _unpack_mixer_sensors(self, message: bytearray) -> dict[str, Any] | None:
         """Unpack sensors for a mixer."""
         current_temp = Float.from_bytes(message, self._offset)
         try:
@@ -40,15 +39,15 @@ class MixerSensorsStructure(StructureDecoder):
 
     def _mixer_sensors(
         self, message: bytearray, mixers: int
-    ) -> Generator[tuple[int, EventDataType], None, None]:
+    ) -> Generator[tuple[int, dict[str, Any]], None, None]:
         """Get sensors for a mixer."""
         for index in range(mixers):
             if sensors := self._unpack_mixer_sensors(message):
                 yield (index, sensors)
 
     def decode(
-        self, message: bytearray, offset: int = 0, data: EventDataType | None = None
-    ) -> tuple[EventDataType, int]:
+        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
+    ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         mixers = message[offset]
         self._offset = offset + 1
