@@ -93,21 +93,12 @@ RegData can be accessed via the **regdata** property.
 
 .. code-block:: python
 
-    from pyplumio.structures.regulator_data import RegulatorData
-
     ecomax = await conn.get("ecomax")
-    regdata: RegulatorData = await ecomax.get("regdata")
-
-The ``RegulatorData`` object supports all aforementioned methods of
-getting the data.
-
-.. code-block:: python
+    regdata = await ecomax.get("regdata")
 
     # Get regulator data with the 1280 key.
-    heating_target = regdata.get_nowait(1280)
+    heating_target = regdata[1280]
 
-To see every value stored in the RegulatorData object, you can check
-``RegulatorData.data`` property.
 
 Reading Examples
 ----------------

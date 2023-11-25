@@ -5,7 +5,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any, Literal, Protocol, Union
 
 ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
-EventDataType = dict[Union[str, int], Any]
+EventDataType = dict[str, Any]
 EventCallbackType = Callable[[Any], Awaitable[Any]]
 
 

@@ -5,7 +5,6 @@ from typing import Final
 
 from pyplumio.devices import AddressableDevice
 from pyplumio.helpers.data_types import BitArray, DataType
-from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.typing import EventDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
@@ -15,10 +14,6 @@ from pyplumio.utils import ensure_dict
 ATTR_REGDATA: Final = "regdata"
 
 REGDATA_VERSION: Final = "1.0"
-
-
-class RegulatorData(EventManager):
-    """Represents a regulator data."""
 
 
 class RegulatorDataStructure(StructureDecoder):
@@ -63,11 +58,9 @@ class RegulatorDataStructure(StructureDecoder):
         if isinstance(sender, AddressableDevice) and (
             schema := sender.get_nowait(ATTR_REGDATA_SCHEMA, [])
         ):
-            data.setdefault(ATTR_REGDATA, RegulatorData()).load(
-                {
-                    param_id: self._unpack_regulator_data(message, data_type)
-                    for param_id, data_type in schema
-                }
-            )
+            data[ATTR_REGDATA] = {
+                param_id: self._unpack_regulator_data(message, data_type)
+                for param_id, data_type in schema
+            }
 
         return data, self._offset

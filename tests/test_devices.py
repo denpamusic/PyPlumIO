@@ -70,7 +70,7 @@ from pyplumio.structures.mixer_parameters import (
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import NetworkInfo
-from pyplumio.structures.regulator_data import ATTR_REGDATA, RegulatorData
+from pyplumio.structures.regulator_data import ATTR_REGDATA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
@@ -277,8 +277,11 @@ async def test_regdata_callbacks(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
     ecomax.handle_frame(RegulatorDataMessage(message=test_regdata["message"]))
     await ecomax.wait_until_done()
-    regdata = await ecomax.get(ATTR_REGDATA)
-    assert isinstance(regdata, RegulatorData)
+    assert await ecomax.get(ATTR_REGDATA) == test_regdata["data"][ATTR_REGDATA]
+    assert (
+        await ecomax.get(ATTR_FRAME_VERSIONS)
+        == test_regdata["data"][ATTR_FRAME_VERSIONS]
+    )
 
 
 async def test_regdata_callbacks_without_schema(ecomax: EcoMAX) -> None:

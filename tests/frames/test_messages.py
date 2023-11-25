@@ -46,7 +46,7 @@ async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
         assert ATTR_REGDATA not in frame.data
     else:
         assert frame.data[ATTR_FRAME_VERSIONS] == regdata["data"][ATTR_FRAME_VERSIONS]
-        assert frame.data[ATTR_REGDATA].data == regdata["data"][ATTR_REGDATA]
+        assert frame.data[ATTR_REGDATA] == regdata["data"][ATTR_REGDATA]
 
 
 @pytest.mark.parametrize(

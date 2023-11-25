@@ -11,8 +11,8 @@ class EventManager(TaskManager):
     """Represents an event manager."""
 
     data: EventDataType
-    _events: dict[str | int, asyncio.Event]
-    _callbacks: dict[str | int, list[EventCallbackType]]
+    _events: dict[str, asyncio.Event]
+    _callbacks: dict[str, list[EventCallbackType]]
 
     def __init__(self):
         """Initialize a new event manager."""
@@ -28,11 +28,11 @@ class EventManager(TaskManager):
         except KeyError as e:
             raise AttributeError from e
 
-    async def wait_for(self, name: str | int, timeout: float | None = None) -> None:
+    async def wait_for(self, name: str, timeout: float | None = None) -> None:
         """Wait for the value to become available.
 
         :param name: Event name or ID
-        :type name: str | int
+        :type name: str
         :param timeout: Wait this amount of seconds for a data to
             become available, defaults to `None`
         :type timeout: float, optional
@@ -41,11 +41,11 @@ class EventManager(TaskManager):
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-    async def get(self, name: str | int, timeout: float | None = None):
+    async def get(self, name: str, timeout: float | None = None):
         """Get the value by name.
 
         :param name: Event name or ID
-        :type name: str | int
+        :type name: str
         :param timeout: Wait this amount of seconds for a data to
             become available, defaults to `None`
         :type timeout: float, optional
@@ -55,14 +55,14 @@ class EventManager(TaskManager):
         await self.wait_for(name, timeout=timeout)
         return self.data[name]
 
-    def get_nowait(self, name: str | int, default=None):
+    def get_nowait(self, name: str, default=None):
         """Get the value by name without waiting.
 
         If value is not available, default value will be
         returned instead.
 
         :param name: Event name or ID
-        :type name: str | int
+        :type name: str
         :param default: default value to return if data is unavailable,
             defaults to `None`
         :type default: Any, optional
@@ -73,7 +73,7 @@ class EventManager(TaskManager):
         except KeyError:
             return default
 
-    def subscribe(self, name: str | int, callback: EventCallbackType) -> None:
+    def subscribe(self, name: str, callback: EventCallbackType) -> None:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
@@ -87,7 +87,7 @@ class EventManager(TaskManager):
 
         self._callbacks[name].append(callback)
 
-    def subscribe_once(self, name: str | int, callback: EventCallbackType) -> None:
+    def subscribe_once(self, name: str, callback: EventCallbackType) -> None:
         """Subscribe a callback to the event once. Callback will be
         unsubscribed after single event.
 
@@ -105,7 +105,7 @@ class EventManager(TaskManager):
 
         self.subscribe(name, _callback)
 
-    def unsubscribe(self, name: str | int, callback: EventCallbackType) -> None:
+    def unsubscribe(self, name: str, callback: EventCallbackType) -> None:
         """Usubscribe a callback from the event.
 
         :param name: Event name or ID
@@ -118,7 +118,7 @@ class EventManager(TaskManager):
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
-    async def dispatch(self, name: str | int, value) -> None:
+    async def dispatch(self, name: str, value) -> None:
         """Call registered callbacks and dispatch the event."""
         if name in self._callbacks:
             callbacks = self._callbacks[name].copy()
@@ -129,7 +129,7 @@ class EventManager(TaskManager):
         self.data[name] = value
         self.set_event(name)
 
-    def dispatch_nowait(self, name: str | int, value) -> None:
+    def dispatch_nowait(self, name: str, value) -> None:
         """Call a registered callbacks and dispatch the event
         without waiting.
         """
@@ -146,7 +146,7 @@ class EventManager(TaskManager):
         self.data = data
         self.create_task(_dispatch_events(data))
 
-    def create_event(self, name: str | int) -> asyncio.Event:
+    def create_event(self, name: str) -> asyncio.Event:
         """Create an event."""
         if name in self.events:
             return self.events[name]
@@ -155,7 +155,7 @@ class EventManager(TaskManager):
         self._events[name] = event
         return event
 
-    def set_event(self, name: str | int) -> None:
+    def set_event(self, name: str) -> None:
         """Set an event."""
         if name in self.events:
             event = self.events[name]
@@ -168,6 +168,6 @@ class EventManager(TaskManager):
         await self.wait_until_done()
 
     @property
-    def events(self) -> dict[str | int, asyncio.Event]:
+    def events(self) -> dict[str, asyncio.Event]:
         """List of events."""
         return self._events
