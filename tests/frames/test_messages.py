@@ -45,7 +45,6 @@ async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
         assert ATTR_FRAME_VERSIONS not in frame.data
         assert ATTR_REGDATA not in frame.data
     else:
-        print(frame.data)
         assert frame.data[ATTR_FRAME_VERSIONS] == regdata["data"][ATTR_FRAME_VERSIONS]
         assert frame.data[ATTR_REGDATA].data == regdata["data"][ATTR_REGDATA]
 
