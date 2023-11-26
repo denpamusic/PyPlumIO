@@ -84,7 +84,7 @@ class ScheduleParameter(Parameter):
     @property
     def request(self) -> Request:
         """A request to change the parameter."""
-        schedule_name, _ = self.description.name.split("_", 1)
+        schedule_name, _ = self.description.name.split("_schedule_", 1)
         return factory(
             "frames.requests.SetScheduleRequest",
             recipient=self.device.address,

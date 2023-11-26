@@ -496,7 +496,7 @@ async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
     ecomax.handle_frame(SchedulesResponse(message=message))
     await ecomax.wait_until_done()
     schedules = await ecomax.get(ATTR_SCHEDULES)
-    assert len(schedules) == 1
+    assert len(schedules) == 2
     heating_schedule = schedules["heating"]
     assert isinstance(heating_schedule, Schedule)
 
@@ -504,17 +504,19 @@ async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
     assert heating_schedule_switch.value == STATE_OFF
     assert isinstance(heating_schedule_switch, ScheduleBinaryParameter)
 
-    heating_schedule_parameter = await ecomax.get("heating_schedule_parameter")
-    assert isinstance(heating_schedule_parameter, ScheduleParameter)
-    assert isinstance(heating_schedule_parameter.request, SetScheduleRequest)
-    assert heating_schedule_parameter.value == 5
-    assert heating_schedule_parameter.min_value == 0
-    assert heating_schedule_parameter.max_value == 30
-    assert heating_schedule_parameter.request.data == {
-        ATTR_TYPE: "heating",
-        ATTR_SWITCH: ecomax.data[f"heating_{ATTR_SCHEDULE_SWITCH}"],
-        ATTR_PARAMETER: ecomax.data[f"heating_{ATTR_SCHEDULE_PARAMETER}"],
-        ATTR_SCHEDULE: ecomax.data[ATTR_SCHEDULES]["heating"],
+    water_heater_schedule_parameter = await ecomax.get(
+        "water_heater_schedule_parameter"
+    )
+    assert isinstance(water_heater_schedule_parameter, ScheduleParameter)
+    assert isinstance(water_heater_schedule_parameter.request, SetScheduleRequest)
+    assert water_heater_schedule_parameter.value == 5
+    assert water_heater_schedule_parameter.min_value == 0
+    assert water_heater_schedule_parameter.max_value == 30
+    assert water_heater_schedule_parameter.request.data == {
+        ATTR_TYPE: "water_heater",
+        ATTR_SWITCH: ecomax.data[f"water_heater_{ATTR_SCHEDULE_SWITCH}"],
+        ATTR_PARAMETER: ecomax.data[f"water_heater_{ATTR_SCHEDULE_PARAMETER}"],
+        ATTR_SCHEDULE: ecomax.data[ATTR_SCHEDULES]["water_heater"],
     }
 
     schedule_data = data[ATTR_SCHEDULES][0][1]
