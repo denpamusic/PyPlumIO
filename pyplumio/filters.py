@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
+from copy import copy
 import math
 import time
 from typing import Any, Final, SupportsFloat, overload
@@ -27,11 +28,7 @@ def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
 def _significantly_changed(old, new) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return old.pending_update or (
-            old.value != new.value
-            or old.min_value != new.min_value
-            or old.max_value != new.max_value
-        )
+        return new.pending_update or old.values != new.values
 
     try:
         result = not math.isclose(old, new, abs_tol=TOLERANCE)
@@ -67,7 +64,7 @@ class Filter(ABC):
 
     __slots__ = ("_callback", "_value")
 
-    _callback: Any
+    _callback: Callable[[Any], Awaitable[Any]]
     _value: Any
 
     def __init__(self, callback: Callable[[Any], Awaitable[Any]]):
@@ -102,7 +99,9 @@ class _OnChange(Filter):
     async def __call__(self, new_value):
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
-            self._value = new_value
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
             return await self._callback(new_value)
 
 
@@ -147,7 +146,9 @@ class _Debounce(Filter):
             self._calls = 0
 
         if self._value == UNDEFINED or self._calls >= self._min_calls:
-            self._value = new_value
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
             self._calls = 0
             return await self._callback(new_value)
 
@@ -228,7 +229,9 @@ class _Delta(Filter):
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             old_value = self._value
-            self._value = new_value
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
             if (
                 self._value != UNDEFINED
                 and (difference := _diffence_between(old_value, new_value)) is not None

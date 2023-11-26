@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.filters import aggregate, custom, debounce, delta, on_change, throttle
-from pyplumio.helpers.parameter import Parameter
+from pyplumio.helpers.parameter import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
 
 
@@ -36,9 +36,7 @@ async def test_on_change_parameter() -> None:
     """Test on change filter with parameters."""
     test_callback = AsyncMock()
     test_parameter = AsyncMock(spec=Parameter)
-    test_parameter.value = 0
-    test_parameter.min_value = 0
-    test_parameter.max_value = 1
+    test_parameter.values = ParameterValues(0, 0, 1)
     test_parameter.pending_update = False
     wrapped_callback = on_change(test_callback)
     await wrapped_callback(test_parameter)
@@ -50,41 +48,26 @@ async def test_on_change_parameter() -> None:
     test_callback.assert_not_awaited()
 
     # Check that callback is awaited on local value change.
-    test_parameter = AsyncMock(spec=Parameter)
-    test_parameter.value = 1
-    test_parameter.min_value = 0
-    test_parameter.max_value = 1
     test_parameter.pending_update = True
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
-
-    # Check that callback is awaited on value change.
-    test_parameter = AsyncMock(spec=Parameter)
-    test_parameter.value = 1
-    test_parameter.min_value = 0
-    test_parameter.max_value = 1
     test_parameter.pending_update = False
+
+    # Check that callback is awaited on remote value change.
+    test_parameter.values = ParameterValues(1, 0, 1)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
 
     # Check that callback is awaited on min value change.
-    test_parameter = AsyncMock(spec=Parameter)
-    test_parameter.value = 1
-    test_parameter.min_value = 1
-    test_parameter.max_value = 1
-    test_parameter.pending_update = False
+    test_parameter.values = ParameterValues(1, 1, 1)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
 
     # Check that callback is awaited on max value change.
-    test_parameter = AsyncMock(spec=Parameter)
-    test_parameter.value = 1
-    test_parameter.min_value = 1
-    test_parameter.max_value = 2
-    test_parameter.pending_update = False
+    test_parameter.values = ParameterValues(1, 1, 2)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
 
