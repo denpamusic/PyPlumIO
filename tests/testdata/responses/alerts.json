@@ -52,7 +52,8 @@
           "__module__": "pyplumio.structures.alerts",
           "__class__": "Alert"
         }
-      ]
+      ],
+      "total_alerts": 100
     }
   },
   {
@@ -63,6 +64,6 @@
       ],
       "__bytearray__": true
     },
-    "data": {}
+    "data": {"total_alerts": 0}
   }
 ]

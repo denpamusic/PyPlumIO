@@ -30,7 +30,7 @@ from pyplumio.frames import (
 from pyplumio.helpers.factory import factory
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.structures.alerts import ATTR_ALERTS
+from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
@@ -77,7 +77,9 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS, provides=ATTR_ECOMAX_PARAMETERS
     ),
-    DataFrameDescription(frame_type=FrameType.REQUEST_ALERTS, provides=ATTR_ALERTS),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_ALERTS, provides=ATTR_TOTAL_ALERTS
+    ),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_SCHEDULES, provides=ATTR_SCHEDULES
     ),

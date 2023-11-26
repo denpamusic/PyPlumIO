@@ -12,6 +12,7 @@ from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
 ATTR_ALERTS: Final = "alerts"
+ATTR_TOTAL_ALERTS: Final = "total_alerts"
 
 
 @lru_cache(maxsize=10)
@@ -76,12 +77,13 @@ class AlertsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
+        total_alerts = message[offset + 0]
         start = message[offset + 1]
         end = message[offset + 2]
 
         if end == 0:
             # No alerts found.
-            return ensure_dict(data), offset + 1
+            return ensure_dict(data, {ATTR_TOTAL_ALERTS: total_alerts}), offset + 3
 
         self._offset = offset + 3
         return (
@@ -90,7 +92,8 @@ class AlertsStructure(StructureDecoder):
                 {
                     ATTR_ALERTS: [
                         self._unpack_alert(message) for _ in range(start, start + end)
-                    ]
+                    ],
+                    ATTR_TOTAL_ALERTS: total_alerts,
                 },
             ),
             self._offset,
