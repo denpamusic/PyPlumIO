@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from pyplumio._version import __version__, __version_tuple__
-from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.connection import Connection, SerialConnection, TcpConnection
 from pyplumio.exceptions import (
     ChecksumError,
     ConnectionFailedError,
@@ -106,6 +106,7 @@ def open_tcp_connection(
 
 
 __all__ = [
+    "Connection",
     "SerialConnection",
     "TcpConnection",
     "Protocol",
