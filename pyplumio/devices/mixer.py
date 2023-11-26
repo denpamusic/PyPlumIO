@@ -57,7 +57,7 @@ class Mixer(SubDevice):
                     (
                         "Encountered unknown mixer parameter (%i): %s. "
                         "Your device isn't fully compatible with this software and "
-                        "may not work properly."
+                        "may not work properly. "
                         "Please visit the issue tracker and open a feature "
                         "request to support %s"
                     ),
