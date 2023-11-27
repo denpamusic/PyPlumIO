@@ -3,7 +3,7 @@
 from asyncio import StreamReader, StreamWriter
 import logging
 from typing import Final
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from serial import SerialException
@@ -58,7 +58,7 @@ def fixture_serial_asyncio_open_serial_connection(
 @pytest.fixture(name="mock_protocol")
 def fixture_mock_protocol():
     """Return a mock protocol object."""
-    return Mock(return_value=AsyncMock(spec=Protocol))
+    return AsyncMock(spec=Protocol)
 
 
 @pytest.fixture(name="tcp_connection")
@@ -83,18 +83,26 @@ async def test_tcp_connect(mock_protocol, asyncio_open_connection) -> None:
             host=HOST,
             port=PORT,
             test="test",
-            reconnect_on_failure=False,
             protocol=mock_protocol,
+            reconnect_on_failure=True,
         )
 
-        assert tcp_connection.protocol == mock_protocol.return_value
-        mock_protocol.assert_called_once_with(mock_connection_lost, None, None)
+        assert tcp_connection.protocol == mock_protocol
+        mock_protocol.add.assert_called_once_with(mock_connection_lost)
 
     await tcp_connection.connect()
     asyncio_open_connection.assert_called_once_with(host=HOST, port=PORT, test="test")
     await tcp_connection.close()
 
     # Raise custom exception on connection failure.
+    tcp_connection = TcpConnection(
+        host=HOST,
+        port=PORT,
+        test="test",
+        protocol=mock_protocol,
+        reconnect_on_failure=False,
+    )
+
     asyncio_open_connection.side_effect = OSError
     with pytest.raises(ConnectionFailedError):
         await tcp_connection.connect()
@@ -140,7 +148,7 @@ async def test_reconnect(tcp_connection: TcpConnection, caplog) -> None:
 async def test_connection_lost(mock_protocol, tcp_connection: TcpConnection) -> None:
     """Test that connection lost callback calls reconnect."""
     await tcp_connection.connect()
-    on_connection_lost = mock_protocol.call_args.args[0]
+    on_connection_lost = mock_protocol.on_connection_lost.add.call_args.args[0]
     with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
         await on_connection_lost()
         mock_reconnect.assert_called_once()
@@ -176,10 +184,10 @@ async def test_context_manager(
 @pytest.mark.usefixtures("asyncio_open_connection")
 async def test_getattr(mock_protocol, tcp_connection: TcpConnection) -> None:
     """Test that getattr is getting proxied to the protocol."""
-    mock_protocol.return_value.get_device = AsyncMock()
+    mock_protocol.get_device = AsyncMock()
     await tcp_connection.connect()
     await tcp_connection.get_device("test")
-    mock_protocol.return_value.get_device.assert_called_once()
+    mock_protocol.get_device.assert_called_once()
 
 
 @pytest.mark.usefixtures("asyncio_open_connection")
@@ -187,8 +195,7 @@ async def test_close(mock_protocol, tcp_connection: TcpConnection) -> None:
     """Test connection close."""
     await tcp_connection.connect()
     await tcp_connection.close()
-    instance = mock_protocol.return_value
-    instance.shutdown.assert_called_once()
+    mock_protocol.shutdown.assert_called_once()
 
 
 async def test_repr(

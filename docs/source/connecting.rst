@@ -69,7 +69,7 @@ working with device classes and queues.
     async def main():
         """Open a connection and request alerts."""
         async with pyplumio.open_tcp_connection(
-            host="localhost", port=8899, protocol=pyplumio.DummyProtocol
+            host="localhost", port=8899, protocol=pyplumio.DummyProtocol()
         ) as connection:
             await connection.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
@@ -93,8 +93,8 @@ All built-in protocols are listed below.
 Network Information
 -------------------
 When opening the connection, you can send ethernet and wireless
-network information to the ecoMAX controller using one or both
-of data classes below.
+network information to the ecoMAX controller by passing one or both
+of data classes below to the Protocol of your choice.
 
 .. autoclass:: pyplumio.EthernetParameters
     :members:
@@ -120,18 +120,20 @@ In the example below, we'll set both ethernet and wireless parameters.
         async with pyplumio.open_tcp_connection(
             host="localhost",
             port=8899,
-            ethernet_parameters=pyplumio.EthernetParameters(
-                ip="10.10.1.100",
-                netmask="255.255.255.0",
-                gateway="10.10.1.1",
-            ),
-            wireless_parameters=pyplumio.WirelessParameters(
-                ip="10.10.2.100",
-                netmask="255.255.255.0",
-                gateway="10.10.2.1",
-                ssid="My SSID",
-                encryption=EncryptionType.WPA2,
-                signal_quality=100,
+            protocol=pyplumio.AsyncProtocol(
+                ethernet_parameters=pyplumio.EthernetParameters(
+                    ip="10.10.1.100",
+                    netmask="255.255.255.0",
+                    gateway="10.10.1.1",
+                ),
+                wireless_parameters=pyplumio.WirelessParameters(
+                    ip="10.10.2.100",
+                    netmask="255.255.255.0",
+                    gateway="10.10.2.1",
+                    ssid="My SSID",
+                    encryption=EncryptionType.WPA2,
+                    signal_quality=100,
+                ),
             ),
         ) as connection:
             ...

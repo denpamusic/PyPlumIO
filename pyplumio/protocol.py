@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
 import logging
-from typing import Final, cast
+from typing import cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import AddressableDevice, get_device_handler_and_name
@@ -28,37 +28,22 @@ from pyplumio.structures.network_info import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CONSUMERS_NUMBER: Final = 2
-
 
 class Protocol(ABC):
     """Represents a protocol."""
 
-    writer: FrameWriter | None
-    reader: FrameReader | None
     connected: asyncio.Event
-    _on_connection_lost: Callable[[], Awaitable[None]] | None
-    _network: NetworkInfo
+    reader: FrameReader | None
+    writer: FrameWriter | None
+    _on_connection_lost: set[Callable[[], Awaitable[None]]]
 
-    def __init__(
-        self,
-        on_connection_lost: Callable[[], Awaitable[None]] | None = None,
-        ethernet_parameters: EthernetParameters | None = None,
-        wireless_parameters: WirelessParameters | None = None,
-    ):
+    def __init__(self):
         """Initialize a new protocol."""
         super().__init__()
-        self.writer = None
-        self.reader = None
         self.connected = asyncio.Event()
-        self._on_connection_lost = on_connection_lost
-        if ethernet_parameters is None:
-            ethernet_parameters = EthernetParameters(status=False)
-
-        if wireless_parameters is None:
-            wireless_parameters = WirelessParameters(status=False)
-
-        self._network = NetworkInfo(eth=ethernet_parameters, wlan=wireless_parameters)
+        self.reader = None
+        self.writer = None
+        self._on_connection_lost = set()
 
     async def close_writer(self) -> None:
         """Ensure that writer is closed."""
@@ -73,18 +58,25 @@ class Protocol(ABC):
         finally:
             self.writer = None
 
+    @property
+    def on_connection_lost(self) -> set[Callable[[], Awaitable[None]]]:
+        """Return a set of callbacks that are called when
+        connection is lost.
+        """
+        return self._on_connection_lost
+
     @abstractmethod
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ):
+    ) -> None:
         """Called when connection is established."""
 
     @abstractmethod
-    async def connection_lost(self):
+    async def connection_lost(self) -> None:
         """Called when connection is lost."""
 
     @abstractmethod
-    async def shutdown(self):
+    async def shutdown(self) -> None:
         """Shutdown the protocol."""
 
 
@@ -97,21 +89,21 @@ class DummyProtocol(Protocol):
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ):
+    ) -> None:
         """Called when connection is established."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         self.connected.set()
 
-    async def connection_lost(self):
+    async def connection_lost(self) -> None:
         """Called when connection is lost."""
         if self.connected.is_set():
             self.connected.clear()
             await self.close_writer()
-            if self._on_connection_lost is not None:
-                await self._on_connection_lost()
+            for callback in self.on_connection_lost:
+                await callback()
 
-    async def shutdown(self):
+    async def shutdown(self) -> None:
         """Shutdown the protocol."""
         if self.connected.is_set():
             self.connected.clear()
@@ -134,28 +126,43 @@ class AsyncProtocol(Protocol, EventManager):
     sends frame to respective handler for further processing.
     """
 
+    consumers_number: int
+    _network: NetworkInfo
     _queues: tuple[asyncio.Queue, asyncio.Queue]
 
     def __init__(
         self,
-        on_connection_lost: Callable[[], Awaitable[None]] | None = None,
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
+        consumers_number: int = 3,
     ):
-        """Initialize a new default protocol."""
-        super().__init__(on_connection_lost, ethernet_parameters, wireless_parameters)
+        """Initialize a new async protocol."""
+        super().__init__()
+        self.consumers_number = consumers_number
+        self._network = NetworkInfo(
+            eth=(
+                EthernetParameters(status=False)
+                if ethernet_parameters is None
+                else ethernet_parameters
+            ),
+            wlan=(
+                WirelessParameters(status=False)
+                if wireless_parameters is None
+                else wireless_parameters
+            ),
+        )
         self._queues = (asyncio.Queue(), asyncio.Queue())
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
-    ):
+    ) -> None:
         """Called when connection is established."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         read_queue, write_queue = self.queues
         write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
         self.create_task(self.frame_producer(*self.queues))
-        for _ in range(CONSUMERS_NUMBER):
+        for _ in range(self.consumers_number):
             self.create_task(self.frame_consumer(read_queue))
 
         for device in self.data.values():
@@ -163,19 +170,21 @@ class AsyncProtocol(Protocol, EventManager):
 
         self.connected.set()
 
-    async def connection_lost(self):
+    async def connection_lost(self) -> None:
         """Called when connection is lost."""
-        if self.connected.is_set():
-            self.connected.clear()
-            for device in self.data.values():
-                # Notify devices about connection loss.
-                await device.dispatch(ATTR_CONNECTED, False)
+        if not self.connected.is_set():
+            return
 
-            await self.close_writer()
-            if self._on_connection_lost is not None:
-                await self._on_connection_lost()
+        self.connected.clear()
+        for device in self.data.values():
+            # Notify devices about connection loss.
+            await device.dispatch(ATTR_CONNECTED, False)
 
-    async def shutdown(self):
+        await self.close_writer()
+        for callback in self.on_connection_lost:
+            await callback()
+
+    async def shutdown(self) -> None:
         """Shutdown protocol tasks."""
         await asyncio.gather(*[queue.join() for queue in self.queues])
         await super(Protocol, self).shutdown()

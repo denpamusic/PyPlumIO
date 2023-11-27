@@ -72,7 +72,8 @@ def fixture_async_protocol() -> AsyncProtocol:
 async def test_dummy_protocol() -> None:
     """Test a dummy protocol."""
     mock_on_connection_lost = AsyncMock()
-    dummy_protocol = DummyProtocol(on_connection_lost=mock_on_connection_lost)
+    dummy_protocol = DummyProtocol()
+    dummy_protocol.on_connection_lost.add(mock_on_connection_lost)
 
     mock_reader = AsyncMock(spec=asyncio.StreamReader)
     mock_writer = AsyncMock(spec=asyncio.StreamWriter, new_callable=Mock)
@@ -147,22 +148,23 @@ def test_async_protocol_connection_established(
 
     # Check that two frame consumers, one write consumer and one frame
     # producer were created.
-    assert mock_frame_consumer.call_count == 2
+    assert mock_frame_consumer.call_count == 3
     mock_frame_producer.assert_called_once()
-    assert mock_create_task.call_count == 3
+    assert mock_create_task.call_count == 4
 
     # Check that devices were notified.
     mock_ecomax.dispatch_nowait.assert_called_once_with(ATTR_CONNECTED, True)
 
 
-async def test_async_protocol_connection_lost(bypass_asyncio_events) -> None:
+async def test_async_protocol_connection_lost() -> None:
     """Test losing the connection with an async protocol."""
     mock_read_queue = Mock(spec=asyncio.Queue)
     mock_write_queue = Mock(spec=asyncio.Queue)
 
     # Create connection lost callback mock.
     mock_on_connection_lost = AsyncMock()
-    async_protocol = AsyncProtocol(on_connection_lost=mock_on_connection_lost)
+    async_protocol = AsyncProtocol()
+    async_protocol.on_connection_lost.add(mock_on_connection_lost)
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
@@ -171,6 +173,12 @@ async def test_async_protocol_connection_lost(bypass_asyncio_events) -> None:
     async_protocol.writer = mock_writer
     async_protocol.data = {"ecomax": mock_ecomax}
     async_protocol.writer = mock_writer
+
+    # Ensure that on connection lost callback not awaited, when
+    # connection is not established.
+    await async_protocol.connection_lost()
+    async_protocol.connected.set()
+    mock_on_connection_lost.assert_not_awaited()
 
     with patch(
         "pyplumio.protocol.AsyncProtocol.queues",
