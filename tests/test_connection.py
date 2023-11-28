@@ -88,7 +88,9 @@ async def test_tcp_connect(mock_protocol, asyncio_open_connection) -> None:
         )
 
         assert tcp_connection.protocol == mock_protocol
-        mock_protocol.add.assert_called_once_with(mock_connection_lost)
+        mock_protocol.on_connection_lost.add.assert_called_once_with(
+            mock_connection_lost
+        )
 
     await tcp_connection.connect()
     asyncio_open_connection.assert_called_once_with(host=HOST, port=PORT, test="test")
