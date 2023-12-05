@@ -124,6 +124,8 @@ class EcomaxBinaryParameterDescription(
 ):
     """Represents an ecoMAX binary parameter description."""
 
+    __slots__ = ()
+
 
 ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ProductType.ECOMAX_P: (
@@ -624,6 +626,8 @@ THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_P
 
 class EcomaxParametersStructure(StructureDecoder):
     """Represents an ecoMAX parameters structure."""
+
+    __slots__ = ("_offset",)
 
     _offset: int
 

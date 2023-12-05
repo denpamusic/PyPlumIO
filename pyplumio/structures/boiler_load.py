@@ -13,6 +13,8 @@ ATTR_BOILER_LOAD: Final = "boiler_load"
 class BoilerLoadStructure(StructureDecoder):
     """Represents a boiler load sensor data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

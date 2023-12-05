@@ -24,9 +24,11 @@ ATTR_CONTACTS: Final = "contacts"
 class ThermostatSensorsStructure(StructureDecoder):
     """Represents a thermostats sensors data structure."""
 
+    __slots__ = ("_offset", "_contact_mask", "_schedule_mask")
+
     _offset: int
-    _contact_mask: int = 1
-    _schedule_mask: int = 1 << 3
+    _contact_mask: int
+    _schedule_mask: int
 
     def _unpack_thermostat_sensors(
         self, message: bytearray, contacts: int
@@ -72,6 +74,8 @@ class ThermostatSensorsStructure(StructureDecoder):
         contacts = message[offset]
         thermostats = message[offset + 1]
         self._offset = offset + 2
+        self._contact_mask = 1
+        self._schedule_mask = 1 << 3
         thermostat_sensors = dict(
             self._thermostat_sensors(message, thermostats, contacts)
         )

@@ -61,6 +61,8 @@ class NetworkInfo:
 class NetworkInfoStructure(Structure):
     """Represents a network info data structure."""
 
+    __slots__ = ()
+
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
         message = bytearray()

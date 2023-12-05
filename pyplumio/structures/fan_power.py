@@ -14,6 +14,8 @@ ATTR_FAN_POWER: Final = "fan_power"
 class FanPowerStructure(StructureDecoder):
     """Represents a fan power sensor data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

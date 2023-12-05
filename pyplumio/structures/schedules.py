@@ -95,6 +95,8 @@ class ScheduleParameter(Parameter):
 class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
     """Represents a schedule binary parameter."""
 
+    __slots__ = ()
+
 
 @dataclass
 class ScheduleParameterDescription(ParameterDescription):
@@ -145,6 +147,8 @@ def _join_bits(bits: Sequence[int | bool]) -> int:
 
 class SchedulesStructure(Structure):
     """Represents a schedule data structure."""
+
+    __slots__ = ("_offset",)
 
     _offset: int
 

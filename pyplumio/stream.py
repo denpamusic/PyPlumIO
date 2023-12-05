@@ -23,6 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 class FrameWriter:
     """Represents a frame writer."""
 
+    __slots__ = ("_writer",)
+
     _writer: StreamWriter
 
     def __init__(self, writer: StreamWriter):

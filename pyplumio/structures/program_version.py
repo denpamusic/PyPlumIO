@@ -13,12 +13,9 @@ ATTR_VERSION: Final = "version"
 
 VERSION_INFO_SIZE: Final = 15
 
+SOFTWARE_VERSION: str = ".".join(str(x) for x in __version_tuple__[0:3])
+
 struct_program_version = struct.Struct("<2sB2s3s3HB")
-
-
-def _formated_version(version_tuple=__version_tuple__) -> str:
-    """Format version tuple for a program version response."""
-    return ".".join(str(x) for x in version_tuple[0:3])
 
 
 @dataclass
@@ -27,7 +24,7 @@ class VersionInfo:
     response.
     """
 
-    software: str = _formated_version()
+    software: str = SOFTWARE_VERSION
     struct_tag: bytes = b"\xFF\xFF"
     struct_version: int = 5
     device_id: bytes = b"\x7A\x00"
@@ -36,6 +33,8 @@ class VersionInfo:
 
 class ProgramVersionStructure(Structure):
     """Represents a program version data structure."""
+
+    __slots__ = ()
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""

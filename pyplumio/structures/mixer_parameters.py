@@ -86,6 +86,8 @@ class MixerParameter(Parameter):
 class MixerBinaryParameter(BinaryParameter, MixerParameter):
     """Represents a mixer binary parameter."""
 
+    __slots__ = ()
+
 
 @dataclass
 class MixerParameterDescription(ParameterDescription):

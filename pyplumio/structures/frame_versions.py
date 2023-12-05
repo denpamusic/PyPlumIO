@@ -14,6 +14,8 @@ ATTR_FRAME_VERSIONS: Final = "frame_versions"
 class FrameVersionsStructure(StructureDecoder):
     """Represents a frame version data structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:

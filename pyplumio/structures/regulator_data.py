@@ -18,8 +18,10 @@ REGDATA_VERSION: Final = "1.0"
 class RegulatorDataStructure(StructureDecoder):
     """Represents a regulator data structure."""
 
-    _offset: int = 0
-    _bitarray_index: int = 0
+    __slots__ = ("_offset", "_bitarray_index")
+
+    _offset: int
+    _bitarray_index: int
 
     def _unpack_regulator_data(self, message: bytearray, data_type: DataType):
         """Unpack a regulator data sensor."""
@@ -57,6 +59,7 @@ class RegulatorDataStructure(StructureDecoder):
         if isinstance(sender, AddressableDevice) and (
             schema := sender.get_nowait(ATTR_REGDATA_SCHEMA, [])
         ):
+            self._bitarray_index = 0
             data[ATTR_REGDATA] = {
                 param_id: self._unpack_regulator_data(message, data_type)
                 for param_id, data_type in schema

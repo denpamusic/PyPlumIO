@@ -44,6 +44,8 @@ class ConnectedModules:
 class ModulesStructure(StructureDecoder):
     """Represents a modules data structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _unpack_module_version(self, module: str, message: bytearray) -> str | None:

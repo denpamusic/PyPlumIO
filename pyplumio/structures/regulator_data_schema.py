@@ -13,6 +13,8 @@ ATTR_REGDATA_SCHEMA: Final = "regdata_schema"
 class RegulatorDataSchemaStructure(StructureDecoder):
     """Represents a regulator data schema structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _unpack_block(self, message: bytearray) -> tuple[int, DataType]:

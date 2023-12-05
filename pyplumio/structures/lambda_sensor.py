@@ -17,6 +17,8 @@ ATTR_LAMBDA_LEVEL: Final = "lambda_level"
 class LambdaSensorStructure(StructureDecoder):
     """Represents a lambda sensor data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

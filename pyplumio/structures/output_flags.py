@@ -16,6 +16,8 @@ ATTR_SOLAR_PUMP_FLAG: Final = "solar_pump_flag"
 class OutputFlagsStructure(StructureDecoder):
     """Represents an output flags structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

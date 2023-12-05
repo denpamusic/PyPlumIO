@@ -100,6 +100,8 @@ class ThermostatParameter(Parameter):
 class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
     """Represents a thermostat binary parameter."""
 
+    __slots__ = ()
+
 
 @dataclass
 class ThermostatParameterDescription(ParameterDescription):
@@ -179,6 +181,8 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
 
 class ThermostatParametersStructure(StructureDecoder):
     """Represents a thermostat parameters data structure."""
+
+    __slots__ = ("_offset",)
 
     _offset: int
 

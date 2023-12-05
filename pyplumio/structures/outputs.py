@@ -48,6 +48,8 @@ OUTPUTS: tuple[str, ...] = (
 class OutputsStructure(StructureDecoder):
     """Represents an outputs data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

@@ -20,6 +20,8 @@ MIXER_SENSOR_SIZE: Final = 8
 class MixerSensorsStructure(StructureDecoder):
     """Represents a mixer sensors data structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _unpack_mixer_sensors(self, message: bytearray) -> dict[str, Any] | None:

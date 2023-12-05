@@ -42,6 +42,8 @@ class ProductInfo:
 class ProductInfoStructure(StructureDecoder):
     """Represents a product info data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:

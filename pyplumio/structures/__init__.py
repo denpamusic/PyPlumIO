@@ -12,11 +12,15 @@ from pyplumio.frames import Frame
 class StructureDataClass:
     "Represents a structure dataclass mixin."
 
+    __slots__ = ("frame",)
+
     frame: Frame
 
 
 class Structure(ABC, StructureDataClass):
     """Represents a data structure."""
+
+    __slots__ = ()
 
     @abstractmethod
     def encode(self, data: dict[str, Any]) -> bytearray:
@@ -34,6 +38,8 @@ class Structure(ABC, StructureDataClass):
 
 class StructureDecoder(Structure, ABC):
     """Represents a structure that only handles decoding."""
+
+    __slots__ = ()
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""

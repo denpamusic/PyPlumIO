@@ -52,6 +52,8 @@ class Alert:
 class AlertsStructure(StructureDecoder):
     """Represents an alerts data structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _unpack_alert(self, message: bytearray) -> Alert:

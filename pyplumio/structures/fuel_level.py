@@ -13,6 +13,8 @@ ATTR_FUEL_LEVEL: Final = "fuel_level"
 class FuelLevelStructure(StructureDecoder):
     """Represents a fuel level sensor data structure."""
 
+    __slots__ = ()
+
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
