@@ -25,4 +25,9 @@ class FuelLevelStructure(StructureDecoder):
         if fuel_level == BYTE_UNDEFINED:
             return ensure_dict(data), offset
 
+        if fuel_level >= 101:
+            # Observed on at least ecoMAX 860P6-O.
+            # See: https://github.com/denpamusic/PyPlumIO/issues/19
+            fuel_level -= 101
+
         return (ensure_dict(data, {ATTR_FUEL_LEVEL: fuel_level}), offset)
