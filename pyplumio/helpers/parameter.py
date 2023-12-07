@@ -66,7 +66,7 @@ class ParameterValues:
 
 
 @dataclass
-class ParameterDescription:
+class ParameterDescription(ABC):
     """Represents a parameter description."""
 
     name: str
@@ -74,7 +74,7 @@ class ParameterDescription:
 
 
 @dataclass
-class BinaryParameterDescription(ParameterDescription):
+class BinaryParameterDescription(ParameterDescription, ABC):
     """Represent a binary parameter description."""
 
 
