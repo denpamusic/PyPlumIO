@@ -357,7 +357,7 @@ async def test_thermostat_sensors_callbacks_without_thermostats(ecomax: EcoMAX) 
 async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat parameters."""
     test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_AVAILABLE: 3}))
     await ecomax.wait_until_done()
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
@@ -394,7 +394,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
     """Test callbacks that are dispatched on receiving thermostat parameters
     without any thermostats."""
     test_data = load_json_test_data("responses/thermostat_parameters.json")[0]
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 0}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_AVAILABLE: 0}))
     ecomax.handle_frame(ThermostatParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert not await ecomax.get(ATTR_THERMOSTAT_PARAMETERS)
@@ -402,7 +402,7 @@ async def test_thermostat_parameters_callbacks_without_thermostats(
 
 async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks that are dispatched on receiving thermostat profile."""
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_AVAILABLE: 3}))
     await ecomax.wait_until_done()
     ecomax.handle_frame(
         ThermostatParametersResponse(
@@ -564,7 +564,7 @@ async def test_set(ecomax: EcoMAX) -> None:
         load_json_test_data("responses/thermostat_parameters.json")[0],
         load_json_test_data("responses/mixer_parameters.json")[0],
     )
-    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_CONNECTED: 3}))
+    ecomax.handle_frame(Response(data={ATTR_THERMOSTATS_AVAILABLE: 3}))
     await ecomax.wait_until_done()
     ecomax.handle_frame(EcomaxParametersResponse(message=test_ecomax_data["message"]))
     ecomax.handle_frame(

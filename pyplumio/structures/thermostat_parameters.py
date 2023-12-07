@@ -24,7 +24,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures import StructureDecoder
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
 from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
@@ -216,7 +216,7 @@ class ThermostatParametersStructure(StructureDecoder):
         sender = self.frame.sender
         if (
             isinstance(sender, AddressableDevice)
-            and (thermostats := sender.get_nowait(ATTR_THERMOSTATS_CONNECTED, 0)) == 0
+            and (thermostats := sender.get_nowait(ATTR_THERMOSTATS_AVAILABLE, 0)) == 0
         ):
             return (
                 ensure_dict(data, {ATTR_THERMOSTAT_PARAMETERS: None}),

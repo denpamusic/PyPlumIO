@@ -16,7 +16,7 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_CONNECTED
+from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
 from tests import load_json_parameters
 
 
@@ -125,7 +125,7 @@ async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> 
     """Test a thermostat parameters response."""
     frame = ThermostatParametersResponse(message=message)
     frame.sender = ecomax
-    frame.sender.load({ATTR_THERMOSTATS_CONNECTED: 3})
+    frame.sender.load({ATTR_THERMOSTATS_AVAILABLE: 3})
     await frame.sender.wait_until_done()
 
     assert frame.data == data
