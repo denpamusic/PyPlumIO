@@ -1,6 +1,7 @@
 """Contains a frame reader and writer classes."""
 from __future__ import annotations
 
+import asyncio
 from asyncio import IncompleteReadError, StreamReader, StreamWriter
 import logging
 from typing import Final
@@ -38,10 +39,17 @@ class FrameWriter:
         await self._writer.drain()
         _LOGGER.debug("Sent frame: %s", frame)
 
-    @timeout(WRITER_TIMEOUT)
     async def close(self) -> None:
         """Close the frame writer."""
-        self._writer.close()
+        try:
+            self._writer.close()
+            await self.wait_closed()
+        except (OSError, asyncio.TimeoutError):
+            _LOGGER.exception("Unexpected error while closing the writer")
+
+    @timeout(WRITER_TIMEOUT)
+    async def wait_closed(self):
+        """Wait until the frame writer is closed."""
         await self._writer.wait_closed()
 
 

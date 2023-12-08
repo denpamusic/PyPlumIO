@@ -169,10 +169,8 @@ async def test_async_protocol_connection_lost() -> None:
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
     mock_writer = AsyncMock()
-    mock_writer.close = AsyncMock()
     async_protocol.writer = mock_writer
     async_protocol.data = {"ecomax": mock_ecomax}
-    async_protocol.writer = mock_writer
 
     # Ensure that on connection lost callback not awaited, when
     # connection is not established.
@@ -213,7 +211,7 @@ async def test_async_protocol_shutdown(
     mock_write_queue = Mock()
 
     mock_writer = AsyncMock()
-    mock_writer.close = AsyncMock(side_effect=OSError)
+    mock_writer.close = AsyncMock()
     async_protocol.writer = mock_writer
     async_protocol.data["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 

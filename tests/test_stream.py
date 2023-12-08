@@ -33,6 +33,20 @@ async def test_frame_writer(mock_stream_writer) -> None:
     mock_stream_writer.wait_closed.assert_awaited_once()
 
 
+@pytest.mark.parametrize(
+    "method,exception", [("close", OSError), ("wait_closed", asyncio.TimeoutError)]
+)
+@patch("asyncio.StreamWriter", autospec=True)
+async def test_frame_writer_with_close_error(
+    mock_stream_writer, method, exception, caplog
+) -> None:
+    """Test frame writer with error on writer close."""
+    writer = FrameWriter(mock_stream_writer)
+    getattr(mock_stream_writer, method).side_effect = exception
+    await writer.close()
+    assert "Unexpected error while closing the writer" in caplog.text
+
+
 @patch(
     "asyncio.StreamReader.read",
     side_effect=(b"\x00", b"\x68", b"\x0c\x00\x00\x56\x30\x05"),

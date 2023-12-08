@@ -47,15 +47,8 @@ class Protocol(ABC):
 
     async def close_writer(self) -> None:
         """Ensure that writer is closed."""
-        if not self.writer:
-            return
-
-        try:
+        if self.writer:
             await self.writer.close()
-        except (OSError, asyncio.TimeoutError):
-            # Ignore any connection errors when closing the writer.
-            pass
-        finally:
             self.writer = None
 
     @property
