@@ -38,7 +38,7 @@ class ProgramVersionStructure(Structure):
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
-        message = bytearray(15)
+        message = bytearray(struct_program_version.size)
         version_info = data[ATTR_VERSION] if ATTR_VERSION in data else VersionInfo()
         struct_program_version.pack_into(
             message,
