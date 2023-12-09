@@ -7,8 +7,7 @@ from collections.abc import MutableMapping
 import logging
 from typing import Any, Final
 
-from serial import SerialException
-import serial_asyncio
+from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
 
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.timeout import timeout
@@ -18,6 +17,13 @@ _LOGGER = logging.getLogger(__name__)
 
 CONNECT_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
+
+try:
+    import serial_asyncio_fast as pyserial_asyncio
+
+    _LOGGER.info("Using pyserial-asyncio-fast in place of pyserial-asyncio")
+except ImportError:
+    import serial_asyncio as pyserial_asyncio
 
 
 class Connection(ABC):
@@ -196,11 +202,11 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await serial_asyncio.open_serial_connection(
+        return await pyserial_asyncio.open_serial_connection(
             url=self.device,
             baudrate=self.baudrate,
-            bytesize=serial_asyncio.serial.EIGHTBITS,
-            parity=serial_asyncio.serial.PARITY_NONE,
-            stopbits=serial_asyncio.serial.STOPBITS_ONE,
+            bytesize=EIGHTBITS,
+            parity=PARITY_NONE,
+            stopbits=STOPBITS_ONE,
             **self._kwargs,
         )
