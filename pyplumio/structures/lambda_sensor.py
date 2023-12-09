@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 from typing import Any, Final
 
-from pyplumio.const import BYTE_UNDEFINED
+from pyplumio.const import BYTE_UNDEFINED, LambdaState
 from pyplumio.helpers.data_types import UnsignedShort
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -27,6 +27,11 @@ class LambdaSensorStructure(StructureDecoder):
         offset += 1
         if lambda_state == BYTE_UNDEFINED:
             return ensure_dict(data), offset
+
+        try:
+            lambda_state = LambdaState(lambda_state)
+        except ValueError:
+            pass
 
         lambda_target = message[offset]
         offset += 1

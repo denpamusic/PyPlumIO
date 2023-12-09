@@ -72,7 +72,11 @@
           "__class__": "ConnectedModules"
         },
         "lambda_level": 4.0,
-        "lambda_state": 1,
+        "lambda_state": {
+          "value": 1,
+          "__module__": "pyplumio.const",
+          "__class__": "LambdaState"
+        },
         "lambda_target": 2,
         "thermostat_sensors": {
           "0": {
@@ -103,7 +107,7 @@
       "items": [
         "0755F7B15420BE5698FA3601003802003901003D18310000000000FF0300000900D012B34101F",
         "FFFFFFF02FFFFFFFF03FFFFFFFF04FFFFFFFF05FFFFFFFF060000000007FFFFFFFF08FFFFFFFF",
-        "29002D800065000000000010000000000000000001120B3A4B01FFFFFFFF120A4801022800050",
+        "29002D800065000000000010000000000000000001120B3A4B01FFFFFFFF120A4804022800050",
         "20300002E42000048420200000E420000000005FFFFFFFF28000800FFFFFFFF28000800FFFFFF",
         "FF28000800FFFFFFFF280008000000A04128000800"
       ],
@@ -170,7 +174,7 @@
           "__class__": "ConnectedModules"
         },
         "lambda_level": 4.0,
-        "lambda_state": 1,
+        "lambda_state": 4,
         "lambda_target": 2,
         "thermostat_sensors": {
           "0": {

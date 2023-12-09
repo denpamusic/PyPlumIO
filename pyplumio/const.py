@@ -85,6 +85,15 @@ class DeviceState(IntEnum):
 
 
 @unique
+class LambdaState(IntEnum):
+    """Contain lambda sensor states."""
+
+    STOP = 0
+    START = 1
+    WORKING = 3
+
+
+@unique
 class ProductType(IntEnum):
     """Contains product types."""
 
