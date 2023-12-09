@@ -48,12 +48,6 @@ class EncryptionType(IntEnum):
     WPA2 = 4
 
 
-EXTRA_STATES: Final = (
-    12,  # STABILIZATION: ecoMAX 810P-L TOUCH
-    23,  # STABILIZATION: ecoMAX 860P3-O
-)
-
-
 @unique
 class DeviceState(IntEnum):
     """Contains device states."""
@@ -73,15 +67,14 @@ class DeviceState(IntEnum):
 
     @classmethod
     def _missing_(cls, value):
-        """Look up state in extra state table.
+        """Look up state in extra state table."""
+        return EXTRA_DEVICE_STATES.get(value, None)
 
-        Currently it's only used for stabilization state,
-        since it differs between models.
-        """
-        if value in EXTRA_STATES:
-            return cls.STABILIZATION
 
-        return None
+EXTRA_DEVICE_STATES: Final = {
+    12: DeviceState.STABILIZATION,  # ecoMAX 810P-L TOUCH
+    23: DeviceState.STABILIZATION,  # ecoMAX 860P3-O
+}
 
 
 @unique
@@ -166,9 +159,6 @@ class FrameType(IntEnum):
     MESSAGE_SENSOR_DATA = 53
 
 
-PERCENTAGE: Final = "%"
-
-
 @unique
 class UnitOfMeasurement(Enum):
     """Contains units of measurement."""
@@ -182,3 +172,6 @@ class UnitOfMeasurement(Enum):
     SECONDS = "s"
     MINUTES = "min"
     DAYS = "days"
+
+
+PERCENTAGE: Final = "%"
