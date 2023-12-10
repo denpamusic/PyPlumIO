@@ -33,7 +33,7 @@ jobs:
         run: tox -e lint
 
       - name: Check typing
-        run: tox -e typing
+        run: tox -e type
 
       - name: Run tests
         run: tox
