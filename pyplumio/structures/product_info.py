@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import cache
 import re
 import struct
 from typing import Any, Final
@@ -15,6 +16,7 @@ from pyplumio.utils import ensure_dict
 ATTR_PRODUCT: Final = "product"
 
 
+@cache
 def format_model_name(model_name: str) -> str:
     """Format a device model name."""
     if m := re.match(r"^([A-Z]+)\s{0,}([0-9]{3,})(.+)$", model_name, re.IGNORECASE):
