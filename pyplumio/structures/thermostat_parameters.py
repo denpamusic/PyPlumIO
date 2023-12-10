@@ -1,8 +1,9 @@
 """Contains a thermostat parameters structure decoder."""
 from __future__ import annotations
 
+from collections.abc import Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Generator
+from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import (
     ATTR_INDEX,
@@ -67,22 +68,22 @@ class ThermostatParameter(Parameter):
 
     @property
     def value(self) -> ParameterValueType:
-        """A parameter value."""
+        """Return the parameter value."""
         return self.values.value * self.description.multiplier
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Minimum allowed value."""
+        """Return the minimum allowed value."""
         return self.values.min_value * self.description.multiplier
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Maximum allowed value."""
+        """Return the maximum allowed value."""
         return self.values.max_value * self.description.multiplier
 
     @property
     def request(self) -> Request:
-        """A request to change the parameter."""
+        """Return request to change the parameter."""
         return factory(
             "frames.requests.SetThermostatParameterRequest",
             recipient=self.device.parent.address,

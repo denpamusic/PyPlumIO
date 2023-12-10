@@ -38,7 +38,8 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
 
     if end_dt <= start_dt:
         raise ValueError(
-            f"Invalid interval ({start}, {end}). Lower boundary must be less than upper."
+            f"Invalid interval ({start}, {end}). "
+            + "Lower boundary must be less than upper."
         )
 
     start_index = math.floor((start_dt - start_of_day_dt).total_seconds() // (60 * 30))
@@ -115,7 +116,7 @@ class ScheduleDay(MutableMapping):
 
     @property
     def intervals(self) -> list[bool]:
-        """A list of schedule intervals."""
+        """Return the schedule intervals."""
         return self._intervals
 
 
@@ -146,7 +147,7 @@ class Schedule(Iterable):
     sunday: ScheduleDay
 
     def __iter__(self) -> Iterator[ScheduleDay]:
-        """Returns a list of days."""
+        """Return list of days."""
         return (
             self.sunday,
             self.monday,

@@ -33,5 +33,5 @@ class TaskManager:
 
     @property
     def tasks(self) -> set[asyncio.Task]:
-        """A list of tasks."""
+        """Return the tasks."""
         return self._tasks

@@ -20,9 +20,7 @@ struct_program_version = struct.Struct("<2sB2s3s3HB")
 
 @dataclass
 class VersionInfo:
-    """Represents a version info provided in program version
-    response.
-    """
+    """Represents a version info provided in program version response."""
 
     software: str = SOFTWARE_VERSION
     struct_tag: bytes = b"\xFF\xFF"

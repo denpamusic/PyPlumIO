@@ -153,7 +153,7 @@ class Frame(ABC):
 
     @property
     def data(self) -> dict[str, Any]:
-        """A frame data."""
+        """Return the frame data."""
         if self._data is None:
             self._data = (
                 self.decode_message(self._message) if self._message is not None else {}
@@ -163,13 +163,13 @@ class Frame(ABC):
 
     @data.setter
     def data(self, data: dict[str, Any]) -> None:
-        """A frame data setter."""
+        """Set the frame data."""
         self._data = data
         self._message = None
 
     @property
     def message(self) -> bytearray:
-        """A frame message."""
+        """Return the frame message."""
         if self._message is None:
             self._message = self.create_message(
                 self._data if self._data is not None else {}
@@ -179,13 +179,13 @@ class Frame(ABC):
 
     @message.setter
     def message(self, message: bytearray) -> None:
-        """A frame message setter."""
+        """Set the frame message."""
         self._message = message
         self._data = None
 
     @property
     def length(self) -> int:
-        """Frame length in bytes."""
+        """Return the frame length in bytes."""
         return (
             struct_header.size
             + FRAME_TYPE_SIZE
@@ -196,7 +196,7 @@ class Frame(ABC):
 
     @property
     def header(self) -> bytearray:
-        """A frame header."""
+        """Return the frame header."""
         buffer = bytearray(struct_header.size)
         struct_header.pack_into(
             buffer,
@@ -213,7 +213,7 @@ class Frame(ABC):
 
     @property
     def bytes(self) -> bytes:
-        """Frame bytes."""
+        """Return the frame bytes."""
         data = self.header
         data.append(self.frame_type)
         data += self.message
@@ -223,11 +223,11 @@ class Frame(ABC):
 
     @abstractmethod
     def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
+        """Create frame message."""
 
     @abstractmethod
     def decode_message(self, message: bytearray) -> dict[str, Any]:
-        """Decode a frame message."""
+        """Decode frame message."""
 
 
 class Request(Frame):
@@ -243,7 +243,7 @@ class Request(Frame):
         """Decode a frame message."""
         return {}
 
-    def response(self, **args) -> Response | None:
+    def response(self, **_) -> Response | None:
         """Return a response frame."""
         return None
 

@@ -53,20 +53,18 @@ class Protocol(ABC):
 
     @property
     def on_connection_lost(self) -> set[Callable[[], Awaitable[None]]]:
-        """Return a set of callbacks that are called when
-        connection is lost.
-        """
+        """Return the callbacks that'll be called on connection lost."""
         return self._on_connection_lost
 
     @abstractmethod
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
-        """Called when connection is established."""
+        """Do something on connection established."""
 
     @abstractmethod
     async def connection_lost(self) -> None:
-        """Called when connection is lost."""
+        """Do something on connection lost."""
 
     @abstractmethod
     async def shutdown(self) -> None:
@@ -83,13 +81,13 @@ class DummyProtocol(Protocol):
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
-        """Called when connection is established."""
+        """Set reader and writer attributes and set the connected event."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         self.connected.set()
 
     async def connection_lost(self) -> None:
-        """Called when connection is lost."""
+        """Close writer and call connection lost callbacks."""
         if self.connected.is_set():
             self.connected.clear()
             await self.close_writer()
@@ -149,7 +147,7 @@ class AsyncProtocol(Protocol, EventManager):
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
-        """Called when connection is established."""
+        """Start frame producer and consumers."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         read_queue, write_queue = self.queues
@@ -164,7 +162,7 @@ class AsyncProtocol(Protocol, EventManager):
         self.connected.set()
 
     async def connection_lost(self) -> None:
-        """Called when connection is lost."""
+        """Close the writer and call connection lost callbacks."""
         if not self.connected.is_set():
             return
 
@@ -229,7 +227,7 @@ class AsyncProtocol(Protocol, EventManager):
             read_queue.task_done()
 
     def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
-        """Setup the device entry."""
+        """Set up device entry."""
         handler, name = get_device_handler_and_name(device_type)
         if name not in self.data:
             self._create_device_entry(name, handler)
@@ -237,7 +235,7 @@ class AsyncProtocol(Protocol, EventManager):
         return self.data[name]
 
     def _create_device_entry(self, name: str, handler: str) -> None:
-        """Create the device entry."""
+        """Create device entry."""
         write_queue = self.queues[1]
         device: AddressableDevice = factory(
             handler, queue=write_queue, network=self._network
@@ -249,5 +247,5 @@ class AsyncProtocol(Protocol, EventManager):
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
-        """Protocol queues."""
+        """Return the protocol queues."""
         return self._queues

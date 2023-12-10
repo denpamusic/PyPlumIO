@@ -91,8 +91,9 @@ class EventManager(TaskManager):
     def subscribe_once(
         self, name: str, callback: Callable[[Any], Awaitable[Any]]
     ) -> None:
-        """Subscribe a callback to the event once. Callback will be
-        unsubscribed after single event.
+        """Subscribe a callback to the event once.
+
+        Callback will be unsubscribed after single event.
 
         :param name: Event name or ID
         :type name: str
@@ -133,9 +134,7 @@ class EventManager(TaskManager):
         self.set_event(name)
 
     def dispatch_nowait(self, name: str, value) -> None:
-        """Call a registered callbacks and dispatch the event
-        without waiting.
-        """
+        """Call a registered callbacks and dispatch the event without waiting."""
         self.create_task(self.dispatch(name, value))
 
     def load(self, data: dict[str, Any]) -> None:
@@ -172,5 +171,5 @@ class EventManager(TaskManager):
 
     @property
     def events(self) -> dict[str, asyncio.Event]:
-        """List of events."""
+        """Return the events."""
         return self._events

@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Generator, Iterable, Sequence
+from contextlib import suppress
 import logging
 import time
 from typing import Any, ClassVar, Final
@@ -123,7 +124,7 @@ class EcoMAX(AddressableDevice):
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
 
     async def async_setup(self) -> bool:
-        """Setup an ecoMAX controller."""
+        """Set up an ecoMAX controller."""
         await self.wait_for(ATTR_SENSORS)
         return await super().async_setup()
 
@@ -241,9 +242,7 @@ class EcoMAX(AddressableDevice):
                 self._frame_versions[frame_type] = version
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
-        """Calculate fuel burned since last sensor's data message
-        and dispatch 'fuel_burned' event.
-        """
+        """Calculate fuel burned since last sensor's data message."""
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
         if time_passed_ns >= MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
@@ -347,9 +346,7 @@ class EcoMAX(AddressableDevice):
         return True
 
     async def _add_ecomax_control_parameter(self, mode: int) -> None:
-        """Create ecoMAX control parameter instance and dispatch an
-        'ecomax_control' event.
-        """
+        """Create ecoMAX control parameter instance and dispatch an event."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
             EcomaxBinaryParameter(
@@ -442,9 +439,7 @@ class EcoMAX(AddressableDevice):
         for subdevice in (mixers | thermostats).values():
             await subdevice.shutdown()
 
-        try:
+        with suppress(AttributeError):
             await self.regdata.shutdown()
-        except AttributeError:
-            pass
 
         await super().shutdown()

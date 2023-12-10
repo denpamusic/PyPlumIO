@@ -39,7 +39,6 @@ class RegulatorDataMessage(Message):
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
-
         return RegulatorDataStructure(self).decode(message)[0]
 
 

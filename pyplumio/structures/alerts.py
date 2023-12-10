@@ -1,10 +1,11 @@
 """Contains an alerts structure decoder."""
 from __future__ import annotations
 
+from collections.abc import Generator
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
-from typing import Any, Final, Generator
+from typing import Any, Final
 
 from pyplumio.const import AlertType
 from pyplumio.helpers.data_types import UnsignedInt

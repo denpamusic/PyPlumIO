@@ -2,8 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Sequence
 import logging
-from typing import Any, Sequence
+from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
 from pyplumio.helpers.parameter import ParameterValues

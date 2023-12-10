@@ -1,8 +1,9 @@
 """Contains a mixer sensors structure decoder."""
 from __future__ import annotations
 
+from collections.abc import Generator
 import math
-from typing import Any, Final, Generator
+from typing import Any, Final
 
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
 from pyplumio.helpers.data_types import Float

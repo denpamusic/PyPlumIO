@@ -101,7 +101,8 @@ class Connection(ABC):
         """Open the connection.
 
         Initialize a connection via connect or reconnect
-        routines, depending on '_reconnect_on_failure' property."""
+        routines, depending on '_reconnect_on_failure' property.
+        """
         if self._reconnect_on_failure:
             await self._reconnect()
         else:
@@ -114,7 +115,7 @@ class Connection(ABC):
 
     @property
     def protocol(self) -> Protocol:
-        """A protocol object."""
+        """Return the protocol object."""
         return self._protocol
 
     @abstractmethod

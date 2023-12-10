@@ -3,8 +3,9 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
+from collections.abc import Iterable
 from functools import cache
-from typing import ClassVar, Iterable
+from typing import ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
@@ -133,7 +134,7 @@ class AddressableDevice(Device, ABC):
                 self.dispatch_nowait(name, value)
 
     async def async_setup(self) -> bool:
-        """Setup an addressable device."""
+        """Set up addressable device."""
         results = await asyncio.gather(
             *{
                 self.create_task(
@@ -154,9 +155,8 @@ class AddressableDevice(Device, ABC):
 
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0
-    ):
-        """Send request for a data and wait for a value to become
-        available.
+    ) -> None:
+        """Send request for a data and wait for a value to become available.
 
         If value is not available before timeout, retry request.
         """

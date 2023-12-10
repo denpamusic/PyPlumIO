@@ -17,12 +17,12 @@ TOLERANCE: Final = 0.1
 
 @overload
 def _significantly_changed(old: Parameter, new: Parameter) -> bool:
-    """Check if parameter is significantly changed."""
+    ...
 
 
 @overload
 def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
-    """Check if float value is significantly changed."""
+    ...
 
 
 def _significantly_changed(old, new) -> bool:
@@ -40,12 +40,12 @@ def _significantly_changed(old, new) -> bool:
 
 @overload
 def _diffence_between(old: list, new: list) -> list:
-    """Return a difference between lists."""
+    ...
 
 
 @overload
 def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> list:
-    """Return a difference between substractables."""
+    ...
 
 
 def _diffence_between(old, new):
@@ -106,8 +106,7 @@ class _OnChange(Filter):
 
 
 def on_change(callback: Callable[[Any], Awaitable[Any]]) -> _OnChange:
-    """
-    A value changed filter.
+    """Return a value changed filter.
 
     A callback function will only be called if value is changed from the
     previous call.
@@ -154,7 +153,7 @@ class _Debounce(Filter):
 
 
 def debounce(callback: Callable[[Any], Awaitable[Any]], min_calls) -> _Debounce:
-    """A debounce filter.
+    """Return a debounce filter.
 
     A callback function will only called once value is stabilized
     across multiple filter calls.
@@ -200,7 +199,7 @@ class _Throttle(Filter):
 
 
 def throttle(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Throttle:
-    """A throttle filter.
+    """Return a throttle filter.
 
     A callback function will only be called once a certain amount of
     seconds passed since the last call.
@@ -240,7 +239,7 @@ class _Delta(Filter):
 
 
 def delta(callback: Callable[[Any], Awaitable[Any]]) -> _Delta:
-    """A difference filter.
+    """Return a difference filter.
 
     A callback function will be called with a difference between two
     subsequent value.
@@ -292,7 +291,7 @@ class _Aggregate(Filter):
 
 
 def aggregate(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Aggregate:
-    """An aggregate filter.
+    """Return an aggregate filter.
 
     A callback function will be called with a sum of values collected
     over a specified time period. Can only be used with numeric values.
@@ -339,7 +338,7 @@ class _Custom(Filter):
 def custom(
     callback: Callable[[Any], Awaitable[Any]], filter_fn: Callable[[Any], bool]
 ) -> _Custom:
-    """A custom filter.
+    """Return a custom filter.
 
     A callback function will be called when user-defined filter
     function, that's being called with the value as an argument,

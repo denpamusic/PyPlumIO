@@ -1,6 +1,7 @@
 """Contains a lambda sensor structure decoder."""
 from __future__ import annotations
 
+from contextlib import suppress
 import math
 from typing import Any, Final
 
@@ -28,10 +29,8 @@ class LambdaSensorStructure(StructureDecoder):
         if lambda_state == BYTE_UNDEFINED:
             return ensure_dict(data), offset
 
-        try:
+        with suppress(ValueError):
             lambda_state = LambdaState(lambda_state)
-        except ValueError:
-            pass
 
         lambda_target = message[offset]
         offset += 1

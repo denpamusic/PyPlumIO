@@ -163,9 +163,7 @@ class Parameter(ABC):
         return self._call_relational_method("__lt__", other)
 
     async def _confirm_update(self, _: Parameter) -> None:
-        """A callback for when parameter update is confirmed on
-        the device.
-        """
+        """Set parameter as no longer pending update."""
         self._pending_update = False
 
     async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
@@ -175,7 +173,7 @@ class Parameter(ABC):
 
         if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
-                f"Parameter value must be between '{self.min_value}' and '{self.max_value}'"
+                f"Value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
         self.values.value = value
@@ -207,27 +205,27 @@ class Parameter(ABC):
 
     @property
     def value(self) -> ParameterValueType:
-        """A parameter value."""
+        """Return the parameter value."""
         return self.values.value
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Minimum allowed value."""
+        """Return the minimum allowed value."""
         return self.values.min_value
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Maximum allowed value."""
+        """Return the maximum allowed value."""
         return self.values.max_value
 
     @property
     def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
-        """A unit of measurement."""
+        """Return the unit of measurement."""
         return self.description.unit_of_measurement
 
     @property
     def request(self) -> Request:
-        """A request to change the parameter."""
+        """Return request to change the parameter."""
         raise NotImplementedError
 
 
@@ -262,15 +260,15 @@ class BinaryParameter(Parameter):
 
     @property
     def value(self) -> ParameterValueType:
-        """A parameter value."""
+        """Return the parameter value."""
         return STATE_ON if self.values.value == 1 else STATE_OFF
 
     @property
     def min_value(self) -> ParameterValueType:
-        """Minimum allowed value."""
+        """Return the minimum allowed value."""
         return STATE_OFF
 
     @property
     def max_value(self) -> ParameterValueType:
-        """Maximum allowed value."""
+        """Return the maximum allowed value."""
         return STATE_ON

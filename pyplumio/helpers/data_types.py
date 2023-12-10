@@ -4,7 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import socket
 import struct
-from typing import Any, ClassVar
+from typing import Any, ClassVar, Final
 
 
 class DataType(ABC):
@@ -48,12 +48,12 @@ class DataType(ABC):
 
     @property
     def value(self):
-        """A data value."""
+        """Return the data type value."""
         return self._value
 
     @property
     def size(self) -> int:
-        """A data size."""
+        """Return the data type size."""
         return self._size
 
     @abstractmethod
@@ -72,11 +72,14 @@ class Undefined(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return bytes()
+        return b""
 
     def unpack(self, _: bytes) -> None:
         """Unpack the data."""
         self._value = None
+
+
+LAST_BIT_INDEX: Final = 7
 
 
 class BitArray(DataType):
@@ -96,11 +99,9 @@ class BitArray(DataType):
         return f"{self.__class__.__name__}(value={self._value}, index={self._index})"
 
     def next(self, index: int = 0) -> int:
-        """Set current bit and return the next index in the
-        bit array.
-        """
+        """Set current bit and return the next index in the bit array."""
         self._index = index
-        return 0 if self._index == 7 else self._index + 1
+        return 0 if self._index == LAST_BIT_INDEX else self._index + 1
 
     def pack(self) -> bytes:
         """Pack the data."""
@@ -112,13 +113,13 @@ class BitArray(DataType):
 
     @property
     def value(self) -> bool | None:
-        """A data value."""
+        """Return the data type value."""
         return None if self._value is None else bool(self._value & (1 << self._index))
 
     @property
     def size(self) -> int:
-        """A data size."""
-        return 1 if self._index == 7 else 0
+        """Return the data type size."""
+        return 1 if self._index == LAST_BIT_INDEX else 0
 
 
 class IPv4(DataType):
@@ -128,7 +129,7 @@ class IPv4(DataType):
 
     @property
     def size(self) -> int:
-        """A data size."""
+        """Return the data type size."""
         return 4
 
     def pack(self) -> bytes:
@@ -147,7 +148,7 @@ class IPv6(DataType):
 
     @property
     def size(self) -> int:
-        """A data size."""
+        """Return a data type size."""
         return 16
 
     def pack(self) -> bytes:
@@ -215,9 +216,7 @@ class VarString(VarBytes):
 
 
 class BuiltInDataType(DataType, ABC):
-    """Represents a data type that's supported by the built-in
-    struct module.
-    """
+    """Represents a data type that's supported by struct module."""
 
     __slots__ = ()
 
@@ -233,7 +232,7 @@ class BuiltInDataType(DataType, ABC):
 
     @property
     def size(self) -> int:
-        """A data size."""
+        """Return a data type size."""
         return self._struct.size
 
 

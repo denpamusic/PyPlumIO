@@ -9,6 +9,8 @@ from pyplumio.utils import ensure_dict
 
 ATTR_FUEL_LEVEL: Final = "fuel_level"
 
+FUEL_LEVEL_OFFSET: Final = 101
+
 
 class FuelLevelStructure(StructureDecoder):
     """Represents a fuel level sensor data structure."""
@@ -25,9 +27,9 @@ class FuelLevelStructure(StructureDecoder):
         if fuel_level == BYTE_UNDEFINED:
             return ensure_dict(data), offset
 
-        if fuel_level >= 101:
+        if fuel_level >= FUEL_LEVEL_OFFSET:
             # Observed on at least ecoMAX 860P6-O.
             # See: https://github.com/denpamusic/PyPlumIO/issues/19
-            fuel_level -= 101
+            fuel_level -= FUEL_LEVEL_OFFSET
 
         return (ensure_dict(data, {ATTR_FUEL_LEVEL: fuel_level}), offset)

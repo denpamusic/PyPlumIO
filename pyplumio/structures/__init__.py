@@ -10,7 +10,7 @@ from pyplumio.frames import Frame
 
 @dataclass
 class StructureDataClass:
-    "Represents a structure dataclass mixin."
+    """Represents a structure dataclass mixin."""
 
     __slots__ = ("frame",)
 

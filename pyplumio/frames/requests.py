@@ -238,7 +238,6 @@ class AlertsRequest(Request):
 
     def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
-
         return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
 
 
