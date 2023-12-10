@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 
-def to_camelcase(text: str, overrides: dict[str, str] = None) -> str:
+def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
     """Convert snake_case to CamelCase."""
     if overrides is None:
         return "".join((x.capitalize() or "_") for x in text.split("_"))
