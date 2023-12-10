@@ -19,11 +19,11 @@ CONNECT_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
 
 try:
-    import serial_asyncio_fast as pyserial_asyncio
+    import serial_asyncio_fast as pyserial_asyncio  # type: ignore
 
     _LOGGER.info("Using pyserial-asyncio-fast in place of pyserial-asyncio")
 except ImportError:
-    import serial_asyncio as pyserial_asyncio
+    import serial_asyncio as pyserial_asyncio  # type: ignore
 
 
 class Connection(ABC):

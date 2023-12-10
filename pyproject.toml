@@ -49,7 +49,6 @@ skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.tox,.vscode,build,docs"
 target-version = ["py39"]
 
 [tool.mypy]
-ignore_missing_imports = true
 no_strict_optional = true
 exclude = [
     ".git",
