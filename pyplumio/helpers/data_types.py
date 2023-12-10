@@ -79,7 +79,7 @@ class Undefined(DataType):
         self._value = None
 
 
-LAST_BIT_INDEX: Final = 7
+BITARRAY_LAST_INDEX: Final = 7
 
 
 class BitArray(DataType):
@@ -101,7 +101,7 @@ class BitArray(DataType):
     def next(self, index: int = 0) -> int:
         """Set current bit and return the next index in the bit array."""
         self._index = index
-        return 0 if self._index == LAST_BIT_INDEX else self._index + 1
+        return 0 if self._index == BITARRAY_LAST_INDEX else self._index + 1
 
     def pack(self) -> bytes:
         """Pack the data."""
@@ -119,7 +119,7 @@ class BitArray(DataType):
     @property
     def size(self) -> int:
         """Return the data type size."""
-        return 1 if self._index == LAST_BIT_INDEX else 0
+        return 1 if self._index == BITARRAY_LAST_INDEX else 0
 
 
 class IPv4(DataType):
@@ -216,7 +216,7 @@ class VarString(VarBytes):
 
 
 class BuiltInDataType(DataType, ABC):
-    """Represents a data type that's supported by struct module."""
+    """Represents a data type that is supported by the struct module."""
 
     __slots__ = ()
 
@@ -316,7 +316,7 @@ class UInt64(BuiltInDataType):
 
 
 # The regdata type map links data type classes to their
-# respective type ids in the data schema.
+# respective type ids in the regulator data schema.
 DATA_TYPES: tuple[type[DataType], ...] = (
     Undefined,
     SignedChar,

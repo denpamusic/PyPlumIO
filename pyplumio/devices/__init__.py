@@ -127,7 +127,7 @@ class AddressableDevice(Device, ABC):
         return int(self.address)
 
     def handle_frame(self, frame: Frame) -> None:
-        """Handle a frame received from the addressable device."""
+        """Handle frame received from the device."""
         frame.sender = self
         if frame.data is not None:
             for name, value in frame.data.items():
@@ -156,7 +156,7 @@ class AddressableDevice(Device, ABC):
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0
     ) -> None:
-        """Send request for a data and wait for a value to become available.
+        """Send request and wait for a value to become available.
 
         If value is not available before timeout, retry request.
         """
@@ -174,13 +174,13 @@ class AddressableDevice(Device, ABC):
 
 
 class SubDevice(Device, ABC):
-    """Represents the sub-device."""
+    """Represents a sub-device."""
 
     parent: AddressableDevice
     index: int
 
     def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
-        """Initialize a new sub-device object."""
+        """Initialize a new sub-device."""
         super().__init__(queue)
         self.parent = parent
         self.index = index

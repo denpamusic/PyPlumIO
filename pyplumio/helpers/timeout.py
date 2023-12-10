@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def timeout(seconds: int, raise_exception: bool = True):
-    """Decorate timeout for the awaitable.
+    """Decorate a timeout for the awaitable.
 
     Return None on exception if raise_exception parameter is set to false.
     """
