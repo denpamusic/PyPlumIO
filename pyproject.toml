@@ -187,7 +187,7 @@ asyncio_mode = "auto"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = py39, py310, py311
+    envlist = py39, py310, py311, lint, type
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
@@ -196,14 +196,12 @@ legacy_tox_ini = """
     python =
         3.9: py39
         3.10: py310
-        3.11: py311
+        3.11: py311, lint, type
 
     [testenv]
     deps =
         -r{toxinidir}/requirements.txt
         -r{toxinidir}/requirements_test.txt
-        coverage
-        pytest-asyncio
 
     commands =
         coverage run --source=pyplumio -m pytest tests/
@@ -213,9 +211,6 @@ legacy_tox_ini = """
     deps =
         -r{toxinidir}/requirements.txt
         -r{toxinidir}/requirements_test.txt
-        codespell
-        ruff
-        black
 
     commands =
         codespell
@@ -226,8 +221,6 @@ legacy_tox_ini = """
     deps =
         -r{toxinidir}/requirements.txt
         -r{toxinidir}/requirements_test.txt
-        pytest-asyncio
-
     commands =
         pytest
 
@@ -235,7 +228,6 @@ legacy_tox_ini = """
     deps =
         -r{toxinidir}/requirements.txt
         -r{toxinidir}/requirements_test.txt
-        mypy
 
     commands =
         mypy .
