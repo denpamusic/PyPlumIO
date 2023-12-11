@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyplumio build sphinx sphinx-book-theme
+          pip install pyplumio build -r requirements_docs.txt
 
       - name: Sphinx build
         run: |

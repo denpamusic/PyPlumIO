@@ -21,15 +21,36 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Home Automation",
 ]
-dependencies = [
-    "pyserial-asyncio==0.6",
-]
+dependencies = ["pyserial-asyncio==0.6"]
 dynamic = ["version"]
 
 [project.urls]
 "Documentation" = "https://pyplumio.denpa.pro"
 "Source Code" = "https://github.com/denpamusic/PyPlumIO"
 "Bug Tracker" = "https://github.com/denpamusic/PyPlumIO/issues"
+
+[project.optional-dependencies]
+test = [
+    "black==23.11.0",
+    "codespell==2.2.6",
+    "coverage==7.3.2",
+    "mypy==1.7.1",
+    "pyserial-asyncio-fast==0.11",
+    "pytest==7.4.3",
+    "pytest-asyncio==0.23.2",
+    "ruff==0.1.7",
+    "types-pyserial==3.5.0.11"
+]
+docs = [
+    "sphinx",
+    "sphinx-book-theme"
+]
+dev = [
+    "pyplumio[test,docs]",
+    "pre-commit",
+    "tomli"
+]
+
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
