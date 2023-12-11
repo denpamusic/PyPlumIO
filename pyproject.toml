@@ -52,6 +52,7 @@ skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.tox,.vscode,build,docs"
 target-version = ["py39"]
 
 [tool.mypy]
+python_version = "3.9"
 exclude = [
     ".git",
     ".mypy_cache",
