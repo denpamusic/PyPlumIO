@@ -39,6 +39,9 @@ build-backend = "setuptools.build_meta"
 platforms = ["any"]
 packages = ["pyplumio"]
 
+[tool.setuptools.package-data]
+pyplumio = ["py.typed"]
+
 [tool.setuptools_scm]
 write_to = "pyplumio/_version.py"
 
