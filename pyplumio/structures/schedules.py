@@ -200,7 +200,8 @@ class SchedulesStructure(Structure):
             self._offset += 5
             schedules.append((index, self._unpack_schedule(message)))
             parameters.append((index * 2, switch))
-            parameters.append((index * 2 + 1, parameter))
+            if parameter is not None:
+                parameters.append((index * 2 + 1, parameter))
 
         return (
             ensure_dict(

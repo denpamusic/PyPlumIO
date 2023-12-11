@@ -191,13 +191,16 @@ class AsyncProtocol(Protocol, EventManager):
     ) -> None:
         """Handle frame reads and writes."""
         await self.connected.wait()
+        # When we're here we definitely have both reader and writer.
+        reader = cast(FrameReader, self.reader)
+        writer = cast(FrameWriter, self.writer)
         while self.connected.is_set():
             try:
                 if write_queue.qsize() > 0:
-                    await self.writer.write(await write_queue.get())
+                    await writer.write(await write_queue.get())
                     write_queue.task_done()
 
-                if (response := await self.reader.read()) is not None:
+                if (response := await reader.read()) is not None:
                     read_queue.put_nowait(
                         (self.setup_device_entry(response.sender), response)
                     )
