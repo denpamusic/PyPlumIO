@@ -9,10 +9,9 @@ import time
 from typing import Any, Final, SupportsFloat, overload
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import SupportsSubtraction
+from pyplumio.helpers.typing import Comparable, Subtractable
 
 UNDEFINED: Final = "undefined"
-
 TOLERANCE: Final = 0.1
 
 
@@ -23,6 +22,11 @@ def _significantly_changed(old: Parameter, new: Parameter) -> bool:
 
 @overload
 def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
+    ...
+
+
+@overload
+def _significantly_changed(old: Comparable, new: Comparable) -> bool:
     ...
 
 
@@ -45,7 +49,7 @@ def _diffence_between(old: list, new: list) -> list:
 
 
 @overload
-def _diffence_between(old: SupportsSubtraction, new: SupportsSubtraction) -> list:
+def _diffence_between(old: Subtractable, new: Subtractable):
     ...
 
 
