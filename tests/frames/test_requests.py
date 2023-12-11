@@ -1,6 +1,7 @@
 """Contains a tests for the request frame classes."""
 
 import pytest
+from tests import load_json_parameters
 
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import FrameDataError
@@ -24,7 +25,6 @@ from pyplumio.frames.requests import (
     UIDRequest,
 )
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
-from tests import load_json_parameters
 
 
 def test_request_class_response_property() -> None:
@@ -66,7 +66,7 @@ def test_check_device_response_recipient_and_type() -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/ecomax_control.json"),
 )
 def test_ecomax_control(message, data) -> None:
@@ -77,11 +77,11 @@ def test_ecomax_control(message, data) -> None:
 def test_ecomax_control_without_data() -> None:
     """Test an ecoMAX control request without any data."""
     with pytest.raises(FrameDataError):
-        print(EcomaxControlRequest().message)
+        getattr(EcomaxControlRequest(), "message")
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/ecomax_parameters.json"),
 )
 def test_ecomax_parameters(message, data) -> None:
@@ -90,7 +90,7 @@ def test_ecomax_parameters(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/set_ecomax_parameter.json"),
 )
 def test_set_ecomax_parameter(message, data) -> None:
@@ -101,11 +101,11 @@ def test_set_ecomax_parameter(message, data) -> None:
 def test_set_ecomax_parameter_without_data() -> None:
     """Test a set ecoMAX parameter request without any data."""
     with pytest.raises(FrameDataError):
-        print(SetEcomaxParameterRequest().message)
+        getattr(SetEcomaxParameterRequest(), "message")
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/mixer_parameters.json"),
 )
 def test_mixer_parameters_request(message, data) -> None:
@@ -114,7 +114,7 @@ def test_mixer_parameters_request(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/set_mixer_parameter.json"),
 )
 def test_set_mixer_parameter(message, data) -> None:
@@ -125,11 +125,11 @@ def test_set_mixer_parameter(message, data) -> None:
 def test_set_mixer_parameter_without_data() -> None:
     """Test a set mixer parameter request without any data."""
     with pytest.raises(FrameDataError):
-        print(SetMixerParameterRequest().message)
+        getattr(SetMixerParameterRequest(), "message")
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/set_schedule.json"),
 )
 def test_set_schedule(message, data) -> None:
@@ -140,11 +140,11 @@ def test_set_schedule(message, data) -> None:
 def test_set_schedule_without_data() -> None:
     """Test a set schedule request without any data."""
     with pytest.raises(FrameDataError):
-        print(SetScheduleRequest().message)
+        getattr(SetScheduleRequest(), "message")
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/thermostat_parameters.json"),
 )
 def test_thermostat_parameters_request(message, data) -> None:
@@ -153,7 +153,7 @@ def test_thermostat_parameters_request(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/set_thermostat_parameter.json"),
 )
 def test_set_thermostat_parameter(message, data) -> None:
@@ -164,11 +164,11 @@ def test_set_thermostat_parameter(message, data) -> None:
 def test_set_thermostat_parameter_without_data() -> None:
     """Test a set thermostat parameter request without any data."""
     with pytest.raises(FrameDataError):
-        print(SetThermostatParameterRequest().message)
+        getattr(SetThermostatParameterRequest(), "message")
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("requests/alerts.json"),
 )
 def test_alerts_request(message, data) -> None:

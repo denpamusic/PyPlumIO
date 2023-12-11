@@ -1,6 +1,7 @@
 """Contains tests for the response frame classes."""
 
 import pytest
+from tests import load_json_parameters
 
 from pyplumio.const import DeviceType
 from pyplumio.devices.ecomax import EcoMAX
@@ -17,12 +18,10 @@ from pyplumio.frames.responses import (
     UIDResponse,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
-from tests import load_json_parameters
 
 
 def test_responses_type() -> None:
     """Test if response is an instance of frame class."""
-
     for response in (
         ProgramVersionResponse,
         DeviceAvailableResponse,
@@ -38,7 +37,7 @@ def test_responses_type() -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/alerts.json"),
 )
 def test_alerts_response(message, data) -> None:
@@ -48,7 +47,7 @@ def test_alerts_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/regulator_data_schema.json"),
 )
 def test_regulator_data_schema_response(message, data) -> None:
@@ -58,7 +57,7 @@ def test_regulator_data_schema_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/device_available.json"),
 )
 def test_device_available_response(message, data) -> None:
@@ -68,7 +67,7 @@ def test_device_available_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/ecomax_parameters.json"),
 )
 def test_ecomax_parameters_response(message, data) -> None:
@@ -78,7 +77,7 @@ def test_ecomax_parameters_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/mixer_parameters.json"),
 )
 def test_mixer_parameters_response(message, data) -> None:
@@ -88,7 +87,7 @@ def test_mixer_parameters_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/password.json"),
 )
 def test_password_response(message, data) -> None:
@@ -98,7 +97,7 @@ def test_password_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/program_version.json"),
 )
 def test_program_version_response(message, data) -> None:
@@ -108,7 +107,7 @@ def test_program_version_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/schedules.json"),
 )
 def test_schedules_response(message, data) -> None:
@@ -118,7 +117,7 @@ def test_schedules_response(message, data) -> None:
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/thermostat_parameters.json"),
 )
 async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> None:
@@ -132,7 +131,7 @@ async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> 
 
 
 @pytest.mark.parametrize(
-    "message, data",
+    ("message", "data"),
     load_json_parameters("responses/uid.json"),
 )
 def test_uid_response(message, data) -> None:

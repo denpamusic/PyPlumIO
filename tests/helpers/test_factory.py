@@ -19,8 +19,6 @@ def test_get_object_with_nonexistent_class() -> None:
 
 
 def test_get_object_with_nonexistent_module() -> None:
-    """Test getting an object via class path for a class within
-    a nonexistent module.
-    """
+    """Test getting an object via class path for a class within nonexistent module."""
     with pytest.raises(ModuleNotFoundError):
         factory("frames.request.StopMasterRequest")

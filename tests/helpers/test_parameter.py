@@ -27,9 +27,7 @@ class TestParameter(Parameter):
 
 
 class TestBinaryParameter(BinaryParameter, TestParameter):
-    """Represents a concrete implementation of the binary parameter
-    class.
-    """
+    """Represents a concrete implementation of the binary parameter class."""
 
 
 @pytest.fixture(name="parameter")
@@ -161,8 +159,7 @@ def test_parameter_repr(parameter: Parameter) -> None:
 async def test_parameter_request_with_unchanged_value(
     mock_put, parameter: Parameter, bypass_asyncio_sleep, caplog
 ) -> None:
-    """Test that a frame doesn't get dispatched if it's
-    value is unchanged."""
+    """Test that a frame doesn't get dispatched if it's value is unchanged."""
     assert not parameter.pending_update
     assert not await parameter.set(5, retries=3)
     assert parameter.pending_update
@@ -204,9 +201,7 @@ async def test_binary_parameter_turn_on_nowait(
 async def test_binary_parameter_turn_off_nowait(
     mock_set_nowait, binary_parameter: BinaryParameter
 ) -> None:
-    """Test that a binary parameter can be turned off without
-    waiting.
-    """
+    """Test that a binary parameter can be turned off without waiting."""
     binary_parameter.turn_off_nowait()
     mock_set_nowait.assert_called_once_with(STATE_OFF)
 

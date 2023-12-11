@@ -238,7 +238,7 @@ async def test_repr(
         repr(tcp_connection)
         == f"TcpConnection(host={HOST}, port={PORT}, kwargs={{'timeout': 10}})"
     )
-    assert (
-        repr(serial_connection)
-        == f"SerialConnection(device={DEVICE}, baudrate=115200, kwargs={{'timeout': 10}})"
+    assert repr(serial_connection) == (
+        f"SerialConnection(device={DEVICE}, baudrate=115200, "
+        f"kwargs={{'timeout': 10}})"
     )

@@ -6,7 +6,7 @@ from pyplumio.helpers import data_types
 
 
 @pytest.mark.parametrize(
-    "one, another",
+    ("one", "another"),
     [
         (
             data_types.SignedChar.from_bytes(bytearray([0x16])),

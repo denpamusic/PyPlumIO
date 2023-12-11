@@ -18,9 +18,7 @@ def load_and_create_class_instance(module_name: str, class_name: str, **kwargs):
 
 
 def try_int(key):
-    """Try to convert key to integer or return key unchanged
-    on error.
-    """
+    """Try to convert key to integer or return key unchanged on error."""
     try:
         return int(key)
     except ValueError:

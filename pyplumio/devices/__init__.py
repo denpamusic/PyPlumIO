@@ -155,7 +155,7 @@ class AddressableDevice(Device, ABC):
 
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0
-    ) -> None:
+    ):
         """Send request and wait for a value to become available.
 
         If value is not available before timeout, retry request.
