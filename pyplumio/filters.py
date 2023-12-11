@@ -8,9 +8,10 @@ import math
 import time
 from typing import Any, Final, SupportsFloat, overload
 
-from pyplumio.const import UNDEFINED
 from pyplumio.helpers.parameter import Parameter
 from pyplumio.helpers.typing import SupportsSubtraction
+
+UNDEFINED: Final = "undefined"
 
 TOLERANCE: Final = 0.1
 
