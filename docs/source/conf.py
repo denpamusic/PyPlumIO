@@ -17,7 +17,7 @@ project = "PyPlumIO"
 copyright = "2023, Denis Paavilainen"
 author = "Denis Paavilainen"
 release = pkg_version("pyplumio")
-version = ".".join(release.split(".")[:2])
+version = ".".join(release.split(".")[:3])
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -27,6 +27,8 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
+    "sphinx_rtd_theme",
+    "sphinx_search.extension",
 ]
 autosummary_generate = True
 
@@ -37,5 +39,4 @@ exclude_patterns: list[str] = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_book_theme"
-html_static_path = ["_static"]
+html_theme = "sphinx_rtd_theme"
