@@ -32,14 +32,14 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
-    "black==23.11.0",
+    "black==23.12.0",
     "codespell==2.2.6",
-    "coverage==7.3.2",
+    "coverage==7.3.3",
     "mypy==1.7.1",
     "pyserial-asyncio-fast==0.11",
     "pytest==7.4.3",
     "pytest-asyncio==0.23.2",
-    "ruff==0.1.7",
+    "ruff==0.1.8",
     "types-pyserial==3.5.0.11"
 ]
 docs = [
@@ -48,8 +48,8 @@ docs = [
 ]
 dev = [
     "pyplumio[test,docs]",
-    "pre-commit",
-    "tomli"
+    "pre-commit==0.3.6",
+    "tomli==2.0.1"
 ]
 
 
