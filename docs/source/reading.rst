@@ -131,7 +131,7 @@ to the terminal.
 
             # Wait until regulator data is available, and grab key 1792.
             await ecomax.wait_for("regdata")
-            status = ecomax.regdata.get(1792)
+            status = ecomax.regdata[1792]
 
             print(
                 f"Current temp: {heating_temp}, "
