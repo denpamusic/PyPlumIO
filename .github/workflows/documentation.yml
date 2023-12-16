@@ -16,11 +16,12 @@ jobs:
           git fetch --prune --unshallow
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
 
       - name: Install dependencies
         run: |
-          pip install pyplumio build -r requirements_docs.txt
+          python -m pip install --upgrade pip
+          python -m pip install pyplumio build -r requirements_docs.txt
 
       - name: Sphinx build
         run: |

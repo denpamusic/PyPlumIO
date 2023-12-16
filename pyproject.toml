@@ -40,6 +40,7 @@ test = [
     "pytest==7.4.3",
     "pytest-asyncio==0.23.2",
     "ruff==0.1.8",
+    "tox==4.11.4",
     "types-pyserial==3.5.0.11"
 ]
 docs = [
@@ -211,7 +212,7 @@ asyncio_mode = "auto"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = py39, py310, py311, py312, lint, type
+    envlist = lint, type, py{39,310,311,312}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
