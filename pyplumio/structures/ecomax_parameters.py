@@ -478,7 +478,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             name="water_heater_work_extension",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxBinaryParameterDescription(name="circulation_pump"),
+        EcomaxBinaryParameterDescription(name="circulation_control"),
         EcomaxParameterDescription(
             name="circulation_pause", unit_of_measurement=UnitOfMeasurement.MINUTES
         ),
@@ -554,7 +554,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         EcomaxParameterDescription(
             name="solar_antifreeze", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
-        EcomaxBinaryParameterDescription(name="circulation_pump"),
+        EcomaxBinaryParameterDescription(name="circulation_control"),
         EcomaxParameterDescription(
             name="circulation_pause", unit_of_measurement=UnitOfMeasurement.MINUTES
         ),
@@ -583,7 +583,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxParameterDescription(name="main_heat_source_pump_extension_time"),
         EcomaxParameterDescription(name="additional_heat_source"),
-        EcomaxBinaryParameterDescription(
+        EcomaxParameterDescription(
             name="main_heat_source_off_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
