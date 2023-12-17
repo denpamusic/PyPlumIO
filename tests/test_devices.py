@@ -58,6 +58,7 @@ from pyplumio.frames.responses import (
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
+    ECOMAX_PARAMETERS,
     EcomaxBinaryParameter,
     EcomaxParameter,
 )
@@ -189,6 +190,20 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     assert isinstance(ecomax_control.request, EcomaxControlRequest)
     assert ecomax_control.value == STATE_OFF
     assert ecomax_control.request.data == {ATTR_VALUE: 0}
+
+
+async def test_ecomax_naming_collisions(ecomax: EcoMAX) -> None:
+    """Test that ecoMAX sensors doesn't collide with ecoMAX parameters."""
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
+    ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
+    await ecomax.wait_until_done()
+    for descriptions in ECOMAX_PARAMETERS.values():
+        collisions = [
+            description.name
+            for description in descriptions
+            if description.name in ecomax.data
+        ]
+        assert not collisions, f"found collisions: {collisions}"
 
 
 async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
