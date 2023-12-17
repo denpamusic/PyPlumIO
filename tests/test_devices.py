@@ -193,7 +193,7 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
 
 
 async def test_ecomax_naming_collisions(ecomax: EcoMAX) -> None:
-    """Test that ecoMAX sensors doesn't collide with ecoMAX parameters."""
+    """Test that ecoMAX sensors don't collide with ecoMAX parameters."""
     test_data = load_json_test_data("messages/sensor_data.json")[0]
     ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
