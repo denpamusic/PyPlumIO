@@ -38,7 +38,7 @@ test = [
     "mypy==1.8.0",
     "pyserial-asyncio-fast==0.11",
     "pytest==7.4.4",
-    "pytest-asyncio==0.23.2",
+    "pytest-asyncio==0.23.3",
     "ruff==0.1.9",
     "tox==4.11.4",
     "types-pyserial==3.5.0.11"
