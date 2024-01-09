@@ -32,7 +32,6 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 test = [
-    "black==23.12.1",
     "codespell==2.2.6",
     "coverage==7.4.0",
     "mypy==1.8.0",
@@ -71,9 +70,6 @@ write_to = "pyplumio/_version.py"
 
 [tool.codespell]
 skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.tox,.vscode,build,docs"
-
-[tool.black]
-target-version = ["py39"]
 
 [tool.mypy]
 python_version = "3.9"
@@ -240,7 +236,6 @@ legacy_tox_ini = """
 
     commands =
         codespell
-        black --check --quiet .
         ruff .
 
     [testenv:test]
