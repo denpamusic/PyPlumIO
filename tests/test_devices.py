@@ -89,7 +89,7 @@ from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTATS_AVAILABLE,
     ATTR_THERMOSTATS_CONNECTED,
 )
-from tests import load_json_parameters, load_json_test_data
+from tests import load_json_test_data
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -499,13 +499,10 @@ async def test_unknown_mixer_parameter(ecomax: EcoMAX, caplog) -> None:
     assert "ecoMAX 350P2-ZF" in caplog.text
 
 
-@pytest.mark.parametrize(
-    ("message", "data"),
-    load_json_parameters("responses/schedules.json"),
-)
-async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
+async def test_schedule_callback(ecomax: EcoMAX) -> None:
     """Test callbacks dispatched on schedule data."""
-    ecomax.handle_frame(SchedulesResponse(message=message))
+    test_data = load_json_test_data("responses/schedules.json")[0]
+    ecomax.handle_frame(SchedulesResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     schedules = await ecomax.get(ATTR_SCHEDULES)
     assert len(schedules) == 2
@@ -531,7 +528,7 @@ async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
         ATTR_SCHEDULE: ecomax.data[ATTR_SCHEDULES]["water_heater"],
     }
 
-    schedule_data = data[ATTR_SCHEDULES][0][1]
+    schedule_data = test_data["data"][ATTR_SCHEDULES][0][1]
     for index, weekday in enumerate(
         ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
     ):
@@ -539,7 +536,7 @@ async def test_schedule_callback(ecomax: EcoMAX, message, data) -> None:
         assert schedule.intervals == schedule_data[index]
 
     # Test that parameter instance is not recreated on subsequent calls.
-    ecomax.handle_frame(SchedulesResponse(message=message))
+    ecomax.handle_frame(SchedulesResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     assert await ecomax.get("heating_schedule_switch") is heating_schedule_switch
 

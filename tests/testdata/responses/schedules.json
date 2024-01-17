@@ -783,5 +783,13 @@
         }
       ]
     }
+  },
+  {
+    "id": "no_schedules_available",
+    "message": {
+      "items": [],
+      "__bytearray__": true
+    },
+    "data": {"schedules": []}
   }
 ]

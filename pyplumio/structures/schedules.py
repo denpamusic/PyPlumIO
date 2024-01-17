@@ -185,9 +185,15 @@ class SchedulesStructure(Structure):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
-        start = message[offset + 1]
-        end = message[offset + 2]
-        self._offset = offset + 3
+        try:
+            offset += 1
+            start = message[offset]
+            offset += 1
+            end = message[offset]
+        except IndexError:
+            return ensure_dict(data, {ATTR_SCHEDULES: []}), offset
+
+        self._offset = offset + 1
         schedules: list[tuple[int, list[list[bool]]]] = []
         parameters: list[tuple[int, ParameterValues]] = []
 
