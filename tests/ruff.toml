@@ -1,6 +1,6 @@
 extend = "../pyproject.toml"
 
-extend-select = [
+lint.extend-select = [
     "PT001", # Use @pytest.fixture without parentheses
     "PT002", # Configuration for fixture specified via positional args, use kwargs
     "PT003", # The scope='function' is implied in @pytest.fixture()
@@ -11,6 +11,6 @@ extend-select = [
     "PT022", # No teardown in fixture, replace useless yield with return
 ]
 
-extend-ignore = [
+lint.extend-ignore = [
     "PLR2004", # Magic value used in comparison
 ]
