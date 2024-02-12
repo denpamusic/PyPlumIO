@@ -268,7 +268,7 @@ async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
 
 @patch(
     "time.perf_counter_ns",
-    side_effect=(0, 10 * 1000000000, 600 * 1000000000, 610 * 1000000000),
+    side_effect=(0, 10 * 1000000000, 310 * 1000000000, 320 * 1000000000),
 )
 async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     """Test callbacks dispatched on fuel consumption."""
@@ -279,7 +279,14 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     assert fuel_burned == 0.01
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
+    fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
     assert "Skipping outdated fuel consumption" in caplog.text
+    caplog.clear()
+    ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 7.2}))
+    await ecomax.wait_until_done()
+    assert "Skipping outdated fuel consumption" not in caplog.text
+    fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
+    assert fuel_burned == 0.02
 
 
 async def test_regdata_callbacks(ecomax: EcoMAX) -> None:

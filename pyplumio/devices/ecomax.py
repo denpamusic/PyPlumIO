@@ -250,11 +250,12 @@ class EcoMAX(AddressableDevice):
                 "Skipping outdated fuel consumption data, was %i seconds old",
                 time_passed_ns / 1000000000,
             )
-            return
+        else:
+            await self.dispatch(
+                ATTR_FUEL_BURNED,
+                fuel_consumption * time_passed_ns / (3600 * 1000000000),
+            )
 
-        await self.dispatch(
-            ATTR_FUEL_BURNED, fuel_consumption * time_passed_ns / (3600 * 1000000000)
-        )
         self._fuel_burned_timestamp_ns = current_timestamp_ns
 
     async def _handle_mixer_parameters(
