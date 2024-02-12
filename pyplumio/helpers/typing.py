@@ -1,7 +1,7 @@
 """Contains type aliases."""
 from __future__ import annotations
 
-from typing import Literal, Protocol, TypeVar, Union, runtime_checkable
+from typing import Any, Literal, Protocol, TypeVar, Union, runtime_checkable
 
 T = TypeVar("T")
 
@@ -24,5 +24,5 @@ class Comparable(Protocol):
 
     __slots__ = ()
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Compare a value."""

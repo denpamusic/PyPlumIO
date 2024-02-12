@@ -109,7 +109,6 @@ exclude = [
     ".vscode",
     "build",
     "docs",
-    "tests",
 ]
 
 [[tool.mypy.overrides]]

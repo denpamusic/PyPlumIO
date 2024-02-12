@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import importlib
 import logging
+from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def factory(class_path: str, **kwargs):
+def factory(class_path: str, **kwargs: Any) -> Any:
     """Return class instance from the class path."""
     try:
         module_name, class_name = class_path.rsplit(".", 1)

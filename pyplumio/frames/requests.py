@@ -26,7 +26,7 @@ class ProgramVersionRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_PROGRAM_VERSION
 
-    def response(self, **kwargs) -> Response | None:
+    def response(self, **kwargs: Any) -> Response | None:
         """Return a response frame."""
         return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
@@ -38,7 +38,7 @@ class CheckDeviceRequest(Request):
 
     frame_type: ClassVar[FrameType | int] = FrameType.REQUEST_CHECK_DEVICE
 
-    def response(self, **kwargs) -> Response | None:
+    def response(self, **kwargs: Any) -> Response | None:
         """Return a response frame."""
         return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 

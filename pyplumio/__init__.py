@@ -1,6 +1,8 @@
 """Contains connection shortcuts and version information."""
 from __future__ import annotations
 
+from typing import Any
+
 from pyplumio._version import __version__, __version_tuple__
 from pyplumio.connection import SerialConnection, TcpConnection
 from pyplumio.exceptions import (
@@ -24,7 +26,7 @@ def open_serial_connection(
     *,
     protocol: Protocol | None = None,
     reconnect_on_failure: bool = True,
-    **kwargs,
+    **kwargs: Any,
 ) -> SerialConnection:
     r"""Create a serial connection.
 
@@ -58,7 +60,7 @@ def open_tcp_connection(
     *,
     protocol: Protocol | None = None,
     reconnect_on_failure: bool = True,
-    **kwargs,
+    **kwargs: Any,
 ) -> TcpConnection:
     r"""Create a TCP connection.
 

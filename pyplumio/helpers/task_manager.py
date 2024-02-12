@@ -11,7 +11,7 @@ class TaskManager:
 
     _tasks: set[asyncio.Task]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new task manager."""
         self._tasks = set()
 
@@ -22,7 +22,7 @@ class TaskManager:
         task.add_done_callback(self._tasks.discard)
         return task
 
-    def cancel_tasks(self):
+    def cancel_tasks(self) -> None:
         """Cancel all tasks."""
         for task in self._tasks:
             task.cancel()

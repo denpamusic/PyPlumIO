@@ -76,7 +76,7 @@ class EcomaxParameter(Parameter):
     def request(self) -> Request:
         """Return request to change the parameter."""
         if self.description.name == ATTR_ECOMAX_CONTROL:
-            return factory(
+            request: Request = factory(
                 "frames.requests.EcomaxControlRequest",
                 recipient=self.device.address,
                 data={
@@ -84,8 +84,8 @@ class EcomaxParameter(Parameter):
                 },
             )
 
-        if self.description.name == ATTR_THERMOSTAT_PROFILE:
-            return factory(
+        elif self.description.name == ATTR_THERMOSTAT_PROFILE:
+            request = factory(
                 "frames.requests.SetThermostatParameterRequest",
                 recipient=self.device.address,
                 data={
@@ -96,14 +96,17 @@ class EcomaxParameter(Parameter):
                 },
             )
 
-        return factory(
-            "frames.requests.SetEcomaxParameterRequest",
-            recipient=self.device.address,
-            data={
-                ATTR_INDEX: self._index,
-                ATTR_VALUE: self.values.value,
-            },
-        )
+        else:
+            request = factory(
+                "frames.requests.SetEcomaxParameterRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_INDEX: self._index,
+                    ATTR_VALUE: self.values.value,
+                },
+            )
+
+        return request
 
 
 class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):

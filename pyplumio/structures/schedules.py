@@ -85,11 +85,12 @@ class ScheduleParameter(Parameter):
     def request(self) -> Request:
         """Return request to change the parameter."""
         schedule_name, _ = self.description.name.split("_schedule_", 1)
-        return factory(
+        request: Request = factory(
             "frames.requests.SetScheduleRequest",
             recipient=self.device.address,
             data=collect_schedule_data(schedule_name, self.device),
         )
+        return request
 
 
 class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):

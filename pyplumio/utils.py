@@ -1,6 +1,8 @@
 """Contains various utility methods."""
 from __future__ import annotations
 
+from typing import Any
+
 
 def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
     """Convert snake_case to CamelCase."""
@@ -13,7 +15,7 @@ def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
     )
 
 
-def ensure_dict(data: dict | None, *args) -> dict:
+def ensure_dict(data: dict | None, *args: Any) -> dict:
     """Create or merge multiple dictionaries."""
     data = data if data is not None else {}
     for new_data in args:

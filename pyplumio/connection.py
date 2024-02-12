@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import MutableMapping
 import logging
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
 
@@ -19,11 +19,11 @@ CONNECT_TIMEOUT: Final = 5
 RECONNECT_TIMEOUT: Final = 20
 
 try:
-    import serial_asyncio_fast as pyserial_asyncio  # type: ignore
+    import serial_asyncio_fast as pyserial_asyncio
 
     _LOGGER.info("Using pyserial-asyncio-fast in place of pyserial-asyncio")
 except ImportError:
-    import serial_asyncio as pyserial_asyncio  # type: ignore
+    import serial_asyncio as pyserial_asyncio
 
 
 class Connection(ABC):
@@ -41,8 +41,8 @@ class Connection(ABC):
         self,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize a new connection."""
         if protocol is None:
             protocol = AsyncProtocol()
@@ -55,23 +55,26 @@ class Connection(ABC):
         self._protocol = protocol
         self._kwargs = kwargs
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Connection:
         """Provide an entry point for the context manager."""
         await self.connect()
         return self
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         """Provide an exit point for the context manager."""
         await self.close()
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         """Return an attributes from the underlying protocol object."""
         return getattr(self.protocol, name)
 
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
         try:
-            reader, writer = await self._open_connection()
+            reader, writer = cast(
+                tuple[asyncio.StreamReader, asyncio.StreamWriter],
+                await self._open_connection(),
+            )
             self.protocol.connection_established(reader, writer)
         except (
             OSError,
@@ -118,6 +121,7 @@ class Connection(ABC):
         """Return the protocol object."""
         return self._protocol
 
+    @timeout(CONNECT_TIMEOUT)
     @abstractmethod
     async def _open_connection(
         self,
@@ -138,8 +142,8 @@ class TcpConnection(Connection):
         *,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize a new TCP connection."""
         super().__init__(
             protocol,
@@ -178,8 +182,8 @@ class SerialConnection(Connection):
         *,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize a new serial connection."""
         super().__init__(
             protocol,
@@ -203,11 +207,14 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await pyserial_asyncio.open_serial_connection(
-            url=self.device,
-            baudrate=self.baudrate,
-            bytesize=EIGHTBITS,
-            parity=PARITY_NONE,
-            stopbits=STOPBITS_ONE,
-            **self._kwargs,
+        return cast(
+            tuple[asyncio.StreamReader, asyncio.StreamWriter],
+            await pyserial_asyncio.open_serial_connection(
+                url=self.device,
+                baudrate=self.baudrate,
+                bytesize=EIGHTBITS,
+                parity=PARITY_NONE,
+                stopbits=STOPBITS_ONE,
+                **self._kwargs,
+            ),
         )

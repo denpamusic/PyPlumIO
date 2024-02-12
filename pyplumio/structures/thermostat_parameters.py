@@ -84,7 +84,7 @@ class ThermostatParameter(Parameter):
     @property
     def request(self) -> Request:
         """Return request to change the parameter."""
-        return factory(
+        request: Request = factory(
             "frames.requests.SetThermostatParameterRequest",
             recipient=self.device.parent.address,
             data={
@@ -96,6 +96,7 @@ class ThermostatParameter(Parameter):
                 ATTR_SIZE: self.description.size,
             },
         )
+        return request
 
 
 class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
@@ -201,7 +202,7 @@ class ThermostatParametersStructure(StructureDecoder):
             self._offset += THERMOSTAT_PARAMETER_SIZE * description.size
 
     def _thermostat_parameters(
-        self, message: bytearray, thermostats, start, end
+        self, message: bytearray, thermostats: int, start: int, end: int
     ) -> Generator[tuple[int, list[tuple[int, ParameterValues]]], None, None]:
         """Get parameters for a thermostat."""
         for index in range(thermostats):

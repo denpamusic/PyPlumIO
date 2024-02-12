@@ -37,7 +37,7 @@ class Protocol(ABC):
     writer: FrameWriter | None
     _on_connection_lost: set[Callable[[], Awaitable[None]]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new protocol."""
         super().__init__()
         self.connected = asyncio.Event()
@@ -126,7 +126,7 @@ class AsyncProtocol(Protocol, EventManager):
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
         consumers_number: int = 3,
-    ):
+    ) -> None:
         """Initialize a new async protocol."""
         super().__init__()
         self.consumers_number = consumers_number
@@ -191,18 +191,23 @@ class AsyncProtocol(Protocol, EventManager):
     ) -> None:
         """Handle frame reads and writes."""
         await self.connected.wait()
+
         # When we're here we definitely have both reader and writer.
-        reader = cast(FrameReader, self.reader)
-        writer = cast(FrameWriter, self.writer)
+        assert isinstance(self.reader, FrameReader)
+        assert isinstance(self.writer, FrameWriter)
+
         while self.connected.is_set():
             try:
                 if write_queue.qsize() > 0:
-                    await writer.write(await write_queue.get())
+                    await self.writer.write(await write_queue.get())
                     write_queue.task_done()
 
-                if (response := await reader.read()) is not None:
+                if (response := await self.reader.read()) is not None:
                     read_queue.put_nowait(
-                        (self.setup_device_entry(response.sender), response)
+                        (
+                            self.setup_device_entry(cast(DeviceType, response.sender)),
+                            response,
+                        )
                     )
 
             except FrameDataError as e:
@@ -235,7 +240,7 @@ class AsyncProtocol(Protocol, EventManager):
         if name not in self.data:
             self._create_device_entry(name, handler)
 
-        return self.data[name]
+        return cast(AddressableDevice, self.data[name])
 
     def _create_device_entry(self, name: str, handler: str) -> None:
         """Create device entry."""

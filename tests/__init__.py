@@ -5,7 +5,7 @@ import importlib
 import json
 import os
 import pathlib
-from typing import Final
+from typing import Any, Final
 
 import pytest
 
@@ -17,7 +17,7 @@ def load_and_create_class_instance(module_name: str, class_name: str, **kwargs):
     return getattr(importlib.import_module(module_name), class_name)(**kwargs)
 
 
-def try_int(key):
+def try_int(key: Any) -> Any:
     """Try to convert key to integer or return key unchanged on error."""
     try:
         return int(key)
@@ -25,7 +25,7 @@ def try_int(key):
         return key
 
 
-def decode_hinted_objects(d):
+def decode_hinted_objects(d: Any) -> Any:
     """Decode a hinted JSON objects."""
     if "__module__" in d and "__class__" in d:
         module_name = d.pop("__module__")

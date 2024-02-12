@@ -23,7 +23,7 @@ class RegulatorDataStructure(StructureDecoder):
     _offset: int
     _bitarray_index: int
 
-    def _unpack_regulator_data(self, message: bytearray, data_type: DataType):
+    def _unpack_regulator_data(self, message: bytearray, data_type: DataType) -> Any:
         """Unpack a regulator data sensor."""
         if not isinstance(data_type, BitArray) and self._bitarray_index > 0:
             # Current data type is not bitarray, but previous was, thus

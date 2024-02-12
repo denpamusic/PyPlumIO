@@ -23,7 +23,7 @@ def fixture_frame_reader() -> Generator[FrameReader, None, None]:
 @patch("asyncio.StreamWriter", autospec=True)
 async def test_frame_writer(mock_stream_writer) -> None:
     """Test frame writer."""
-    frame = ProgramVersionRequest
+    frame = ProgramVersionRequest()
     writer = FrameWriter(mock_stream_writer)
     await writer.write(frame)
     mock_stream_writer.write.assert_called_once_with(frame.bytes)

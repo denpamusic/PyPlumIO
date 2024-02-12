@@ -73,7 +73,7 @@ class MixerParameter(Parameter):
     @property
     def request(self) -> Request:
         """Return request to change the parameter."""
-        return factory(
+        request: Request = factory(
             "frames.requests.SetMixerParameterRequest",
             recipient=self.device.parent.address,
             data={
@@ -82,6 +82,7 @@ class MixerParameter(Parameter):
                 ATTR_DEVICE_INDEX: self.device.index,
             },
         )
+        return request
 
 
 class MixerBinaryParameter(BinaryParameter, MixerParameter):

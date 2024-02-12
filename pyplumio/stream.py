@@ -48,7 +48,7 @@ class FrameWriter:
             _LOGGER.exception("Unexpected error while closing the writer")
 
     @timeout(WRITER_TIMEOUT)
-    async def wait_closed(self):
+    async def wait_closed(self) -> None:
         """Wait until the frame writer is closed."""
         await self._writer.wait_closed()
 

@@ -15,14 +15,14 @@ class EventManager(TaskManager):
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[Callable[[Any], Awaitable[Any]]]]
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize a new event manager."""
         super().__init__()
         self.data = {}
         self._events = {}
         self._callbacks = {}
 
-    def __getattr__(self, name: str):
+    def __getattr__(self, name: str) -> Any:
         """Return attributes from the underlying data dictionary."""
         try:
             return self.data[name]
@@ -42,7 +42,7 @@ class EventManager(TaskManager):
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-    async def get(self, name: str, timeout: float | None = None):
+    async def get(self, name: str, timeout: float | None = None) -> Any:
         """Get the value by name.
 
         :param name: Event name or ID
@@ -56,7 +56,7 @@ class EventManager(TaskManager):
         await self.wait_for(name, timeout=timeout)
         return self.data[name]
 
-    def get_nowait(self, name: str, default=None):
+    def get_nowait(self, name: str, default: Any = None) -> Any:
         """Get the value by name without waiting.
 
         If value is not available, default value will be
@@ -102,7 +102,7 @@ class EventManager(TaskManager):
         :type callback: Callable[[Any], Awaitable[Any]]
         """
 
-        async def _callback(value):
+        async def _callback(value: Any) -> Any:
             """Unsubscribe callback from the event and calls it."""
             self.unsubscribe(name, _callback)
             return await callback(value)
@@ -122,7 +122,7 @@ class EventManager(TaskManager):
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
 
-    async def dispatch(self, name: str, value) -> None:
+    async def dispatch(self, name: str, value: Any) -> None:
         """Call registered callbacks and dispatch the event."""
         if name in self._callbacks:
             callbacks = self._callbacks[name].copy()
@@ -133,7 +133,7 @@ class EventManager(TaskManager):
         self.data[name] = value
         self.set_event(name)
 
-    def dispatch_nowait(self, name: str, value) -> None:
+    def dispatch_nowait(self, name: str, value: Any) -> None:
         """Call a registered callbacks and dispatch the event without waiting."""
         self.create_task(self.dispatch(name, value))
 

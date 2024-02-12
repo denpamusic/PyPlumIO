@@ -54,15 +54,17 @@ def test_request_type() -> None:
 def test_program_version_response_recipient_and_type() -> None:
     """Test if program version response recipient and type is set."""
     frame = ProgramVersionRequest(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
-    assert isinstance(frame.response(), ProgramVersionResponse)
-    assert frame.response().recipient == DeviceType.ECONET
+    response = frame.response()
+    assert isinstance(response, ProgramVersionResponse)
+    assert response.recipient == DeviceType.ECONET
 
 
 def test_check_device_response_recipient_and_type() -> None:
     """Test if check device response recipient and type is set."""
     frame = CheckDeviceRequest(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
-    assert isinstance(frame.response(), DeviceAvailableResponse)
-    assert frame.response().recipient == DeviceType.ECONET
+    response = frame.response()
+    assert isinstance(response, DeviceAvailableResponse)
+    assert response.recipient == DeviceType.ECONET
 
 
 @pytest.mark.parametrize(

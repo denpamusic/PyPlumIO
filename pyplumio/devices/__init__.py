@@ -5,7 +5,7 @@ from abc import ABC
 import asyncio
 from collections.abc import Iterable
 from functools import cache
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
@@ -155,7 +155,7 @@ class AddressableDevice(Device, ABC):
 
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0
-    ):
+    ) -> Any:
         """Send request and wait for a value to become available.
 
         If value is not available before timeout, retry request.
@@ -163,6 +163,7 @@ class AddressableDevice(Device, ABC):
         request: Request = factory(
             get_frame_handler(frame_type), recipient=self.address
         )
+
         while retries > 0:
             try:
                 self.queue.put_nowait(request)

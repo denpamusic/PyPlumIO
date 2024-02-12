@@ -24,30 +24,32 @@ class DataType(ABC):
         """Return serializable string representation of the class."""
         return f"{self.__class__.__name__}(value={self._value})"
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Compare if this data type is equal to other."""
         if isinstance(other, DataType):
-            return self._value == other._value
+            result: bool = self._value == other._value
+        else:
+            result = self._value == other
 
-        return self._value == other
+        return result
 
     def _slice_data(self, data: bytes) -> bytes:
         """Slice the data to data type size."""
         return data[: self.size] if self.size is not None else data
 
     @classmethod
-    def from_bytes(cls, data: bytes, offset: int = 0):
+    def from_bytes(cls, data: bytes, offset: int = 0) -> DataType:
         """Initialize a new data type from bytes."""
         data_type = cls()
         data_type.unpack(data[offset:])
         return data_type
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytes:
         """Convert data type to bytes."""
         return self.pack()
 
     @property
-    def value(self):
+    def value(self) -> Any:
         """Return the data type value."""
         return self._value
 
@@ -172,7 +174,8 @@ class String(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return self.value.encode() + b"\0"
+        value: str = self.value
+        return value.encode() + b"\0"
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -192,7 +195,8 @@ class VarBytes(DataType):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return UnsignedChar(self.size - 1).to_bytes() + self.value
+        value: bytes = self.value
+        return UnsignedChar(self.size - 1).to_bytes() + value
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -207,7 +211,8 @@ class VarString(VarBytes):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        return UnsignedChar(self.size - 1).to_bytes() + self.value.encode()
+        value: str = self.value
+        return UnsignedChar(self.size - 1).to_bytes() + value.encode()
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""

@@ -1,5 +1,5 @@
 """Contains a schedule helper classes."""
-
+from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
@@ -71,19 +71,19 @@ class ScheduleDay(MutableMapping):
         """Return an iterator."""
         return self._intervals.__iter__()
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> bool:
         """Return a schedule item."""
         return self._intervals.__getitem__(index)
 
-    def __delitem__(self, index) -> None:
+    def __delitem__(self, index: int) -> None:
         """Delete a schedule item."""
         return self._intervals.__delitem__(index)
 
-    def __setitem__(self, index, value) -> None:
+    def __setitem__(self, index: int, value: bool) -> None:
         """Set a schedule item."""
         return self._intervals.__setitem__(index, value)
 
-    def append(self, item) -> None:
+    def append(self, item: bool) -> None:
         """Append a value to the interval."""
         self._intervals.append(item)
 

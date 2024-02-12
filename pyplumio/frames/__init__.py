@@ -92,8 +92,8 @@ class Frame(ABC):
         econet_version: int = ECONET_VERSION,
         message: bytearray | None = None,
         data: dict[str, Any] | None = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Process a frame data and message."""
         try:
             self.recipient = DeviceType(cast(int, recipient))
@@ -110,7 +110,7 @@ class Frame(ABC):
         self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         """Compare if this frame is equal to other."""
         if isinstance(other, Frame):
             return (
@@ -147,7 +147,7 @@ class Frame(ABC):
         """Return a frame length."""
         return self.length
 
-    def hex(self, *args, **kwargs) -> str:
+    def hex(self, *args: Any, **kwargs: Any) -> str:
         """Return a frame message represented as hex string."""
         return self.bytes.hex(*args, **kwargs)
 
@@ -243,7 +243,7 @@ class Request(Frame):
         """Decode a frame message."""
         return {}
 
-    def response(self, **_) -> Response | None:
+    def response(self, **kwargs: Any) -> Response | None:
         """Return a response frame."""
         return None
 

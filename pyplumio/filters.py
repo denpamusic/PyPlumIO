@@ -30,7 +30,7 @@ def _significantly_changed(old: Comparable, new: Comparable) -> bool:
     ...
 
 
-def _significantly_changed(old, new) -> bool:
+def _significantly_changed(old: Any, new: Any) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
         return new.pending_update or old.values != new.values
@@ -49,11 +49,11 @@ def _diffence_between(old: list, new: list) -> list:
 
 
 @overload
-def _diffence_between(old: Subtractable, new: Subtractable):
+def _diffence_between(old: Subtractable, new: Subtractable) -> Subtractable:
     ...
 
 
-def _diffence_between(old, new):
+def _diffence_between(old: Any, new: Any) -> Any:
     """Return a difference between values."""
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
@@ -72,12 +72,12 @@ class Filter(ABC):
     _callback: Callable[[Any], Awaitable[Any]]
     _value: Any
 
-    def __init__(self, callback: Callable[[Any], Awaitable[Any]]):
+    def __init__(self, callback: Callable[[Any], Awaitable[Any]]) -> None:
         """Initialize a new filter."""
         self._callback = callback
         self._value = UNDEFINED
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> Any:
         """Compare callbacks."""
         if isinstance(other, Filter):
             return self._callback == other._callback
@@ -88,7 +88,7 @@ class Filter(ABC):
         raise TypeError
 
     @abstractmethod
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
 
 
@@ -101,7 +101,7 @@ class _OnChange(Filter):
 
     __slots__ = ()
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             self._value = (
@@ -136,13 +136,15 @@ class _Debounce(Filter):
     _calls: int
     _min_calls: int
 
-    def __init__(self, callback: Callable[[Any], Awaitable[Any]], min_calls: int):
+    def __init__(
+        self, callback: Callable[[Any], Awaitable[Any]], min_calls: int
+    ) -> None:
         """Initialize a new debounce filter."""
         super().__init__(callback)
         self._calls = 0
         self._min_calls = min_calls
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             self._calls += 1
@@ -157,7 +159,7 @@ class _Debounce(Filter):
             return await self._callback(new_value)
 
 
-def debounce(callback: Callable[[Any], Awaitable[Any]], min_calls) -> _Debounce:
+def debounce(callback: Callable[[Any], Awaitable[Any]], min_calls: int) -> _Debounce:
     """Return a debounce filter.
 
     A callback function will only called once value is stabilized
@@ -186,13 +188,15 @@ class _Throttle(Filter):
     _last_called: float | None
     _timeout: float
 
-    def __init__(self, callback: Callable[[Any], Awaitable[Any]], seconds: float):
+    def __init__(
+        self, callback: Callable[[Any], Awaitable[Any]], seconds: float
+    ) -> None:
         """Initialize a new throttle filter."""
         super().__init__(callback)
         self._last_called = None
         self._timeout = seconds
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         current_timestamp = time.monotonic()
         if (
@@ -229,7 +233,7 @@ class _Delta(Filter):
 
     __slots__ = ()
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
             old_value = self._value
@@ -268,17 +272,19 @@ class _Aggregate(Filter):
     __slots__ = ("_sum", "_last_update", "_timeout")
 
     _sum: complex
-    _last_update: float | None
+    _last_update: float
     _timeout: float
 
-    def __init__(self, callback: Callable[[Any], Awaitable[Any]], seconds: float):
+    def __init__(
+        self, callback: Callable[[Any], Awaitable[Any]], seconds: float
+    ) -> None:
         """Initialize a new aggregate filter."""
         super().__init__(callback)
         self._last_update = time.monotonic()
         self._timeout = seconds
         self._sum = 0.0
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         current_timestamp = time.monotonic()
         try:
@@ -329,12 +335,12 @@ class _Custom(Filter):
         self,
         callback: Callable[[Any], Awaitable[Any]],
         filter_fn: Callable[[Any], bool],
-    ):
+    ) -> None:
         """Initialize a new custom filter."""
         super().__init__(callback)
         self._filter_fn = filter_fn
 
-    async def __call__(self, new_value):
+    async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if self._filter_fn(new_value):
             await self._callback(new_value)

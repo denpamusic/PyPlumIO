@@ -380,7 +380,7 @@ class EcoMAX(AddressableDevice):
         return True
 
     async def _add_thermostat_profile_parameter(
-        self, values: ParameterValues
+        self, values: ParameterValues | None
     ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the dataset."""
         if values is not None:
@@ -412,7 +412,8 @@ class EcoMAX(AddressableDevice):
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""
         try:
-            return await self.data[ATTR_ECOMAX_CONTROL].turn_on()
+            ecomax_control: EcomaxBinaryParameter = self.data[ATTR_ECOMAX_CONTROL]
+            return await ecomax_control.turn_on()
         except KeyError:
             _LOGGER.error("ecoMAX control isn't available, please try later")
             return False
@@ -420,7 +421,8 @@ class EcoMAX(AddressableDevice):
     async def turn_off(self) -> bool:
         """Turn off the ecoMAX controller."""
         try:
-            return await self.data[ATTR_ECOMAX_CONTROL].turn_off()
+            ecomax_control: EcomaxBinaryParameter = self.data[ATTR_ECOMAX_CONTROL]
+            return await ecomax_control.turn_off()
         except KeyError:
             _LOGGER.error("ecoMAX control isn't available, please try later")
             return False

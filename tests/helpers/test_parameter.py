@@ -97,7 +97,7 @@ async def test_parameter_set(
     assert parameter.pending_update
     await callback(parameter)
     assert not parameter.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
         assert await parameter.set(3)
 
     assert parameter == 3
@@ -163,7 +163,7 @@ async def test_parameter_request_with_unchanged_value(
     assert not parameter.pending_update
     assert not await parameter.set(5, retries=3)
     assert parameter.pending_update
-    assert mock_put.await_count == 3
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
     assert "Timed out while trying to set 'test_parameter' parameter" in caplog.text
     await parameter.set(5)

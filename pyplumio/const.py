@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum, unique
-from typing import Final
+from typing import Any, Final
 
 # Binary states.
 STATE_ON: Final = "on"
@@ -64,7 +64,7 @@ class DeviceState(IntEnum):
     OTHER = 11
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, value: Any) -> DeviceState | None:
         """Look up state in extra state table."""
         return EXTRA_DEVICE_STATES.get(value, None)
 
