@@ -6,13 +6,15 @@ from collections.abc import Awaitable, Callable
 from copy import copy
 import math
 import time
-from typing import Any, Final, SupportsFloat, overload
+from typing import Any, Final, SupportsFloat, TypeVar, overload
 
 from pyplumio.helpers.parameter import Parameter
-from pyplumio.helpers.typing import Comparable, Subtractable
+from pyplumio.helpers.typing import SupportsComparison, SupportsSubtraction
 
 UNDEFINED: Final = "undefined"
 TOLERANCE: Final = 0.1
+
+Comparable = TypeVar("Comparable", Parameter, SupportsFloat, SupportsComparison)
 
 
 @overload
@@ -26,18 +28,17 @@ def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
 
 
 @overload
-def _significantly_changed(old: Comparable, new: Comparable) -> bool:
+def _significantly_changed(old: SupportsComparison, new: SupportsComparison) -> bool:
     ...
 
 
-def _significantly_changed(old: Any, new: Any) -> bool:
+def _significantly_changed(old: Comparable, new: Comparable) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return new.pending_update or old.values != new.values
-
-    try:
+        result = new.pending_update or old.values != new.values
+    elif isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
         result = not math.isclose(old, new, abs_tol=TOLERANCE)
-    except TypeError:
+    else:
         result = old != new
 
     return result
@@ -49,19 +50,22 @@ def _diffence_between(old: list, new: list) -> list:
 
 
 @overload
-def _diffence_between(old: Subtractable, new: Subtractable) -> Subtractable:
+def _diffence_between(
+    old: SupportsSubtraction, new: SupportsSubtraction
+) -> SupportsSubtraction:
     ...
 
 
-def _diffence_between(old: Any, new: Any) -> Any:
+def _diffence_between(
+    old: SupportsSubtraction | list, new: SupportsSubtraction | list
+) -> SupportsSubtraction | list | None:
     """Return a difference between values."""
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
-
-    if hasattr(old, "__sub__") and hasattr(new, "__sub__"):
+    elif isinstance(old, SupportsSubtraction) and isinstance(new, SupportsSubtraction):
         return new - old
-
-    return None
+    else:
+        return None
 
 
 class Filter(ABC):

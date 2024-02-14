@@ -1,28 +1,28 @@
 """Contains type aliases."""
 from __future__ import annotations
 
-from typing import Any, Literal, Protocol, TypeVar, Union, runtime_checkable
-
-T = TypeVar("T")
+from typing import Literal, Protocol, Union, runtime_checkable
 
 ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
 
 
 @runtime_checkable
-class Subtractable(Protocol[T]):
+class SupportsSubtraction(Protocol):
     """Supports subtraction operation."""
 
     __slots__ = ()
 
-    def __sub__(self, other: T) -> T:
+    def __sub__(
+        self: SupportsSubtraction, other: SupportsSubtraction
+    ) -> SupportsSubtraction:
         """Subtract a value."""
 
 
 @runtime_checkable
-class Comparable(Protocol):
+class SupportsComparison(Protocol):
     """Supports comparison."""
 
     __slots__ = ()
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self: SupportsComparison, other: SupportsComparison) -> bool:
         """Compare a value."""
