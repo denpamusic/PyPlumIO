@@ -202,7 +202,7 @@ class AsyncProtocol(Protocol, EventManager):
 
                 if (response := await reader.read()) is not None:
                     read_queue.put_nowait(
-                        (self.setup_device_entry(response.sender), response)
+                        (self.get_device_entry(response.sender), response)
                     )
 
             except FrameDataError as e:
@@ -229,6 +229,15 @@ class AsyncProtocol(Protocol, EventManager):
             device.handle_frame(frame)
             read_queue.task_done()
 
+    @cache
+    def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
+        """Set up device entry."""
+        handler, name = get_device_handler_and_name(device_type)
+        return cast(
+            AddressableDevice,
+            self.data.setdefault(name, self._create_device_entry(name, handler)),
+        )
+
     def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
         """Create device entry."""
         write_queue = self.queues[1]
@@ -239,15 +248,6 @@ class AsyncProtocol(Protocol, EventManager):
         self.create_task(device.async_setup())
         self.set_event(name)
         return device
-
-    @cache
-    def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
-        """Set up device entry."""
-        handler, name = get_device_handler_and_name(device_type)
-        return cast(
-            AddressableDevice,
-            self.data.setdefault(name, self._create_device_entry(name, handler)),
-        )
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
