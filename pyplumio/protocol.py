@@ -118,6 +118,7 @@ class AsyncProtocol(Protocol, EventManager):
     sends frame to respective handler for further processing.
     """
 
+    data: dict[str, AddressableDevice]
     consumers_number: int
     _network: NetworkInfo
     _queues: tuple[asyncio.Queue, asyncio.Queue]
@@ -233,10 +234,7 @@ class AsyncProtocol(Protocol, EventManager):
     def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Set up device entry."""
         handler, name = get_device_handler_and_name(device_type)
-        return cast(
-            AddressableDevice,
-            self.data.setdefault(name, self._create_device_entry(name, handler)),
-        )
+        return self.data.setdefault(name, self._create_device_entry(name, handler))
 
     def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
         """Create device entry."""
