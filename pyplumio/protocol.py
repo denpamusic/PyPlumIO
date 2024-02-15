@@ -202,9 +202,8 @@ class AsyncProtocol(Protocol, EventManager):
                     write_queue.task_done()
 
                 if (response := await reader.read()) is not None:
-                    read_queue.put_nowait(
-                        (self.get_device_entry(response.sender), response)
-                    )
+                    device = self.get_device_entry(response.sender)
+                    read_queue.put_nowait((device, response))
 
             except FrameDataError as e:
                 _LOGGER.warning("Incorrect payload: %s", e)
