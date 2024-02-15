@@ -202,10 +202,7 @@ class AsyncProtocol(Protocol, EventManager):
 
                 if (response := await reader.read()) is not None:
                     read_queue.put_nowait(
-                        (
-                            self.setup_device_entry(cast(DeviceType, response.sender)),
-                            response,
-                        )
+                        (self.setup_device_entry(response.sender), response)
                     )
 
             except FrameDataError as e:
