@@ -4,6 +4,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
+from functools import cache
 import logging
 from typing import cast
 
@@ -231,15 +232,7 @@ class AsyncProtocol(Protocol, EventManager):
             device.handle_frame(frame)
             read_queue.task_done()
 
-    def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
-        """Set up device entry."""
-        handler, name = get_device_handler_and_name(device_type)
-        if name not in self.data:
-            self._create_device_entry(name, handler)
-
-        return cast(AddressableDevice, self.data[name])
-
-    def _create_device_entry(self, name: str, handler: str) -> None:
+    def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
         """Create device entry."""
         write_queue = self.queues[1]
         device: AddressableDevice = factory(
@@ -247,8 +240,17 @@ class AsyncProtocol(Protocol, EventManager):
         )
         device.dispatch_nowait(ATTR_CONNECTED, True)
         self.create_task(device.async_setup())
-        self.data[name] = device
         self.set_event(name)
+        return device
+
+    @cache
+    def setup_device_entry(self, device_type: DeviceType) -> AddressableDevice:
+        """Set up device entry."""
+        handler, name = get_device_handler_and_name(device_type)
+        return cast(
+            AddressableDevice,
+            self.data.setdefault(name, self._create_device_entry(name, handler)),
+        )
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:
