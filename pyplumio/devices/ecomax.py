@@ -355,7 +355,7 @@ class EcoMAX(AddressableDevice):
         )
 
         if name in self.data:
-            parameter: ScheduleParameter = self.data[name]
+            parameter: EcomaxBinaryParameter = self.data[name]
             parameter.values = values
             return await self.dispatch(name, parameter)
 
