@@ -346,16 +346,23 @@ class EcoMAX(AddressableDevice):
 
         return True
 
-    async def _add_ecomax_control_parameter(self, mode: int) -> None:
+    async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
         """Create ecoMAX control parameter instance and dispatch an event."""
+        description = ECOMAX_CONTROL_PARAMETER
+        name = description.name
+        values = ParameterValues(
+            value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+        )
+
+        if name in self.data:
+            parameter: ScheduleParameter = self.data[name]
+            parameter.values = values
+            return await self.dispatch(name, parameter)
+
         await self.dispatch(
-            ECOMAX_CONTROL_PARAMETER.name,
+            name,
             EcomaxBinaryParameter(
-                device=self,
-                description=ECOMAX_CONTROL_PARAMETER,
-                values=ParameterValues(
-                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
-                ),
+                device=self, description=ECOMAX_CONTROL_PARAMETER, values=values
             ),
         )
 
