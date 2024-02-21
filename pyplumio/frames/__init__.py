@@ -80,7 +80,7 @@ class Frame(ABC):
     sender: DeviceType | AddressableDevice | int
     sender_type: int
     econet_version: int
-    frame_type: ClassVar[FrameType | int]
+    frame_type: ClassVar[FrameType]
     _message: bytearray | None
     _data: dict[str, Any] | None
 
