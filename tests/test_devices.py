@@ -14,11 +14,13 @@ from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
     ATTR_SIZE,
+    ATTR_STATE,
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
     STATE_OFF,
     STATE_ON,
+    DeviceState,
     DeviceType,
     FrameType,
     UnitOfMeasurement,
@@ -190,6 +192,14 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     assert isinstance(ecomax_control.request, EcomaxControlRequest)
     assert ecomax_control.value == STATE_OFF
     assert ecomax_control.request.data == {ATTR_VALUE: 0}
+
+    # Check ecomax_control reference equility.
+    ecomax.handle_frame(SensorDataMessage(data={ATTR_STATE: DeviceState.WORKING}))
+    await ecomax.wait_until_done()
+    ecomax_control2 = await ecomax.get(ATTR_ECOMAX_CONTROL)
+    assert ecomax_control2 is ecomax_control
+    assert ecomax_control2.value == STATE_ON
+    assert ecomax_control2.request.data == {ATTR_VALUE: 1}
 
 
 async def test_ecomax_naming_collisions(ecomax: EcoMAX) -> None:
