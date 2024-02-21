@@ -220,3 +220,15 @@ class SchedulesResponse(Response):
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         return SchedulesStructure(self).decode(message)[0]
+
+
+class ThermostatSchedulesResponse(Response):
+    """Represents response to a thermostat schedules request."""
+
+    __slots__ = ()
+
+    frame_type: ClassVar[FrameType] = FrameType.RESPONSE_THERMOSTAT_SCHEDULES
+
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
+        """Decode a frame message."""
+        return {}

@@ -259,3 +259,11 @@ class SetScheduleRequest(Request):
     def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
         return SchedulesStructure(self).encode(data)
+
+
+class ThermostatSchedulesRequest(Request):
+    """Represent a thermostat schedules request."""
+
+    __slots__ = ()
+
+    frame_type: ClassVar[FrameType] = FrameType.REQUEST_THERMOSTAT_SCHEDULES
