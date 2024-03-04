@@ -95,9 +95,7 @@ def fixture_serial_connection(mock_protocol) -> pyplumio.connection.SerialConnec
 
 async def test_tcp_connect(mock_protocol, asyncio_open_connection) -> None:
     """Test TCP connection logic."""
-    with patch(
-        "pyplumio.connection.Connection._connection_lost"
-    ) as mock_connection_lost:
+    with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
         tcp_connection = pyplumio.connection.TcpConnection(
             host=HOST,
             port=PORT,
@@ -107,9 +105,7 @@ async def test_tcp_connect(mock_protocol, asyncio_open_connection) -> None:
         )
 
         assert tcp_connection.protocol == mock_protocol
-        mock_protocol.on_connection_lost.add.assert_called_once_with(
-            mock_connection_lost
-        )
+        mock_protocol.on_connection_lost.add.assert_called_once_with(mock_reconnect)
 
     await tcp_connection.connect()
     asyncio_open_connection.assert_called_once_with(host=HOST, port=PORT, timeout=10)
@@ -162,6 +158,7 @@ async def test_reconnect(
         side_effect=(ConnectionFailedError, None),
     ) as mock_connect:
         await tcp_connection.connect()
+        await tcp_connection.wait_until_done()
 
     assert "Can't connect to the device" in caplog.text
     assert mock_connect.call_count == 2
@@ -174,9 +171,9 @@ async def test_connection_lost(
     """Test that connection lost callback calls reconnect."""
     await tcp_connection.connect()
     on_connection_lost = mock_protocol.on_connection_lost.add.call_args.args[0]
-    with patch("pyplumio.connection.Connection._reconnect") as mock_reconnect:
+    with patch("pyplumio.connection.Connection._connect") as mock_connect:
         await on_connection_lost()
-        mock_reconnect.assert_called_once()
+        mock_connect.assert_called_once()
 
 
 async def test_reconnect_logic_selection() -> None:

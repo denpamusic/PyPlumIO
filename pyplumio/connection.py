@@ -10,6 +10,7 @@ from typing import Any, Final, cast
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
 
 from pyplumio.exceptions import ConnectionFailedError
+from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import AsyncProtocol, Protocol
 
@@ -26,13 +27,12 @@ except ImportError:
     import serial_asyncio as pyserial_asyncio
 
 
-class Connection(ABC):
+class Connection(ABC, TaskManager):
     """Represents a connection.
 
     All specific connection classes MUST be inherited from this class.
     """
 
-    _closing: bool
     _protocol: Protocol
     _reconnect_on_failure: bool
     _kwargs: MutableMapping[str, Any]
@@ -44,13 +44,13 @@ class Connection(ABC):
         **kwargs: Any,
     ) -> None:
         """Initialize a new connection."""
+        super().__init__()
         if protocol is None:
             protocol = AsyncProtocol()
 
         if reconnect_on_failure:
-            protocol.on_connection_lost.add(self._connection_lost)
+            protocol.on_connection_lost.add(self._reconnect)
 
-        self._closing = False
         self._reconnect_on_failure = reconnect_on_failure
         self._protocol = protocol
         self._kwargs = kwargs
@@ -76,29 +76,20 @@ class Connection(ABC):
                 await self._open_connection(),
             )
             self.protocol.connection_established(reader, writer)
-        except (
-            OSError,
-            SerialException,
-            asyncio.TimeoutError,
-        ) as connection_error:
-            raise ConnectionFailedError from connection_error
+        except (OSError, SerialException, asyncio.TimeoutError) as err:
+            raise ConnectionFailedError from err
 
     async def _reconnect(self) -> None:
         """Try to connect and reconnect on failure."""
         try:
-            return await self._connect()
+            await self._connect()
         except ConnectionFailedError:
-            await self._connection_lost()
-
-    async def _connection_lost(self) -> None:
-        """Resume connection on the connection loss."""
-        if not self._closing:
             _LOGGER.error(
                 "Can't connect to the device, retrying in %.1f seconds",
                 RECONNECT_TIMEOUT,
             )
             await asyncio.sleep(RECONNECT_TIMEOUT)
-            await self._reconnect()
+            self.create_task(self._reconnect())
 
     async def connect(self) -> None:
         """Open the connection.
@@ -106,14 +97,11 @@ class Connection(ABC):
         Initialize a connection via connect or reconnect
         routines, depending on '_reconnect_on_failure' property.
         """
-        if self._reconnect_on_failure:
-            await self._reconnect()
-        else:
-            await self._connect()
+        await (self._reconnect if self._reconnect_on_failure else self._connect)()
 
     async def close(self) -> None:
         """Close the connection."""
-        self._closing = True
+        self.cancel_tasks()
         await self.protocol.shutdown()
 
     @property
