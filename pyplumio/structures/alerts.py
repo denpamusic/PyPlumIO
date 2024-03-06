@@ -15,6 +15,8 @@ from pyplumio.utils import ensure_dict
 ATTR_ALERTS: Final = "alerts"
 ATTR_TOTAL_ALERTS: Final = "total_alerts"
 
+MAX_UINT32: Final = 4294967295
+
 
 @lru_cache(maxsize=10)
 def _convert_to_datetime(seconds: int) -> datetime:
@@ -72,7 +74,11 @@ class AlertsStructure(StructureDecoder):
         self._offset += to_seconds.size
 
         from_dt = _convert_to_datetime(from_seconds.value)
-        to_dt = _convert_to_datetime(to_seconds.value) if to_seconds.value > 0 else None
+        to_dt = (
+            None
+            if to_seconds.value == MAX_UINT32
+            else _convert_to_datetime(to_seconds.value)
+        )
 
         return Alert(code, from_dt, to_dt)
 
