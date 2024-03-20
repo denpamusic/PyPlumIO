@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writing &mdash; PyPlumIO 0.5.17.dev16+gb0cb4aa documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=de07f7f6"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/js/rtd_search_config.js"></script>
+        <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Callbacks" href="callbacks.html" />
+    <link rel="prev" title="Reading" href="reading.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+              <div class="version">
+                0.5.17
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Writing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setters">Setters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#binary-parameters">Binary Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-examples">Writing Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Writing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/writing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing">
+<h1>Writing<a class="headerlink" href="#writing" title="Link to this heading"></a></h1>
+<section id="setters">
+<h2>Setters<a class="headerlink" href="#setters" title="Link to this heading"></a></h2>
+<p>When using blocking setter, you will get the result
+represented by the boolean value. <cite>True</cite> if write was successful,
+<cite>False</cite> otherwise.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Heating target temperature was successfully set.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error while trying to set heating target temperature.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can’t access result, when using non-blocking setter as task is done
+in the background. You will, however, still get error message in the log
+in case of failure.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ecomax</span><span class="o">.</span><span class="n">set_nowait</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<p>It’s possible to get the <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> object and then modify it using
+it’s own setter methods. When using the parameter object, you don’t
+need to pass the parameter name.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyplumio.helpers.parameter</span> <span class="kn">import</span> <span class="n">Parameter</span>
+
+
+<span class="n">ecomax</span> <span class="o">=</span> <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span>
+<span class="n">heating_target</span><span class="p">:</span> <span class="n">Parameter</span> <span class="o">=</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">heating_target</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each parameter has a range of allowed values.
+PyPlumIO will raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if value is not within the
+acceptable range.</p>
+<p>You can check allowed range by reading <code class="docutils literal notranslate"><span class="pre">min_value</span></code> and <code class="docutils literal notranslate"><span class="pre">max_value</span></code>
+properties of the parameter object. Both values are <strong>inclusive</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ecomax</span> <span class="o">=</span> <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span>
+<span class="n">target_temp</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">target_temp</span><span class="o">.</span><span class="n">min_value</span><span class="p">)</span>  <span class="c1"># Minimum allowed target temperature.</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">target_temp</span><span class="o">.</span><span class="n">max_value</span><span class="p">)</span>  <span class="c1"># Maximum allowed target temperature.</span>
+</pre></div>
+</div>
+</section>
+<section id="binary-parameters">
+<h2>Binary Parameters<a class="headerlink" href="#binary-parameters" title="Link to this heading"></a></h2>
+<p>For binary parameters, you can also use boolean <cite>True</cite> or <cite>False</cite>,
+string literals “on” or “off” or special <code class="docutils literal notranslate"><span class="pre">turn_on()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">turn_off()</span></code> methods.</p>
+<p>One such parameter is “ecomax_control” that allows you to switch
+the ecoMAX on or off.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set an ecomax_control parameter value to &quot;on&quot;.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;ecomax_control&quot;</span><span class="p">,</span> <span class="s2">&quot;on&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to use <strong>turn_on()</strong> method, you must first get a parameter
+object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get an ecomax_control parameter and turn it on.</span>
+<span class="n">ecomax_control</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax_control&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax_control</span><span class="o">.</span><span class="n">turn_on</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you simply want to turn on or off the ecoMAX controller there’s,
+handy shortcut built-in the controller object itself.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn on the controller.</span>
+<span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_on</span><span class="p">()</span>
+
+<span class="c1"># Turn off the controller.</span>
+<span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="writing-examples">
+<h2>Writing Examples<a class="headerlink" href="#writing-examples" title="Link to this heading"></a></h2>
+<p>The following example opens the connection, enables the controller
+without waiting for result and tries to set a target temperature,
+outputting result to the terminal.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+
+<span class="kn">import</span> <span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Turn on the controller and set target temperature.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="c1"># Get the ecoMAX device.</span>
+        <span class="n">ecomax</span> <span class="o">=</span> <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Turn on controller without waiting for the result.</span>
+        <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_on_nowait</span><span class="p">()</span>
+
+        <span class="c1"># Set heating temperature to 65 degrees.</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Heating temperature is set to 65.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t set heating temperature.&quot;</span><span class="p">)</span>
+
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reading.html" class="btn btn-neutral float-left" title="Reading" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="callbacks.html" class="btn btn-neutral float-right" title="Callbacks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
