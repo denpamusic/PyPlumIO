@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from pyplumio.const import (
     ATTR_INDEX,
@@ -47,37 +47,27 @@ class EcomaxParameter(Parameter):
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
         if self.description.name == ATTR_ECOMAX_CONTROL:
-            request: Request = await create_instance(
-                "frames.requests.EcomaxControlRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_VALUE: self.values.value,
-                },
-            )
-
+            cls = "frames.requests.EcomaxControlRequest"
+            data = {ATTR_VALUE: self.values.value}
         elif self.description.name == ATTR_THERMOSTAT_PROFILE:
-            request = await create_instance(
-                "frames.requests.SetThermostatParameterRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_INDEX: self._index,
-                    ATTR_VALUE: self.values.value,
-                    ATTR_OFFSET: 0,
-                    ATTR_SIZE: 1,
-                },
-            )
-
+            cls = "frames.requests.SetThermostatParameterRequest"
+            data = {
+                ATTR_INDEX: self._index,
+                ATTR_VALUE: self.values.value,
+                ATTR_OFFSET: 0,
+                ATTR_SIZE: 1,
+            }
         else:
-            request = await create_instance(
-                "frames.requests.SetEcomaxParameterRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_INDEX: self._index,
-                    ATTR_VALUE: self.values.value,
-                },
-            )
+            cls = "frames.requests.SetEcomaxParameterRequest"
+            data = {
+                ATTR_INDEX: self._index,
+                ATTR_VALUE: self.values.value,
+            }
 
-        return request
+        return cast(
+            Request,
+            await create_instance(cls, recipient=self.device.address, data=data),
+        )
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
