@@ -335,7 +335,7 @@ async def test_async_protocol_frame_consumer(
         "pyplumio.protocol.AsyncProtocol.queues",
         return_value=(mock_read_queue, mock_write_queue),
     ) as mock_queues:
-        ecomax = async_protocol.get_device_entry(DeviceType.ECOMAX)
+        ecomax = await async_protocol.get_device_entry(DeviceType.ECOMAX)
 
     mock_read_queue.get.side_effect = (
         (ecomax, CheckDeviceRequest()),

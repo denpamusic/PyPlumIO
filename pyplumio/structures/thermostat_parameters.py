@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, cast
 
 from pyplumio.const import (
     ATTR_INDEX,
@@ -14,7 +14,7 @@ from pyplumio.const import (
 )
 from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -59,6 +59,24 @@ class ThermostatParameter(Parameter):
         self.offset = offset
         super().__init__(device, values, description, index)
 
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
+        return cast(
+            Request,
+            await create_instance(
+                "frames.requests.SetThermostatParameterRequest",
+                recipient=self.device.parent.address,
+                data={
+                    # Increase the index by one to account for thermostat
+                    # profile, which is being set at ecoMAX device level.
+                    ATTR_INDEX: self._index + 1,
+                    ATTR_VALUE: self.values.value,
+                    ATTR_OFFSET: self.offset,
+                    ATTR_SIZE: self.description.size,
+                },
+            ),
+        )
+
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
         if isinstance(value, (int, float)):
@@ -80,23 +98,6 @@ class ThermostatParameter(Parameter):
     def max_value(self) -> ParameterValueType:
         """Return the maximum allowed value."""
         return self.values.max_value * self.description.multiplier
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        request: Request = factory(
-            "frames.requests.SetThermostatParameterRequest",
-            recipient=self.device.parent.address,
-            data={
-                # Increase the index by one to account for thermostat
-                # profile, which is being set at ecoMAX device level.
-                ATTR_INDEX: self._index + 1,
-                ATTR_VALUE: self.values.value,
-                ATTR_OFFSET: self.offset,
-                ATTR_SIZE: self.description.size,
-            },
-        )
-        return request
 
 
 class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):

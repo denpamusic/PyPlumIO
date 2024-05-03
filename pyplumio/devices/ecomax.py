@@ -28,7 +28,7 @@ from pyplumio.frames import (
     get_frame_handler,
     is_known_frame_type,
 )
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -235,7 +235,7 @@ class EcoMAX(AddressableDevice):
                 and not self._has_frame_version(frame_type, version)
             ):
                 # We don't have this frame or it's version has changed.
-                request: Request = factory(
+                request: Request = await create_instance(
                     get_frame_handler(frame_type), recipient=self.address
                 )
                 self.queue.put_nowait(request)

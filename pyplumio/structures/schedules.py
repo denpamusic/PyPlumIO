@@ -5,13 +5,13 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
 from itertools import chain
-from typing import Any, Final
+from typing import Any, Final, cast
 
 from pyplumio.const import ATTR_PARAMETER, ATTR_SCHEDULE, ATTR_SWITCH, ATTR_TYPE
 from pyplumio.devices import AddressableDevice, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -81,16 +81,17 @@ class ScheduleParameter(Parameter):
 
     device: AddressableDevice
 
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
         schedule_name, _ = self.description.name.split("_schedule_", 1)
-        request: Request = factory(
-            "frames.requests.SetScheduleRequest",
-            recipient=self.device.address,
-            data=collect_schedule_data(schedule_name, self.device),
+        return cast(
+            Request,
+            await create_instance(
+                "frames.requests.SetScheduleRequest",
+                recipient=self.device.address,
+                data=collect_schedule_data(schedule_name, self.device),
+            ),
         )
-        return request
 
 
 class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):

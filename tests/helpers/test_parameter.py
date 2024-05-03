@@ -20,9 +20,8 @@ class TestParameter(Parameter):
 
     __test__: bool = False
 
-    @property
-    def request(self) -> Request:
-        """A request to change the parameter."""
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
         return Request()
 
 
@@ -73,7 +72,7 @@ async def test_parameter_values(parameter: Parameter) -> None:
     assert parameter.max_value == 5
 
 
-def test_base_parameter_request(ecomax: EcoMAX) -> None:
+async def test_base_parameter_request(ecomax: EcoMAX) -> None:
     """Test that a base class request throws not implemented error."""
     parameter = Parameter(
         device=ecomax,
@@ -82,7 +81,7 @@ def test_base_parameter_request(ecomax: EcoMAX) -> None:
     )
 
     with pytest.raises(NotImplementedError):
-        assert not parameter.request
+        assert not await parameter.create_request()
 
 
 @patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once")

@@ -4,7 +4,6 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
-from functools import cache
 import logging
 from typing import cast
 
@@ -19,7 +18,7 @@ from pyplumio.exceptions import (
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
     EthernetParameters,
@@ -202,7 +201,9 @@ class AsyncProtocol(Protocol, EventManager):
                     write_queue.task_done()
 
                 if (response := await reader.read()) is not None:
-                    device = self.get_device_entry(response.sender)
+                    device = await self.get_device_entry(
+                        cast(DeviceType, response.sender)
+                    )
                     read_queue.put_nowait((device, response))
 
             except FrameDataError as e:
@@ -229,16 +230,17 @@ class AsyncProtocol(Protocol, EventManager):
             device.handle_frame(frame)
             read_queue.task_done()
 
-    @cache
-    def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
+    async def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Set up device entry."""
         handler, name = get_device_handler_and_name(device_type)
-        return self.data.setdefault(name, self._create_device_entry(name, handler))
+        return self.data.setdefault(
+            name, await self._create_device_entry(name, handler)
+        )
 
-    def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
+    async def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
         """Create device entry."""
         write_queue = self.queues[1]
-        device: AddressableDevice = factory(
+        device: AddressableDevice = await create_instance(
             handler, queue=write_queue, network=self._network
         )
         device.dispatch_nowait(ATTR_CONNECTED, True)

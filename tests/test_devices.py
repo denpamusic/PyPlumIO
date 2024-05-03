@@ -189,9 +189,11 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
 
     ecomax_control = await ecomax.get(ATTR_ECOMAX_CONTROL)
     assert isinstance(ecomax_control, EcomaxBinaryParameter)
-    assert isinstance(ecomax_control.request, EcomaxControlRequest)
     assert ecomax_control.value == STATE_OFF
-    assert ecomax_control.request.data == {ATTR_VALUE: 0}
+
+    ecomax_control_request = await ecomax_control.create_request()
+    assert isinstance(ecomax_control_request, EcomaxControlRequest)
+    assert ecomax_control_request.data == {ATTR_VALUE: 0}
 
     # Check ecomax_control reference equility.
     ecomax.handle_frame(SensorDataMessage(data={ATTR_STATE: DeviceState.WORKING}))
@@ -199,7 +201,8 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     ecomax_control2 = await ecomax.get(ATTR_ECOMAX_CONTROL)
     assert ecomax_control2 is ecomax_control
     assert ecomax_control2.value == STATE_ON
-    assert ecomax_control2.request.data == {ATTR_VALUE: 1}
+    ecomax_control2_request = await ecomax_control.create_request()
+    assert ecomax_control2_request.data == {ATTR_VALUE: 1}
 
 
 async def test_ecomax_naming_collisions(ecomax: EcoMAX) -> None:
@@ -223,10 +226,11 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
     fuzzy_logic = await ecomax.get("fuzzy_logic")
     assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
-    assert isinstance(fuzzy_logic.request, SetEcomaxParameterRequest)
     assert fuzzy_logic == STATE_ON
     assert fuzzy_logic.value == STATE_ON
-    assert fuzzy_logic.request.data == {
+    fuzzy_logic_request = await fuzzy_logic.create_request()
+    assert isinstance(fuzzy_logic_request, SetEcomaxParameterRequest)
+    assert fuzzy_logic_request.data == {
         ATTR_INDEX: 18,
         ATTR_VALUE: 1,
     }
@@ -397,13 +401,14 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert len(thermostat.data) == 13
     party_target_temp = await thermostat.get("party_target_temp")
     assert isinstance(party_target_temp, ThermostatParameter)
-    assert isinstance(party_target_temp.request, SetThermostatParameterRequest)
     assert isinstance(party_target_temp.device, Thermostat)
     assert party_target_temp.value == 22.0
     assert party_target_temp.min_value == 10.0
     assert party_target_temp.max_value == 35.0
     assert party_target_temp.offset == 0
-    assert party_target_temp.request.data == {
+    party_target_temp_request = await party_target_temp.create_request()
+    assert isinstance(party_target_temp_request, SetThermostatParameterRequest)
+    assert party_target_temp_request.data == {
         ATTR_INDEX: 2,
         ATTR_VALUE: 220,
         ATTR_OFFSET: 0,
@@ -442,11 +447,13 @@ async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     )
     await ecomax.wait_until_done()
     thermostat_profile = await ecomax.get(ATTR_THERMOSTAT_PROFILE)
+    assert isinstance(thermostat_profile, EcomaxParameter)
     assert thermostat_profile.value == 0.0
     assert thermostat_profile.min_value == 0.0
     assert thermostat_profile.max_value == 5.0
-    assert isinstance(thermostat_profile.request, SetThermostatParameterRequest)
-    assert thermostat_profile.request.data == {
+    thermostat_profile_request = await thermostat_profile.create_request()
+    assert isinstance(thermostat_profile_request, SetThermostatParameterRequest)
+    assert thermostat_profile_request.data == {
         ATTR_INDEX: 0,
         ATTR_VALUE: 0,
         ATTR_OFFSET: 0,
@@ -470,12 +477,15 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert len(mixer.data) == 7
     mixer_target_temp = await mixer.get("mixer_target_temp")
     assert isinstance(mixer_target_temp, MixerParameter)
-    assert isinstance(mixer_target_temp.request, SetMixerParameterRequest)
     assert isinstance(mixer_target_temp.device, Mixer)
     assert mixer_target_temp.value == 40.0
     assert mixer_target_temp.min_value == 30.0
     assert mixer_target_temp.max_value == 60.0
-    assert mixer_target_temp.request.data == {
+
+    # Test creating a request.
+    mixer_target_temp_request = await mixer_target_temp.create_request()
+    assert isinstance(mixer_target_temp_request, SetMixerParameterRequest)
+    assert mixer_target_temp_request.data == {
         ATTR_INDEX: 0,
         ATTR_VALUE: 40,
         ATTR_DEVICE_INDEX: 0,
@@ -534,11 +544,14 @@ async def test_schedule_callback(ecomax: EcoMAX) -> None:
         "water_heater_schedule_parameter"
     )
     assert isinstance(water_heater_schedule_parameter, ScheduleParameter)
-    assert isinstance(water_heater_schedule_parameter.request, SetScheduleRequest)
     assert water_heater_schedule_parameter.value == 5
     assert water_heater_schedule_parameter.min_value == 0
     assert water_heater_schedule_parameter.max_value == 30
-    assert water_heater_schedule_parameter.request.data == {
+    water_heater_schedule_parameter_request = (
+        await water_heater_schedule_parameter.create_request()
+    )
+    assert isinstance(water_heater_schedule_parameter_request, SetScheduleRequest)
+    assert water_heater_schedule_parameter_request.data == {
         ATTR_TYPE: "water_heater",
         ATTR_SWITCH: ecomax.data[f"water_heater_{ATTR_SCHEDULE_SWITCH}"],
         ATTR_PARAMETER: ecomax.data[f"water_heater_{ATTR_SCHEDULE_PARAMETER}"],

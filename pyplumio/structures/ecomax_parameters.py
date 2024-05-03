@@ -16,7 +16,7 @@ from pyplumio.const import (
 )
 from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -43,6 +43,41 @@ class EcomaxParameter(Parameter):
 
     device: AddressableDevice
     description: EcomaxParameterDescription
+
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
+        if self.description.name == ATTR_ECOMAX_CONTROL:
+            request: Request = await create_instance(
+                "frames.requests.EcomaxControlRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_VALUE: self.values.value,
+                },
+            )
+
+        elif self.description.name == ATTR_THERMOSTAT_PROFILE:
+            request = await create_instance(
+                "frames.requests.SetThermostatParameterRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_INDEX: self._index,
+                    ATTR_VALUE: self.values.value,
+                    ATTR_OFFSET: 0,
+                    ATTR_SIZE: 1,
+                },
+            )
+
+        else:
+            request = await create_instance(
+                "frames.requests.SetEcomaxParameterRequest",
+                recipient=self.device.address,
+                data={
+                    ATTR_INDEX: self._index,
+                    ATTR_VALUE: self.values.value,
+                },
+            )
+
+        return request
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
         """Set a parameter value."""
@@ -71,42 +106,6 @@ class EcomaxParameter(Parameter):
         return (
             self.values.max_value - self.description.offset
         ) * self.description.multiplier
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        if self.description.name == ATTR_ECOMAX_CONTROL:
-            request: Request = factory(
-                "frames.requests.EcomaxControlRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_VALUE: self.values.value,
-                },
-            )
-
-        elif self.description.name == ATTR_THERMOSTAT_PROFILE:
-            request = factory(
-                "frames.requests.SetThermostatParameterRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_INDEX: self._index,
-                    ATTR_VALUE: self.values.value,
-                    ATTR_OFFSET: 0,
-                    ATTR_SIZE: 1,
-                },
-            )
-
-        else:
-            request = factory(
-                "frames.requests.SetEcomaxParameterRequest",
-                recipient=self.device.address,
-                data={
-                    ATTR_INDEX: self._index,
-                    ATTR_VALUE: self.values.value,
-                },
-            )
-
-        return request
 
 
 class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):

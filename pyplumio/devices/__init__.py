@@ -11,7 +11,7 @@ from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
 from pyplumio.helpers.event_manager import EventManager
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import SET_RETRIES, Parameter
 from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures.network_info import NetworkInfo
@@ -160,7 +160,7 @@ class AddressableDevice(Device, ABC):
 
         If value is not available before timeout, retry request.
         """
-        request: Request = factory(
+        request: Request = await create_instance(
             get_frame_handler(frame_type), recipient=self.address
         )
 

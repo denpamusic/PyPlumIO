@@ -9,7 +9,7 @@ from typing import Final
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import ChecksumError, ReadError
 from pyplumio.frames import FRAME_START, Frame, bcc, get_frame_handler, struct_header
-from pyplumio.helpers.factory import factory
+from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.timeout import timeout
 
 READER_TIMEOUT: Final = 10
@@ -132,7 +132,7 @@ class FrameReader:
         if payload[-2] != bcc(header + payload[:-2]):
             raise ChecksumError(f"Incorrect frame checksum ({payload[-2]})")
 
-        frame: Frame = factory(
+        frame: Frame = await create_instance(
             get_frame_handler(frame_type=payload[0]),
             recipient=recipient,
             message=payload[1:-2],

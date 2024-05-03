@@ -166,6 +166,10 @@ class Parameter(ABC):
         """Set parameter as no longer pending update."""
         self._pending_update = False
 
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
+        raise NotImplementedError
+
     async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
         """Set a parameter value."""
         if (value := _normalize_parameter_value(value)) == self.values.value:
@@ -188,7 +192,7 @@ class Parameter(ABC):
                 self.device.unsubscribe(self.description.name, self._confirm_update)
                 return False
 
-            await self.device.queue.put(self.request)
+            await self.device.queue.put(await self.create_request())
             await asyncio.sleep(SET_TIMEOUT)
             retries -= 1
 
@@ -222,11 +226,6 @@ class Parameter(ABC):
     def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
         """Return the unit of measurement."""
         return self.description.unit_of_measurement
-
-    @property
-    def request(self) -> Request:
-        """Return request to change the parameter."""
-        raise NotImplementedError
 
 
 class BinaryParameter(Parameter):
