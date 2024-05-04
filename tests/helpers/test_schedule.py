@@ -100,8 +100,8 @@ def test_schedule(schedule: Schedule) -> None:
     assert next(schedule_iter)[0]
 
 
-@patch("pyplumio.helpers.schedule.SetScheduleRequest")
-def test_schedule_commit(mock_set_schedule_request, schedule: Schedule) -> None:
+@patch("pyplumio.helpers.schedule.create_instance")
+async def test_schedule_commit(mock_create_instance, schedule: Schedule) -> None:
     """Test committing a schedule."""
     schedule.device = Mock(spec=Device)
     schedule.device.address = DeviceType.ECOMAX
@@ -112,8 +112,9 @@ def test_schedule_commit(mock_set_schedule_request, schedule: Schedule) -> None:
     }
     schedule.device.queue = Mock(spec=asyncio.Queue)
 
-    schedule.commit()
-    mock_set_schedule_request.assert_called_once_with(
+    await schedule.commit()
+    mock_create_instance.assert_awaited_once_with(
+        "frames.requests.SetScheduleRequest",
         recipient=DeviceType.ECOMAX,
         data={
             ATTR_TYPE: "test",

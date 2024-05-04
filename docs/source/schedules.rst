@@ -55,7 +55,7 @@ switches back to daytime mode from 07:00 to 00:00.
     heating_schedule = schedules["heating"]
     heating_schedule.monday.set_off(start="00:00", end="07:00")
     heating_schedule.monday.set_on(start="07:00", end="00:00")
-    heating_schedule.commit()
+    await heating_schedule.commit()
 
 For clarity sake, you might want to use ``STATE_NIGHT`` and
 ``STATE_DAY`` constants from ``pyplumio.helpers.schedule`` module.
@@ -99,7 +99,7 @@ Schedule object:
         weekday.set_off("07:00", "00:00")
 
     # Commit changes to the device.
-    heating_schedule.commit()
+    await heating_schedule.commit()
 
 Schedule Examples
 -----------------
@@ -131,7 +131,7 @@ Schedule Examples
             # There will be no nighttime mode on sunday.
             heating_schedule.sunday.set_state(STATE_DAY)
             
-            heating_schedule.commit()
+            await heating_schedule.commit()
 
 
     asyncio.run(main())
