@@ -233,9 +233,10 @@ class AsyncProtocol(Protocol, EventManager):
     async def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Set up device entry."""
         handler, name = get_device_handler_and_name(device_type)
-        return self.data.setdefault(
-            name, await self._create_device_entry(name, handler)
-        )
+        if name not in self.data:
+            self.data[name] = await self._create_device_entry(name, handler)
+
+        return self.data[name]
 
     async def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
         """Create device entry."""
