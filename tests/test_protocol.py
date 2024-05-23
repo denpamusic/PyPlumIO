@@ -282,7 +282,7 @@ async def test_async_protocol_frame_producer(
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
     with (
-        patch("pyplumio.devices.ecomax.EcoMAX") as mock_device,
+        patch("pyplumio.devices.ecomax.EcoMAX"),
         patch(
             "pyplumio.protocol.AsyncProtocol.connection_lost", new_callable=Mock
         ) as mock_connection_lost,
@@ -320,9 +320,7 @@ async def test_async_protocol_frame_producer(
 
     async_protocol.writer.write.assert_awaited_once_with("test_request")
     mock_write_queue.task_done.assert_called_once()
-    mock_read_queue.put_nowait.assert_called_once_with(
-        (mock_device.return_value, response)
-    )
+    mock_read_queue.put_nowait.assert_called_once_with(response)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
     assert mock_write_queue.qsize.call_count == 7
@@ -347,11 +345,11 @@ async def test_async_protocol_frame_consumer(
         "pyplumio.protocol.AsyncProtocol.queues",
         return_value=(mock_read_queue, mock_write_queue),
     ) as mock_queues:
-        ecomax = await async_protocol.get_device_entry(DeviceType.ECOMAX)
+        await async_protocol.get_device_entry(DeviceType.ECOMAX)
 
     mock_read_queue.get.side_effect = (
-        (ecomax, CheckDeviceRequest()),
-        (ecomax, ProgramVersionRequest()),
+        CheckDeviceRequest(sender=DeviceType.ECOMAX),
+        ProgramVersionRequest(sender=DeviceType.ECOMAX),
     )
 
     with (

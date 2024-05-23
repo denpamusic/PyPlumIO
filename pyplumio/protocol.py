@@ -201,8 +201,7 @@ class AsyncProtocol(Protocol, EventManager):
                     write_queue.task_done()
 
                 if (response := await reader.read()) is not None:
-                    device = await self.get_device_entry(response.sender)
-                    read_queue.put_nowait((device, response))
+                    read_queue.put_nowait(response)
 
             except FrameDataError as e:
                 _LOGGER.warning("Incorrect payload: %s", e)
@@ -222,9 +221,8 @@ class AsyncProtocol(Protocol, EventManager):
         """Handle frame processing."""
         await self.connected.wait()
         while self.connected.is_set():
-            device, frame = cast(
-                tuple[AddressableDevice, Frame], await read_queue.get()
-            )
+            frame: Frame = await read_queue.get()
+            device = await self.get_device_entry(frame.sender)
             device.handle_frame(frame)
             read_queue.task_done()
 
