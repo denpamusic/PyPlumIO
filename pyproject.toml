@@ -265,7 +265,7 @@ legacy_tox_ini = """
 
     commands =
         codespell
-        ruff .
+        ruff check .
 
     [testenv:test]
     deps =
