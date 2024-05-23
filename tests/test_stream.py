@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio.const import DeviceType, FrameType
-from pyplumio.exceptions import ChecksumError, ReadError
+from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
 from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import FrameReader, FrameWriter
@@ -65,7 +65,7 @@ async def test_frame_reader(
     assert isinstance(frame, EcomaxParametersRequest)
     assert frame.frame_type == FrameType.REQUEST_ECOMAX_PARAMETERS
     assert frame.sender == DeviceType.ECONET
-    assert frame.sender_type == ECONET_TYPE
+    assert frame.econet_type == ECONET_TYPE
     assert frame.recipient == DeviceType.ALL
     assert frame.message == b"\xff\x00"
     assert frame.econet_version == ECONET_VERSION
@@ -167,9 +167,27 @@ async def test_frame_reader_with_incorrect_bcc(
     return_value=b"\x31\xff\x00\xc9\x16",
     new_callable=AsyncMock,
 )
-async def test_frame_reader_with_unknown_address(
+async def test_frame_reader_with_unknown_recipient(
     mock_readexactly, mock_read, frame_reader: FrameReader
 ) -> None:
-    """Test reader on frame with unknown device address."""
+    """Test reader on frame with unknown recipient address."""
     result = await frame_reader.read()
     assert result is None
+
+
+@patch(
+    "asyncio.StreamReader.read",
+    side_effect=(b"\x68", b"\x0c\x00\x00\x10\x30\x05"),
+    new_callable=AsyncMock,
+)
+@patch(
+    "asyncio.StreamReader.readexactly",
+    return_value=b"\x31\xff\x00\xc9\x16",
+    new_callable=AsyncMock,
+)
+async def test_frame_reader_with_unknown_sender(
+    mock_readexactly, mock_read, frame_reader: FrameReader
+) -> None:
+    """Test reader on frame with unknown sender address."""
+    with pytest.raises(UnknownDeviceError):
+        await frame_reader.read()

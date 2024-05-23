@@ -201,9 +201,7 @@ class AsyncProtocol(Protocol, EventManager):
                     write_queue.task_done()
 
                 if (response := await reader.read()) is not None:
-                    device = await self.get_device_entry(
-                        cast(DeviceType, response.sender)
-                    )
+                    device = await self.get_device_entry(response.sender)
                     read_queue.put_nowait((device, response))
 
             except FrameDataError as e:
@@ -231,7 +229,7 @@ class AsyncProtocol(Protocol, EventManager):
             read_queue.task_done()
 
     async def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
-        """Set up device entry."""
+        """Set up or return a device entry."""
         name = device_type.name.lower()
         if name not in self.data:
             write_queue = self.queues[1]

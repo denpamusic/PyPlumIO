@@ -8,7 +8,8 @@ import logging
 from typing import Final
 
 from pyplumio.const import DeviceType
-from pyplumio.exceptions import ChecksumError, ReadError
+from pyplumio.devices import is_known_device_type
+from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
 from pyplumio.frames import FRAME_START, Frame, bcc, struct_header
 from pyplumio.helpers.timeout import timeout
 
@@ -83,7 +84,7 @@ class FrameReader:
                 length,
                 recipient,
                 sender,
-                sender_type,
+                econet_type,
                 econet_version,
             ] = struct_header.unpack_from(buffer)
 
@@ -92,7 +93,7 @@ class FrameReader:
                 length,
                 recipient,
                 sender,
-                sender_type,
+                econet_type,
                 econet_version,
             )
 
@@ -111,12 +112,15 @@ class FrameReader:
             length,
             recipient,
             sender,
-            sender_type,
+            econet_type,
             econet_version,
         ) = await self._read_header()
 
         if recipient not in (DeviceType.ECONET, DeviceType.ALL):
             return None
+
+        if not is_known_device_type(sender):
+            raise UnknownDeviceError(f"Unknown sender type ({sender})")
 
         if length > MAX_FRAME_LENGTH or length < MIN_FRAME_LENGTH:
             raise ReadError(f"Unexpected frame length ({length})")
@@ -134,11 +138,11 @@ class FrameReader:
 
         frame = await Frame.create(
             frame_type=payload[0],
-            recipient=recipient,
-            message=payload[1:-2],
-            sender=sender,
-            sender_type=sender_type,
+            recipient=DeviceType(recipient),
+            sender=DeviceType(sender),
+            econet_type=econet_type,
             econet_version=econet_version,
+            message=payload[1:-2],
         )
         _LOGGER.debug("Received frame: %s", frame)
 

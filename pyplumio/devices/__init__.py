@@ -135,7 +135,7 @@ class AddressableDevice(Device, ABC):
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the device."""
-        frame.sender = self
+        frame.sender_device = self
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)

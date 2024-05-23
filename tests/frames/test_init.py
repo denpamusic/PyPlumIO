@@ -1,7 +1,8 @@
 """Contains tests for the abstract frame class."""
+
 from __future__ import annotations
 
-from typing import ClassVar, Final
+from typing import ClassVar
 
 import pytest
 
@@ -17,8 +18,6 @@ from pyplumio.frames import (
 )
 from pyplumio.frames.responses import ProgramVersionResponse
 from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
-
-UNKNOWN_DEVICE: Final = 99
 
 
 class RequestFrame(Request):
@@ -59,13 +58,6 @@ def fixture_types() -> tuple[int, int]:
     return (FrameType.REQUEST_PROGRAM_VERSION, FrameType.RESPONSE_PROGRAM_VERSION)
 
 
-def test_unknown_device_type() -> None:
-    """Test creating frame with an unknown device type."""
-    frame = RequestFrame(sender=UNKNOWN_DEVICE, recipient=UNKNOWN_DEVICE)
-    assert frame.sender is UNKNOWN_DEVICE
-    assert frame.recipient is UNKNOWN_DEVICE
-
-
 def test_decode_create_message(frames: tuple[Request, Response]) -> None:
     """Test creating and decoding frame message."""
     for frame in frames:
@@ -94,7 +86,7 @@ def test_frame_attributes(frames: tuple[Request, Response]) -> None:
         assert frame.recipient == DeviceType.ALL
         assert frame.message == b""
         assert frame.sender == DeviceType.ECONET
-        assert frame.sender_type == ECONET_TYPE
+        assert frame.econet_type == ECONET_TYPE
         assert frame.econet_version == ECONET_VERSION
         assert frame.data == {"foo": 0}
 
@@ -115,18 +107,18 @@ def test_get_header(frames: tuple[Request, Response]) -> None:
 def test_base_class_with_message() -> None:
     """Test base request class with a message."""
     frame = RequestFrame(message=bytearray.fromhex("B00B"))
-    assert frame.message == b"\xB0\x0B"
+    assert frame.message == b"\xb0\x0b"
 
 
 def test_to_bytes() -> None:
     """Test conversion to bytes."""
-    frame = RequestFrame(message=bytearray(b"\xB0\x0B"))
-    assert frame.bytes == b"\x68\x0C\x00\x00\x56\x30\x05\x40\xB0\x0B\xFC\x16"
+    frame = RequestFrame(message=bytearray(b"\xb0\x0b"))
+    assert frame.bytes == b"\x68\x0c\x00\x00\x56\x30\x05\x40\xb0\x0b\xfc\x16"
 
 
 def test_to_hex() -> None:
     """Test conversion to hex."""
-    frame = RequestFrame(message=bytearray(b"\xB0\x0B"))
+    frame = RequestFrame(message=bytearray(b"\xb0\x0b"))
     hex_data = "680c000056300540b00bfc16"
     assert frame.hex() == hex_data
 
@@ -162,7 +154,7 @@ def test_request_repr(request_frame: Request) -> None:
         "RequestFrame("
         "recipient=<DeviceType.ALL: 0>, "
         "sender=<DeviceType.ECONET: 86>, "
-        "sender_type=48, "
+        "econet_type=48, "
         "econet_version=5, "
         "message=bytearray(b''), "
         "data={'foo': 0})"
@@ -175,7 +167,7 @@ def test_response_repr(response_frame: Response) -> None:
         "ResponseFrame("
         "recipient=<DeviceType.ALL: 0>, "
         "sender=<DeviceType.ECONET: 86>, "
-        "sender_type=48, "
+        "econet_type=48, "
         "econet_version=5, "
         "message=bytearray(b''), "
         "data={'foo': 0})"

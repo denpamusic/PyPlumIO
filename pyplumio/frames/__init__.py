@@ -73,16 +73,20 @@ class Frame(ABC):
 
     __slots__ = (
         "recipient",
+        "recipient_device",
         "sender",
-        "sender_type",
+        "sender_device",
+        "econet_type",
         "econet_version",
         "_message",
         "_data",
     )
 
-    recipient: DeviceType | AddressableDevice | int
-    sender: DeviceType | AddressableDevice | int
-    sender_type: int
+    recipient: DeviceType
+    recipient_device: AddressableDevice | None
+    sender: DeviceType
+    sender_device: AddressableDevice | None
+    econet_type: int
     econet_version: int
     frame_type: ClassVar[FrameType]
     _message: bytearray | None
@@ -90,26 +94,20 @@ class Frame(ABC):
 
     def __init__(
         self,
-        recipient: DeviceType | AddressableDevice | int = DeviceType.ALL,
-        sender: DeviceType | AddressableDevice | int = DeviceType.ECONET,
-        sender_type: int = ECONET_TYPE,
+        recipient: DeviceType = DeviceType.ALL,
+        sender: DeviceType = DeviceType.ECONET,
+        econet_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
         message: bytearray | None = None,
         data: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         """Process a frame data and message."""
-        try:
-            self.recipient = DeviceType(cast(int, recipient))
-        except ValueError:
-            self.recipient = recipient
-
-        try:
-            self.sender = DeviceType(cast(int, sender))
-        except ValueError:
-            self.sender = sender
-
-        self.sender_type = sender_type
+        self.recipient = recipient
+        self.recipient_device = None
+        self.sender = sender
+        self.sender_device = None
+        self.econet_type = econet_type
         self.econet_version = econet_version
         self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
@@ -120,14 +118,14 @@ class Frame(ABC):
             return (
                 self.recipient,
                 self.sender,
-                self.sender_type,
+                self.econet_type,
                 self.econet_version,
                 self._message,
                 self._data,
             ) == (
                 self.recipient,
                 self.sender,
-                self.sender_type,
+                self.econet_type,
                 self.econet_version,
                 self._message,
                 self._data,
@@ -141,7 +139,7 @@ class Frame(ABC):
             f"{self.__class__.__name__}("
             f"recipient={repr(self.recipient)}, "
             f"sender={repr(self.sender)}, "
-            f"sender_type={self.sender_type}, "
+            f"econet_type={self.econet_type}, "
             f"econet_version={self.econet_version}, "
             f"message={self.message}, "
             f"data={self.data})"
@@ -209,7 +207,7 @@ class Frame(ABC):
             self.length,
             int(self.recipient),
             int(self.sender),
-            self.sender_type,
+            self.econet_type,
             self.econet_version,
         )
 

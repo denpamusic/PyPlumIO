@@ -1,6 +1,5 @@
 """Contains a tests for the message frame classes."""
 
-
 from typing import Final
 
 import pytest
@@ -37,9 +36,9 @@ def test_messages_type() -> None:
 async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
     """Test a regulator data message."""
     frame = RegulatorDataMessage(message=regdata["message"])
-    frame.sender = ecomax
-    frame.sender.load(schema["data"])
-    await frame.sender.wait_until_done()
+    frame.sender_device = ecomax
+    frame.sender_device.load(schema["data"])
+    await frame.sender_device.wait_until_done()
 
     if regdata["id"] == "unknown_regulator_data_version":
         assert ATTR_FRAME_VERSIONS not in frame.data

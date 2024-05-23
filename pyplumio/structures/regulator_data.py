@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from pyplumio.devices import AddressableDevice
 from pyplumio.helpers.data_types import BitArray, DataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
@@ -56,9 +55,8 @@ class RegulatorDataStructure(StructureDecoder):
             message, offset + 2, data
         )
 
-        sender = self.frame.sender
-        if isinstance(sender, AddressableDevice) and (
-            schema := sender.get_nowait(ATTR_REGDATA_SCHEMA, [])
+        if (device := self.frame.sender_device) is not None and (
+            schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])
         ):
             self._bitarray_index = 0
             data[ATTR_REGDATA] = {
