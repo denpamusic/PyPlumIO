@@ -5,11 +5,11 @@ from abc import ABC
 import asyncio
 from collections.abc import Iterable
 from functools import cache
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
-from pyplumio.frames import DataFrameDescription, Frame, Request, get_frame_handler
+from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import SET_RETRIES, Parameter
@@ -19,25 +19,26 @@ from pyplumio.utils import to_camelcase
 
 
 @cache
-def get_device_handler(device_type: int) -> str:
-    """Return module name and class name for a given device type."""
+def is_known_device_type(device_type: int) -> bool:
+    """Check if device type is known."""
     try:
-        device_type = DeviceType(device_type)
-    except ValueError as e:
-        raise UnknownDeviceError(f"Unknown device ({device_type})") from e
-
-    type_name = to_camelcase(
-        device_type.name, overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"}
-    )
-    return f"devices.{type_name.lower()}.{type_name}"
+        DeviceType(device_type)
+        return True
+    except ValueError:
+        return False
 
 
 @cache
-def get_device_handler_and_name(device_type: int) -> tuple[str, str]:
-    """Get device handler full path and lowercased class name."""
-    handler = get_device_handler(device_type)
-    class_name = handler.rsplit(".", 1)[1]
-    return handler, class_name.lower()
+def get_device_handler(device_type: int) -> str:
+    """Return module name and class name for a given device type."""
+    if not is_known_device_type(device_type):
+        raise UnknownDeviceError(f"Unknown device type ({device_type})")
+
+    type_name = to_camelcase(
+        DeviceType(device_type).name,
+        overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"},
+    )
+    return f"devices.{type_name.lower()}.{type_name}"
 
 
 class Device(ABC, EventManager):
@@ -160,10 +161,7 @@ class AddressableDevice(Device, ABC):
 
         If value is not available before timeout, retry request.
         """
-        request: Request = await create_instance(
-            get_frame_handler(frame_type), recipient=self.address
-        )
-
+        request = await Request.create(frame_type, recipient=self.address)
         while retries > 0:
             try:
                 self.queue.put_nowait(request)
@@ -172,6 +170,14 @@ class AddressableDevice(Device, ABC):
                 retries -= 1
 
         raise ValueError(f'could not request "{name}"', frame_type)
+
+    @classmethod
+    async def create(cls, device_type: int, **kwargs: Any) -> AddressableDevice:
+        """Create a device handler object."""
+        return cast(
+            AddressableDevice,
+            await create_instance(get_device_handler(device_type), **kwargs),
+        )
 
 
 class SubDevice(Device, ABC):

@@ -1,4 +1,5 @@
 """Contains a program version decoder."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -23,9 +24,9 @@ class VersionInfo:
     """Represents a version info provided in program version response."""
 
     software: str = SOFTWARE_VERSION
-    struct_tag: bytes = b"\xFF\xFF"
+    struct_tag: bytes = b"\xff\xff"
     struct_version: int = 5
-    device_id: bytes = b"\x7A\x00"
+    device_id: bytes = b"\x7a\x00"
     processor_signature: bytes = b"\x00\x00\x00"
 
 

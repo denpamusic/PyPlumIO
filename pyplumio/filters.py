@@ -18,18 +18,17 @@ Comparable = TypeVar("Comparable", Parameter, SupportsFloat, SupportsComparison)
 
 
 @overload
-def _significantly_changed(old: Parameter, new: Parameter) -> bool:
-    ...
+def _significantly_changed(old: Parameter, new: Parameter) -> bool: ...
 
 
 @overload
-def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool:
-    ...
+def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool: ...
 
 
 @overload
-def _significantly_changed(old: SupportsComparison, new: SupportsComparison) -> bool:
-    ...
+def _significantly_changed(
+    old: SupportsComparison, new: SupportsComparison
+) -> bool: ...
 
 
 def _significantly_changed(old: Comparable, new: Comparable) -> bool:
@@ -45,15 +44,13 @@ def _significantly_changed(old: Comparable, new: Comparable) -> bool:
 
 
 @overload
-def _diffence_between(old: list, new: list) -> list:
-    ...
+def _diffence_between(old: list, new: list) -> list: ...
 
 
 @overload
 def _diffence_between(
     old: SupportsSubtraction, new: SupportsSubtraction
-) -> SupportsSubtraction:
-    ...
+) -> SupportsSubtraction: ...
 
 
 def _diffence_between(

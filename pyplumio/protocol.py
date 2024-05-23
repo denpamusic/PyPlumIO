@@ -8,7 +8,7 @@ import logging
 from typing import cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
-from pyplumio.devices import AddressableDevice, get_device_handler_and_name
+from pyplumio.devices import AddressableDevice
 from pyplumio.exceptions import (
     FrameDataError,
     FrameError,
@@ -18,7 +18,6 @@ from pyplumio.exceptions import (
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
-from pyplumio.helpers.factory import create_instance
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
     EthernetParameters,
@@ -232,22 +231,18 @@ class AsyncProtocol(Protocol, EventManager):
 
     async def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
         """Set up device entry."""
-        handler, name = get_device_handler_and_name(device_type)
+        name = device_type.name.lower()
         if name not in self.data:
-            self.data[name] = await self._create_device_entry(name, handler)
+            write_queue = self.queues[1]
+            device = await AddressableDevice.create(
+                device_type, queue=write_queue, network=self._network
+            )
+            device.dispatch_nowait(ATTR_CONNECTED, True)
+            self.create_task(device.async_setup())
+            self.set_event(name)
+            self.data[name] = device
 
         return self.data[name]
-
-    async def _create_device_entry(self, name: str, handler: str) -> AddressableDevice:
-        """Create device entry."""
-        write_queue = self.queues[1]
-        device: AddressableDevice = await create_instance(
-            handler, queue=write_queue, network=self._network
-        )
-        device.dispatch_nowait(ATTR_CONNECTED, True)
-        self.create_task(device.async_setup())
-        self.set_event(name)
-        return device
 
     @property
     def queues(self) -> tuple[asyncio.Queue, asyncio.Queue]:

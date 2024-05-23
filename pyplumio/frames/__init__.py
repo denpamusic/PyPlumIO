@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
+from pyplumio.helpers.factory import create_instance
 from pyplumio.utils import ensure_dict, to_camelcase
 
 FRAME_START: Final = 0x68
@@ -32,6 +33,7 @@ def bcc(data: bytes) -> int:
     return reduce(lambda x, y: x ^ y, data)
 
 
+@cache
 def is_known_frame_type(frame_type: int) -> bool:
     """Check if frame type is known."""
     try:
@@ -44,12 +46,10 @@ def is_known_frame_type(frame_type: int) -> bool:
 @cache
 def get_frame_handler(frame_type: int) -> str:
     """Return handler class path for the frame type."""
-    try:
-        frame_type = FrameType(frame_type)
-    except ValueError as e:
-        raise UnknownFrameError(f"Unknown frame ({frame_type})") from e
+    if not is_known_frame_type(frame_type):
+        raise UnknownFrameError(f"Unknown frame type ({frame_type})")
 
-    module, type_name = frame_type.name.split("_", 1)
+    module, type_name = FrameType(frame_type).name.split("_", 1)
     type_name = to_camelcase(type_name, overrides={"uid": "UID"})
     return f"frames.{module.lower()}s.{type_name}{module.capitalize()}"
 
@@ -220,6 +220,13 @@ class Frame(ABC):
         data.append(bcc(data))
         data.append(FRAME_END)
         return bytes(data)
+
+    @classmethod
+    async def create(cls, frame_type: int, **kwargs: Any) -> Frame:
+        """Create a frame handler object from frame type."""
+        return cast(
+            Frame, await create_instance(get_frame_handler(frame_type), **kwargs)
+        )
 
     @abstractmethod
     def create_message(self, data: dict[str, Any]) -> bytearray:

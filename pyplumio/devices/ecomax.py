@@ -21,14 +21,7 @@ from pyplumio.devices import AddressableDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
-from pyplumio.frames import (
-    DataFrameDescription,
-    Frame,
-    Request,
-    get_frame_handler,
-    is_known_frame_type,
-)
-from pyplumio.helpers.factory import create_instance
+from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -235,9 +228,7 @@ class EcoMAX(AddressableDevice):
                 and not self._has_frame_version(frame_type, version)
             ):
                 # We don't have this frame or it's version has changed.
-                request: Request = await create_instance(
-                    get_frame_handler(frame_type), recipient=self.address
-                )
+                request = await Request.create(frame_type, recipient=self.address)
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
 
