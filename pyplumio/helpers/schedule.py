@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
+from functools import lru_cache
 import math
 from typing import Final, Literal
 
@@ -25,6 +26,7 @@ OFF_STATES: Final = (STATE_OFF, STATE_NIGHT)
 ALLOWED_STATES: Final = ON_STATES + OFF_STATES
 
 
+@lru_cache(maxsize=10)
 def _parse_interval(start: str, end: str) -> tuple[int, int]:
     """Parse an interval string.
 
