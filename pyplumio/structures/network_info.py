@@ -1,4 +1,5 @@
 """Contains a network info structure decoder."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

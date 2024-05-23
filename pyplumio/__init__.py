@@ -1,4 +1,5 @@
 """Contains connection shortcuts and version information."""
+
 from __future__ import annotations
 
 from typing import Any

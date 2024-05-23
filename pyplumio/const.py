@@ -1,4 +1,5 @@
 """Contains constants."""
+
 from __future__ import annotations
 
 from enum import Enum, IntEnum, unique

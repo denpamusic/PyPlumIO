@@ -1,4 +1,5 @@
 """Contains a boiler load structure decoder."""
+
 from __future__ import annotations
 
 from typing import Any, Final

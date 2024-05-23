@@ -1,4 +1,5 @@
 """Contains an output flags structure decoder."""
+
 from __future__ import annotations
 
 from typing import Any, Final

@@ -1,4 +1,5 @@
 """Contains a serial connection example."""
+
 from __future__ import annotations
 
 import asyncio

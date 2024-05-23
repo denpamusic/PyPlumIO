@@ -1,4 +1,5 @@
 """Contains a device parameter class."""
+
 from __future__ import annotations
 
 from abc import ABC

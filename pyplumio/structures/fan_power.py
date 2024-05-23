@@ -1,4 +1,5 @@
 """Contains a fan power structure decoder."""
+
 from __future__ import annotations
 
 import math

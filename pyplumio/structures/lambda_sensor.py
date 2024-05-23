@@ -1,4 +1,5 @@
 """Contains a lambda sensor structure decoder."""
+
 from __future__ import annotations
 
 from contextlib import suppress
