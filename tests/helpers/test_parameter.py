@@ -1,4 +1,5 @@
 """Contains tests for the parameter helper class."""
+
 from unittest.mock import Mock, patch
 
 import pytest

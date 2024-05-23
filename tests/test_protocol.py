@@ -41,8 +41,9 @@ def bypass_asyncio_create_task():
 @pytest.fixture(name="bypass_asyncio_events")
 def fixture_bypass_asyncio_events():
     """Bypass asyncio events."""
-    with patch("asyncio.Event.wait", new_callable=AsyncMock), patch(
-        "asyncio.Event.is_set", return_value=True
+    with (
+        patch("asyncio.Event.wait", new_callable=AsyncMock),
+        patch("asyncio.Event.is_set", return_value=True),
     ):
         yield
 
@@ -79,9 +80,10 @@ async def test_dummy_protocol() -> None:
     mock_writer = AsyncMock(spec=asyncio.StreamWriter, new_callable=Mock)
 
     # Test establishing the connection.
-    with patch("pyplumio.protocol.FrameReader") as mock_frame_reader, patch(
-        "pyplumio.protocol.FrameWriter"
-    ) as mock_frame_writer:
+    with (
+        patch("pyplumio.protocol.FrameReader") as mock_frame_reader,
+        patch("pyplumio.protocol.FrameWriter") as mock_frame_writer,
+    ):
         dummy_protocol.connection_established(mock_reader, mock_writer)
         mock_frame_reader.assert_called_once_with(mock_reader)
         mock_frame_writer.assert_called_once_with(mock_writer)
@@ -99,9 +101,12 @@ async def test_dummy_protocol() -> None:
     mock_on_connection_lost.assert_awaited_once()
 
     # Test shutting down the connection.
-    with patch("asyncio.Event.is_set", return_value=True), patch(
-        "pyplumio.protocol.Protocol.close_writer", new_callable=AsyncMock
-    ) as mock_close_writer:
+    with (
+        patch("asyncio.Event.is_set", return_value=True),
+        patch(
+            "pyplumio.protocol.Protocol.close_writer", new_callable=AsyncMock
+        ) as mock_close_writer,
+    ):
         await dummy_protocol.shutdown()
         mock_close_writer.assert_awaited_once()
 
@@ -218,17 +223,20 @@ async def test_async_protocol_shutdown(
     mock_frame_consumer_task = Mock()
     mock_frame_producer_task = Mock()
 
-    with patch(
-        "pyplumio.protocol.AsyncProtocol.queues",
-        return_value=(mock_read_queue, mock_write_queue),
-        new_callable=PropertyMock,
-    ), patch(
-        "pyplumio.protocol.AsyncProtocol.tasks",
-        return_value=[
-            mock_frame_consumer_task,
-            mock_frame_producer_task,
-        ],
-        new_callable=PropertyMock,
+    with (
+        patch(
+            "pyplumio.protocol.AsyncProtocol.queues",
+            return_value=(mock_read_queue, mock_write_queue),
+            new_callable=PropertyMock,
+        ),
+        patch(
+            "pyplumio.protocol.AsyncProtocol.tasks",
+            return_value=[
+                mock_frame_consumer_task,
+                mock_frame_producer_task,
+            ],
+            new_callable=PropertyMock,
+        ),
     ):
         await async_protocol.shutdown()
 
@@ -273,9 +281,13 @@ async def test_async_protocol_frame_producer(
     mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0, 0))
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
-    with patch("pyplumio.devices.ecomax.EcoMAX") as mock_device, patch(
-        "pyplumio.protocol.AsyncProtocol.connection_lost", new_callable=Mock
-    ) as mock_connection_lost, caplog.at_level(logging.DEBUG):
+    with (
+        patch("pyplumio.devices.ecomax.EcoMAX") as mock_device,
+        patch(
+            "pyplumio.protocol.AsyncProtocol.connection_lost", new_callable=Mock
+        ) as mock_connection_lost,
+        caplog.at_level(logging.DEBUG),
+    ):
         await async_protocol.frame_producer(mock_read_queue, mock_write_queue)
 
     assert caplog.record_tuples == [
@@ -342,8 +354,9 @@ async def test_async_protocol_frame_consumer(
         (ecomax, ProgramVersionRequest()),
     )
 
-    with caplog.at_level(logging.DEBUG), patch(
-        "asyncio.Event.is_set", side_effect=(True, True, False)
+    with (
+        caplog.at_level(logging.DEBUG),
+        patch("asyncio.Event.is_set", side_effect=(True, True, False)),
     ):
         await async_protocol.frame_consumer(mock_read_queue)
 

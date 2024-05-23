@@ -22,9 +22,12 @@ def test_getattr(event_manager: EventManager) -> None:
 
 async def test_wait_for(event_manager: EventManager) -> None:
     """Test waiting for event."""
-    with patch("asyncio.wait_for") as mock_wait_for, patch(
-        "pyplumio.helpers.event_manager.EventManager.create_event"
-    ) as mock_create_event:
+    with (
+        patch("asyncio.wait_for") as mock_wait_for,
+        patch(
+            "pyplumio.helpers.event_manager.EventManager.create_event"
+        ) as mock_create_event,
+    ):
         mock_create_event.wait = AsyncMock()
         await event_manager.wait_for("test_key2")
 

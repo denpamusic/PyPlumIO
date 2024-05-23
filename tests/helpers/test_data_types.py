@@ -234,7 +234,7 @@ def test_string() -> None:
 
 def test_var_bytes() -> None:
     """Test a variable bytes data type."""
-    buffer = b"\x04\xDE\xAD\xBE\xEF"
+    buffer = b"\x04\xde\xad\xbe\xef"
     data_type = data_types.VarBytes.from_bytes(buffer)
     assert data_type.value == bytearray([0xDE, 0xAD, 0xBE, 0xEF])
     assert data_type.size == 5

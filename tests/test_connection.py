@@ -153,10 +153,13 @@ async def test_reconnect(
     tcp_connection: pyplumio.connection.TcpConnection, caplog
 ) -> None:
     """Test a reconnect logic."""
-    with caplog.at_level(logging.ERROR), patch(
-        "pyplumio.connection.Connection._connect",
-        side_effect=(ConnectionFailedError, None),
-    ) as mock_connect:
+    with (
+        caplog.at_level(logging.ERROR),
+        patch(
+            "pyplumio.connection.Connection._connect",
+            side_effect=(ConnectionFailedError, None),
+        ) as mock_connect,
+    ):
         await tcp_connection.connect()
         await tcp_connection.wait_until_done()
 
@@ -182,9 +185,10 @@ async def test_reconnect_logic_selection() -> None:
         host=HOST, port=PORT, reconnect_on_failure=False
     )
 
-    with patch("pyplumio.connection.Connection._connect") as mock_connect, patch(
-        "pyplumio.connection.Connection._reconnect"
-    ) as mock_reconnect:
+    with (
+        patch("pyplumio.connection.Connection._connect") as mock_connect,
+        patch("pyplumio.connection.Connection._reconnect") as mock_reconnect,
+    ):
         await connection.connect()
 
     mock_reconnect.assert_not_called()

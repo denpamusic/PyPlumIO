@@ -1,6 +1,5 @@
 """Contains a test suite."""
 
-
 import importlib
 import json
 import os
