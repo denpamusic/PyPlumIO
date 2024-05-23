@@ -51,7 +51,10 @@ def get_frame_handler(frame_type: int) -> str:
         raise UnknownFrameError(f"Unknown frame type ({frame_type})")
 
     module, type_name = FrameType(frame_type).name.split("_", 1)
-    type_name = to_camelcase(type_name, overrides={"uid": "UID"})
+    type_name = to_camelcase(
+        type_name,
+        overrides=frozenset((("uid", "UID"),)),
+    )
     return f"frames.{module.lower()}s.{type_name}{module.capitalize()}"
 
 
