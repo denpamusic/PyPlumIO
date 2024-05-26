@@ -6,7 +6,7 @@ from abc import ABC
 import asyncio
 from collections.abc import Iterable
 from functools import cache
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
@@ -175,9 +175,8 @@ class AddressableDevice(Device, ABC):
     @classmethod
     async def create(cls, device_type: int, **kwargs: Any) -> AddressableDevice:
         """Create a device handler object."""
-        return cast(
-            AddressableDevice,
-            await create_instance(get_device_handler(device_type), **kwargs),
+        return await create_instance(
+            get_device_handler(device_type), cls=AddressableDevice, **kwargs
         )
 
 

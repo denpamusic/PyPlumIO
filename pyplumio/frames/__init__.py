@@ -6,9 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cache, reduce
 import struct
-from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
@@ -29,6 +27,9 @@ struct_header = struct.Struct("<BH4B")
 
 if TYPE_CHECKING:
     from pyplumio.devices import AddressableDevice
+
+
+T = TypeVar("T")
 
 
 def bcc(data: bytes) -> int:
@@ -223,11 +224,9 @@ class Frame(ABC):
         return bytes(data)
 
     @classmethod
-    async def create(cls, frame_type: int, **kwargs: Any) -> Self:
+    async def create(cls: type[T], frame_type: int, **kwargs: Any) -> T:
         """Create a frame handler object from frame type."""
-        return cast(
-            Self, await create_instance(get_frame_handler(frame_type), **kwargs)
-        )
+        return await create_instance(get_frame_handler(frame_type), cls=cls, **kwargs)
 
     @abstractmethod
     def create_message(self, data: dict[str, Any]) -> bytearray:
