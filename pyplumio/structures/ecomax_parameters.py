@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import Any, Final, cast
+from typing import Any, Final
 
 from pyplumio.const import (
     ATTR_INDEX,
@@ -12,12 +12,12 @@ from pyplumio.const import (
     ATTR_SIZE,
     ATTR_VALUE,
     PERCENTAGE,
+    FrameType,
     ProductType,
     UnitOfMeasurement,
 )
 from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -48,10 +48,10 @@ class EcomaxParameter(Parameter):
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
         if self.description.name == ATTR_ECOMAX_CONTROL:
-            cls = "frames.requests.EcomaxControlRequest"
+            frame_type = FrameType.REQUEST_ECOMAX_CONTROL
             data = {ATTR_VALUE: self.values.value}
         elif self.description.name == ATTR_THERMOSTAT_PROFILE:
-            cls = "frames.requests.SetThermostatParameterRequest"
+            frame_type = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
             data = {
                 ATTR_INDEX: self._index,
                 ATTR_VALUE: self.values.value,
@@ -59,15 +59,14 @@ class EcomaxParameter(Parameter):
                 ATTR_SIZE: 1,
             }
         else:
-            cls = "frames.requests.SetEcomaxParameterRequest"
+            frame_type = FrameType.REQUEST_SET_ECOMAX_PARAMETER
             data = {
                 ATTR_INDEX: self._index,
                 ATTR_VALUE: self.values.value,
             }
 
-        return cast(
-            Request,
-            await create_instance(cls, recipient=self.device.address, data=data),
+        return await Request.create(
+            frame_type, recipient=self.device.address, data=data
         )
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:

@@ -11,6 +11,7 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
     STATE_ON,
+    FrameType,
 )
 from pyplumio.devices import Device, DeviceType
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
@@ -100,8 +101,8 @@ def test_schedule(schedule: Schedule) -> None:
     assert next(schedule_iter)[0]
 
 
-@patch("pyplumio.helpers.schedule.create_instance")
-async def test_schedule_commit(mock_create_instance, schedule: Schedule) -> None:
+@patch("pyplumio.helpers.schedule.Request.create")
+async def test_schedule_commit(mock_request_create, schedule: Schedule) -> None:
     """Test committing a schedule."""
     schedule.device = Mock(spec=Device)
     schedule.device.address = DeviceType.ECOMAX
@@ -113,8 +114,8 @@ async def test_schedule_commit(mock_create_instance, schedule: Schedule) -> None
     schedule.device.queue = Mock(spec=asyncio.Queue)
 
     await schedule.commit()
-    mock_create_instance.assert_awaited_once_with(
-        "frames.requests.SetScheduleRequest",
+    mock_request_create.assert_awaited_once_with(
+        FrameType.REQUEST_SET_SCHEDULE,
         recipient=DeviceType.ECOMAX,
         data={
             ATTR_TYPE: "test",

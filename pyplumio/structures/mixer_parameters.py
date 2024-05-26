@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
     ATTR_VALUE,
+    FrameType,
     ProductType,
     UnitOfMeasurement,
 )
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -45,17 +45,14 @@ class MixerParameter(Parameter):
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
-        return cast(
-            Request,
-            await create_instance(
-                "frames.requests.SetMixerParameterRequest",
-                recipient=self.device.parent.address,
-                data={
-                    ATTR_INDEX: self._index,
-                    ATTR_VALUE: self.values.value,
-                    ATTR_DEVICE_INDEX: self.device.index,
-                },
-            ),
+        return await Request.create(
+            FrameType.REQUEST_SET_MIXER_PARAMETER,
+            recipient=self.device.parent.address,
+            data={
+                ATTR_INDEX: self._index,
+                ATTR_VALUE: self.values.value,
+                ATTR_DEVICE_INDEX: self.device.index,
+            },
         )
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:

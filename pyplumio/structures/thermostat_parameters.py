@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, cast
+from typing import TYPE_CHECKING, Any, Final
 
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
     ATTR_SIZE,
     ATTR_VALUE,
+    FrameType,
     UnitOfMeasurement,
 )
 from pyplumio.frames import Request
-from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import (
     BinaryParameter,
     BinaryParameterDescription,
@@ -61,20 +61,17 @@ class ThermostatParameter(Parameter):
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
-        return cast(
-            Request,
-            await create_instance(
-                "frames.requests.SetThermostatParameterRequest",
-                recipient=self.device.parent.address,
-                data={
-                    # Increase the index by one to account for thermostat
-                    # profile, which is being set at ecoMAX device level.
-                    ATTR_INDEX: self._index + 1,
-                    ATTR_VALUE: self.values.value,
-                    ATTR_OFFSET: self.offset,
-                    ATTR_SIZE: self.description.size,
-                },
-            ),
+        return await Request.create(
+            FrameType.REQUEST_SET_THERMOSTAT_PARAMETER,
+            recipient=self.device.parent.address,
+            data={
+                # Increase the index by one to account for thermostat
+                # profile, which is being set at ecoMAX device level.
+                ATTR_INDEX: self._index + 1,
+                ATTR_VALUE: self.values.value,
+                ATTR_OFFSET: self.offset,
+                ATTR_SIZE: self.description.size,
+            },
         )
 
     async def set(self, value: ParameterValueType, retries: int = 5) -> bool:

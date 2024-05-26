@@ -9,9 +9,9 @@ from functools import lru_cache
 import math
 from typing import Final, Literal
 
-from pyplumio.const import STATE_OFF, STATE_ON
+from pyplumio.const import STATE_OFF, STATE_ON, FrameType
 from pyplumio.devices import AddressableDevice
-from pyplumio.helpers.factory import create_instance
+from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
@@ -163,8 +163,8 @@ class Schedule(Iterable):
 
     async def commit(self) -> None:
         """Commit a weekly schedule to the device."""
-        request = await create_instance(
-            "frames.requests.SetScheduleRequest",
+        request = await Request.create(
+            FrameType.REQUEST_SET_SCHEDULE,
             recipient=self.device.address,
             data=collect_schedule_data(self.name, self.device),
         )

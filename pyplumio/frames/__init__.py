@@ -8,6 +8,8 @@ from functools import cache, reduce
 import struct
 from typing import TYPE_CHECKING, Any, ClassVar, Final, cast
 
+from typing_extensions import Self
+
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.factory import create_instance
@@ -221,10 +223,10 @@ class Frame(ABC):
         return bytes(data)
 
     @classmethod
-    async def create(cls, frame_type: int, **kwargs: Any) -> Frame:
+    async def create(cls, frame_type: int, **kwargs: Any) -> Self:
         """Create a frame handler object from frame type."""
         return cast(
-            Frame, await create_instance(get_frame_handler(frame_type), **kwargs)
+            Self, await create_instance(get_frame_handler(frame_type), **kwargs)
         )
 
     @abstractmethod
