@@ -8,13 +8,7 @@ def test_to_camelcase() -> None:
     assert utils.to_camelcase("make_love_not_war") == "MakeLoveNotWar"
     assert (
         utils.to_camelcase(
-            "make_love_not_war",
-            overrides=frozenset(
-                (
-                    ("love", "LOVE"),
-                    ("not", "not"),
-                )
-            ),
+            "make_love_not_war", overrides={"love": "LOVE", "not": "not"}
         )
         == "MakeLOVEnotWar"
     )
