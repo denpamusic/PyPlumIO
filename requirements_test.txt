@@ -1,5 +1,5 @@
 codespell==2.2.6
-coverage==7.5.1
+coverage==7.5.2
 mypy==1.10.0
 pre-commit==3.7.1
 pyserial-asyncio-fast==0.11
