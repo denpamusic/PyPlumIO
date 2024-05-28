@@ -114,14 +114,14 @@ class AsyncProtocol(Protocol, EventManager):
     This protocol implements producer-consumers pattern using
     asyncio queues.
 
-    The frame producer tries to read frames from write queue, if any
-    available, and sends them to the device via frame writer.
+    The frame producer tries to read frames from the write queue.
+    If any is available, it sends them to the device via frame writer.
 
-    It reads stream via frame reader, creates device handler entry
-    and puts received frame and handler into the read queue.
+    It then reads stream via frame reader, creates device entry and puts
+    received frame into the read queue.
 
-    Frame consumers reads handler-frame tuples from the read queue and
-    sends frame to respective handler for further processing.
+    Frame consumers read frames from the read queue and send frame to
+    their respective device class for further processing.
     """
 
     data: dict[str, AddressableDevice]
