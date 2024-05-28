@@ -124,8 +124,8 @@ class AsyncProtocol(Protocol, EventManager):
     their respective device class for further processing.
     """
 
+    consumers_count: int
     data: dict[str, AddressableDevice]
-    consumers_number: int
     _network: NetworkInfo
     _queues: Queues
 
@@ -133,11 +133,11 @@ class AsyncProtocol(Protocol, EventManager):
         self,
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
-        consumers_number: int = 3,
+        consumers_count: int = 3,
     ) -> None:
         """Initialize a new async protocol."""
         super().__init__()
-        self.consumers_number = consumers_number
+        self.consumers_count = consumers_count
         self._network = NetworkInfo(
             eth=(
                 EthernetParameters(status=False)
@@ -160,7 +160,7 @@ class AsyncProtocol(Protocol, EventManager):
         self.writer = FrameWriter(writer)
         self._queues.write.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
         self.create_task(self.frame_producer(self._queues))
-        for _ in range(self.consumers_number):
+        for _ in range(self.consumers_count):
             self.create_task(self.frame_consumer(self._queues.read))
 
         for device in self.data.values():
