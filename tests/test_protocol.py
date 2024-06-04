@@ -269,7 +269,9 @@ async def test_async_protocol_frame_producer(
     # Create mock queues.
     mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue = AsyncMock(spec=asyncio.Queue)
-    mock_write_queue.qsize = Mock(side_effect=(1, 0, 0, 0, 0, 0, 0))
+    mock_write_queue.empty = Mock(
+        side_effect=(False, True, True, True, True, True, True)
+    )
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
     with (
@@ -314,7 +316,7 @@ async def test_async_protocol_frame_producer(
     mock_read_queue.put_nowait.assert_called_once_with(response)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
-    assert mock_write_queue.qsize.call_count == 7
+    assert mock_write_queue.empty.call_count == 7
     assert async_protocol.reader.read.await_count == 7
 
 

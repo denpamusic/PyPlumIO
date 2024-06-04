@@ -195,7 +195,7 @@ class AsyncProtocol(Protocol, EventManager):
         writer = cast(FrameWriter, self.writer)
         while self.connected.is_set():
             try:
-                if queues.write.qsize() > 0:
+                if not queues.write.empty():
                     await writer.write(await queues.write.get())
                     queues.write.task_done()
 
