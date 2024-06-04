@@ -290,17 +290,17 @@ async def test_async_protocol_frame_producer(
         (
             "pyplumio.protocol",
             logging.DEBUG,
-            "Unknown device: test unknown device error",
+            "Can't process received frame: test unknown device error",
         ),
         (
             "pyplumio.protocol",
             logging.DEBUG,
-            "Read error: test read error",
+            "Can't process received frame: test read error",
         ),
         (
             "pyplumio.protocol",
-            logging.WARNING,
-            "Incorrect payload: test frame data error",
+            logging.DEBUG,
+            "Can't process received frame: test frame data error",
         ),
         (
             "pyplumio.protocol",

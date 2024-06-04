@@ -10,12 +10,7 @@ from typing import NamedTuple, cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import AddressableDevice
-from pyplumio.exceptions import (
-    FrameDataError,
-    FrameError,
-    ReadError,
-    UnknownDeviceError,
-)
+from pyplumio.exceptions import FrameError, ReadError, UnknownDeviceError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.event_manager import EventManager
@@ -207,13 +202,7 @@ class AsyncProtocol(Protocol, EventManager):
                 if (response := await reader.read()) is not None:
                     queues.read.put_nowait(response)
 
-            except FrameDataError as e:
-                _LOGGER.warning("Incorrect payload: %s", e)
-            except ReadError as e:
-                _LOGGER.debug("Read error: %s", e)
-            except UnknownDeviceError as e:
-                _LOGGER.debug("Unknown device: %s", e)
-            except FrameError as e:
+            except (ReadError, UnknownDeviceError, FrameError) as e:
                 _LOGGER.debug("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
