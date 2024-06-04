@@ -142,18 +142,10 @@ class AsyncProtocol(Protocol, EventManager):
         super().__init__()
         self.consumers_count = consumers_count
         self._network = NetworkInfo(
-            eth=(
-                EthernetParameters(status=False)
-                if ethernet_parameters is None
-                else ethernet_parameters
-            ),
-            wlan=(
-                WirelessParameters(status=False)
-                if wireless_parameters is None
-                else wireless_parameters
-            ),
+            eth=ethernet_parameters or EthernetParameters(status=False),
+            wlan=wireless_parameters or WirelessParameters(status=False),
         )
-        self._queues = Queues(asyncio.Queue(), asyncio.Queue())
+        self._queues = Queues(read=asyncio.Queue(), write=asyncio.Queue())
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
