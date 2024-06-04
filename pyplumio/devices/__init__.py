@@ -144,9 +144,7 @@ class AddressableDevice(Device, ABC):
         """Set up addressable device."""
         results = await asyncio.gather(
             *{
-                self.create_task(
-                    self.request(description.provides, description.frame_type)
-                )
+                self.request(description.provides, description.frame_type)
                 for description in self._setup_frames
             },
             return_exceptions=True,
