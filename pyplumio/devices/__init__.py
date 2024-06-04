@@ -111,6 +111,11 @@ class Device(ABC, EventManager):
         """
         self.create_task(self.set(name, value, timeout, retries))
 
+    async def shutdown(self) -> None:
+        """Cancel device tasks."""
+        self.cancel_tasks()
+        await self.wait_until_done()
+
 
 class AddressableDevice(Device, ABC):
     """Represents an addressable device."""

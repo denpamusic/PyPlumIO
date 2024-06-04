@@ -182,7 +182,8 @@ class AsyncProtocol(Protocol, EventManager):
     async def shutdown(self) -> None:
         """Shutdown protocol tasks."""
         await self._queues.join()
-        await super(Protocol, self).shutdown()
+        self.cancel_tasks()
+        await self.wait_until_done()
         for device in self.data.values():
             await device.shutdown()
 

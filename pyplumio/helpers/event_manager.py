@@ -165,11 +165,6 @@ class EventManager(TaskManager):
             if not event.is_set():
                 event.set()
 
-    async def shutdown(self) -> None:
-        """Cancel scheduled tasks."""
-        self.cancel_tasks()
-        await self.wait_until_done()
-
     @property
     def events(self) -> dict[str, asyncio.Event]:
         """Return the events."""
