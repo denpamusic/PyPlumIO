@@ -121,11 +121,11 @@ class AsyncProtocol(Protocol, EventManager):
     The frame producer tries to read frames from the write queue.
     If any is available, it sends them to the device via frame writer.
 
-    It then reads stream via frame reader, creates device entry and puts
-    received frame into the read queue.
+    It then reads stream via frame reader and puts received frame
+    into the read queue.
 
-    Frame consumers read frames from the read queue and send frame to
-    their respective device class for further processing.
+    Frame consumers read frames from the read queue, create device
+    entry, if needed, and send frame to the entry for the processing.
     """
 
     consumers_count: int
