@@ -246,8 +246,8 @@ async def test_async_protocol_frame_producer(
     response = Response(sender=DeviceType.ECOMAX)
 
     # Create mock frame reader and writer.
-    async_protocol.reader = AsyncMock(spec=FrameReader)
-    async_protocol.reader.read = AsyncMock(
+    mock_reader = AsyncMock(spec=FrameReader)
+    mock_reader.read = AsyncMock(
         side_effect=(
             response,
             FrameError("test frame error"),
@@ -259,7 +259,7 @@ async def test_async_protocol_frame_producer(
         )
     )
 
-    async_protocol.writer = AsyncMock(spec=FrameWriter)
+    mock_writer = AsyncMock(spec=FrameWriter)
 
     # Create mock queues.
     mock_read_queue = AsyncMock(spec=asyncio.Queue)
@@ -276,7 +276,11 @@ async def test_async_protocol_frame_producer(
         ) as mock_connection_lost,
         caplog.at_level(logging.DEBUG),
     ):
-        await async_protocol.frame_producer(Queues(mock_read_queue, mock_write_queue))
+        await async_protocol.frame_producer(
+            Queues(mock_read_queue, mock_write_queue),
+            reader=mock_reader,
+            writer=mock_writer,
+        )
 
     assert caplog.record_tuples == [
         (
@@ -306,13 +310,13 @@ async def test_async_protocol_frame_producer(
         ),
     ]
 
-    async_protocol.writer.write.assert_awaited_once_with("test_request")
+    mock_writer.write.assert_awaited_once_with("test_request")
     mock_write_queue.task_done.assert_called_once()
     mock_read_queue.put_nowait.assert_called_once_with(response)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
     assert mock_write_queue.empty.call_count == 7
-    assert async_protocol.reader.read.await_count == 7
+    assert mock_reader.read.await_count == 7
 
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")

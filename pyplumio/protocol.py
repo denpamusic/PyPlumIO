@@ -7,7 +7,6 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
-from typing import cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import AddressableDevice
@@ -163,7 +162,9 @@ class AsyncProtocol(Protocol, EventManager):
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
         self._queues.write.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
-        self.create_task(self.frame_producer(self._queues))
+        self.create_task(
+            self.frame_producer(self._queues, reader=self.reader, writer=self.writer)
+        )
         for _ in range(self.consumers_count):
             self.create_task(self.frame_consumer(self._queues.read))
 
@@ -197,11 +198,11 @@ class AsyncProtocol(Protocol, EventManager):
             self.connected.clear()
             await self.close_writer()
 
-    async def frame_producer(self, queues: Queues) -> None:
+    async def frame_producer(
+        self, queues: Queues, reader: FrameReader, writer: FrameWriter
+    ) -> None:
         """Handle frame reads and writes."""
         await self.connected.wait()
-        reader = cast(FrameReader, self.reader)
-        writer = cast(FrameWriter, self.writer)
         while self.connected.is_set():
             try:
                 if not queues.write.empty():
