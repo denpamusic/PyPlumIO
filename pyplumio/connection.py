@@ -72,10 +72,7 @@ class Connection(ABC, TaskManager):
     async def _connect(self) -> None:
         """Establish connection and initialize the protocol object."""
         try:
-            reader, writer = cast(
-                tuple[asyncio.StreamReader, asyncio.StreamWriter],
-                await self._open_connection(),
-            )
+            reader, writer = await self._open_connection()
             self.protocol.connection_established(reader, writer)
         except (OSError, SerialException, asyncio.TimeoutError) as err:
             raise ConnectionFailedError from err
