@@ -209,8 +209,8 @@ class AsyncProtocol(Protocol, EventManager):
             except (OSError, asyncio.TimeoutError):
                 self.create_task(self.connection_lost())
                 break
-            except Exception as e:  # pylint: disable=broad-except
-                _LOGGER.exception(e)
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
 
     async def frame_consumer(self, queue: asyncio.Queue) -> None:
         """Handle frame processing."""

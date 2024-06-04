@@ -306,7 +306,7 @@ async def test_async_protocol_frame_producer(
         (
             "pyplumio.protocol",
             logging.ERROR,
-            "test generic error",
+            "Unexpected exception",
         ),
     ]
 
