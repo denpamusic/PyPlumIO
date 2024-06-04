@@ -5,8 +5,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 import logging
-from typing import NamedTuple, cast
+from typing import cast
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import AddressableDevice
@@ -96,11 +97,19 @@ class DummyProtocol(Protocol):
             await self.close_writer()
 
 
-class Queues(NamedTuple):
+@dataclass
+class Queues:
     """Represents asyncio queues."""
+
+    __slots__ = ("read", "write")
 
     read: asyncio.Queue
     write: asyncio.Queue
+
+    async def join(self) -> None:
+        """Wait for queues to finish."""
+        for queue in (self.read, self.write):
+            await queue.join()
 
 
 class AsyncProtocol(Protocol, EventManager):
@@ -179,7 +188,7 @@ class AsyncProtocol(Protocol, EventManager):
 
     async def shutdown(self) -> None:
         """Shutdown protocol tasks."""
-        await asyncio.gather(*[queue.join() for queue in self._queues])
+        await self._queues.join()
         await super(Protocol, self).shutdown()
         for device in self.data.values():
             await device.shutdown()
