@@ -107,8 +107,7 @@ class Queues:
 
     async def join(self) -> None:
         """Wait for queues to finish."""
-        for queue in (self.read, self.write):
-            await queue.join()
+        await asyncio.gather(self.read.join(), self.write.join())
 
 
 class AsyncProtocol(Protocol, EventManager):
@@ -171,22 +170,18 @@ class AsyncProtocol(Protocol, EventManager):
             return
 
         self.connected.clear()
-        for device in self.data.values():
-            # Notify devices about connection loss.
-            await device.dispatch(ATTR_CONNECTED, False)
-
         await self.close_writer()
-        for callback in self.on_connection_lost:
-            await callback()
+        await asyncio.gather(
+            *[device.dispatch(ATTR_CONNECTED, False) for device in self.data.values()]
+        )
+        await asyncio.gather(*[callback() for callback in self.on_connection_lost])
 
     async def shutdown(self) -> None:
         """Shutdown protocol tasks."""
         await self._queues.join()
         self.cancel_tasks()
         await self.wait_until_done()
-        for device in self.data.values():
-            await device.shutdown()
-
+        await asyncio.gather(*[device.shutdown() for device in self.data.values()])
         if self.connected.is_set():
             self.connected.clear()
             await self.close_writer()

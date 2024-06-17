@@ -138,16 +138,16 @@ class EventManager(TaskManager):
         """Call a registered callbacks and dispatch the event without waiting."""
         self.create_task(self.dispatch(name, value))
 
-    def load(self, data: dict[str, Any]) -> None:
-        """Load an event data."""
-
-        async def _dispatch_events(data: dict[str, Any]) -> None:
-            """Dispatch events for a loaded data."""
-            for key, value in data.items():
-                await self.dispatch(key, value)
-
+    async def load(self, data: dict[str, Any]) -> None:
+        """Load event data."""
         self.data = data
-        self.create_task(_dispatch_events(data))
+        await asyncio.gather(
+            *[self.dispatch(name, value) for name, value in data.items()]
+        )
+
+    def load_nowait(self, data: dict[str, Any]) -> None:
+        """Load event data without waiting."""
+        self.create_task(self.load(data))
 
     def create_event(self, name: str) -> asyncio.Event:
         """Create an event."""

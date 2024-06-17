@@ -23,10 +23,9 @@ class TaskManager:
         task.add_done_callback(self._tasks.discard)
         return task
 
-    def cancel_tasks(self) -> None:
+    def cancel_tasks(self) -> bool:
         """Cancel all tasks."""
-        for task in self._tasks:
-            task.cancel()
+        return all(task.cancel() for task in self._tasks)
 
     async def wait_until_done(self, return_exceptions: bool = True) -> None:
         """Wait for all tasks to complete."""

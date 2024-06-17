@@ -38,14 +38,37 @@ async def test_wait_for(event_manager: EventManager) -> None:
 
 
 async def test_get(event_manager: EventManager) -> None:
-    """Test getting an event value asynchronously."""
+    """Test getting an event value."""
     assert await event_manager.get("test_key") == "test_value"
 
 
 def test_get_nowait(event_manager: EventManager) -> None:
-    """Test getting an event value."""
+    """Test getting an event value without waiting."""
     assert event_manager.get_nowait("test_key") == "test_value"
     assert event_manager.get_nowait("test_key2") is None
+
+
+async def test_load(event_manager: EventManager) -> None:
+    """Test loading event data."""
+    callback = AsyncMock(return_value=True)
+    callback2 = AsyncMock(return_value=True)
+    event_manager.subscribe("test_key1", callback)
+    event_manager.subscribe("test_key2", callback2)
+    event_manager.load_nowait({"test_key2": "test_value2"})
+    await event_manager.wait_until_done()
+    callback.assert_not_awaited()
+    callback2.assert_awaited_once_with("test_value2")
+
+
+async def test_load_nowait(event_manager: EventManager) -> None:
+    """Test loading event data without waiting."""
+    callback = AsyncMock(return_value=True)
+    callback2 = AsyncMock(return_value=True)
+    event_manager.subscribe("test_key1", callback)
+    event_manager.subscribe("test_key2", callback2)
+    await event_manager.load({"test_key2": "test_value2"})
+    callback.assert_not_awaited()
+    callback2.assert_awaited_once_with("test_value2")
 
 
 async def test_subscribe(event_manager: EventManager) -> None:
@@ -76,18 +99,6 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     event_manager.dispatch_nowait("test_key2", "test_value2")
     await event_manager.wait_until_done()
     callback.assert_not_awaited()
-
-
-async def test_load(event_manager: EventManager) -> None:
-    """Test loading an event data."""
-    callback = AsyncMock(return_value=True)
-    callback2 = AsyncMock(return_value=True)
-    event_manager.subscribe("test_key1", callback)
-    event_manager.subscribe("test_key2", callback2)
-    event_manager.load({"test_key2": "test_value2"})
-    await event_manager.wait_until_done()
-    callback.assert_not_awaited()
-    callback2.assert_awaited_once_with("test_value2")
 
 
 async def test_create_event(event_manager: EventManager) -> None:

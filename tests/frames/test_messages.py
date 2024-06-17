@@ -37,7 +37,7 @@ async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
     """Test a regulator data message."""
     frame = RegulatorDataMessage(message=regdata["message"])
     frame.sender_device = ecomax
-    frame.sender_device.load(schema["data"])
+    frame.sender_device.load_nowait(schema["data"])
     await frame.sender_device.wait_until_done()
 
     if regdata["id"] == "unknown_regulator_data_version":

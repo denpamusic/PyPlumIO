@@ -195,7 +195,7 @@ async def test_async_protocol_connection_lost() -> None:
 @patch("asyncio.wait")
 @patch("asyncio.gather", new_callable=AsyncMock)
 @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
-@patch("pyplumio.devices.ecomax.EcoMAX.shutdown")
+@patch("pyplumio.devices.ecomax.EcoMAX.shutdown", new_callable=Mock)
 async def test_async_protocol_shutdown(
     mock_shutdown,
     mock_cancel_tasks,
@@ -205,8 +205,8 @@ async def test_async_protocol_shutdown(
     bypass_asyncio_events,
 ) -> None:
     """Test shutting down connection with an async protocol."""
-    mock_read_queue = AsyncMock()
-    mock_write_queue = AsyncMock()
+    mock_read_queue = Mock()
+    mock_write_queue = Mock()
 
     mock_writer = AsyncMock()
     mock_writer.close = AsyncMock()
@@ -231,9 +231,15 @@ async def test_async_protocol_shutdown(
     ):
         await async_protocol.shutdown()
 
-    mock_shutdown.assert_awaited_once()
     mock_cancel_tasks.assert_called_once()
-    mock_gather.assert_awaited_once_with(*async_protocol.tasks, return_exceptions=True)
+    mock_gather.await_count = 3
+    mock_gather.assert_has_awaits(
+        [
+            call(mock_read_queue.join(), mock_write_queue.join()),
+            call(*async_protocol.tasks, return_exceptions=True),
+            call(mock_shutdown()),
+        ]
+    )
     mock_writer.close.assert_awaited_once()
     assert async_protocol.writer is None
 

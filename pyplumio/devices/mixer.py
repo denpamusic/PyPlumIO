@@ -37,8 +37,9 @@ class Mixer(SubDevice):
         For each sensor dispatch an event with the
         sensor's name and value.
         """
-        for name, value in sensors.items():
-            await self.dispatch(name, value)
+        await asyncio.gather(
+            *[self.dispatch(name, value) for name, value in sensors.items()]
+        )
 
         return True
 

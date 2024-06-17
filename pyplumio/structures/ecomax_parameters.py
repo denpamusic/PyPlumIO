@@ -116,8 +116,6 @@ class EcomaxBinaryParameterDescription(
 ):
     """Represents an ecoMAX binary parameter description."""
 
-    __slots__ = ()
-
 
 ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ProductType.ECOMAX_P: (

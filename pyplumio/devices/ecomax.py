@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Generator, Iterable, Sequence
-from contextlib import suppress
 import logging
 import time
 from typing import Any, ClassVar, Final
@@ -18,7 +17,7 @@ from pyplumio.const import (
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import AddressableDevice
+from pyplumio.devices import AddressableDevice, SubDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
@@ -42,6 +41,7 @@ from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+from pyplumio.structures.regulator_data import ATTR_REGDATA
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETERS,
@@ -263,8 +263,12 @@ class EcoMAX(AddressableDevice):
         if not parameters:
             return False
 
-        for mixer in self._mixers(parameters.keys()):
-            await mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
+        await asyncio.gather(
+            *[
+                mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
+                for mixer in self._mixers(indexes=parameters.keys())
+            ]
+        )
 
         return True
 
@@ -278,8 +282,12 @@ class EcoMAX(AddressableDevice):
         if not sensors:
             return False
 
-        for mixer in self._mixers(sensors.keys()):
-            await mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
+        await asyncio.gather(
+            *[
+                mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
+                for mixer in self._mixers(indexes=sensors.keys())
+            ]
+        )
 
         return True
 
@@ -333,8 +341,9 @@ class EcoMAX(AddressableDevice):
         For each sensor dispatch an event with the sensor's name and
         value.
         """
-        for name, value in sensors.items():
-            await self.dispatch(name, value)
+        await asyncio.gather(
+            *[self.dispatch(name, value) for name, value in sensors.items()]
+        )
 
         return True
 
@@ -371,10 +380,14 @@ class EcoMAX(AddressableDevice):
         if not parameters:
             return False
 
-        for thermostat in self._thermostats(parameters.keys()):
-            await thermostat.dispatch(
-                ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
-            )
+        await asyncio.gather(
+            *[
+                thermostat.dispatch(
+                    ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
+                )
+                for thermostat in self._thermostats(indexes=parameters.keys())
+            ]
+        )
 
         return True
 
@@ -401,10 +414,12 @@ class EcoMAX(AddressableDevice):
         if not sensors:
             return False
 
-        for thermostat in self._thermostats(sensors.keys()):
-            await thermostat.dispatch(
-                ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
-            )
+        await asyncio.gather(
+            *[
+                thermostat.dispatch(ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index])
+                for thermostat in self._thermostats(indexes=sensors.keys())
+            ]
+        )
 
         return True
 
@@ -438,10 +453,9 @@ class EcoMAX(AddressableDevice):
         """Shutdown tasks for the ecoMAX controller and sub-devices."""
         mixers = self.get_nowait(ATTR_MIXERS, {})
         thermostats = self.get_nowait(ATTR_THERMOSTATS, {})
-        for subdevice in (mixers | thermostats).values():
-            await subdevice.shutdown()
-
-        with suppress(AttributeError):
-            await self.regdata.shutdown()
+        devices: Iterable[SubDevice] = (mixers | thermostats).values()
+        await asyncio.gather(*[device.shutdown() for device in devices])
+        if regdata := self.get_nowait(ATTR_REGDATA, None):
+            await regdata.shutdown()
 
         await super().shutdown()
