@@ -41,7 +41,6 @@ from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
-from pyplumio.structures.regulator_data import ATTR_REGDATA
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETERS,
@@ -455,7 +454,4 @@ class EcoMAX(AddressableDevice):
         thermostats = self.get_nowait(ATTR_THERMOSTATS, {})
         devices: Iterable[SubDevice] = (mixers | thermostats).values()
         await asyncio.gather(*[device.shutdown() for device in devices])
-        if regdata := self.get_nowait(ATTR_REGDATA, None):
-            await regdata.shutdown()
-
         await super().shutdown()
