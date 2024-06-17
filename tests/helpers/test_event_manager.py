@@ -40,6 +40,9 @@ async def test_wait_for(event_manager: EventManager) -> None:
 async def test_get(event_manager: EventManager) -> None:
     """Test getting an event value."""
     assert await event_manager.get("test_key") == "test_value"
+    assert event_manager.test_key == "test_value"
+    with pytest.raises(AttributeError):
+        event_manager.nonexistent
 
 
 def test_get_nowait(event_manager: EventManager) -> None:
