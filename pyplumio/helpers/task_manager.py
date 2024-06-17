@@ -18,7 +18,7 @@ class TaskManager:
 
     def create_task(self, coro: Coroutine[Any, Any, Any]) -> asyncio.Task:
         """Create asyncio task and store a reference for it."""
-        task: asyncio.Task = asyncio.create_task(coro)
+        task = asyncio.create_task(coro)
         self._tasks.add(task)
         task.add_done_callback(self._tasks.discard)
         return task

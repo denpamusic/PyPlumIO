@@ -293,7 +293,7 @@ class EcoMAX(AddressableDevice):
 
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
-    ) -> dict[str, Any]:
+    ) -> dict[str, Schedule]:
         """Add schedules to the dataset."""
         return {
             SCHEDULES[index]: Schedule(
