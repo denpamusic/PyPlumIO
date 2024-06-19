@@ -196,7 +196,9 @@ async def test_async_protocol_connection_lost() -> None:
 @patch("asyncio.gather", new_callable=AsyncMock)
 @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
 @patch("pyplumio.devices.ecomax.EcoMAX.shutdown", new_callable=Mock)
+@patch("pyplumio.helpers.event_manager.EventManager.dispatch", new_callable=Mock)
 async def test_async_protocol_shutdown(
+    mock_dispatch,
     mock_shutdown,
     mock_cancel_tasks,
     mock_gather,
@@ -237,6 +239,7 @@ async def test_async_protocol_shutdown(
         [
             call(mock_read_queue.join(), mock_write_queue.join()),
             call(*async_protocol.tasks, return_exceptions=True),
+            call(mock_dispatch()),
             call(mock_shutdown()),
         ]
     )

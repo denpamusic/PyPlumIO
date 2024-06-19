@@ -164,27 +164,28 @@ class AsyncProtocol(Protocol, EventManager):
 
         self.connected.set()
 
-    async def connection_lost(self) -> None:
-        """Close the writer and call connection lost callbacks."""
-        if not self.connected.is_set():
-            return
-
+    async def _connection_close(self) -> None:
+        """Close the connection if it is established."""
         self.connected.clear()
-        await self.close_writer()
         await asyncio.gather(
             *[device.dispatch(ATTR_CONNECTED, False) for device in self.data.values()]
         )
-        await asyncio.gather(*[callback() for callback in self.on_connection_lost])
+        await self.close_writer()
+
+    async def connection_lost(self) -> None:
+        """Close the connection and call connection lost callbacks."""
+        if self.connected.is_set():
+            await self._connection_close()
+            await asyncio.gather(*[callback() for callback in self.on_connection_lost])
 
     async def shutdown(self) -> None:
-        """Shutdown protocol tasks."""
+        """Shutdown the protocol and close the connection."""
         await self._queues.join()
         self.cancel_tasks()
         await self.wait_until_done()
-        await asyncio.gather(*[device.shutdown() for device in self.data.values()])
         if self.connected.is_set():
-            self.connected.clear()
-            await self.close_writer()
+            await self._connection_close()
+            await asyncio.gather(*[device.shutdown() for device in self.data.values()])
 
     async def frame_producer(
         self, queues: Queues, reader: FrameReader, writer: FrameWriter
