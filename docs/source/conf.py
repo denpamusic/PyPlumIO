@@ -43,3 +43,7 @@ html_theme = "sphinx_rtd_theme"
 html_theme_options = {
     "navigation_depth": 2,
 }
+
+# Suppress warnings about duplicate label.
+
+suppress_warnings = ['autosectionlabel.*']

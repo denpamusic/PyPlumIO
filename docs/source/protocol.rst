@@ -16,6 +16,10 @@ to **0x00**, while unicast messages will have specific device address.
 ecoMAX controller address is **0x45**, ecoSTER panel
 address is **0x51**.
 
+For example, we can request list of editable parameters from the ecoMAX
+controller by sending frame with frame type **49** and receive response
+with frame type **177** that contains requested parameters.
+
 Frame structure
 ---------------
 
@@ -32,37 +36,32 @@ Frame structure
     * [Byte] Frame CRC.
     * [Byte] Frame end delimiter. Always **0x16**.
 
-Requests and Responses
-----------------------
-For example, we can request list of editable parameters from the ecoMAX
-controller by sending frame with frame type **49** and receive response
-with frame type **177** that contains requested parameters.
-
 Communication
 -------------
-The controller constantly sends ``ProgramVersionRequest[type=64]`` and
-``CheckDeviceRequest[type=48]`` requests to every known device on the
-network and broadcasts ``RegulatorDataMessage[type=8]`` message,
+
+The controller constantly sends out :ref:`ProgramVersion[frame_type=64]<ProgramVersion>` and
+:ref:`CheckDevice[frame_type=48]<CheckDevice>` requests to every known device on the
+network and broadcasts :ref:`RegulatorData[frame_type=8]<RegulatorData>` message,
 that contains basic controller data.
 
 Initial exchange between ecoMAX controller (EM) and
 PyPlumIO library (PIO) can be illustrated with following diagram:
 
-+----------+---+-----------+-------------------------+-------------------------------+
-| Sender   |   | Receiver  | Frame                   | Description                   |
-+==========+===+===========+=========================+===============================+
-| EM[0x45] | > | ANY[0x00] | RegulatorDataMessage    | Contains ecoMAX data.         |
-+----------+---+-----------+-------------------------+-------------------------------+
-| EM[0x45] | > | PIO[0x56] | ProgramVersionRequest   | Program version request.      |
-+----------+---+-----------+-------------------------+-------------------------------+ 
-| EM[0x45] | < | PIO[0x56] | ProgramVersionResponse  | Contains program version.     |
-+----------+---+-----------+-------------------------+-------------------------------+
-| EM[0x45] | > | PIO[0x56] | CheckDeviceRequest      | Check device request.         |
-+----------+---+-----------+-------------------------+-------------------------------+
-| EM[0x45] | < | PIO[0x56] | DeviceAvailableResponse | Contains network information. |
-+----------+---+-----------+-------------------------+-------------------------------+
-| EM[0x45] | > | PIO[0x56] | SensorDataMessage       | Contains ecoMAX sensor data.  |
-+----------+---+-----------+-------------------------+-------------------------------+
++----------+---+-----------+-----------------------------------------------+-------------------------------+
+| Sender   |   | Receiver  | Frame                                         | Description                   |
++==========+===+===========+===============================================+===============================+
+| EM[0x45] | > | ANY[0x00] | :ref:`RegulatorDataMessage<RegulatorData>`    | Contains ecoMAX data.         |
++----------+---+-----------+-----------------------------------------------+-------------------------------+
+| EM[0x45] | > | PIO[0x56] | :ref:`ProgramVersionRequest<ProgramVersion>`  | Program version request.      |
++----------+---+-----------+-----------------------------------------------+-------------------------------+ 
+| EM[0x45] | < | PIO[0x56] | :ref:`ProgramVersionResponse<ProgramVersion>` | Contains program version.     |
++----------+---+-----------+-----------------------------------------------+-------------------------------+
+| EM[0x45] | > | PIO[0x56] | :ref:`CheckDeviceRequest<CheckDevice>`        | Check device request.         |
++----------+---+-----------+-----------------------------------------------+-------------------------------+
+| EM[0x45] | < | PIO[0x56] | :ref:`DeviceAvailableResponse<CheckDevice>`   | Contains network information. |
++----------+---+-----------+-----------------------------------------------+-------------------------------+
+| EM[0x45] | > | PIO[0x56] | :ref:`SensorDataMessage<SensorData>`          | Contains ecoMAX sensor data.  |
++----------+---+-----------+-----------------------------------------------+-------------------------------+
 
 .. note::
     
@@ -74,8 +73,8 @@ Versioning
 Protocol has built-in way to track frame versions. This is used to
 synchronize changes between devices.
 
-Both broadcast ``RegulatorDataMessage[type=8]`` and unicast
-``SensorDataMessage[type=53]`` frames sent by the ecoMAX controller
+Both broadcast :ref:`RegulatorData[frame_type=8]<RegulatorData>` and unicast
+:ref:`SensorData[frame_type=53]<SensorData>` frames sent by the ecoMAX controller
 contain versioning data.
 
 This data can be represented with following dictionary:
@@ -98,7 +97,7 @@ This data can be represented with following dictionary:
 
 In this dictionary, keys are frame types and values are version numbers.
 
-In example above, frame ``ParametersRequest[type=49]`` has version 37.
+In example above, frame :ref:`ecomaxparameters` with frame type 49 has version 37.
 If we change any parameters either remotely or on the controller itself,
 the version number will increase, so PyPlumIO will be able
 to tell that it's need to request list of parameters again

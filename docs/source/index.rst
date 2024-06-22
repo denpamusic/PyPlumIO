@@ -51,6 +51,7 @@ Documentation
    mixers_thermostats
    schedules
    protocol
+   frames
 
 .. autosummary::
    :toctree: _autosummary
