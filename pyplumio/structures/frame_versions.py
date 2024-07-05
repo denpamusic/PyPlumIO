@@ -22,13 +22,13 @@ class FrameVersionsStructure(StructureDecoder):
 
     def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:
         """Unpack frame versions."""
-        with suppress(ValueError):
-            frame_type = message[self._offset]
-            frame_type = FrameType(frame_type)
-
+        frame_type = message[self._offset]
         self._offset += 1
         version = UnsignedShort.from_bytes(message, self._offset)
         self._offset += version.size
+        with suppress(ValueError):
+            frame_type = FrameType(frame_type)
+
         return frame_type, version.value
 
     def decode(

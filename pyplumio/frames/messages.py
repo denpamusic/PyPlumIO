@@ -54,10 +54,7 @@ class SensorDataMessage(Message):
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
-        with suppress(ValueError):
-            sensors[ATTR_STATE] = message[offset]
-            sensors[ATTR_STATE] = DeviceState(sensors[ATTR_STATE])
-
+        sensors[ATTR_STATE] = message[offset]
         sensors, offset = OutputsStructure(self).decode(message, offset + 1, sensors)
         sensors, offset = OutputFlagsStructure(self).decode(message, offset, sensors)
         sensors, offset = TemperaturesStructure(self).decode(message, offset, sensors)
@@ -78,5 +75,7 @@ class SensorDataMessage(Message):
             message, offset, sensors
         )
         sensors, offset = MixerSensorsStructure(self).decode(message, offset, sensors)
+        with suppress(ValueError):
+            sensors[ATTR_STATE] = DeviceState(sensors[ATTR_STATE])
 
         return {ATTR_SENSORS: sensors}

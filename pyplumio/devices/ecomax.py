@@ -17,7 +17,7 @@ from pyplumio.const import (
     DeviceType,
     FrameType,
 )
-from pyplumio.devices import AddressableDevice, SubDevice
+from pyplumio.devices import AddressableDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
@@ -64,27 +64,38 @@ ATTR_FUEL_BURNED: Final = "fuel_burned"
 MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * 1000000000
 
 SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
-    DataFrameDescription(frame_type=FrameType.REQUEST_UID, provides=ATTR_PRODUCT),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA, provides=ATTR_REGDATA_SCHEMA
+        frame_type=FrameType.REQUEST_UID,
+        provides=ATTR_PRODUCT,
     ),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS, provides=ATTR_ECOMAX_PARAMETERS
+        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA,
+        provides=ATTR_REGDATA_SCHEMA,
     ),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_ALERTS, provides=ATTR_TOTAL_ALERTS
+        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS,
+        provides=ATTR_ECOMAX_PARAMETERS,
     ),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_SCHEDULES, provides=ATTR_SCHEDULES
+        frame_type=FrameType.REQUEST_ALERTS,
+        provides=ATTR_TOTAL_ALERTS,
     ),
     DataFrameDescription(
-        frame_type=FrameType.REQUEST_MIXER_PARAMETERS, provides=ATTR_MIXER_PARAMETERS
+        frame_type=FrameType.REQUEST_SCHEDULES,
+        provides=ATTR_SCHEDULES,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_MIXER_PARAMETERS,
+        provides=ATTR_MIXER_PARAMETERS,
     ),
     DataFrameDescription(
         frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
         provides=ATTR_THERMOSTAT_PARAMETERS,
     ),
-    DataFrameDescription(frame_type=FrameType.REQUEST_PASSWORD, provides=ATTR_PASSWORD),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_PASSWORD,
+        provides=ATTR_PASSWORD,
+    ),
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,7 +105,7 @@ class EcoMAX(AddressableDevice):
     """Represents an ecoMAX controller."""
 
     address: ClassVar[int] = DeviceType.ECOMAX
-    _setup_frames: Iterable[DataFrameDescription] = SETUP_FRAME_TYPES
+    _setup_frames: tuple[DataFrameDescription, ...] = SETUP_FRAME_TYPES
     _frame_versions: dict[int, int]
     _fuel_burned_timestamp_ns: int
 
@@ -201,21 +212,20 @@ class EcoMAX(AddressableDevice):
                 return False
 
             name = description.name
-            if name in self.data:
-                parameter: EcomaxParameter = self.data[name]
+            parameter = self.data.get(name, None)
+            if isinstance(parameter, EcomaxParameter):
                 parameter.values = values
-                await self.dispatch(name, parameter)
-                continue
+            else:
+                cls = (
+                    EcomaxBinaryParameter
+                    if isinstance(description, EcomaxBinaryParameterDescription)
+                    else EcomaxParameter
+                )
+                parameter = cls(
+                    device=self, values=values, description=description, index=index
+                )
 
-            cls = (
-                EcomaxBinaryParameter
-                if isinstance(description, EcomaxBinaryParameterDescription)
-                else EcomaxParameter
-            )
-            await self.dispatch(
-                name,
-                cls(device=self, values=values, description=description, index=index),
-            )
+            await self.dispatch(name, parameter)
 
         return True
 
@@ -316,21 +326,20 @@ class EcoMAX(AddressableDevice):
         for index, values in parameters:
             description = SCHEDULE_PARAMETERS[index]
             name = description.name
-            if name in self.data:
-                parameter: ScheduleParameter = self.data[name]
+            parameter = self.data.get(name, None)
+            if isinstance(parameter, ScheduleParameter):
                 parameter.values = values
-                await self.dispatch(name, parameter)
-                continue
+            else:
+                cls = (
+                    ScheduleBinaryParameter
+                    if isinstance(description, ScheduleBinaryParameterDescription)
+                    else ScheduleParameter
+                )
+                parameter = cls(
+                    device=self, values=values, description=description, index=index
+                )
 
-            cls = (
-                ScheduleBinaryParameter
-                if isinstance(description, ScheduleBinaryParameterDescription)
-                else ScheduleParameter
-            )
-            await self.dispatch(
-                name,
-                cls(device=self, values=values, description=description, index=index),
-            )
+            await self.dispatch(name, parameter)
 
         return True
 
@@ -353,18 +362,15 @@ class EcoMAX(AddressableDevice):
         values = ParameterValues(
             value=int(mode != DeviceState.OFF), min_value=0, max_value=1
         )
-
-        if name in self.data:
-            parameter: EcomaxBinaryParameter = self.data[name]
+        parameter = self.data.get(name, None)
+        if isinstance(parameter, EcomaxBinaryParameter):
             parameter.values = values
-            return await self.dispatch(name, parameter)
-
-        await self.dispatch(
-            name,
-            EcomaxBinaryParameter(
+        else:
+            parameter = EcomaxBinaryParameter(
                 device=self, description=ECOMAX_CONTROL_PARAMETER, values=values
-            ),
-        )
+            )
+
+        await self.dispatch(name, parameter)
 
     async def _handle_thermostat_parameters(
         self,
@@ -450,8 +456,8 @@ class EcoMAX(AddressableDevice):
 
     async def shutdown(self) -> None:
         """Shutdown tasks for the ecoMAX controller and sub-devices."""
-        mixers = self.get_nowait(ATTR_MIXERS, {})
-        thermostats = self.get_nowait(ATTR_THERMOSTATS, {})
-        devices: Iterable[SubDevice] = (mixers | thermostats).values()
+        mixers: dict[str, Mixer] = self.get_nowait(ATTR_MIXERS, {})
+        thermostats: dict[str, Thermostat] = self.get_nowait(ATTR_THERMOSTATS, {})
+        devices = (mixers | thermostats).values()
         await asyncio.gather(*[device.shutdown() for device in devices])
         await super().shutdown()

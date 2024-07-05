@@ -131,11 +131,7 @@ class TcpConnection(Connection):
         **kwargs: Any,
     ) -> None:
         """Initialize a new TCP connection."""
-        super().__init__(
-            protocol,
-            reconnect_on_failure,
-            **kwargs,
-        )
+        super().__init__(protocol, reconnect_on_failure, **kwargs)
         self.host = host
         self.port = port
 
@@ -171,11 +167,7 @@ class SerialConnection(Connection):
         **kwargs: Any,
     ) -> None:
         """Initialize a new serial connection."""
-        super().__init__(
-            protocol,
-            reconnect_on_failure,
-            **kwargs,
-        )
+        super().__init__(protocol, reconnect_on_failure, **kwargs)
         self.device = device
         self.baudrate = baudrate
 

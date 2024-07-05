@@ -63,22 +63,20 @@ class AlertsStructure(StructureDecoder):
 
     def _unpack_alert(self, message: bytearray) -> Alert:
         """Unpack an alert."""
-        with suppress(ValueError):
-            code = message[self._offset]
-            code = AlertType(code)
-
+        code = message[self._offset]
         self._offset += 1
         from_seconds = UnsignedInt.from_bytes(message, self._offset)
         self._offset += from_seconds.size
         to_seconds = UnsignedInt.from_bytes(message, self._offset)
         self._offset += to_seconds.size
-
         from_dt = _convert_to_datetime(from_seconds.value)
         to_dt = (
             None
             if to_seconds.value == MAX_UINT32
             else _convert_to_datetime(to_seconds.value)
         )
+        with suppress(ValueError):
+            code = AlertType(code)
 
         return Alert(code, from_dt, to_dt)
 

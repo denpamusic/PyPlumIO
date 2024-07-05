@@ -71,20 +71,19 @@ class Mixer(SubDevice):
                 return False
 
             name = description.name
-            if name in self.data:
-                parameter: MixerParameter = self.data[name]
+            parameter = self.data.get(name, None)
+            if isinstance(parameter, MixerParameter):
                 parameter.values = values
-                await self.dispatch(name, parameter)
-                continue
+            else:
+                cls = (
+                    MixerBinaryParameter
+                    if isinstance(description, MixerBinaryParameterDescription)
+                    else MixerParameter
+                )
+                parameter = cls(
+                    device=self, values=values, description=description, index=index
+                )
 
-            cls = (
-                MixerBinaryParameter
-                if isinstance(description, MixerBinaryParameterDescription)
-                else MixerParameter
-            )
-            await self.dispatch(
-                name,
-                cls(device=self, values=values, description=description, index=index),
-            )
+            await self.dispatch(name, parameter)
 
         return True
