@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import Any, ClassVar
 
 from pyplumio.const import (
@@ -53,11 +54,9 @@ class SensorDataMessage(Message):
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         sensors, offset = FrameVersionsStructure(self).decode(message, offset=0)
-        try:
+        with suppress(ValueError):
             sensors[ATTR_STATE] = message[offset]
             sensors[ATTR_STATE] = DeviceState(sensors[ATTR_STATE])
-        except ValueError:
-            pass
 
         sensors, offset = OutputsStructure(self).decode(message, offset + 1, sensors)
         sensors, offset = OutputFlagsStructure(self).decode(message, offset, sensors)

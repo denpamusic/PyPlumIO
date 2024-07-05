@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
@@ -62,11 +63,9 @@ class AlertsStructure(StructureDecoder):
 
     def _unpack_alert(self, message: bytearray) -> Alert:
         """Unpack an alert."""
-        try:
+        with suppress(ValueError):
             code = message[self._offset]
             code = AlertType(code)
-        except ValueError:
-            pass
 
         self._offset += 1
         from_seconds = UnsignedInt.from_bytes(message, self._offset)

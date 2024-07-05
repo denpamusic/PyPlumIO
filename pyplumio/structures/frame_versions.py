@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from typing import Any, Final
 
 from pyplumio.const import FrameType
@@ -21,11 +22,9 @@ class FrameVersionsStructure(StructureDecoder):
 
     def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:
         """Unpack frame versions."""
-        try:
+        with suppress(ValueError):
             frame_type = message[self._offset]
             frame_type = FrameType(frame_type)
-        except ValueError:
-            pass
 
         self._offset += 1
         version = UnsignedShort.from_bytes(message, self._offset)
