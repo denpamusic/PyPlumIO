@@ -211,21 +211,16 @@ class EcoMAX(AddressableDevice):
                 )
                 return False
 
-            name = description.name
-            parameter = self.data.get(name, None)
-            if isinstance(parameter, EcomaxParameter):
-                parameter.values = values
-            else:
-                cls = (
+            if not (parameter := self.data.get(description.name, None)):
+                handler = (
                     EcomaxBinaryParameter
                     if isinstance(description, EcomaxBinaryParameterDescription)
                     else EcomaxParameter
                 )
-                parameter = cls(
-                    device=self, values=values, description=description, index=index
-                )
+                parameter = handler(device=self, description=description, index=index)
 
-            await self.dispatch(name, parameter)
+            parameter.update(values)
+            await self.dispatch(description.name, parameter)
 
         return True
 
@@ -325,21 +320,16 @@ class EcoMAX(AddressableDevice):
         """Add schedule parameters to the dataset."""
         for index, values in parameters:
             description = SCHEDULE_PARAMETERS[index]
-            name = description.name
-            parameter = self.data.get(name, None)
-            if isinstance(parameter, ScheduleParameter):
-                parameter.values = values
-            else:
-                cls = (
+            if not (parameter := self.data.get(description.name, None)):
+                handler = (
                     ScheduleBinaryParameter
                     if isinstance(description, ScheduleBinaryParameterDescription)
                     else ScheduleParameter
                 )
-                parameter = cls(
-                    device=self, values=values, description=description, index=index
-                )
+                parameter = handler(device=self, description=description, index=index)
 
-            await self.dispatch(name, parameter)
+            parameter.update(values)
+            await self.dispatch(description.name, parameter)
 
         return True
 
@@ -358,19 +348,15 @@ class EcoMAX(AddressableDevice):
     async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
         """Create ecoMAX control parameter instance and dispatch an event."""
         description = ECOMAX_CONTROL_PARAMETER
-        name = description.name
-        values = ParameterValues(
-            value=int(mode != DeviceState.OFF), min_value=0, max_value=1
-        )
-        parameter = self.data.get(name, None)
-        if isinstance(parameter, EcomaxBinaryParameter):
-            parameter.values = values
-        else:
-            parameter = EcomaxBinaryParameter(
-                device=self, description=ECOMAX_CONTROL_PARAMETER, values=values
-            )
+        if not (parameter := self.data.get(description.name, None)):
+            parameter = EcomaxBinaryParameter(device=self, description=description)
 
-        await self.dispatch(name, parameter)
+        parameter.update(
+            ParameterValues(
+                value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+            )
+        )
+        await self.dispatch(description.name, parameter)
 
     async def _handle_thermostat_parameters(
         self,

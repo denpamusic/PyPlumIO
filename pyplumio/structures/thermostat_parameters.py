@@ -50,14 +50,14 @@ class ThermostatParameter(Parameter):
     def __init__(
         self,
         device: Thermostat,
-        values: ParameterValues,
         description: ParameterDescription,
+        values: ParameterValues | None = None,
         index: int = 0,
         offset: int = 0,
     ):
         """Initialize a new thermostat parameter."""
         self.offset = offset
-        super().__init__(device, values, description, index)
+        super().__init__(device, description, values, index)
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""

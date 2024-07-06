@@ -49,24 +49,20 @@ class Thermostat(SubDevice):
         """
         for index, values in parameters:
             description = THERMOSTAT_PARAMETERS[index]
-            name = description.name
-            parameter = self.data.get(name, None)
-            if isinstance(parameter, ThermostatParameter):
-                parameter.values = values
-            else:
-                cls = (
+            if not (parameter := self.data.get(description.name, None)):
+                handler = (
                     ThermostatBinaryParameter
                     if isinstance(description, ThermostatBinaryParameterDescription)
                     else ThermostatParameter
                 )
-                parameter = cls(
+                parameter = handler(
                     device=self,
-                    values=values,
                     description=description,
                     index=index,
                     offset=(self.index * len(parameters)),
                 )
 
-            await self.dispatch(name, parameter)
+            parameter.update(values)
+            await self.dispatch(description.name, parameter)
 
         return True

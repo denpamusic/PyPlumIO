@@ -105,10 +105,10 @@ def fixture_ecoster() -> EcoSTER:
 
 def test_device_handler() -> None:
     """Test getting device handler class by device address."""
-    cls = get_device_handler(DeviceType.ECOMAX)
-    assert cls == "devices.ecomax.EcoMAX"
+    handler = get_device_handler(DeviceType.ECOMAX)
+    assert handler == "devices.ecomax.EcoMAX"
     with pytest.raises(UnknownDeviceError):
-        cls = get_device_handler(UNKNOWN_DEVICE)
+        handler = get_device_handler(UNKNOWN_DEVICE)
 
 
 def test_ecoster(ecoster: EcoSTER) -> None:

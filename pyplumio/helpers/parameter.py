@@ -82,35 +82,35 @@ class BinaryParameterDescription(ParameterDescription, ABC):
 class Parameter(ABC):
     """Represents a parameter."""
 
-    __slots__ = ("device", "values", "description", "_pending_update", "_index")
+    __slots__ = ("device", "description", "_pending_update", "_index", "_values")
 
     device: Device
-    values: ParameterValues
     description: ParameterDescription
     _pending_update: bool
     _index: int
+    _values: ParameterValues
 
     def __init__(
         self,
         device: Device,
-        values: ParameterValues,
         description: ParameterDescription,
+        values: ParameterValues | None = None,
         index: int = 0,
     ):
         """Initialize a new parameter."""
         self.device = device
-        self.values = values
         self.description = description
         self._pending_update = False
         self._index = index
+        self._values = values if values else ParameterValues(0, 0, 0)
 
     def __repr__(self) -> str:
         """Return a serializable string representation."""
         return (
             f"{self.__class__.__name__}("
             f"device={self.device.__class__.__name__}, "
-            f"values={self.values}, "
             f"description={self.description}, "
+            f"values={self.values}, "
             f"index={self._index})"
         )
 
@@ -163,10 +163,6 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
-    async def _confirm_update(self, parameter: Parameter) -> None:
-        """Set parameter as no longer pending update."""
-        self._pending_update = False
-
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
         raise NotImplementedError
@@ -181,16 +177,14 @@ class Parameter(ABC):
                 f"Value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
-        self.values.value = value
+        self._values.value = value
         self._pending_update = True
-        self.device.subscribe_once(self.description.name, self._confirm_update)
         while self.pending_update:
             if retries <= 0:
                 _LOGGER.error(
                     "Timed out while trying to set '%s' parameter",
                     self.description.name,
                 )
-                self.device.unsubscribe(self.description.name, self._confirm_update)
                 return False
 
             await self.device.queue.put(await self.create_request())
@@ -203,10 +197,20 @@ class Parameter(ABC):
         """Set a parameter value without waiting."""
         self.device.create_task(self.set(value, retries))
 
+    def update(self, values: ParameterValues) -> None:
+        """Update the parameter values."""
+        self._values = values
+        self._pending_update = False
+
     @property
     def pending_update(self) -> bool:
         """Check if parameter is pending update on the device."""
         return self._pending_update
+
+    @property
+    def values(self) -> ParameterValues:
+        """Return the parameter values."""
+        return self._values
 
     @property
     def value(self) -> ParameterValueType:

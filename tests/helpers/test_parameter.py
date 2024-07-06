@@ -85,19 +85,13 @@ async def test_base_parameter_request(ecomax: EcoMAX) -> None:
         assert not await parameter.create_request()
 
 
-@patch("pyplumio.devices.ecomax.EcoMAX.subscribe_once")
-async def test_parameter_set(
-    mock_subscribe_once, parameter: Parameter, bypass_asyncio_sleep
-) -> None:
+async def test_parameter_set(parameter: Parameter, bypass_asyncio_sleep) -> None:
     """Test setting a parameter."""
     await parameter.set(5)
+    parameter.update(ParameterValues(5, 0, 5))
     assert parameter == 5
-    mock_subscribe_once.assert_called_once()
-    callback = mock_subscribe_once.call_args.args[1]
-    assert parameter.pending_update
-    await callback(parameter)
     assert not parameter.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
         assert await parameter.set(3)
 
     assert parameter == 3
@@ -117,6 +111,12 @@ async def test_parameter_set_out_of_range(parameter: Parameter) -> None:
     """Test setting a parameter with value out of allowed range."""
     with pytest.raises(ValueError):
         await parameter.set(39)
+
+
+def test_parameter_update(parameter: Parameter) -> None:
+    """Test updating parameter values."""
+    parameter.update(ParameterValues(1, 0, 5))
+    assert parameter.value == 1
 
 
 def test_parameter_relational(parameter: Parameter):
@@ -148,9 +148,9 @@ def test_parameter_repr(parameter: Parameter) -> None:
     """Test a parameter representation."""
     assert repr(parameter) == (
         "TestParameter(device=EcoMAX, "
-        "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "description=ParameterDescription(name='test_parameter', "
         "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
+        "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "index=0)"
     )
 
