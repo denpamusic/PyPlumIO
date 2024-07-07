@@ -87,7 +87,7 @@ class Connection(ABC, TaskManager):
                 RECONNECT_TIMEOUT,
             )
             await asyncio.sleep(RECONNECT_TIMEOUT)
-            self.create_task(self._reconnect(), name="reconnect_task")
+            self.create_task(self._reconnect())
 
     async def connect(self) -> None:
         """Open the connection.
