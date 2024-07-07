@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Coroutine, Generator, Sequence
 import logging
 from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
-from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
     MIXER_PARAMETERS,
@@ -52,33 +52,41 @@ class Mixer(SubDevice):
         parameter's name and value.
         """
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
-        for index, values in parameters:
-            try:
-                description = MIXER_PARAMETERS[product.type][index]
-            except IndexError:
-                _LOGGER.warning(
-                    (
-                        "Encountered unknown mixer parameter (%i): %s. "
-                        "Your device isn't fully compatible with this software and "
-                        "may not work properly. "
-                        "Please visit the issue tracker and open a feature "
-                        "request to support %s"
+
+        def _mixer_parameter_events() -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for mixer parameter events."""
+            for index, values in parameters:
+                try:
+                    description = MIXER_PARAMETERS[product.type][index]
+                except IndexError:
+                    _LOGGER.warning(
+                        (
+                            "Encountered unknown mixer parameter (%i): %s. "
+                            "Your device isn't fully compatible with this software and "
+                            "may not work properly. "
+                            "Please visit the issue tracker and open a feature "
+                            "request to support %s"
+                        ),
+                        index,
+                        values,
+                        product.model,
+                    )
+                    return
+
+                yield self.dispatch(
+                    description.name,
+                    create_or_update_parameter(
+                        values,
+                        description=description,
+                        device=self,
+                        handler=(
+                            MixerBinaryParameter
+                            if isinstance(description, MixerBinaryParameterDescription)
+                            else MixerParameter
+                        ),
+                        index=index,
                     ),
-                    index,
-                    values,
-                    product.model,
                 )
-                return False
 
-            if not (parameter := self.data.get(description.name, None)):
-                handler = (
-                    MixerBinaryParameter
-                    if isinstance(description, MixerBinaryParameterDescription)
-                    else MixerParameter
-                )
-                parameter = handler(device=self, description=description, index=index)
-
-            parameter.update(values)
-            await self.dispatch(description.name, parameter)
-
+        await asyncio.gather(*_mixer_parameter_events())
         return True

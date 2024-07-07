@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Sequence
+from collections.abc import Coroutine, Generator, Sequence
 from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
-from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
@@ -47,22 +47,28 @@ class Thermostat(SubDevice):
         For each parameter dispatch an event with the
         parameter's name and value.
         """
-        for index, values in parameters:
-            description = THERMOSTAT_PARAMETERS[index]
-            if not (parameter := self.data.get(description.name, None)):
-                handler = (
-                    ThermostatBinaryParameter
-                    if isinstance(description, ThermostatBinaryParameterDescription)
-                    else ThermostatParameter
-                )
-                parameter = handler(
-                    device=self,
-                    description=description,
-                    index=index,
-                    offset=(self.index * len(parameters)),
+
+        def _thermostat_parameter_events() -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for thermostat parameter events."""
+            for index, values in parameters:
+                description = THERMOSTAT_PARAMETERS[index]
+                yield self.dispatch(
+                    description.name,
+                    create_or_update_parameter(
+                        values,
+                        description=description,
+                        device=self,
+                        handler=(
+                            ThermostatBinaryParameter
+                            if isinstance(
+                                description, ThermostatBinaryParameterDescription
+                            )
+                            else ThermostatParameter
+                        ),
+                        index=index,
+                        offset=(self.index * len(parameters)),
+                    ),
                 )
 
-            parameter.update(values)
-            await self.dispatch(description.name, parameter)
-
+        await asyncio.gather(*_thermostat_parameter_events())
         return True

@@ -13,6 +13,7 @@ from pyplumio.helpers.parameter import (
     ParameterDescription,
     ParameterValues,
     check_parameter,
+    create_or_update_parameter,
 )
 
 
@@ -64,6 +65,33 @@ def test_check_parameter_invalid() -> None:
     assert not check_parameter(
         bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED])
     )
+
+
+def test_create_or_update_parameter(ecomax: EcoMAX, parameter: Parameter) -> None:
+    """Test creating or updating parameter."""
+    with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
+        parameter = create_or_update_parameter(
+            ParameterValues(value=3, min_value=0, max_value=5),
+            description=parameter.description,
+            device=ecomax,
+            handler=TestParameter,
+        )
+
+    mock_update.assert_not_called()
+    assert parameter.value == 3
+    assert isinstance(parameter, TestParameter)
+
+    # Test updating an existing parameter.
+    ecomax.data["test_parameter"] = parameter
+    with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
+        create_or_update_parameter(
+            ParameterValues(value=5, min_value=0, max_value=5),
+            description=parameter.description,
+            device=ecomax,
+            handler=TestParameter,
+        )
+
+    mock_update.assert_called_once()
 
 
 async def test_parameter_values(parameter: Parameter) -> None:

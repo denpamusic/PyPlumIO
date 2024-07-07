@@ -6,7 +6,7 @@ from abc import ABC
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.frames import Request
@@ -276,3 +276,25 @@ class BinaryParameter(Parameter):
     def max_value(self) -> ParameterValueType:
         """Return the maximum allowed value."""
         return STATE_ON
+
+
+ParameterT = TypeVar("ParameterT", bound=Parameter)
+
+
+def create_or_update_parameter(
+    values: ParameterValues,
+    description: ParameterDescription,
+    device: Device,
+    handler: type[ParameterT],
+    **kwargs: Any,
+) -> ParameterT:
+    """Create parameter or update parameter values."""
+    parameter: Parameter | None = device.get_nowait(description.name, None)
+    if parameter and isinstance(parameter, handler):
+        parameter.update(values)
+    else:
+        parameter = handler(
+            device=device, description=description, values=values, **kwargs
+        )
+
+    return parameter

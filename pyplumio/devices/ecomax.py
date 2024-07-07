@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Generator, Iterable, Sequence
+from collections.abc import Coroutine, Generator, Iterable, Sequence
 import logging
 import time
 from typing import Any, ClassVar, Final
@@ -22,7 +22,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
-from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
@@ -193,35 +193,42 @@ class EcoMAX(AddressableDevice):
         and value.
         """
         product: ProductInfo = await self.get(ATTR_PRODUCT)
-        for index, values in parameters:
-            try:
-                description = ECOMAX_PARAMETERS[product.type][index]
-            except IndexError:
-                _LOGGER.warning(
-                    (
-                        "Encountered unknown ecoMAX parameter (%i): %s. "
-                        "Your device isn't fully compatible with this software and "
-                        "may not work properly. "
-                        "Please visit the issue tracker and open a feature "
-                        "request to support %s"
+
+        def _ecomax_parameter_events() -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for ecoMAX parameter events."""
+            for index, values in parameters:
+                try:
+                    description = ECOMAX_PARAMETERS[product.type][index]
+                except IndexError:
+                    _LOGGER.warning(
+                        (
+                            "Encountered unknown ecoMAX parameter (%i): %s. "
+                            "Your device isn't fully compatible with this software and "
+                            "may not work properly. "
+                            "Please visit the issue tracker and open a feature "
+                            "request to support %s"
+                        ),
+                        index,
+                        values,
+                        product.model,
+                    )
+
+                yield self.dispatch(
+                    description.name,
+                    create_or_update_parameter(
+                        values,
+                        description=description,
+                        device=self,
+                        handler=(
+                            EcomaxBinaryParameter
+                            if isinstance(description, EcomaxBinaryParameterDescription)
+                            else EcomaxParameter
+                        ),
+                        index=index,
                     ),
-                    index,
-                    values,
-                    product.model,
                 )
-                return False
 
-            if not (parameter := self.data.get(description.name, None)):
-                handler = (
-                    EcomaxBinaryParameter
-                    if isinstance(description, EcomaxBinaryParameterDescription)
-                    else EcomaxParameter
-                )
-                parameter = handler(device=self, description=description, index=index)
-
-            parameter.update(values)
-            await self.dispatch(description.name, parameter)
-
+        await asyncio.gather(*_ecomax_parameter_events())
         return True
 
     async def _update_frame_versions(self, versions: dict[int, int]) -> None:
@@ -318,19 +325,29 @@ class EcoMAX(AddressableDevice):
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Add schedule parameters to the dataset."""
-        for index, values in parameters:
-            description = SCHEDULE_PARAMETERS[index]
-            if not (parameter := self.data.get(description.name, None)):
-                handler = (
-                    ScheduleBinaryParameter
-                    if isinstance(description, ScheduleBinaryParameterDescription)
-                    else ScheduleParameter
+
+        def _schedule_parameter_events() -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for schedule parameter events."""
+            for index, values in parameters:
+                description = SCHEDULE_PARAMETERS[index]
+                yield self.dispatch(
+                    description.name,
+                    create_or_update_parameter(
+                        values,
+                        description=description,
+                        device=self,
+                        handler=(
+                            ScheduleBinaryParameter
+                            if isinstance(
+                                description, ScheduleBinaryParameterDescription
+                            )
+                            else ScheduleParameter
+                        ),
+                        index=index,
+                    ),
                 )
-                parameter = handler(device=self, description=description, index=index)
 
-            parameter.update(values)
-            await self.dispatch(description.name, parameter)
-
+        await asyncio.gather(*_schedule_parameter_events())
         return True
 
     async def _handle_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
@@ -347,16 +364,17 @@ class EcoMAX(AddressableDevice):
 
     async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
         """Create ecoMAX control parameter instance and dispatch an event."""
-        description = ECOMAX_CONTROL_PARAMETER
-        if not (parameter := self.data.get(description.name, None)):
-            parameter = EcomaxBinaryParameter(device=self, description=description)
-
-        parameter.update(
-            ParameterValues(
-                value=int(mode != DeviceState.OFF), min_value=0, max_value=1
-            )
+        await self.dispatch(
+            ECOMAX_CONTROL_PARAMETER.name,
+            create_or_update_parameter(
+                values=ParameterValues(
+                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+                ),
+                description=ECOMAX_CONTROL_PARAMETER,
+                device=self,
+                handler=EcomaxBinaryParameter,
+            ),
         )
-        await self.dispatch(description.name, parameter)
 
     async def _handle_thermostat_parameters(
         self,
