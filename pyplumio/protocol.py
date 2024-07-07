@@ -154,10 +154,14 @@ class AsyncProtocol(Protocol, EventManager):
         self.writer = FrameWriter(writer)
         self._queues.write.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
         self.create_task(
-            self.frame_producer(self._queues, reader=self.reader, writer=self.writer)
+            self.frame_producer(self._queues, reader=self.reader, writer=self.writer),
+            name="frame_producer_task",
         )
-        for _ in range(self.consumers_count):
-            self.create_task(self.frame_consumer(self._queues.read))
+        for consumer in range(self.consumers_count):
+            self.create_task(
+                self.frame_consumer(self._queues.read),
+                name=f"frame_consumer_task ({consumer})",
+            )
 
         for device in self.data.values():
             device.dispatch_nowait(ATTR_CONNECTED, True)
@@ -226,7 +230,7 @@ class AsyncProtocol(Protocol, EventManager):
                 device_type, queue=self._queues.write, network=self._network
             )
             device.dispatch_nowait(ATTR_CONNECTED, True)
-            self.create_task(device.async_setup())
+            self.create_task(device.async_setup(), name=f"device_setup_task ({name})")
             self.set_event(name)
             self.data[name] = device
 

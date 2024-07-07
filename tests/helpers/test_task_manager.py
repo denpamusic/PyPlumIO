@@ -23,10 +23,10 @@ def test_create_task(task_manager: TaskManager) -> None:
     mock_coro = Mock()
     mock_task = Mock(spec=asyncio.Task)
     with patch("asyncio.create_task", return_value=mock_task) as create_task_mock:
-        task_manager.create_task(mock_coro)
+        task_manager.create_task(mock_coro, name="test_task")
 
     mock_task.add_done_callback.assert_called_once()
-    create_task_mock.assert_called_once_with(mock_coro)
+    create_task_mock.assert_called_once_with(mock_coro, name="test_task")
 
 
 def test_cancel_task(task_manager: TaskManager) -> None:
