@@ -172,7 +172,7 @@ class AsyncProtocol(Protocol, EventManager):
         """Close the connection if it is established."""
         self.connected.clear()
         await asyncio.gather(
-            *[device.dispatch(ATTR_CONNECTED, False) for device in self.data.values()]
+            *(device.dispatch(ATTR_CONNECTED, False) for device in self.data.values())
         )
         await self.close_writer()
 
@@ -180,7 +180,7 @@ class AsyncProtocol(Protocol, EventManager):
         """Close the connection and call connection lost callbacks."""
         if self.connected.is_set():
             await self._connection_close()
-            await asyncio.gather(*[callback() for callback in self.on_connection_lost])
+            await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
@@ -189,7 +189,7 @@ class AsyncProtocol(Protocol, EventManager):
         await self.wait_until_done()
         if self.connected.is_set():
             await self._connection_close()
-            await asyncio.gather(*[device.shutdown() for device in self.data.values()])
+            await asyncio.gather(*(device.shutdown() for device in self.data.values()))
 
     async def frame_producer(
         self, queues: Queues, reader: FrameReader, writer: FrameWriter

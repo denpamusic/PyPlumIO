@@ -143,15 +143,15 @@ class AddressableDevice(Device, ABC):
     async def async_setup(self) -> bool:
         """Set up addressable device."""
         results = await asyncio.gather(
-            *{
+            *(
                 self.request(description.provides, description.frame_type)
                 for description in self._setup_frames
-            },
+            ),
             return_exceptions=True,
         )
 
         errors = [
-            result.args[1] for result in results if isinstance(result, ValueError)
+            result.args[1] for result in results if isinstance(result, BaseException)
         ]
 
         await self.dispatch(ATTR_FRAME_ERRORS, errors)

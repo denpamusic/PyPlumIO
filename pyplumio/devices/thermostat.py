@@ -34,7 +34,7 @@ class Thermostat(SubDevice):
         sensor's name and value.
         """
         await asyncio.gather(
-            *[self.dispatch(name, value) for name, value in sensors.items()]
+            *(self.dispatch(name, value) for name, value in sensors.items())
         )
 
         return True

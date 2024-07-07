@@ -275,10 +275,10 @@ class EcoMAX(AddressableDevice):
             return False
 
         await asyncio.gather(
-            *[
+            *(
                 mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
                 for mixer in self._mixers(indexes=parameters.keys())
-            ]
+            )
         )
 
         return True
@@ -294,10 +294,10 @@ class EcoMAX(AddressableDevice):
             return False
 
         await asyncio.gather(
-            *[
+            *(
                 mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
                 for mixer in self._mixers(indexes=sensors.keys())
-            ]
+            )
         )
 
         return True
@@ -357,7 +357,7 @@ class EcoMAX(AddressableDevice):
         value.
         """
         await asyncio.gather(
-            *[self.dispatch(name, value) for name, value in sensors.items()]
+            *(self.dispatch(name, value) for name, value in sensors.items())
         )
 
         return True
@@ -390,12 +390,12 @@ class EcoMAX(AddressableDevice):
             return False
 
         await asyncio.gather(
-            *[
+            *(
                 thermostat.dispatch(
                     ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
                 )
                 for thermostat in self._thermostats(indexes=parameters.keys())
-            ]
+            )
         )
 
         return True
@@ -424,10 +424,11 @@ class EcoMAX(AddressableDevice):
             return False
 
         await asyncio.gather(
-            *[
+            *(
                 thermostat.dispatch(ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index])
                 for thermostat in self._thermostats(indexes=sensors.keys())
-            ]
+            ),
+            return_exceptions=True,
         )
 
         return True
@@ -463,5 +464,5 @@ class EcoMAX(AddressableDevice):
         mixers: dict[str, Mixer] = self.get_nowait(ATTR_MIXERS, {})
         thermostats: dict[str, Thermostat] = self.get_nowait(ATTR_THERMOSTATS, {})
         devices = (mixers | thermostats).values()
-        await asyncio.gather(*[device.shutdown() for device in devices])
+        await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
