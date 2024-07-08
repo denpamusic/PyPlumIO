@@ -28,11 +28,9 @@ class DataType(ABC):
     def __eq__(self, other: Any) -> bool:
         """Compare if this data type is equal to other."""
         if isinstance(other, DataType):
-            result: bool = self._value == other._value
-        else:
-            result = self._value == other
+            return bool(self._value == other._value)
 
-        return result
+        return bool(self._value == other)
 
     def _slice_data(self, data: bytes) -> bytes:
         """Slice the data to data type size."""

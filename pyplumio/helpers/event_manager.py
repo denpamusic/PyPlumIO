@@ -101,12 +101,12 @@ class EventManager(TaskManager):
         :type callback: Callable[[Any], Awaitable[Any]]
         """
 
-        async def _callback(value: Any) -> Any:
+        async def _call_once(value: Any) -> Any:
             """Unsubscribe callback from the event and calls it."""
-            self.unsubscribe(name, _callback)
+            self.unsubscribe(name, _call_once)
             return await callback(value)
 
-        self.subscribe(name, _callback)
+        self.subscribe(name, _call_once)
 
     def unsubscribe(self, name: str, callback: Callable[[Any], Awaitable[Any]]) -> None:
         """Usubscribe a callback from the event.
