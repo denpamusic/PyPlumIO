@@ -5,15 +5,12 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Coroutine
 from functools import wraps
-import logging
 from typing import Any, TypeVar
 
 from typing_extensions import ParamSpec
 
 T = TypeVar("T")
 P = ParamSpec("P")
-
-_LOGGER = logging.getLogger(__name__)
 
 
 def timeout(
