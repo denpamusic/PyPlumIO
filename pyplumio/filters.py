@@ -79,13 +79,13 @@ class Filter(ABC):
         self._callback = callback
         self._value = UNDEFINED
 
-    def __eq__(self, other: Any) -> Any:
+    def __eq__(self, other: Any) -> bool:
         """Compare callbacks."""
         if isinstance(other, Filter):
             return self._callback == other._callback
 
         if callable(other):
-            return self._callback == other
+            return bool(self._callback == other)
 
         return NotImplemented
 

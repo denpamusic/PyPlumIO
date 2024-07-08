@@ -1,7 +1,5 @@
 """Contains tests for the data type helper classes."""
 
-from typing import cast
-
 import pytest
 
 from pyplumio.helpers import data_types
@@ -135,7 +133,7 @@ def test_double() -> None:
 def test_bitarray() -> None:
     """Test a bit array data type."""
     buffer = bytearray([0x55])
-    data_type = cast(data_types.BitArray, data_types.BitArray.from_bytes(buffer))
+    data_type = data_types.BitArray.from_bytes(buffer)
     for index, value in enumerate([1, 0, 1, 0, 1, 0, 1, 0]):
         next_bit = data_type.next(index)
         assert data_type.value == bool(value)

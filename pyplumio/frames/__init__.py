@@ -29,9 +29,6 @@ if TYPE_CHECKING:
     from pyplumio.devices import AddressableDevice
 
 
-T = TypeVar("T")
-
-
 def bcc(data: bytes) -> int:
     """Return a block check character."""
     return reduce(lambda x, y: x ^ y, data)
@@ -112,7 +109,7 @@ class Frame(ABC):
         self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare if this frame is equal to other."""
         if isinstance(other, Frame):
             return (
@@ -224,7 +221,7 @@ class Frame(ABC):
         return bytes(data)
 
     @classmethod
-    async def create(cls: type[T], frame_type: int, **kwargs: Any) -> T:
+    async def create(cls: type[FrameT], frame_type: int, **kwargs: Any) -> FrameT:
         """Create a frame handler object from frame type."""
         return await create_instance(get_frame_handler(frame_type), cls=cls, **kwargs)
 
@@ -235,6 +232,9 @@ class Frame(ABC):
     @abstractmethod
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode frame message."""
+
+
+FrameT = TypeVar("FrameT", bound=Frame)
 
 
 class Request(Frame):

@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import socket
 import struct
-from typing import Any, ClassVar, Final
+from typing import Any, ClassVar, Final, TypeVar
 
 
 class DataType(ABC):
@@ -25,7 +25,7 @@ class DataType(ABC):
         """Return serializable string representation of the class."""
         return f"{self.__class__.__name__}(value={self._value})"
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Compare if this data type is equal to other."""
         if isinstance(other, DataType):
             return bool(self._value == other._value)
@@ -37,7 +37,7 @@ class DataType(ABC):
         return data[: self.size] if self.size is not None else data
 
     @classmethod
-    def from_bytes(cls, data: bytes, offset: int = 0) -> DataType:
+    def from_bytes(cls: type[DataTypeT], data: bytes, offset: int = 0) -> DataTypeT:
         """Initialize a new data type from bytes."""
         data_type = cls()
         data_type.unpack(data[offset:])
@@ -64,6 +64,9 @@ class DataType(ABC):
     @abstractmethod
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
+
+
+DataTypeT = TypeVar("DataTypeT", bound=DataType)
 
 
 class Undefined(DataType):

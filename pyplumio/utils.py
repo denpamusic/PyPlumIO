@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TypeVar
 
 
 def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
@@ -16,10 +16,14 @@ def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
     )
 
 
-def ensure_dict(data: dict | None, *args: Any) -> dict:
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+def ensure_dict(initial: dict[K, V] | None, *args: dict[K, V]) -> dict[K, V]:
     """Create or merge multiple dictionaries."""
-    data = data if data is not None else {}
-    for new_data in args:
-        data |= new_data
+    data = initial if initial is not None else {}
+    for extra in args:
+        data |= extra
 
     return data

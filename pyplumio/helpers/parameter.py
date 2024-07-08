@@ -116,8 +116,8 @@ class Parameter(ABC):
 
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""
-        func = getattr(self.values.value, method_to_call)
-        return func(_normalize_parameter_value(other))
+        handler = getattr(self.values.value, method_to_call)
+        return handler(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
         """Return an integer representation of parameter's value."""
@@ -233,6 +233,9 @@ class Parameter(ABC):
         return self.description.unit_of_measurement
 
 
+ParameterT = TypeVar("ParameterT", bound=Parameter)
+
+
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
 
@@ -276,9 +279,6 @@ class BinaryParameter(Parameter):
     def max_value(self) -> ParameterValueType:
         """Return the maximum allowed value."""
         return STATE_ON
-
-
-ParameterT = TypeVar("ParameterT", bound=Parameter)
 
 
 def create_or_update_parameter(
