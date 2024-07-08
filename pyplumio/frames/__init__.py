@@ -131,7 +131,7 @@ class Frame(ABC):
                 self._data,
             )
 
-        raise TypeError
+        return NotImplemented
 
     def __repr__(self) -> str:
         """Return a serializable string representation."""

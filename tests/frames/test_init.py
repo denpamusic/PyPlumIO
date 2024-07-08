@@ -126,8 +126,7 @@ def test_to_hex() -> None:
 def test_equality() -> None:
     """Test frame objects equality."""
     assert ProgramVersionResponse() == ProgramVersionResponse()
-    with pytest.raises(TypeError):
-        assert ProgramVersionResponse() == "melon"
+    assert ProgramVersionResponse().__eq__("melon") is NotImplemented
 
 
 def test_data_setter():

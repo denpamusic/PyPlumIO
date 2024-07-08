@@ -28,8 +28,7 @@ async def test_on_change() -> None:
     # Test equality with callback function and different instance.
     assert test_callback == wrapped_callback
     assert wrapped_callback == on_change(test_callback)
-    with pytest.raises(TypeError):
-        _ = wrapped_callback == "you shall not pass"
+    assert wrapped_callback.__eq__("you shall not pass") is NotImplemented
 
 
 async def test_on_change_parameter() -> None:

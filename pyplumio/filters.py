@@ -87,7 +87,7 @@ class Filter(ABC):
         if callable(other):
             return self._callback == other
 
-        raise TypeError
+        return NotImplemented
 
     @abstractmethod
     async def __call__(self, new_value: Any) -> Any:
