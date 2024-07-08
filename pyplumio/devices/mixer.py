@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
-from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
+from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
     MIXER_PARAMETERS,
@@ -73,17 +73,17 @@ class Mixer(SubDevice):
                     )
                     return
 
+                handler = (
+                    MixerBinaryParameter
+                    if isinstance(description, MixerBinaryParameterDescription)
+                    else MixerParameter
+                )
                 yield self.dispatch(
                     description.name,
-                    create_or_update_parameter(
-                        values,
-                        description=description,
+                    handler.create_or_update(
                         device=self,
-                        handler=(
-                            MixerBinaryParameter
-                            if isinstance(description, MixerBinaryParameterDescription)
-                            else MixerParameter
-                        ),
+                        description=description,
+                        values=values,
                         index=index,
                     ),
                 )

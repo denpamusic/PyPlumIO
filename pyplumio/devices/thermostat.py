@@ -7,7 +7,7 @@ from collections.abc import Coroutine, Generator, Sequence
 from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
-from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
+from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
@@ -52,19 +52,17 @@ class Thermostat(SubDevice):
             """Get dispatch calls for thermostat parameter events."""
             for index, values in parameters:
                 description = THERMOSTAT_PARAMETERS[index]
+                handler = (
+                    ThermostatBinaryParameter
+                    if isinstance(description, ThermostatBinaryParameterDescription)
+                    else ThermostatParameter
+                )
                 yield self.dispatch(
                     description.name,
-                    create_or_update_parameter(
-                        values,
-                        description=description,
+                    handler.create_or_update(
                         device=self,
-                        handler=(
-                            ThermostatBinaryParameter
-                            if isinstance(
-                                description, ThermostatBinaryParameterDescription
-                            )
-                            else ThermostatParameter
-                        ),
+                        description=description,
+                        values=values,
                         index=index,
                         offset=(self.index * len(parameters)),
                     ),

@@ -22,7 +22,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
-from pyplumio.helpers.parameter import ParameterValues, create_or_update_parameter
+from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
@@ -213,17 +213,17 @@ class EcoMAX(AddressableDevice):
                         product.model,
                     )
 
+                handler = (
+                    EcomaxBinaryParameter
+                    if isinstance(description, EcomaxBinaryParameterDescription)
+                    else EcomaxParameter
+                )
                 yield self.dispatch(
                     description.name,
-                    create_or_update_parameter(
-                        values,
-                        description=description,
+                    handler.create_or_update(
                         device=self,
-                        handler=(
-                            EcomaxBinaryParameter
-                            if isinstance(description, EcomaxBinaryParameterDescription)
-                            else EcomaxParameter
-                        ),
+                        description=description,
+                        values=values,
                         index=index,
                     ),
                 )
@@ -330,19 +330,17 @@ class EcoMAX(AddressableDevice):
             """Get dispatch calls for schedule parameter events."""
             for index, values in parameters:
                 description = SCHEDULE_PARAMETERS[index]
+                handler = (
+                    ScheduleBinaryParameter
+                    if isinstance(description, ScheduleBinaryParameterDescription)
+                    else ScheduleParameter
+                )
                 yield self.dispatch(
                     description.name,
-                    create_or_update_parameter(
-                        values,
-                        description=description,
+                    handler.create_or_update(
                         device=self,
-                        handler=(
-                            ScheduleBinaryParameter
-                            if isinstance(
-                                description, ScheduleBinaryParameterDescription
-                            )
-                            else ScheduleParameter
-                        ),
+                        description=description,
+                        values=values,
                         index=index,
                     ),
                 )
@@ -366,13 +364,12 @@ class EcoMAX(AddressableDevice):
         """Create ecoMAX control parameter instance and dispatch an event."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
-            create_or_update_parameter(
+            EcomaxBinaryParameter.create_or_update(
+                description=ECOMAX_CONTROL_PARAMETER,
+                device=self,
                 values=ParameterValues(
                     value=int(mode != DeviceState.OFF), min_value=0, max_value=1
                 ),
-                description=ECOMAX_CONTROL_PARAMETER,
-                device=self,
-                handler=EcomaxBinaryParameter,
             ),
         )
 

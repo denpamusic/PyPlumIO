@@ -232,6 +232,25 @@ class Parameter(ABC):
         """Return the unit of measurement."""
         return self.description.unit_of_measurement
 
+    @classmethod
+    def create_or_update(
+        cls: type[ParameterT],
+        device: Device,
+        description: ParameterDescription,
+        values: ParameterValues,
+        **kwargs: Any,
+    ) -> ParameterT:
+        """Create new parameter or update parameter values."""
+        parameter: ParameterT | None = device.get_nowait(description.name, None)
+        if parameter and isinstance(parameter, cls):
+            parameter.update(values)
+        else:
+            parameter = cls(
+                device=device, description=description, values=values, **kwargs
+            )
+
+        return parameter
+
 
 ParameterT = TypeVar("ParameterT", bound=Parameter)
 
@@ -279,22 +298,3 @@ class BinaryParameter(Parameter):
     def max_value(self) -> ParameterValueType:
         """Return the maximum allowed value."""
         return STATE_ON
-
-
-def create_or_update_parameter(
-    values: ParameterValues,
-    description: ParameterDescription,
-    device: Device,
-    handler: type[ParameterT],
-    **kwargs: Any,
-) -> ParameterT:
-    """Create parameter or update parameter values."""
-    parameter: Parameter | None = device.get_nowait(description.name, None)
-    if parameter and isinstance(parameter, handler):
-        parameter.update(values)
-    else:
-        parameter = handler(
-            device=device, description=description, values=values, **kwargs
-        )
-
-    return parameter
