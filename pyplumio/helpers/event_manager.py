@@ -138,7 +138,6 @@ class EventManager(TaskManager):
 
     async def load(self, data: dict[str, Any]) -> None:
         """Load event data."""
-        self.data = data
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in data.items())
         )
