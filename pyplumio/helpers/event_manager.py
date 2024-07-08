@@ -84,10 +84,8 @@ class EventManager(TaskManager):
             awaited on the with the event data as an argument.
         :type callback: Callable[[Any], Awaitable[Any]]
         """
-        if name not in self._callbacks:
-            self._callbacks[name] = []
-
-        self._callbacks[name].append(callback)
+        callbacks = self._callbacks.setdefault(name, [])
+        callbacks.append(callback)
 
     def subscribe_once(
         self, name: str, callback: Callable[[Any], Awaitable[Any]]
