@@ -17,6 +17,7 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames import Frame
+from pyplumio.helpers.event_manager import Event
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 
@@ -95,6 +96,7 @@ __all__ = [
     "ConnectionFailedError",
     "DummyProtocol",
     "EthernetParameters",
+    "Event",
     "Frame",
     "FrameDataError",
     "FrameError",

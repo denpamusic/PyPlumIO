@@ -8,6 +8,7 @@ import logging
 from typing import Any
 
 from pyplumio.devices import AddressableDevice, SubDevice
+from pyplumio.helpers.event_manager import Event
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
@@ -28,24 +29,27 @@ class Mixer(SubDevice):
     def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
         """Initialize a new mixer."""
         super().__init__(queue, parent, index)
-        self.subscribe(ATTR_MIXER_SENSORS, self._handle_sensors)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_parameters)
+        self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
+        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
 
-    async def _handle_sensors(self, sensors: dict[str, Any]) -> bool:
+    async def _handle_mixer_sensors(self, event: Event) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
         sensor's name and value.
         """
-        await asyncio.gather(
-            *(self.dispatch(name, value) for name, value in sensors.items())
-        )
 
+        def _mixer_sensor_events(
+            sensors: dict[str, Any],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for mixer sensors events."""
+            for name, value in sensors.items():
+                yield self.dispatch(name, value)
+
+        await asyncio.gather(*_mixer_sensor_events(event.data))
         return True
 
-    async def _handle_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
-    ) -> bool:
+    async def _handle_mixer_parameters(self, event: Event) -> bool:
         """Handle mixer parameters.
 
         For each parameter dispatch an event with the
@@ -53,7 +57,9 @@ class Mixer(SubDevice):
         """
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
 
-        def _mixer_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _mixer_parameter_events(
+            parameters: Sequence[tuple[int, ParameterValues]],
+        ) -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for mixer parameter events."""
             for index, values in parameters:
                 try:
@@ -88,5 +94,5 @@ class Mixer(SubDevice):
                     ),
                 )
 
-        await asyncio.gather(*_mixer_parameter_events())
+        await asyncio.gather(*_mixer_parameter_events(event.data))
         return True

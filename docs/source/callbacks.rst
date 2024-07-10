@@ -23,7 +23,7 @@ Subscribing to events
 .. autofunction:: pyplumio.devices.Device.subscribe_once
 
 To remove the previously registered callback, use the
-``unsubcribe()`` method.
+``unsubscribe()`` method.
 
 .. autofunction:: pyplumio.devices.Device.unsubscribe
 
@@ -127,12 +127,14 @@ processing.
 
 .. code-block:: python
 
+    import pyplumio
+
     from pyplumio.filter import throttle, on_change
 
 
-    async def my_callback(value) -> None:
+    async def my_callback(event: pyplumio.Event) -> None:
         """Prints current heating temperature."""
-        print(f"Heating Temperature: {value}")
+        print(f"Heating Temperature: {event.data}")
 
 
     async def main():
@@ -163,9 +165,9 @@ current heating temperature on every SensorDataMessage.
     import pyplumio
 
 
-    async def my_callback(value) -> None:
+    async def my_callback(event: pyplumio.Event) -> None:
         """Prints current heating temperature."""
-        print(f"Heating Temperature: {value}")
+        print(f"Heating Temperature: {event.data}")
 
 
     async def main():
@@ -196,13 +198,13 @@ when heating temperature will change more the 0.1 degrees Celsius.
     from pyplumio.filters import on_change
 
 
-    async def my_callback(value) -> None:
+    async def my_callback(event: pyplumio.Event) -> None:
         """Prints heating target temperature."""
-        print(f"Target Temperature: {value}")
+        print(f"Target Temperature: {event.data}")
 
-    async def my_callback2(value) -> None:
+    async def my_callback2(event: pyplumio.Event) -> None:
         """Prints current heating temperature."""
-        print(f"Current Temperature: {value}")
+        print(f"Current Temperature: {event.data}")
 
     async def main():
         """Subscribes callback to the current heating temperature."""

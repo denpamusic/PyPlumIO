@@ -58,9 +58,18 @@ async def test_load(event_manager: EventManager) -> None:
     event_manager.subscribe("test_key1", callback)
     event_manager.subscribe("test_key2", callback2)
     event_manager.load_nowait({"test_key2": "test_value2"})
-    await event_manager.wait_until_done()
+    with (
+        patch("pyplumio.helpers.event_manager.Event") as mock_event,
+        patch("datetime.datetime") as mock_dt,
+    ):
+        mock_dt.now.return_value = "test"
+        await event_manager.wait_until_done()
+
     callback.assert_not_awaited()
-    callback2.assert_awaited_once_with("test_value2")
+    callback2.assert_awaited_once_with(mock_event.return_value)
+    mock_event.assert_called_once_with(
+        "test_key2", data="test_value2", source=event_manager, fired_at="test"
+    )
 
 
 async def test_load_nowait(event_manager: EventManager) -> None:
@@ -69,9 +78,18 @@ async def test_load_nowait(event_manager: EventManager) -> None:
     callback2 = AsyncMock(return_value=True)
     event_manager.subscribe("test_key1", callback)
     event_manager.subscribe("test_key2", callback2)
-    await event_manager.load({"test_key2": "test_value2"})
+    with (
+        patch("pyplumio.helpers.event_manager.Event") as mock_event,
+        patch("datetime.datetime") as mock_dt,
+    ):
+        mock_dt.now.return_value = "test"
+        await event_manager.load({"test_key2": "test_value2"})
+
     callback.assert_not_awaited()
-    callback2.assert_awaited_once_with("test_value2")
+    callback2.assert_awaited_once()
+    mock_event.assert_called_once_with(
+        "test_key2", data="test_value2", source=event_manager, fired_at="test"
+    )
 
 
 async def test_subscribe(event_manager: EventManager) -> None:
@@ -80,8 +98,19 @@ async def test_subscribe(event_manager: EventManager) -> None:
     event_manager.subscribe("test_key2", callback)
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
-    await event_manager.wait_until_done()
-    callback.assert_has_awaits([call("test_value2"), call("test_value3")])
+    with (
+        patch("pyplumio.helpers.event_manager.Event") as mock_event,
+        patch("datetime.datetime") as mock_dt,
+    ):
+        mock_dt.now.return_value = "test"
+        await event_manager.wait_until_done()
+
+    assert callback.await_count == 2
+    events = [
+        call("test_key2", data="test_value2", source=event_manager, fired_at="test"),
+        call("test_key2", data="test_value3", source=event_manager, fired_at="test"),
+    ]
+    mock_event.assert_has_calls(events)
 
 
 async def test_subscribe_once(event_manager: EventManager) -> None:
@@ -90,8 +119,17 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     event_manager.subscribe_once("test_key2", callback)
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
-    await event_manager.wait_until_done()
-    callback.assert_awaited_once_with("test_value2")
+    with (
+        patch("pyplumio.helpers.event_manager.Event") as mock_event,
+        patch("datetime.datetime") as mock_dt,
+    ):
+        mock_dt.now.return_value = "test"
+        await event_manager.wait_until_done()
+
+    callback.assert_awaited_once()
+    mock_event.assert_called_once_with(
+        "test_key2", data="test_value2", source=event_manager, fired_at="test"
+    )
 
 
 async def test_unsubscribe(event_manager: EventManager) -> None:

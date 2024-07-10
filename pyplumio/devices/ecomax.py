@@ -22,6 +22,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
+from pyplumio.helpers.event_manager import Event
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -184,9 +185,7 @@ class EcoMAX(AddressableDevice):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
-    async def _handle_ecomax_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
-    ) -> bool:
+    async def _handle_ecomax_parameters(self, event: Event) -> bool:
         """Handle ecoMAX parameters.
 
         For each parameter dispatch an event with the parameter's name
@@ -194,7 +193,9 @@ class EcoMAX(AddressableDevice):
         """
         product: ProductInfo = await self.get(ATTR_PRODUCT)
 
-        def _ecomax_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _ecomax_parameter_events(
+            parameters: Sequence[tuple[int, ParameterValues]],
+        ) -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for ecoMAX parameter events."""
             for index, values in parameters:
                 try:
@@ -228,11 +229,12 @@ class EcoMAX(AddressableDevice):
                     ),
                 )
 
-        await asyncio.gather(*_ecomax_parameter_events())
+        await asyncio.gather(*_ecomax_parameter_events(event.data))
         return True
 
-    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
+    async def _update_frame_versions(self, event: Event) -> None:
         """Check frame versions and update outdated frames."""
+        versions: dict[int, int] = event.data
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)
@@ -244,8 +246,9 @@ class EcoMAX(AddressableDevice):
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
 
-    async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
+    async def _add_burned_fuel_counter(self, event: Event) -> None:
         """Calculate fuel burned since last sensor's data message."""
+        fuel_consumption: float = event.data
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
         if time_passed_ns >= MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
@@ -261,51 +264,49 @@ class EcoMAX(AddressableDevice):
 
         self._fuel_burned_timestamp_ns = current_timestamp_ns
 
-    async def _handle_mixer_parameters(
-        self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
-    ) -> bool:
+    async def _handle_mixer_parameters(self, event: Event) -> bool:
         """Handle mixer parameters.
 
         For each parameter dispatch an event with the
         parameter's name and value. Events are dispatched for the
         respective mixer instance.
         """
-        if not parameters:
+        if not event.data:
             return False
 
-        await asyncio.gather(
-            *(
-                mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
-                for mixer in self._mixers(indexes=parameters.keys())
-            )
-        )
+        def _mixer_parameter_events(
+            parameters: dict[int, Sequence[tuple[int, ParameterValues]]],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for mixer parameter events."""
+            for mixer in self._mixers(indexes=parameters.keys()):
+                yield mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
 
+        await asyncio.gather(*_mixer_parameter_events(event.data))
         return True
 
-    async def _handle_mixer_sensors(self, sensors: dict[int, dict[str, Any]]) -> bool:
+    async def _handle_mixer_sensors(self, event: Event) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
         sensor's name and value. Events are dispatched for the
         respective mixer instance.
         """
-        if not sensors:
+        if not event.data:
             return False
 
-        await asyncio.gather(
-            *(
-                mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
-                for mixer in self._mixers(indexes=sensors.keys())
-            )
-        )
+        def _mixer_sensor_events(
+            sensors: dict[int, dict[str, Any]],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for mixer sensor events."""
+            for mixer in self._mixers(indexes=sensors.keys()):
+                yield mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
 
+        await asyncio.gather(*_mixer_sensor_events(event.data))
         return True
 
-    async def _add_schedules(
-        self, schedules: list[tuple[int, list[list[bool]]]]
-    ) -> dict[str, Schedule]:
+    async def _add_schedules(self, event: Event) -> dict[str, Schedule]:
         """Add schedules to the dataset."""
+        schedules: list[tuple[int, list[list[bool]]]] = event.data
         return {
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
@@ -321,12 +322,12 @@ class EcoMAX(AddressableDevice):
             for index, schedule in schedules
         }
 
-    async def _add_schedule_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
-    ) -> bool:
+    async def _add_schedule_parameters(self, event: Event) -> bool:
         """Add schedule parameters to the dataset."""
 
-        def _schedule_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _schedule_parameter_events(
+            parameters: Sequence[tuple[int, ParameterValues]],
+        ) -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for schedule parameter events."""
             for index, values in parameters:
                 description = SCHEDULE_PARAMETERS[index]
@@ -345,87 +346,97 @@ class EcoMAX(AddressableDevice):
                     ),
                 )
 
-        await asyncio.gather(*_schedule_parameter_events())
+        await asyncio.gather(*_schedule_parameter_events(event.data))
         return True
 
-    async def _handle_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
+    async def _handle_ecomax_sensors(self, event: Event) -> bool:
         """Handle ecoMAX sensors.
 
         For each sensor dispatch an event with the sensor's name and
         value.
         """
-        await asyncio.gather(
-            *(self.dispatch(name, value) for name, value in sensors.items())
-        )
+        if not event.data:
+            return False
 
+        def _ecomax_sensor_events(
+            sensors: dict[str, Any],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for ecoMAX sensor events."""
+            for name, value in sensors.items():
+                yield self.dispatch(name, value)
+
+        await asyncio.gather(*_ecomax_sensor_events(event.data))
         return True
 
-    async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
+    async def _add_ecomax_control_parameter(self, event: Event) -> None:
         """Create ecoMAX control parameter instance and dispatch an event."""
+        state: DeviceState = event.data
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
             EcomaxBinaryParameter.create_or_update(
                 description=ECOMAX_CONTROL_PARAMETER,
                 device=self,
                 values=ParameterValues(
-                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+                    value=int(state != DeviceState.OFF), min_value=0, max_value=1
                 ),
             ),
         )
 
-    async def _handle_thermostat_parameters(
-        self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
-    ) -> bool:
+    async def _handle_thermostat_parameters(self, event: Event) -> bool:
         """Handle thermostat parameters.
 
         For each parameter dispatch an event with the
         parameter's name and value. Events are dispatched for the
         respective thermostat instance.
         """
-        if not parameters:
+        if not event.data:
             return False
 
-        await asyncio.gather(
-            *(
-                thermostat.dispatch(
+        def _thermostat_parameter_events(
+            parameters: dict[int, dict[str, Any]],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for thermostat parameter events."""
+            for thermostat in self._thermostats(indexes=parameters.keys()):
+                yield thermostat.dispatch(
                     ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
                 )
-                for thermostat in self._thermostats(indexes=parameters.keys())
-            )
-        )
 
+        await asyncio.gather(*_thermostat_parameter_events(event.data))
         return True
 
     async def _add_thermostat_profile_parameter(
-        self, values: ParameterValues | None
+        self, event: Event
     ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the dataset."""
-        if values is not None:
-            return EcomaxParameter(
-                device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
-            )
+        if not event.data:
+            return None
 
-        return None
+        values: ParameterValues = event.data
+        return EcomaxParameter(
+            device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
+        )
 
-    async def _handle_thermostat_sensors(
-        self, sensors: dict[int, dict[str, Any]]
-    ) -> bool:
+    async def _handle_thermostat_sensors(self, event: Event) -> bool:
         """Handle thermostat sensors.
 
         For each sensor dispatch an event with the
         sensor's name and value. Events are dispatched for the
         respective thermostat instance.
         """
-        if not sensors:
+        if not event.data:
             return False
 
+        def _thermostat_sensor_events(
+            sensors: dict[int, dict[str, Any]],
+        ) -> Generator[Coroutine, Any, None]:
+            """Get dispatch calls for thermostat sensor events."""
+            for thermostat in self._thermostats(indexes=sensors.keys()):
+                yield thermostat.dispatch(
+                    ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
+                )
+
         await asyncio.gather(
-            *(
-                thermostat.dispatch(ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index])
-                for thermostat in self._thermostats(indexes=sensors.keys())
-            ),
-            return_exceptions=True,
+            *_thermostat_sensor_events(event.data), return_exceptions=True
         )
 
         return True
