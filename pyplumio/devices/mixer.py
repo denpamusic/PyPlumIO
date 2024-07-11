@@ -28,10 +28,10 @@ class Mixer(SubDevice):
     def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
         """Initialize a new mixer."""
         super().__init__(queue, parent, index)
-        self.subscribe(ATTR_MIXER_SENSORS, self._handle_sensors)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_parameters)
+        self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
+        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
 
-    async def _handle_sensors(self, sensors: dict[str, Any]) -> bool:
+    async def _handle_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
@@ -40,10 +40,9 @@ class Mixer(SubDevice):
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
-
         return True
 
-    async def _handle_parameters(
+    async def _handle_mixer_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle mixer parameters.

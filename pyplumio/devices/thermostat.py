@@ -24,10 +24,10 @@ class Thermostat(SubDevice):
     def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
         """Initialize a new thermostat."""
         super().__init__(queue, parent, index)
-        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_sensors)
-        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_parameters)
+        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
+        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
 
-    async def _handle_sensors(self, sensors: dict[str, Any]) -> bool:
+    async def _handle_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle thermostat sensors.
 
         For each sensor dispatch an event with the
@@ -36,10 +36,9 @@ class Thermostat(SubDevice):
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
-
         return True
 
-    async def _handle_parameters(
+    async def _handle_thermostat_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle thermostat parameters.

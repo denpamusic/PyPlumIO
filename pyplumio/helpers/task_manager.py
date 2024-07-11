@@ -14,6 +14,7 @@ class TaskManager:
 
     def __init__(self) -> None:
         """Initialize a new task manager."""
+        super().__init__()
         self._tasks = set()
 
     def create_task(

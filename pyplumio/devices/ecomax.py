@@ -283,7 +283,9 @@ class EcoMAX(AddressableDevice):
 
         return True
 
-    async def _handle_mixer_sensors(self, sensors: dict[int, dict[str, Any]]) -> bool:
+    async def _handle_mixer_sensors(
+        self, sensors: dict[int, dict[str, Any]] | None
+    ) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
@@ -357,7 +359,6 @@ class EcoMAX(AddressableDevice):
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
-
         return True
 
     async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
@@ -394,22 +395,21 @@ class EcoMAX(AddressableDevice):
                 for thermostat in self._thermostats(indexes=parameters.keys())
             )
         )
-
         return True
 
     async def _add_thermostat_profile_parameter(
         self, values: ParameterValues | None
     ) -> EcomaxParameter | None:
         """Add thermostat profile parameter to the dataset."""
-        if values is not None:
-            return EcomaxParameter(
-                device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
-            )
+        if not values:
+            return None
 
-        return None
+        return EcomaxParameter(
+            device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
+        )
 
     async def _handle_thermostat_sensors(
-        self, sensors: dict[int, dict[str, Any]]
+        self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Handle thermostat sensors.
 
