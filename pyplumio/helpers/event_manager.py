@@ -85,7 +85,7 @@ class EventManager(TaskManager):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callable[[Any], Awaitable[Any]]
+        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
         :return: A reference to the callback, that can be used
             with `unsubscribe()`.
         """
@@ -102,7 +102,7 @@ class EventManager(TaskManager):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callable[[Any], Awaitable[Any]]
+        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
         :return: A reference to the callback, that can be used
             with `unsubscribe()`.
         """
@@ -122,7 +122,7 @@ class EventManager(TaskManager):
         :param callback: A coroutine callback function, previously
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
-        :type callback: Callable[[Any], Awaitable[Any]]
+        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
         :return True if callback found, otherwise False
         """
         if name in self._callbacks and callback in self._callbacks[name]:

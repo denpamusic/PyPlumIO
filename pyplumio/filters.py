@@ -119,7 +119,7 @@ def on_change(callback: Callable[[Any], Awaitable[Any]]) -> _OnChange:
     previous call.
 
     :param callback: A callback function to be awaited on value change
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :return: A instance of callable filter
     :rtype: _OnChange
     """
@@ -168,7 +168,7 @@ def debounce(callback: Callable[[Any], Awaitable[Any]], min_calls: int) -> _Debo
     across multiple filter calls.
 
     :param callback: A callback function to be awaited on value change
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :param min_calls: Value shouldn't change for this amount of
         filter calls
     :type min_calls: int
@@ -217,7 +217,7 @@ def throttle(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Thro
 
     :param callback: A callback function that will be awaited once
         filter conditions are fulfilled
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :param seconds: A callback will be awaited at most once per
         this amount of seconds
     :type seconds: float
@@ -257,7 +257,7 @@ def delta(callback: Callable[[Any], Awaitable[Any]]) -> _Delta:
 
     :param callback: A callback function that will be awaited with
         difference between values in two subsequent calls
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :return: A instance of callable filter
     :rtype: _Delta
     """
@@ -311,7 +311,7 @@ def aggregate(callback: Callable[[Any], Awaitable[Any]], seconds: float) -> _Agg
 
     :param callback: A callback function to be awaited once filter
         conditions are fulfilled
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :param seconds: A callback will be awaited with a sum of values
         aggregated over this amount of seconds.
     :type seconds: float
@@ -359,7 +359,7 @@ def custom(
 
     :param callback: A callback function to be awaited when
         filter function return true
-    :type callback: Callable[[Any], Awaitable[Any]]
+    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
     :param filter_fn: Filter function, that will be called with a
         value and should return `True` to await filter's callback
     :type filter_fn: Callable[[Any], bool]
