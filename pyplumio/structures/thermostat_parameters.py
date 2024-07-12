@@ -21,9 +21,9 @@ from pyplumio.helpers.parameter import (
     Parameter,
     ParameterDescription,
     ParameterValues,
+    ParameterValueType,
     unpack_parameter,
 )
-from pyplumio.helpers.typing import ParameterValueType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
 from pyplumio.utils import ensure_dict

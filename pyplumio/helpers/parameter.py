@@ -6,11 +6,10 @@ from abc import ABC
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.frames import Request
-from pyplumio.helpers.typing import ParameterValueType
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -19,6 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 SET_TIMEOUT: Final = 5
 SET_RETRIES: Final = 5
+
+ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
 
 
 def unpack_parameter(

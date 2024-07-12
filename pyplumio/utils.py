@@ -16,11 +16,11 @@ def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
     )
 
 
-K = TypeVar("K")
-V = TypeVar("V")
+KT = TypeVar("KT")  # Key type.
+VT = TypeVar("VT")  # Value type.
 
 
-def ensure_dict(initial: dict[K, V] | None, *args: dict[K, V]) -> dict[K, V]:
+def ensure_dict(initial: dict[KT, VT] | None, *args: dict[KT, VT]) -> dict[KT, VT]:
     """Create or merge multiple dictionaries."""
     data = initial if initial is not None else {}
     for extra in args:
