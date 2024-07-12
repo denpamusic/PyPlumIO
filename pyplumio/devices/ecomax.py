@@ -248,18 +248,15 @@ class EcoMAX(AddressableDevice):
         """Calculate fuel burned since last sensor's data message."""
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
+        self._fuel_burned_timestamp_ns = current_timestamp_nsa
         if time_passed_ns >= MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
             _LOGGER.warning(
                 "Skipping outdated fuel consumption data, was %i seconds old",
                 time_passed_ns / 1000000000,
             )
         else:
-            await self.dispatch(
-                ATTR_FUEL_BURNED,
-                fuel_consumption * time_passed_ns / (3600 * 1000000000),
-            )
-
-        self._fuel_burned_timestamp_ns = current_timestamp_ns
+            fuel_burned = fuel_consumption * time_passed_ns / (3600 * 1000000000)
+            await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
 
     async def _handle_mixer_parameters(
         self,
