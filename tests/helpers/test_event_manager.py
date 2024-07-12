@@ -77,7 +77,7 @@ async def test_load_nowait(event_manager: EventManager) -> None:
 async def test_subscribe(event_manager: EventManager) -> None:
     """Test subscribing to an event."""
     callback = AsyncMock(return_value=True)
-    event_manager.subscribe("test_key2", callback)
+    assert event_manager.subscribe("test_key2", callback) is callback
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
@@ -92,13 +92,26 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
     callback.assert_awaited_once_with("test_value2")
+    callback.reset_mock()
+
+    # Test getting the reference and unsubscribing.
+    with patch(
+        "pyplumio.helpers.event_manager.EventManager.unsubscribe"
+    ) as mock_unsubscribe:
+        callback2 = event_manager.subscribe_once("test_key3", callback)
+        event_manager.unsubscribe("test_key3", callback2)
+        await event_manager.wait_until_done()
+
+    mock_unsubscribe.assert_called_once_with("test_key3", callback2)
+    callback.assert_not_awaited()
 
 
 async def test_unsubscribe(event_manager: EventManager) -> None:
     """Test unsubscribing from the event."""
     callback = AsyncMock(return_value=True)
     event_manager.subscribe("test_key2", callback)
-    event_manager.unsubscribe("test_key2", callback)
+    assert event_manager.unsubscribe("test_key2", callback)
+    assert not event_manager.unsubscribe("test_key3", callback)
     event_manager.dispatch_nowait("test_key2", "test_value2")
     await event_manager.wait_until_done()
     callback.assert_not_awaited()

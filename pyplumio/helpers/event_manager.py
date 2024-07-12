@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable
-from typing import Any
+from collections.abc import Callable, Coroutine
+from typing import Any, TypeVar
 
 from pyplumio.helpers.task_manager import TaskManager
+
+Callback = Callable[[Any], Coroutine[Any, Any, Any]]
+CallbackT = TypeVar("CallbackT", bound=Callback)
 
 
 class EventManager(TaskManager):
@@ -14,7 +17,7 @@ class EventManager(TaskManager):
 
     data: dict[str, Any]
     _events: dict[str, asyncio.Event]
-    _callbacks: dict[str, list[Callable[[Any], Awaitable[Any]]]]
+    _callbacks: dict[str, list[Callback]]
 
     def __init__(self) -> None:
         """Initialize a new event manager."""
@@ -75,7 +78,7 @@ class EventManager(TaskManager):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: Callable[[Any], Awaitable[Any]]) -> None:
+    def subscribe(self, name: str, callback: CallbackT) -> CallbackT:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
@@ -83,13 +86,14 @@ class EventManager(TaskManager):
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
         :type callback: Callable[[Any], Awaitable[Any]]
+        :return: A reference to the callback, that can be used
+            with `unsubscribe()`.
         """
         callbacks = self._callbacks.setdefault(name, [])
         callbacks.append(callback)
+        return callback
 
-    def subscribe_once(
-        self, name: str, callback: Callable[[Any], Awaitable[Any]]
-    ) -> None:
+    def subscribe_once(self, name: str, callback: Callback) -> Callback:
         """Subscribe a callback to the event once.
 
         Callback will be unsubscribed after single event.
@@ -99,6 +103,8 @@ class EventManager(TaskManager):
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
         :type callback: Callable[[Any], Awaitable[Any]]
+        :return: A reference to the callback, that can be used
+            with `unsubscribe()`.
         """
 
         async def _call_once(value: Any) -> Any:
@@ -106,9 +112,9 @@ class EventManager(TaskManager):
             self.unsubscribe(name, _call_once)
             return await callback(value)
 
-        self.subscribe(name, _call_once)
+        return self.subscribe(name, _call_once)
 
-    def unsubscribe(self, name: str, callback: Callable[[Any], Awaitable[Any]]) -> None:
+    def unsubscribe(self, name: str, callback: Callback) -> bool:
         """Usubscribe a callback from the event.
 
         :param name: Event name or ID
@@ -117,9 +123,13 @@ class EventManager(TaskManager):
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
         :type callback: Callable[[Any], Awaitable[Any]]
+        :return True if callback found, otherwise False
         """
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
+            return True
+
+        return False
 
     async def dispatch(self, name: str, value: Any) -> None:
         """Call registered callbacks and dispatch the event."""
