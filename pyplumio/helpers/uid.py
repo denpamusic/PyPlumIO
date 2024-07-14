@@ -7,6 +7,7 @@ from typing import Final
 
 CRC: Final = 0xA3A3
 POLYNOMIAL: Final = 0xA001
+BASE5_KEY: Final = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
 
 
 def decode_uid(buffer: bytes) -> str:
@@ -16,11 +17,10 @@ def decode_uid(buffer: bytes) -> str:
 
 def _base5(buffer: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
-    key_string = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
     number = int.from_bytes(buffer, byteorder="little")
     output = ""
     while number:
-        output = key_string[number & 0b00011111] + output
+        output = BASE5_KEY[number & 0b00011111] + output
         number >>= 5
 
     return output
