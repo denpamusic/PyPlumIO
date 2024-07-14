@@ -66,9 +66,8 @@ class NetworkInfoStructure(Structure):
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
-        message = bytearray()
-        message += b"\x01"
-        network_info = data[ATTR_NETWORK] if ATTR_NETWORK in data else NetworkInfo()
+        message = bytearray(b"\x01")
+        network_info: NetworkInfo = data.get(ATTR_NETWORK, NetworkInfo())
         message += IPv4(network_info.eth.ip).to_bytes()
         message += IPv4(network_info.eth.netmask).to_bytes()
         message += IPv4(network_info.eth.gateway).to_bytes()
