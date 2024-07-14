@@ -15,6 +15,8 @@ CallbackT = TypeVar("CallbackT", bound=Callback)
 class EventManager(TaskManager):
     """Represents an event manager."""
 
+    __slots__ = ("data", "_events", "_callbacks")
+
     data: dict[str, Any]
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[Callback]]

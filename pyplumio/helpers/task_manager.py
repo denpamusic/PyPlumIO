@@ -10,6 +10,8 @@ from typing import Any
 class TaskManager:
     """Represents a task manager."""
 
+    __slots__ = ("_tasks",)
+
     _tasks: set[asyncio.Task]
 
     def __init__(self) -> None:
