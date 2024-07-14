@@ -85,9 +85,10 @@ class EventManager(TaskManager):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+        :type callback: Callback
         :return: A reference to the callback, that can be used
-            with `unsubscribe()`.
+            with `EventManager.unsubscribe()`.
+        :rtype: Callback
         """
         callbacks = self._callbacks.setdefault(name, [])
         callbacks.append(callback)
@@ -102,9 +103,10 @@ class EventManager(TaskManager):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+        :type callback: Callback
         :return: A reference to the callback, that can be used
-            with `unsubscribe()`.
+            with `EventManager.unsubscribe()`.
+        :rtype: Callback
         """
 
         async def _call_once(value: Any) -> Any:
@@ -122,8 +124,9 @@ class EventManager(TaskManager):
         :param callback: A coroutine callback function, previously
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
-        :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
-        :return True if callback found, otherwise False
+        :type callback: Callback
+        :return: `True` if callback is found, `False` otherwise.
+        :rtype: bool
         """
         if name in self._callbacks and callback in self._callbacks[name]:
             self._callbacks[name].remove(callback)
