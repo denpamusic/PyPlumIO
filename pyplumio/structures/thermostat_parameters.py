@@ -119,7 +119,9 @@ class ThermostatBinaryParameterDescription(
 
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
-    ThermostatParameterDescription(name="mode"),
+    ThermostatParameterDescription(
+        name="mode",
+    ),
     ThermostatParameterDescription(
         name="party_target_temp",
         size=2,
@@ -133,22 +135,29 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatParameterDescription(
-        name="correction", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        name="correction",
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatParameterDescription(
-        name="away_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+        name="away_timer",
+        unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
     ThermostatParameterDescription(
-        name="airing_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+        name="airing_timer",
+        unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
     ThermostatParameterDescription(
-        name="party_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+        name="party_timer",
+        unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
     ThermostatParameterDescription(
-        name="holidays_timer", unit_of_measurement=UnitOfMeasurement.DAYS
+        name="holidays_timer",
+        unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
     ThermostatParameterDescription(
-        name="hysteresis", multiplier=0.1, unit_of_measurement=UnitOfMeasurement.CELSIUS
+        name="hysteresis",
+        multiplier=0.1,
+        unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatParameterDescription(
         name="day_target_temp",
@@ -174,8 +183,12 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(name="heating_timer"),
-    ThermostatParameterDescription(name="off_timer"),
+    ThermostatParameterDescription(
+        name="heating_timer",
+    ),
+    ThermostatParameterDescription(
+        name="off_timer",
+    ),
 )
 
 
