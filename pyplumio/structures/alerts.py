@@ -7,7 +7,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from functools import lru_cache
-from typing import Any, Final
+from typing import Any, Final, Literal, NamedTuple
 
 from pyplumio.const import AlertType
 from pyplumio.helpers.data_types import UnsignedInt
@@ -20,27 +20,40 @@ ATTR_TOTAL_ALERTS: Final = "total_alerts"
 MAX_UINT32: Final = 4294967295
 
 
+class DateTimeInterval(NamedTuple):
+    """Represents an alert time interval."""
+
+    name: Literal["year", "month", "day", "hour", "minute", "second"]
+    seconds: int
+    offset: int = 0
+
+
+DATETIME_INTERVALS: tuple[DateTimeInterval, ...] = (
+    DateTimeInterval("year", seconds=60 * 60 * 24 * 31 * 12, offset=2000),
+    DateTimeInterval("month", seconds=60 * 60 * 24 * 31, offset=1),
+    DateTimeInterval("day", seconds=60 * 60 * 24, offset=1),
+    DateTimeInterval("hour", seconds=60 * 60),
+    DateTimeInterval("minute", seconds=60),
+    DateTimeInterval("second", seconds=1),
+)
+
+
 @lru_cache(maxsize=10)
-def _convert_to_datetime(seconds: int) -> datetime:
-    """Convert timestamp to a datetime object."""
+def _seconds_to_datetime(timestamp: int) -> datetime:
+    """Convert timestamp to a datetime object.
 
-    def _seconds_to_datetime_args(seconds: int) -> Generator[Any, None, None]:
-        """Convert seconds to a kwargs for a datetime class."""
-        intervals: tuple[tuple[str, int, int], ...] = (
-            ("year", 32140800, 2000),  # 60sec * 60min * 24h * 31d * 12m
-            ("month", 2678400, 1),  # 60sec * 60min * 24h * 31d
-            ("day", 86400, 1),  # 60sec * 60min * 24h
-            ("hour", 3600, 0),  # 60sec * 60min
-            ("minute", 60, 0),
-            ("second", 1, 0),
-        )
+    The ecoMAX controller stores alert time as a special timestamp value
+    in seconds counted from Jan 1st, 2000.
+    """
 
-        for name, count, offset in intervals:
-            value = seconds // count
-            seconds -= value * count
+    def _datetime_kwargs(timestamp: int) -> Generator[Any, None, None]:
+        """Yield a tuple, that represents a single datetime kwarg."""
+        for name, seconds, offset in DATETIME_INTERVALS:
+            value = timestamp // seconds
+            timestamp -= value * seconds
             yield name, (value + offset)
 
-    return datetime(**dict(_seconds_to_datetime_args(seconds)))
+    return datetime(**dict(_datetime_kwargs(timestamp)))
 
 
 @dataclass
@@ -69,11 +82,11 @@ class AlertsStructure(StructureDecoder):
         self._offset += from_seconds.size
         to_seconds = UnsignedInt.from_bytes(message, self._offset)
         self._offset += to_seconds.size
-        from_dt = _convert_to_datetime(from_seconds.value)
+        from_dt = _seconds_to_datetime(from_seconds.value)
         to_dt = (
             None
             if to_seconds.value == MAX_UINT32
-            else _convert_to_datetime(to_seconds.value)
+            else _seconds_to_datetime(to_seconds.value)
         )
         with suppress(ValueError):
             code = AlertType(code)
@@ -87,12 +100,11 @@ class AlertsStructure(StructureDecoder):
         total_alerts = message[offset + 0]
         start = message[offset + 1]
         end = message[offset + 2]
-
+        self._offset = offset + 3
         if end == 0:
             # No alerts found.
-            return ensure_dict(data, {ATTR_TOTAL_ALERTS: total_alerts}), offset + 3
+            return ensure_dict(data, {ATTR_TOTAL_ALERTS: total_alerts}), self._offset
 
-        self._offset = offset + 3
         return (
             ensure_dict(
                 data,
