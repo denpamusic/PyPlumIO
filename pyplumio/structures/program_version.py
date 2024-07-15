@@ -14,7 +14,7 @@ ATTR_VERSION: Final = "version"
 
 VERSION_INFO_SIZE: Final = 15
 
-SOFTWARE_VERSION: str = ".".join(str(x) for x in __version_tuple__[0:3])
+SOFTWARE_VERSION: Final = ".".join(str(x) for x in __version_tuple__[0:3])
 
 struct_program_version = struct.Struct("<2sB2s3s3HB")
 
@@ -55,22 +55,29 @@ class ProgramVersionStructure(Structure):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
-        version_info = VersionInfo()
-        [
-            version_info.struct_tag,
-            version_info.struct_version,
-            version_info.device_id,
-            version_info.processor_signature,
-            software_version1,
-            software_version2,
-            software_version3,
-            self.frame.recipient,
-        ] = struct_program_version.unpack_from(message)
-        version_info.software = ".".join(
-            map(str, [software_version1, software_version2, software_version3])
-        )
+        (
+            struct_tag,
+            struct_version,
+            device_id,
+            processor_signature,
+            software1,
+            software2,
+            software3,
+            _,  # recipient
+        ) = struct_program_version.unpack_from(message)
 
         return (
-            ensure_dict(data, {ATTR_VERSION: version_info}),
+            ensure_dict(
+                data,
+                {
+                    ATTR_VERSION: VersionInfo(
+                        software=".".join(map(str, [software1, software2, software3])),
+                        struct_tag=struct_tag,
+                        struct_version=struct_version,
+                        device_id=device_id,
+                        processor_signature=processor_signature,
+                    )
+                },
+            ),
             offset + VERSION_INFO_SIZE,
         )

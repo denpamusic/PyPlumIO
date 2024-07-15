@@ -53,16 +53,12 @@ class ProductInfoStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
         offset += 3
-
         uid = VarBytes.from_bytes(message, offset)
         offset += uid.size
-
         logo = UnsignedShort.from_bytes(message, offset)
         offset += logo.size
-
         image = UnsignedShort.from_bytes(message, offset)
         offset += image.size
-
         model_name = VarString.from_bytes(message, offset)
         offset += model_name.size
 
