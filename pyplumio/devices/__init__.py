@@ -44,9 +44,9 @@ def get_device_handler(device_type: int) -> str:
 class Device(ABC, EventManager):
     """Represents a device."""
 
-    queue: asyncio.Queue
+    queue: asyncio.Queue[Frame]
 
-    def __init__(self, queue: asyncio.Queue):
+    def __init__(self, queue: asyncio.Queue[Frame]):
         """Initialize a new device."""
         super().__init__()
         self.queue = queue
@@ -123,7 +123,7 @@ class AddressableDevice(Device, ABC):
     _network: NetworkInfo
     _setup_frames: Iterable[DataFrameDescription]
 
-    def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
+    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
         """Initialize a new addressable device."""
         super().__init__(queue)
         self._network = network
@@ -153,8 +153,9 @@ class AddressableDevice(Device, ABC):
             result.args[1] for result in results if isinstance(result, BaseException)
         ]
 
-        await self.dispatch(ATTR_FRAME_ERRORS, errors)
-        await self.dispatch(ATTR_LOADED, True)
+        await asyncio.gather(
+            self.dispatch(ATTR_FRAME_ERRORS, errors), self.dispatch(ATTR_LOADED, True)
+        )
         return True
 
     async def request(
@@ -188,7 +189,9 @@ class SubDevice(Device, ABC):
     parent: AddressableDevice
     index: int
 
-    def __init__(self, queue: asyncio.Queue, parent: AddressableDevice, index: int = 0):
+    def __init__(
+        self, queue: asyncio.Queue[Frame], parent: AddressableDevice, index: int = 0
+    ):
         """Initialize a new sub-device."""
         super().__init__(queue)
         self.parent = parent

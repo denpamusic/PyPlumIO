@@ -104,8 +104,8 @@ class Queues:
 
     __slots__ = ("read", "write")
 
-    read: asyncio.Queue
-    write: asyncio.Queue
+    read: asyncio.Queue[Frame]
+    write: asyncio.Queue[Frame]
 
     async def join(self) -> None:
         """Wait for queues to finish."""
@@ -215,11 +215,11 @@ class AsyncProtocol(Protocol, EventManager):
             except Exception:
                 _LOGGER.exception("Unexpected exception")
 
-    async def frame_consumer(self, queue: asyncio.Queue) -> None:
+    async def frame_consumer(self, queue: asyncio.Queue[Frame]) -> None:
         """Handle frame processing."""
         await self.connected.wait()
         while self.connected.is_set():
-            frame: Frame = await queue.get()
+            frame = await queue.get()
             device = await self.get_device_entry(frame.sender)
             device.handle_frame(frame)
             queue.task_done()

@@ -109,7 +109,7 @@ class EcoMAX(AddressableDevice):
     _frame_versions: dict[int, int]
     _fuel_burned_timestamp_ns: int
 
-    def __init__(self, queue: asyncio.Queue, network: NetworkInfo):
+    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
         self._frame_versions = {}
@@ -134,11 +134,10 @@ class EcoMAX(AddressableDevice):
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
-        if isinstance(frame, Request) and frame.frame_type in (
-            FrameType.REQUEST_CHECK_DEVICE,
-            FrameType.REQUEST_PROGRAM_VERSION,
+        if isinstance(frame, Request) and (
+            response := frame.response(data={ATTR_NETWORK: self._network})
         ):
-            self.queue.put_nowait(frame.response(data={ATTR_NETWORK: self._network}))
+            self.queue.put_nowait(response)
 
         super().handle_frame(frame)
 
