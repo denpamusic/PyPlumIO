@@ -158,12 +158,9 @@ class EcoMAX(AddressableDevice):
         For each index, return or create an instance of the mixer class.
         Once done, dispatch the 'mixers' event without waiting.
         """
-        mixers = self.data.setdefault(ATTR_MIXERS, {})
+        mixers: dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
         for index in indexes:
-            if index not in mixers:
-                mixers[index] = Mixer(self.queue, parent=self, index=index)
-
-            yield mixers[index]
+            yield mixers.setdefault(index, Mixer(self.queue, parent=self, index=index))
 
         return self.dispatch_nowait(ATTR_MIXERS, mixers)
 
@@ -174,12 +171,11 @@ class EcoMAX(AddressableDevice):
         class. Once done, dispatch the 'thermostats' event without
         waiting.
         """
-        thermostats = self.data.setdefault(ATTR_THERMOSTATS, {})
+        thermostats: dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
         for index in indexes:
-            if index not in thermostats:
-                thermostats[index] = Thermostat(self.queue, parent=self, index=index)
-
-            yield thermostats[index]
+            yield thermostats.setdefault(
+                index, Thermostat(self.queue, parent=self, index=index)
+            )
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
