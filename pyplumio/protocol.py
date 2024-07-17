@@ -88,8 +88,7 @@ class DummyProtocol(Protocol):
         if self.connected.is_set():
             self.connected.clear()
             await self.close_writer()
-            for callback in self.on_connection_lost:
-                await callback()
+            await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
