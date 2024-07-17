@@ -178,9 +178,7 @@ class AddressableDevice(Device, ABC):
     @classmethod
     async def create(cls, device_type: int, **kwargs: Any) -> AddressableDevice:
         """Create a device handler object."""
-        return await create_instance(
-            get_device_handler(device_type), cls=AddressableDevice, **kwargs
-        )
+        return await create_instance(get_device_handler(device_type), cls=cls, **kwargs)
 
 
 class SubDevice(Device, ABC):
