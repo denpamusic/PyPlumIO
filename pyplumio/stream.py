@@ -100,8 +100,8 @@ class FrameReader:
         """Read the frame and return corresponding handler object.
 
         Raise pyplumio.ReadError on unexpected frame length or
-        incomplete frame and pyplumio.ChecksumError on incorrect frame
-        checksum.
+        incomplete frame and pyplumio. Raise ChecksumError on incorrect
+        frame checksum.
         """
         (
             header_bytes,

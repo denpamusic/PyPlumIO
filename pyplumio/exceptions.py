@@ -11,25 +11,25 @@ class ConnectionFailedError(PyPlumIOError):
     """Raised on connection failure."""
 
 
-class UnknownDeviceError(PyPlumIOError):
-    """Raised on unsupported device."""
+class ProtocolError(PyPlumIOError):
+    """Base class for protocol-related errors."""
 
 
-class ReadError(PyPlumIOError):
+class ReadError(ProtocolError):
     """Raised on read error."""
 
 
-class FrameError(PyPlumIOError):
-    """Base class for frame errors."""
+class ChecksumError(ProtocolError):
+    """Raised on incorrect frame checksum."""
 
 
-class ChecksumError(FrameError):
-    """Raised on checksum error while parsing frame content."""
+class UnknownDeviceError(ProtocolError):
+    """Raised on unknown device."""
 
 
-class UnknownFrameError(FrameError):
+class UnknownFrameError(ProtocolError):
     """Raised on unknown frame type."""
 
 
-class FrameDataError(FrameError):
+class FrameDataError(ProtocolError):
     """Raised on incorrect frame data."""

@@ -10,9 +10,10 @@ from pyplumio.const import ATTR_CONNECTED, DeviceType, EncryptionType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import (
     FrameDataError,
-    FrameError,
+    ProtocolError,
     ReadError,
     UnknownDeviceError,
+    UnknownFrameError,
 )
 from pyplumio.frames import Response
 from pyplumio.frames.requests import (
@@ -252,29 +253,31 @@ async def test_async_protocol_frame_producer(
     async_protocol: AsyncProtocol, bypass_asyncio_events, caplog
 ) -> None:
     """Test a frame producer task within an async protocol."""
-    response = Response(sender=DeviceType.ECOMAX)
+    success = Response(sender=DeviceType.ECOMAX)
+    responses = (
+        success,
+        ProtocolError("test protocol error"),
+        UnknownDeviceError("test unknown device error"),
+        UnknownFrameError("test unknown frame error"),
+        ReadError("test read error"),
+        FrameDataError("test frame data error"),
+        Exception("test generic error"),
+        ConnectionError,
+    )
 
     # Create mock frame reader and writer.
     mock_reader = AsyncMock(spec=FrameReader)
-    mock_reader.read = AsyncMock(
-        side_effect=(
-            response,
-            FrameError("test frame error"),
-            UnknownDeviceError("test unknown device error"),
-            ReadError("test read error"),
-            FrameDataError("test frame data error"),
-            Exception("test generic error"),
-            ConnectionError,
-        )
-    )
-
+    mock_reader.read = AsyncMock(side_effect=responses)
     mock_writer = AsyncMock(spec=FrameWriter)
 
     # Create mock queues.
     mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue.empty = Mock(
-        side_effect=(False, True, True, True, True, True, True)
+        side_effect=(
+            False,
+            *(True for _ in range(len(responses) - 1)),
+        )
     )
     mock_write_queue.get = AsyncMock(return_value="test_request")
 
@@ -295,12 +298,17 @@ async def test_async_protocol_frame_producer(
         (
             "pyplumio.protocol",
             logging.DEBUG,
-            "Can't process received frame: test frame error",
+            "Can't process received frame: test protocol error",
         ),
         (
             "pyplumio.protocol",
             logging.DEBUG,
             "Can't process received frame: test unknown device error",
+        ),
+        (
+            "pyplumio.protocol",
+            logging.DEBUG,
+            "Can't process received frame: test unknown frame error",
         ),
         (
             "pyplumio.protocol",
@@ -321,11 +329,11 @@ async def test_async_protocol_frame_producer(
 
     mock_writer.write.assert_awaited_once_with("test_request")
     mock_write_queue.task_done.assert_called_once()
-    mock_read_queue.put_nowait.assert_called_once_with(response)
+    mock_read_queue.put_nowait.assert_called_once_with(success)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
-    assert mock_write_queue.empty.call_count == 7
-    assert mock_reader.read.await_count == 7
+    assert mock_write_queue.empty.call_count == 8
+    assert mock_reader.read.await_count == 8
 
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
