@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import TypeVar
 
 
-def to_camelcase(text: str, overrides: dict[str, str] | None = None) -> str:
+def to_camelcase(text: str, overrides: Mapping[str, str] | None = None) -> str:
     """Convert snake_case to CamelCase."""
-    if overrides is None:
+    if not overrides:
         return "".join((x.capitalize() or "_") for x in text.split("_"))
 
     return "".join(
