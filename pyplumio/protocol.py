@@ -111,7 +111,7 @@ class Queues:
         await asyncio.gather(self.read.join(), self.write.join())
 
 
-class AsyncProtocol(Protocol, EventManager):
+class AsyncProtocol(Protocol, EventManager[AddressableDevice]):
     """Represents an async protocol.
 
     This protocol implements producer-consumers pattern using
@@ -128,7 +128,6 @@ class AsyncProtocol(Protocol, EventManager):
     """
 
     consumers_count: int
-    data: dict[str, AddressableDevice]
     _network: NetworkInfo
     _queues: Queues
 

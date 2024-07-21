@@ -1,5 +1,6 @@
 """Contains tests for the event manager."""
 
+from typing import Any
 from unittest.mock import AsyncMock, call, patch
 
 import pytest
@@ -10,7 +11,7 @@ from pyplumio.helpers.event_manager import EventManager
 @pytest.fixture(name="event_manager")
 def fixture_event_manager() -> EventManager:
     """Return an event manager object."""
-    event_manager = EventManager()
+    event_manager = EventManager[Any]()
     event_manager.data = {"test_key": "test_value"}
     return event_manager
 
