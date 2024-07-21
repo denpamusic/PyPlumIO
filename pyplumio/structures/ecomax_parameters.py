@@ -101,6 +101,8 @@ class EcomaxParameter(Parameter):
 class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
     """Represents an ecoMAX binary parameter."""
 
+    __slots__ = ()
+
 
 @dataclass
 class EcomaxParameterDescription(ParameterDescription):
