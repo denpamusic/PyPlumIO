@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import MutableMapping
 import logging
 from typing import Any, Final, cast
 
@@ -36,7 +35,7 @@ class Connection(ABC, TaskManager):
 
     _protocol: Protocol
     _reconnect_on_failure: bool
-    _kwargs: MutableMapping[str, Any]
+    _kwargs: dict[str, Any]
 
     def __init__(
         self,
