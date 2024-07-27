@@ -6,49 +6,38 @@ import pytest
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    BinaryParameter,
+    SET_RETRIES,
+    Number,
+    NumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
+    Switch,
+    SwitchDescription,
     check_parameter,
 )
 
 
-class TestParameter(Parameter):
-    """Represents a concrete implementation of the parameter class."""
-
-    __test__: bool = False
-
-    async def create_request(self) -> Request:
-        """Create a request to change the parameter."""
-        return Request()
-
-
-class TestBinaryParameter(BinaryParameter, TestParameter):
-    """Represents a concrete implementation of the binary parameter class."""
-
-
-@pytest.fixture(name="parameter")
-def fixture_parameter(ecomax: EcoMAX) -> Parameter:
-    """Return a parameter object."""
-    return TestParameter(
+@pytest.fixture(name="number")
+def fixture_number(ecomax: EcoMAX) -> Number:
+    """Return a numerical parameter object."""
+    return Number(
         device=ecomax,
         values=ParameterValues(value=1, min_value=0, max_value=5),
-        description=ParameterDescription(
-            name="test_parameter", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        description=NumberDescription(
+            name="test_number", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
     )
 
 
-@pytest.fixture(name="binary_parameter")
-def fixture_binary_parameter(ecomax: EcoMAX) -> BinaryParameter:
-    """Return a binary parameter object."""
-    return TestBinaryParameter(
+@pytest.fixture(name="switch")
+def fixture_switch(ecomax: EcoMAX) -> Switch:
+    """Return a switch object."""
+    return Switch(
         device=ecomax,
         values=ParameterValues(value=0, min_value=0, max_value=1),
-        description=ParameterDescription(name="test_binary_parameter"),
+        description=SwitchDescription(name="test_switch"),
     )
 
 
@@ -66,173 +55,246 @@ def test_check_parameter_invalid() -> None:
     )
 
 
-def test_create_or_update_parameter(ecomax: EcoMAX, parameter: Parameter) -> None:
-    """Test creating or updating parameter."""
+@pytest.mark.parametrize(
+    ("handler", "description", "values"),
+    [
+        (
+            Number,
+            NumberDescription(
+                name="test_number", unit_of_measurement=UnitOfMeasurement.CELSIUS
+            ),
+            ParameterValues(value=3, min_value=0, max_value=5),
+        ),
+        (
+            Switch,
+            SwitchDescription(name="test_switch"),
+            ParameterValues(value=0, min_value=0, max_value=1),
+        ),
+    ],
+)
+def test_create_or_update_parameter(
+    ecomax: EcoMAX,
+    handler: type[Parameter],
+    description: ParameterDescription,
+    values: ParameterValues,
+) -> None:
+    """Test creating or updating a parameter."""
     with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
-        parameter = TestParameter.create_or_update(
-            device=ecomax,
-            description=parameter.description,
-            values=ParameterValues(value=3, min_value=0, max_value=5),
+        parameter = handler.create_or_update(
+            device=ecomax, description=description, values=values
         )
 
     mock_update.assert_not_called()
-    assert parameter.value == 3
-    assert isinstance(parameter, TestParameter)
+    assert isinstance(parameter, handler)
 
     # Test updating an existing parameter.
-    ecomax.data["test_parameter"] = parameter
+    ecomax.data[description.name] = parameter
     with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
-        TestParameter.create_or_update(
-            device=ecomax,
-            description=parameter.description,
-            values=ParameterValues(value=5, min_value=0, max_value=5),
-        )
+        handler.create_or_update(device=ecomax, description=description, values=values)
 
     mock_update.assert_called_once()
 
 
-async def test_parameter_values(parameter: Parameter) -> None:
-    """Test the parameter values."""
-    assert parameter.value == 1
-    assert parameter.min_value == 0
-    assert parameter.max_value == 5
+async def test_number_values(number: Number) -> None:
+    """Test the number values."""
+    assert number.value == 1
+    assert number.min_value == 0
+    assert number.max_value == 5
 
 
-async def test_base_parameter_request(ecomax: EcoMAX) -> None:
-    """Test that a base class request throws not implemented error."""
-    parameter = Parameter(
-        device=ecomax,
-        values=ParameterValues(value=1, min_value=0, max_value=5),
-        description=ParameterDescription(name="test_parameter"),
-    )
-
-    with pytest.raises(NotImplementedError):
-        assert not await parameter.create_request()
+async def test_switch_value(switch: Switch) -> None:
+    """Test the switch values."""
+    assert switch.value == STATE_OFF
+    assert switch.min_value == STATE_OFF
+    assert switch.max_value == STATE_ON
 
 
-async def test_parameter_set(parameter: Parameter, bypass_asyncio_sleep) -> None:
-    """Test setting a parameter."""
-    await parameter.set(5)
-    parameter.update(ParameterValues(5, 0, 5))
-    assert parameter == 5
-    assert not parameter.pending_update
+async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
+    """Test setting a number."""
+    await number.set(5)
+    number.update(ParameterValues(value=5, min_value=0, max_value=5))
+    assert number == 5
+    assert not number.pending_update
     with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
-        assert await parameter.set(3)
+        assert await number.set(3)
 
-    assert parameter == 3
+    assert number == 3
+
+    # Test out of range.
+    with pytest.raises(ValueError):
+        await number.set(39)
+
+
+async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
+    """Test setting a number."""
+    await switch.set(STATE_ON)
+    switch.update(ParameterValues(value=1, min_value=0, max_value=1))
+    assert switch == 1
+    assert not switch.pending_update
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
+        assert await switch.set(STATE_OFF)
+
+    assert switch == 0
 
 
 @patch("pyplumio.devices.Device.create_task")
-@patch("pyplumio.helpers.parameter.Parameter.set", new_callable=Mock)
-async def test_parameter_set_nowait(mock_set, mock_create_task, parameter: Parameter):
-    """Test setting a parameter without waiting for result."""
-    parameter.set_nowait(1)
-    await parameter.device.wait_until_done()
+@patch("pyplumio.helpers.parameter.Number.set", new_callable=Mock)
+async def test_number_set_nowait(mock_set, mock_create_task, number: Number):
+    """Test setting a number without waiting for result."""
+    number.set_nowait(1)
+    await number.device.wait_until_done()
     mock_create_task.assert_called_once()
-    mock_set.assert_called_once_with(1, 5)
+    mock_set.assert_called_once_with(1, SET_RETRIES)
 
 
-async def test_parameter_set_out_of_range(parameter: Parameter) -> None:
-    """Test setting a parameter with value out of allowed range."""
-    with pytest.raises(ValueError):
-        await parameter.set(39)
+@patch("pyplumio.devices.Device.create_task")
+@patch("pyplumio.helpers.parameter.Switch.set", new_callable=Mock)
+async def test_switch_set_nowait(mock_set, mock_create_task, switch: Switch):
+    """Test setting a number without waiting for result."""
+    switch.set_nowait(STATE_ON)
+    await switch.device.wait_until_done()
+    mock_create_task.assert_called_once()
+    mock_set.assert_called_once_with(STATE_ON, SET_RETRIES)
 
 
-def test_parameter_update(parameter: Parameter) -> None:
-    """Test updating parameter values."""
-    parameter.update(ParameterValues(1, 0, 5))
-    assert parameter.value == 1
+def test_number_update(number: Number) -> None:
+    """Test updating a number values."""
+    number.update(ParameterValues(value=1, min_value=0, max_value=5))
+    assert number.value == 1
 
 
-def test_parameter_relational(parameter: Parameter):
-    """Test parameter relational methods."""
-    assert (parameter - 1) == 0
-    assert (parameter + 1) == 2
-    assert (parameter * 5) == 5
-    assert (parameter / 1) == 1
-    assert (parameter // 1) == 1
+def test_switch_update(switch: Switch) -> None:
+    """Test updating a switch values."""
+    switch.update(ParameterValues(value=1, min_value=0, max_value=1))
+    assert switch.value == STATE_ON
 
 
-def test_parameter_compare(parameter: Parameter) -> None:
-    """Test parameter comparison."""
-    assert parameter == 1
-    parameter_values = ParameterValues(value=1, min_value=0, max_value=5)
-    assert parameter == parameter_values
-    assert not parameter != parameter_values
-    assert parameter < 2
-    assert parameter > 0
-    assert 0 <= parameter <= 1
+def test_number_relational(number: Number):
+    """Test number relational methods."""
+    assert (number - 1) == 0
+    assert (number + 1) == 2
+    assert (number * 5) == 5
+    assert (number / 1) == 1
+    assert (number // 1) == 1
 
 
-def test_parameter_int(parameter: Parameter) -> None:
-    """Test parameter conversion to an integer."""
-    assert int(parameter) == 1
+def test_switch_relational(switch: Switch):
+    """Test switch relational methods."""
+    assert (switch + 1) == 1
+    switch.update(ParameterValues(value=1, min_value=0, max_value=0))
+    assert (switch - 1) == 0
+    assert (switch * 0) == 0
+    assert (switch / 1) == 1
+    assert (switch // 1) == 1
 
 
-def test_parameter_repr(parameter: Parameter) -> None:
-    """Test a parameter representation."""
-    assert repr(parameter) == (
-        "TestParameter(device=EcoMAX, "
-        "description=ParameterDescription(name='test_parameter', "
+def test_number_compare(number: Number) -> None:
+    """Test number comparison."""
+    assert number == 1
+    values = ParameterValues(value=1, min_value=0, max_value=5)
+    assert number == values
+    assert not number != values
+    assert number < 2
+    assert number > 0
+    assert 0 <= number <= 1
+
+
+def test_switch_compare(switch: Switch) -> None:
+    """Test switch comparison."""
+    assert switch == 0
+    values = ParameterValues(value=0, min_value=0, max_value=1)
+    assert switch == values
+    assert not switch != values
+    assert switch < 2
+    switch.update(ParameterValues(value=1, min_value=0, max_value=0))
+    assert switch > 0
+    assert 0 <= switch <= 1
+
+
+def test_number_int(number: Number) -> None:
+    """Test number conversion to an integer."""
+    assert int(number) == 1
+
+
+def test_switch_int(switch: Switch) -> None:
+    """Test switch conversion to an integer."""
+    assert int(switch) == 0
+
+
+def test_number_repr(number: Number) -> None:
+    """Test a number representation."""
+    assert repr(number) == (
+        "Number(device=EcoMAX, "
+        "description=NumberDescription(name='test_number', "
         "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
         "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "index=0)"
     )
 
 
+def test_switch_repr(switch: Switch) -> None:
+    """Test a number representation."""
+    assert repr(switch) == (
+        "Switch(device=EcoMAX, "
+        "description=SwitchDescription(name='test_switch'), "
+        "values=ParameterValues(value=0, min_value=0, max_value=1), "
+        "index=0)"
+    )
+
+
 @patch("asyncio.Queue.put")
-async def test_parameter_request_with_unchanged_value(
-    mock_put, parameter: Parameter, bypass_asyncio_sleep, caplog
+async def test_number_request_with_unchanged_value(
+    mock_put, number: Number, bypass_asyncio_sleep, caplog
 ) -> None:
     """Test that a frame doesn't get dispatched if it's value is unchanged."""
-    assert not parameter.pending_update
-    assert not await parameter.set(5, retries=3)
-    assert parameter.pending_update
+    assert not number.pending_update
+    assert not await number.set(5, retries=3)
+    assert number.pending_update
     assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
-    assert "Timed out while trying to set 'test_parameter' parameter" in caplog.text
-    await parameter.set(5)
+    assert "Timed out while trying to set 'test_number' parameter" in caplog.text
+    await number.set(5)
     mock_put.assert_not_awaited()
 
 
-@patch("pyplumio.helpers.parameter.BinaryParameter.set")
-async def test_binary_parameter_turn_on(
-    mock_set, binary_parameter: BinaryParameter
+@patch("asyncio.Queue.put")
+async def test_switch_request_with_unchanged_value(
+    mock_put, switch: Switch, bypass_asyncio_sleep, caplog
 ) -> None:
+    """Test that a frame doesn't get dispatched if it's value is unchanged."""
+    assert not switch.pending_update
+    assert not await switch.set(True, retries=3)
+    assert switch.pending_update
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
+    mock_put.reset_mock()
+    assert "Timed out while trying to set 'test_switch' parameter" in caplog.text
+    await switch.set(True)
+    mock_put.assert_not_awaited()
+
+
+@patch("pyplumio.helpers.parameter.Switch.set")
+async def test_switch_turn_on(mock_set, switch: Switch) -> None:
     """Test that a binary parameter can be turned on."""
-    await binary_parameter.turn_on()
+    await switch.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
 
 
-@patch("pyplumio.helpers.parameter.BinaryParameter.set")
-async def test_binary_parameter_turn_off(
-    mock_set, binary_parameter: BinaryParameter
-) -> None:
+@patch("pyplumio.helpers.parameter.Switch.set")
+async def test_switch_turn_off(mock_set, switch: Switch) -> None:
     """Test that a binary parameter can be turned off."""
-    await binary_parameter.turn_off()
+    await switch.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)
 
 
-@patch("pyplumio.helpers.parameter.BinaryParameter.set_nowait")
-async def test_binary_parameter_turn_on_nowait(
-    mock_set_nowait, binary_parameter: BinaryParameter
-) -> None:
-    """Test that a binary parameter can be turned on without waiting."""
-    binary_parameter.turn_on_nowait()
+@patch("pyplumio.helpers.parameter.Switch.set_nowait")
+async def test_binary_parameter_turn_on_nowait(mock_set_nowait, switch: Switch) -> None:
+    """Test that a switch can be turned on without waiting."""
+    switch.turn_on_nowait()
     mock_set_nowait.assert_called_once_with(STATE_ON)
 
 
-@patch("pyplumio.helpers.parameter.BinaryParameter.set_nowait")
-async def test_binary_parameter_turn_off_nowait(
-    mock_set_nowait, binary_parameter: BinaryParameter
-) -> None:
-    """Test that a binary parameter can be turned off without waiting."""
-    binary_parameter.turn_off_nowait()
+@patch("pyplumio.helpers.parameter.Switch.set_nowait")
+async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
+    """Test that a switch can be turned off without waiting."""
+    switch.turn_off_nowait()
     mock_set_nowait.assert_called_once_with(STATE_OFF)
-
-
-async def test_binary_parameter_values(binary_parameter: BinaryParameter) -> None:
-    """Test a binary parameter values."""
-    assert binary_parameter.value == STATE_OFF
-    assert binary_parameter.min_value == STATE_OFF
-    assert binary_parameter.max_value == STATE_ON

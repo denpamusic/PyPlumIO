@@ -11,9 +11,9 @@ from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     THERMOSTAT_PARAMETERS,
-    ThermostatBinaryParameter,
-    ThermostatBinaryParameterDescription,
-    ThermostatParameter,
+    ThermostatNumber,
+    ThermostatSwitch,
+    ThermostatSwitchDescription,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
@@ -57,9 +57,9 @@ class Thermostat(SubDevice):
             for index, values in parameters:
                 description = THERMOSTAT_PARAMETERS[index]
                 handler = (
-                    ThermostatBinaryParameter
-                    if isinstance(description, ThermostatBinaryParameterDescription)
-                    else ThermostatParameter
+                    ThermostatSwitch
+                    if isinstance(description, ThermostatSwitchDescription)
+                    else ThermostatNumber
                 )
                 yield self.dispatch(
                     description.name,

@@ -16,12 +16,14 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    BinaryParameter,
-    BinaryParameterDescription,
+    SET_TIMEOUT,
+    Number,
+    NumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
-    ParameterValueType,
+    Switch,
+    SwitchDescription,
     unpack_parameter,
 )
 from pyplumio.structures import StructureDecoder
@@ -44,7 +46,7 @@ class ThermostatParameter(Parameter):
     __slots__ = ("offset",)
 
     device: Thermostat
-    description: ThermostatParameterDescription
+    description: ThermostatNumberDescription
     offset: int
 
     def __init__(
@@ -74,34 +76,6 @@ class ThermostatParameter(Parameter):
             },
         )
 
-    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set a parameter value."""
-        if isinstance(value, (int, float)):
-            value = int(value / self.description.multiplier)
-
-        return await super().set(value, retries)
-
-    @property
-    def value(self) -> ParameterValueType:
-        """Return the parameter value."""
-        return self.values.value * self.description.multiplier
-
-    @property
-    def min_value(self) -> ParameterValueType:
-        """Return the minimum allowed value."""
-        return self.values.min_value * self.description.multiplier
-
-    @property
-    def max_value(self) -> ParameterValueType:
-        """Return the maximum allowed value."""
-        return self.values.max_value * self.description.multiplier
-
-
-class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
-    """Represents a thermostat binary parameter."""
-
-    __slots__ = ()
-
 
 @dataclass
 class ThermostatParameterDescription(ParameterDescription):
@@ -112,81 +86,120 @@ class ThermostatParameterDescription(ParameterDescription):
 
 
 @dataclass
-class ThermostatBinaryParameterDescription(
-    ThermostatParameterDescription, BinaryParameterDescription
-):
-    """Represents a thermostat binary parameter description."""
+class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
+    """Represent a Number thermostat parameter description."""
+
+
+class ThermostatNumber(ThermostatParameter, Number):
+    """Represents a Number thermostat parameter."""
+
+    __slots__ = ()
+
+    description: ThermostatNumberDescription
+
+    async def set(self, value: int | float, retries: int = SET_TIMEOUT) -> bool:
+        """Set a parameter value."""
+        value = value / self.description.multiplier
+        return await super().set(value, retries)
+
+    @property
+    def value(self) -> float:
+        """Return the parameter value."""
+        return self.values.value * self.description.multiplier
+
+    @property
+    def min_value(self) -> float:
+        """Return the minimum allowed value."""
+        return self.values.min_value * self.description.multiplier
+
+    @property
+    def max_value(self) -> float:
+        """Return the maximum allowed value."""
+        return self.values.max_value * self.description.multiplier
+
+
+@dataclass
+class ThermostatSwitchDescription(SwitchDescription, ThermostatNumberDescription):
+    """Represents a thermostat switch description."""
+
+
+class ThermostatSwitch(ThermostatParameter, Switch):
+    """Represents a thermostat switch."""
+
+    __slots__ = ()
+
+    description: ThermostatSwitchDescription
 
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="mode",
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="party_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="holidays_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="correction",
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="away_timer",
         unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="airing_timer",
         unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="party_timer",
         unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="holidays_timer",
         unit_of_measurement=UnitOfMeasurement.DAYS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="hysteresis",
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="day_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="night_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="antifreeze_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="heating_target_temp",
         size=2,
         multiplier=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="heating_timer",
     ),
-    ThermostatParameterDescription(
+    ThermostatNumberDescription(
         name="off_timer",
     ),
 )

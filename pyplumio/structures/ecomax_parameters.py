@@ -19,12 +19,14 @@ from pyplumio.const import (
 from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    BinaryParameter,
-    BinaryParameterDescription,
+    SET_TIMEOUT,
+    Number,
+    NumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
-    ParameterValueType,
+    Switch,
+    SwitchDescription,
     unpack_parameter,
 )
 from pyplumio.structures import StructureDecoder
@@ -35,6 +37,14 @@ ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
 ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
 
 ECOMAX_PARAMETER_SIZE: Final = 3
+
+
+@dataclass
+class EcomaxParameterDescription(ParameterDescription):
+    """Represents an ecoMAX parameter description."""
+
+    multiplier: float = 1
+    offset: int = 0
 
 
 class EcomaxParameter(Parameter):
@@ -69,741 +79,744 @@ class EcomaxParameter(Parameter):
             frame_type, recipient=self.device.address, data=data
         )
 
-    async def set(self, value: ParameterValueType, retries: int = 5) -> bool:
-        """Set a parameter value."""
-        if isinstance(value, (int, float)):
-            value = int((value + self.description.offset) / self.description.multiplier)
 
+@dataclass
+class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
+    """Represents an ecoMAX Number description."""
+
+
+class EcomaxNumber(EcomaxParameter, Number):
+    """Represents a Number ecoMAX parameter."""
+
+    __slots__ = ()
+
+    description: EcomaxNumberDescription
+
+    async def set(self, value: float | int, retries: int = SET_TIMEOUT) -> bool:
+        """Set a parameter value."""
+        value = (value + self.description.offset) / self.description.multiplier
         return await super().set(value, retries)
 
     @property
-    def value(self) -> ParameterValueType:
+    def value(self) -> float:
         """Return the parameter value."""
         return (
             self.values.value - self.description.offset
         ) * self.description.multiplier
 
     @property
-    def min_value(self) -> ParameterValueType:
+    def min_value(self) -> float:
         """Return the minimum allowed value."""
         return (
             self.values.min_value - self.description.offset
         ) * self.description.multiplier
 
     @property
-    def max_value(self) -> ParameterValueType:
+    def max_value(self) -> float:
         """Return the maximum allowed value."""
         return (
             self.values.max_value - self.description.offset
         ) * self.description.multiplier
 
 
-class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
+@dataclass
+class EcomaxSwitchDescription(EcomaxParameterDescription, SwitchDescription):
+    """Represents an ecoMAX switch description."""
+
+
+class EcomaxSwitch(EcomaxParameter, Switch):
     """Represents an ecoMAX binary parameter."""
 
     __slots__ = ()
 
-
-@dataclass
-class EcomaxParameterDescription(ParameterDescription):
-    """Represents an ecoMAX parameter description."""
-
-    multiplier: float = 1
-    offset: int = 0
-
-
-@dataclass
-class EcomaxBinaryParameterDescription(
-    EcomaxParameterDescription, BinaryParameterDescription
-):
-    """Represents an ecoMAX binary parameter description."""
+    description: EcomaxSwitchDescription
 
 
 ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ProductType.ECOMAX_P: (
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_power_100",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_power_50",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_power_30",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="boiler_power_100",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="boiler_power_50",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="boiler_power_30",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_fan_boiler_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_fan_boiler_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_work_100",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_work_50",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_work_30",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_pause_100",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_pause_50",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_feeding_pause_30",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="cycle_duration",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="h2_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="h1_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="heating_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="fuzzy_logic",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_fuzzy_logic_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_fuzzy_logic_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_boiler_power",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_boiler_power",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_fan_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_fan_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="reduction_airflow_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fan_power_gain",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuzzy_logic_fuel_flow_correction",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_flow_correction",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_correction_100",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feeder_correction_100",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_correction_50",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feeder_correction_50",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="airflow_correction_30",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feeder_correction_30",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="grate_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="grate_heating_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_airflow_work",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_airflow_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="grate_heating_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="grate_fuel_detection_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_low_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_airflow_delay",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_test_time",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_feeder_work",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_feeder_dose",
             unit_of_measurement=UnitOfMeasurement.GRAMS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="warming_up_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_finish_exhaust_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_finish_threshold_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_fumes_delta_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_delta_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="kindling_min_power_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="stabilization_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="stabilization_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_feeder_work",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_feeder_dose",
             unit_of_measurement=UnitOfMeasurement.GRAMS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_feeder_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_cycle_duration",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_fan_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="supervision_fan_work",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="increase_fan_support_mode",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_max_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_min_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_airflow_work",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_airflow_pause",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="start_burning_off",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="stop_burning_off",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="cleaning_begin_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="burning_off_cleaning_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="cleaning_airflow_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="warming_up_pause_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="warming_up_cycle_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="remind_time",
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="lambda_control",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="lambda_correction_range",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="oxygen_100",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="oxygen_50",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="oxygen_30",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuzzy_logic_oxygen_correction",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_fuel_flow",
             multiplier=0.1,
             unit_of_measurement=UnitOfMeasurement.KILOGRAMS_PER_HOUR,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feeder_calibration",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_factor",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_calorific_value",
             multiplier=0.1,
             unit_of_measurement=UnitOfMeasurement.KILO_WATT_HOUR_PER_KILOGRAM,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_detection_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="fuel_detection_exhaust_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="schedule_feeder_2",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_h1",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_h2",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_h3",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_h4",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_work",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="feed2_pause",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="heating_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_heating_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_heating_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="heating_pump_enable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="pause_heating_for_water_heater",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="thermostat_pause",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="thermostat_work",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="increase_heating_temp_for_water_heater",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="weather_control",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="heating_curve",
             multiplier=0.1,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="heating_curve_shift",
             offset=20,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="weather_factor",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="thermostat_operation",
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="thermostat_mode",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="thermostat_decrease_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="disable_pump_on_thermostat",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="boiler_alert_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_feeder_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="external_boiler_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="alert_notify",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="pump_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_work_mode",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="water_heater_disinfection",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode_enable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode_disable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_work_extension",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="circulation_control",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_work",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_start_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="buffer_control",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_buffer_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_buffer_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="buffer_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="buffer_load_start",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="buffer_load_stop",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
     ),
     ProductType.ECOMAX_I: (
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="water_heater_priority",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_support",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_work_extension",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="water_heater_disinfection",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="water_heater_work_mode",
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="solar_support",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="solar_pump_on_delta_temp",
             multiplier=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="solar_pump_off_delta_temp",
             multiplier=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_collector_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_collector_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="collector_off_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_pump_revolutions",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="solar_antifreeze",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="circulation_control",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_work",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circulation_start_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="main_heat_source",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="min_main_heat_source_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="max_main_heat_source_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="main_heat_source_hysteresis",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="critical_main_heat_source_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="main_heat_source_pump_extension_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="additional_heat_source",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="main_heat_source_off_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="additional_heat_source_pump_startup_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="hydraulic_diagram",
         ),
-        EcomaxBinaryParameterDescription(
+        EcomaxSwitchDescription(
             name="antifreeze",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="antifreeze_delay",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circuit_lock_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="circuit_work_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="alert_out_c",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="alert_on_out_c",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="thermostat_hysteresis",
             multiplier=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="critial_additional_heat_source_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="automatic_pump_lock_time",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode",
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode_enable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        EcomaxParameterDescription(
+        EcomaxNumberDescription(
             name="summer_mode_disable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
     ),
 }
 
-ECOMAX_CONTROL_PARAMETER = EcomaxBinaryParameterDescription(name=ATTR_ECOMAX_CONTROL)
-THERMOSTAT_PROFILE_PARAMETER = EcomaxParameterDescription(name=ATTR_THERMOSTAT_PROFILE)
+ECOMAX_CONTROL_PARAMETER = EcomaxSwitchDescription(name=ATTR_ECOMAX_CONTROL)
+THERMOSTAT_PROFILE_PARAMETER = EcomaxNumberDescription(name=ATTR_THERMOSTAT_PROFILE)
 
 
 class EcomaxParametersStructure(StructureDecoder):
