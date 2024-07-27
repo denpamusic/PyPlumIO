@@ -35,7 +35,7 @@ test = [
     "codespell==2.3.0",
     "coverage==7.6.0",
     "mypy==1.10.1",
-    "pyserial-asyncio-fast==0.13",
+    "pyserial-asyncio-fast==0.14",
     "pytest==8.2.2",
     "pytest-asyncio==0.23.8",
     "ruff==0.5.2",
