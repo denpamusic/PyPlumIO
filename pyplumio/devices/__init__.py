@@ -63,7 +63,7 @@ class Device(ABC, EventManager):
         :param name: Name of the parameter
         :type name: str
         :param value: New value for the parameter
-        :type value: int | float | bool | Literal["on"] | Literal["off"]
+        :type value: int | float | bool | Literal["off", "on"]
         :param timeout: Wait this amount of seconds for confirmation,
             defaults to `None`
         :type timeout: float, optional
@@ -95,7 +95,7 @@ class Device(ABC, EventManager):
         :param name: Name of the parameter
         :type name: str
         :param value: New value for the parameter
-        :type value: int | float | bool | Literal["on"] | Literal["off"]
+        :type value: int | float | bool | Literal["off", "on"]
         :param timeout: Wait this amount of seconds for confirmation.
             As this method operates in the background without waiting,
             this value is used to determine failure when

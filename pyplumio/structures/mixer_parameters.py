@@ -35,6 +35,14 @@ ATTR_MIXER_PARAMETERS: Final = "mixer_parameters"
 MIXER_PARAMETER_SIZE: Final = 3
 
 
+@dataclass
+class MixerParameterDescription(ParameterDescription):
+    """Represents a mixer parameter description."""
+
+    multiplier: float = 1
+    offset: int = 0
+
+
 class MixerParameter(Parameter):
     """Represents a mixer parameter."""
 
@@ -84,25 +92,17 @@ class MixerParameter(Parameter):
         ) * self.description.multiplier
 
 
-class MixerBinaryParameter(BinaryParameter, MixerParameter):
-    """Represents a mixer binary parameter."""
-
-    __slots__ = ()
-
-
-@dataclass
-class MixerParameterDescription(ParameterDescription):
-    """Represents a mixer parameter description."""
-
-    multiplier: float = 1
-    offset: int = 0
-
-
 @dataclass
 class MixerBinaryParameterDescription(
     MixerParameterDescription, BinaryParameterDescription
 ):
     """Represents a mixer binary parameter description."""
+
+
+class MixerBinaryParameter(BinaryParameter, MixerParameter):
+    """Represents a mixer binary parameter."""
+
+    __slots__ = ()
 
 
 MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {

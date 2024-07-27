@@ -19,7 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 SET_TIMEOUT: Final = 5
 SET_RETRIES: Final = 5
 
-ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
+ParameterValueType = Union[int, float, bool, Literal["off", "on"]]
+ParameterT = TypeVar("ParameterT", bound="Parameter")
 
 
 def unpack_parameter(
@@ -45,15 +46,12 @@ def check_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-def _normalize_parameter_value(value: ParameterValueType) -> int:
+def _normalize_parameter_value(value: ParameterValues | ParameterValueType) -> int:
     """Normalize a parameter value to an integer."""
     if isinstance(value, str):
         return 1 if value == STATE_ON else 0
 
-    if isinstance(value, ParameterValues):
-        value = value.value
-
-    return int(value)
+    return int(value.value if isinstance(value, ParameterValues) else value)
 
 
 @dataclass
@@ -73,11 +71,6 @@ class ParameterDescription(ABC):
 
     name: str
     unit_of_measurement: UnitOfMeasurement | Literal["%"] | None = None
-
-
-@dataclass
-class BinaryParameterDescription(ParameterDescription, ABC):
-    """Represent a binary parameter description."""
 
 
 class Parameter(ABC):
@@ -253,11 +246,15 @@ class Parameter(ABC):
         return parameter
 
 
-ParameterT = TypeVar("ParameterT", bound=Parameter)
+@dataclass
+class BinaryParameterDescription(ParameterDescription, ABC):
+    """Represents a binary parameter description."""
 
 
 class BinaryParameter(Parameter):
     """Represents binary device parameter."""
+
+    __slots__ = ()
 
     async def turn_on(self) -> bool:
         """Set a parameter value to 'on'.
@@ -286,16 +283,16 @@ class BinaryParameter(Parameter):
         self.set_nowait(STATE_OFF)
 
     @property
-    def value(self) -> ParameterValueType:
+    def value(self) -> Literal["off", "on"]:
         """Return the parameter value."""
         return STATE_ON if self.values.value == 1 else STATE_OFF
 
     @property
-    def min_value(self) -> ParameterValueType:
+    def min_value(self) -> Literal["off"]:
         """Return the minimum allowed value."""
         return STATE_OFF
 
     @property
-    def max_value(self) -> ParameterValueType:
+    def max_value(self) -> Literal["on"]:
         """Return the maximum allowed value."""
         return STATE_ON

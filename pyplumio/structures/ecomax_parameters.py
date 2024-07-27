@@ -37,6 +37,14 @@ ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
 ECOMAX_PARAMETER_SIZE: Final = 3
 
 
+@dataclass
+class EcomaxParameterDescription(ParameterDescription):
+    """Represents an ecoMAX parameter description."""
+
+    multiplier: float = 1
+    offset: int = 0
+
+
 class EcomaxParameter(Parameter):
     """Represents an ecoMAX parameter."""
 
@@ -98,25 +106,17 @@ class EcomaxParameter(Parameter):
         ) * self.description.multiplier
 
 
-class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
-    """Represents an ecoMAX binary parameter."""
-
-    __slots__ = ()
-
-
-@dataclass
-class EcomaxParameterDescription(ParameterDescription):
-    """Represents an ecoMAX parameter description."""
-
-    multiplier: float = 1
-    offset: int = 0
-
-
 @dataclass
 class EcomaxBinaryParameterDescription(
     EcomaxParameterDescription, BinaryParameterDescription
 ):
     """Represents an ecoMAX binary parameter description."""
+
+
+class EcomaxBinaryParameter(BinaryParameter, EcomaxParameter):
+    """Represents an ecoMAX binary parameter."""
+
+    __slots__ = ()
 
 
 ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {

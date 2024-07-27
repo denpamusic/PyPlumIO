@@ -38,6 +38,14 @@ ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
 THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
+@dataclass
+class ThermostatParameterDescription(ParameterDescription):
+    """Represents a thermostat parameter description."""
+
+    multiplier: float = 1.0
+    size: int = 1
+
+
 class ThermostatParameter(Parameter):
     """Represents a thermostat parameter."""
 
@@ -97,25 +105,17 @@ class ThermostatParameter(Parameter):
         return self.values.max_value * self.description.multiplier
 
 
-class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
-    """Represents a thermostat binary parameter."""
-
-    __slots__ = ()
-
-
-@dataclass
-class ThermostatParameterDescription(ParameterDescription):
-    """Represents a thermostat parameter description."""
-
-    multiplier: float = 1.0
-    size: int = 1
-
-
 @dataclass
 class ThermostatBinaryParameterDescription(
     ThermostatParameterDescription, BinaryParameterDescription
 ):
     """Represents a thermostat binary parameter description."""
+
+
+class ThermostatBinaryParameter(BinaryParameter, ThermostatParameter):
+    """Represents a thermostat binary parameter."""
+
+    __slots__ = ()
 
 
 THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
