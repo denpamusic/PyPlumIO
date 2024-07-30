@@ -72,7 +72,7 @@ class MixerNumberDescription(MixerParameterDescription, NumberDescription):
 
 
 class MixerNumber(MixerParameter, Number):
-    """Represents a mixer number parameter."""
+    """Represents a mixer number."""
 
     __slots__ = ()
 
