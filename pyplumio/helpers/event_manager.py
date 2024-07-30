@@ -4,20 +4,21 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Coroutine
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 
 Callback = Callable[[Any], Coroutine[Any, Any, Any]]
 CallbackT = TypeVar("CallbackT", bound=Callback)
+T = TypeVar("T")
 
 
-class EventManager(TaskManager):
+class EventManager(TaskManager, Generic[T]):
     """Represents an event manager."""
 
     __slots__ = ("data", "_events", "_callbacks")
 
-    data: dict[str, Any]
+    data: dict[str, T]
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[Callback]]
 
@@ -28,7 +29,7 @@ class EventManager(TaskManager):
         self._events = {}
         self._callbacks = {}
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> T:
         """Return attributes from the underlying data dictionary."""
         try:
             return self.data[name]
@@ -48,7 +49,7 @@ class EventManager(TaskManager):
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-    async def get(self, name: str, timeout: float | None = None) -> Any:
+    async def get(self, name: str, timeout: float | None = None) -> T:
         """Get the value by name.
 
         :param name: Event name or ID
@@ -61,6 +62,12 @@ class EventManager(TaskManager):
         """
         await self.wait_for(name, timeout=timeout)
         return self.data[name]
+
+    @overload
+    def get_nowait(self, name: str, default: None = ...) -> T | None: ...
+
+    @overload
+    def get_nowait(self, name: str, default: T) -> T: ...
 
     def get_nowait(self, name: str, default: Any = None) -> Any:
         """Get the value by name without waiting.
@@ -136,7 +143,7 @@ class EventManager(TaskManager):
 
         return False
 
-    async def dispatch(self, name: str, value: Any) -> None:
+    async def dispatch(self, name: str, value: T) -> None:
         """Call registered callbacks and dispatch the event."""
         if callbacks := self._callbacks.get(name, None):
             for callback in list(callbacks):
@@ -146,17 +153,17 @@ class EventManager(TaskManager):
         self.data[name] = value
         self.set_event(name)
 
-    def dispatch_nowait(self, name: str, value: Any) -> None:
+    def dispatch_nowait(self, name: str, value: T) -> None:
         """Call a registered callbacks and dispatch the event without waiting."""
         self.create_task(self.dispatch(name, value))
 
-    async def load(self, data: dict[str, Any]) -> None:
+    async def load(self, data: dict[str, T]) -> None:
         """Load event data."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in data.items())
         )
 
-    def load_nowait(self, data: dict[str, Any]) -> None:
+    def load_nowait(self, data: dict[str, T]) -> None:
         """Load event data without waiting."""
         self.create_task(self.load(data))
 
