@@ -112,11 +112,8 @@ class Parameter(ABC):
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""
         handler = getattr(self.values.value, method_to_call)
-        return handler(
-            _normalize_parameter_value(
-                other.value if isinstance(other, ParameterValues) else other
-            )
-        )
+        other = other.value if isinstance(other, ParameterValues) else other
+        return handler(_normalize_parameter_value(other))
 
     def __int__(self) -> int:
         """Return an integer representation of parameter's value."""
