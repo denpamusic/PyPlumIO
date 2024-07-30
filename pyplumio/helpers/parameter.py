@@ -248,7 +248,7 @@ class NumberDescription(ParameterDescription):
 
 
 class Number(Parameter):
-    """Represents a parameter."""
+    """Represents a number."""
 
     __slots__ = ()
 
@@ -263,12 +263,12 @@ class Number(Parameter):
         self.device.create_task(self.set(value, retries))
 
     async def create_request(self) -> Request:
-        """Create a request to change the parameter."""
+        """Create a request to change the number."""
         return Request()
 
     @property
     def value(self) -> int | float:
-        """Return the parameter value."""
+        """Return the value."""
         return self.values.value
 
     @property
@@ -289,11 +289,11 @@ class Number(Parameter):
 
 @dataclass
 class SwitchDescription(ParameterDescription):
-    """Represents a binary parameter description."""
+    """Represents a switch description."""
 
 
 class Switch(Parameter):
-    """Represents a binary parameter."""
+    """Represents a switch."""
 
     __slots__ = ()
 
@@ -308,11 +308,11 @@ class Switch(Parameter):
     def set_nowait(
         self, value: bool | Literal["off", "on"], retries: int = SET_RETRIES
     ) -> None:
-        """Set a parameter value without waiting."""
+        """Set a switch value without waiting."""
         self.device.create_task(self.set(value, retries))
 
     async def turn_on(self) -> bool:
-        """Set a parameter value to 'on'.
+        """Set a switch value to 'on'.
 
         :return: `True` if parameter was successfully turned on, `False`
             otherwise.
@@ -321,7 +321,7 @@ class Switch(Parameter):
         return await self.set(STATE_ON)
 
     async def turn_off(self) -> bool:
-        """Set a parameter value to 'off'.
+        """Set a switch value to 'off'.
 
         :return: `True` if parameter was successfully turned off, `False`
             otherwise.
@@ -330,20 +330,20 @@ class Switch(Parameter):
         return await self.set(STATE_OFF)
 
     def turn_on_nowait(self) -> None:
-        """Set a parameter value to 'on' without waiting."""
+        """Set a switch value to 'on' without waiting."""
         self.set_nowait(STATE_ON)
 
     def turn_off_nowait(self) -> None:
-        """Set a parameter value to 'off' without waiting."""
+        """Set a switch value to 'off' without waiting."""
         self.set_nowait(STATE_OFF)
 
     async def create_request(self) -> Request:
-        """Create a request to change the parameter."""
+        """Create a request to change the switch."""
         return Request()
 
     @property
     def value(self) -> Literal["off", "on"]:
-        """Return the parameter value."""
+        """Return the value."""
         return STATE_ON if self.values.value == 1 else STATE_OFF
 
     @property

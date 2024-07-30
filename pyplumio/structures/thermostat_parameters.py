@@ -87,11 +87,11 @@ class ThermostatParameterDescription(ParameterDescription):
 
 @dataclass
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
-    """Represent a Number thermostat parameter description."""
+    """Represent a thermostat number description."""
 
 
 class ThermostatNumber(ThermostatParameter, Number):
-    """Represents a Number thermostat parameter."""
+    """Represents a thermostat number."""
 
     __slots__ = ()
 
@@ -104,7 +104,7 @@ class ThermostatNumber(ThermostatParameter, Number):
 
     @property
     def value(self) -> float:
-        """Return the parameter value."""
+        """Return the value."""
         return self.values.value * self.description.multiplier
 
     @property

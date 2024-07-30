@@ -274,14 +274,14 @@ async def test_switch_request_with_unchanged_value(
 
 @patch("pyplumio.helpers.parameter.Switch.set")
 async def test_switch_turn_on(mock_set, switch: Switch) -> None:
-    """Test that a binary parameter can be turned on."""
+    """Test that switch can be turned on."""
     await switch.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
 
 
 @patch("pyplumio.helpers.parameter.Switch.set")
 async def test_switch_turn_off(mock_set, switch: Switch) -> None:
-    """Test that a binary parameter can be turned off."""
+    """Test that switch can be turned off."""
     await switch.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)
 

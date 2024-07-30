@@ -41,7 +41,7 @@ MIXER_PARAMETER_SIZE: Final = 3
 class MixerParameterDescription(ParameterDescription):
     """Represents a mixer parameter description."""
 
-    multiplier: float = 1
+    multiplier: float = 1.0
     offset: int = 0
 
 
@@ -68,11 +68,11 @@ class MixerParameter(Parameter):
 
 @dataclass
 class MixerNumberDescription(MixerParameterDescription, NumberDescription):
-    """Represent a Number mixer parameter description."""
+    """Represent a mixer number description."""
 
 
 class MixerNumber(MixerParameter, Number):
-    """Represents a Number mixer parameter."""
+    """Represents a mixer number parameter."""
 
     __slots__ = ()
 

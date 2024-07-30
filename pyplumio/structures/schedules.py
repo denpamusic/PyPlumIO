@@ -88,7 +88,7 @@ class ScheduleParameterDescription(ParameterDescription):
 
 
 class ScheduleParameter(Parameter):
-    """Represents a base schedule parameter."""
+    """Represents a schedule parameter."""
 
     __slots__ = ()
 
@@ -106,11 +106,11 @@ class ScheduleParameter(Parameter):
 
 @dataclass
 class ScheduleNumberDescription(ScheduleParameterDescription, NumberDescription):
-    """Represents a schedule Number parameter description."""
+    """Represents a schedule number description."""
 
 
 class ScheduleNumber(ScheduleParameter, Number):
-    """Represents a Number schedule parameter."""
+    """Represents a schedule number."""
 
     __slots__ = ()
 
@@ -123,9 +123,11 @@ class ScheduleSwitchDescription(ScheduleParameterDescription, SwitchDescription)
 
 
 class ScheduleSwitch(ScheduleParameter, Switch):
-    """Represents a schedule binary parameter."""
+    """Represents a schedule switch."""
 
     __slots__ = ()
+
+    description: ScheduleSwitchDescription
 
 
 SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(

@@ -43,7 +43,7 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 class EcomaxParameterDescription(ParameterDescription):
     """Represents an ecoMAX parameter description."""
 
-    multiplier: float = 1
+    multiplier: float = 1.0
     offset: int = 0
 
 
@@ -82,11 +82,11 @@ class EcomaxParameter(Parameter):
 
 @dataclass
 class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
-    """Represents an ecoMAX Number description."""
+    """Represents an ecoMAX number description."""
 
 
 class EcomaxNumber(EcomaxParameter, Number):
-    """Represents a Number ecoMAX parameter."""
+    """Represents a ecoMAX number."""
 
     __slots__ = ()
 
@@ -99,7 +99,7 @@ class EcomaxNumber(EcomaxParameter, Number):
 
     @property
     def value(self) -> float:
-        """Return the parameter value."""
+        """Return the value."""
         return (
             self.values.value - self.description.offset
         ) * self.description.multiplier
@@ -125,7 +125,7 @@ class EcomaxSwitchDescription(EcomaxParameterDescription, SwitchDescription):
 
 
 class EcomaxSwitch(EcomaxParameter, Switch):
-    """Represents an ecoMAX binary parameter."""
+    """Represents an ecoMAX switch."""
 
     __slots__ = ()
 
