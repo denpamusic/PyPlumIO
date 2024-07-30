@@ -6,9 +6,11 @@ import asyncio
 from collections.abc import Callable, Coroutine
 from typing import Any, Generic, TypeVar, overload
 
+from typing_extensions import TypeAlias
+
 from pyplumio.helpers.task_manager import TaskManager
 
-Callback = Callable[[Any], Coroutine[Any, Any, Any]]
+Callback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
 CallbackT = TypeVar("CallbackT", bound=Callback)
 T = TypeVar("T")
 

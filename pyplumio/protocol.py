@@ -8,6 +8,8 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
 
+from typing_extensions import TypeAlias
+
 from pyplumio.const import ATTR_CONNECTED, DeviceType
 from pyplumio.devices import AddressableDevice
 from pyplumio.exceptions import ProtocolError
@@ -23,7 +25,7 @@ from pyplumio.structures.network_info import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_Callback = Callable[[], Awaitable[None]]
+_Callback: TypeAlias = Callable[[], Awaitable[None]]
 
 
 class Protocol(ABC):
