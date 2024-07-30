@@ -167,8 +167,7 @@ class Parameter(ABC):
 
         if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
-                f"Value must be between '{self.values.min_value}' and "
-                f"'{self.values.max_value}'"
+                f"Value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
         self._values.value = value
@@ -220,6 +219,21 @@ class Parameter(ABC):
             )
 
         return parameter
+
+    @abstractmethod
+    @property
+    def value(self) -> Any:
+        """Return the value."""
+
+    @abstractmethod
+    @property
+    def min_value(self) -> Any:
+        """Return the minimum allowed value."""
+
+    @abstractmethod
+    @property
+    def max_value(self) -> Any:
+        """Return the maximum allowed value."""
 
     @abstractmethod
     async def create_request(self) -> Request:
