@@ -220,18 +220,18 @@ class Parameter(ABC):
 
         return parameter
 
-    @abstractmethod
     @property
+    @abstractmethod
     def value(self) -> Any:
         """Return the value."""
 
-    @abstractmethod
     @property
+    @abstractmethod
     def min_value(self) -> Any:
         """Return the minimum allowed value."""
 
-    @abstractmethod
     @property
+    @abstractmethod
     def max_value(self) -> Any:
         """Return the maximum allowed value."""
 
