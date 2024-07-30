@@ -19,11 +19,13 @@ from pyplumio.devices import AddressableDevice, Device
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    BinaryParameter,
-    BinaryParameterDescription,
+    Number,
+    NumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
+    Switch,
+    SwitchDescription,
     unpack_parameter,
 )
 from pyplumio.structures import Structure
@@ -80,6 +82,11 @@ SCHEDULES: tuple[str, ...] = (
 )
 
 
+@dataclass
+class ScheduleParameterDescription(ParameterDescription):
+    """Represent a schedule parameter description."""
+
+
 class ScheduleParameter(Parameter):
     """Represents a schedule parameter."""
 
@@ -97,32 +104,38 @@ class ScheduleParameter(Parameter):
         )
 
 
-class ScheduleBinaryParameter(ScheduleParameter, BinaryParameter):
-    """Represents a schedule binary parameter."""
+@dataclass
+class ScheduleNumberDescription(ScheduleParameterDescription, NumberDescription):
+    """Represents a schedule number description."""
+
+
+class ScheduleNumber(ScheduleParameter, Number):
+    """Represents a schedule number."""
 
     __slots__ = ()
 
-
-@dataclass
-class ScheduleParameterDescription(ParameterDescription):
-    """Represents a schedule parameter description."""
+    description: ScheduleNumberDescription
 
 
 @dataclass
-class ScheduleBinaryParameterDescription(
-    BinaryParameterDescription, ScheduleParameterDescription
-):
-    """Represents a schedule binary parameter description."""
+class ScheduleSwitchDescription(ScheduleParameterDescription, SwitchDescription):
+    """Represents a schedule switch description."""
+
+
+class ScheduleSwitch(ScheduleParameter, Switch):
+    """Represents a schedule switch."""
+
+    __slots__ = ()
+
+    description: ScheduleSwitchDescription
 
 
 SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
     chain.from_iterable(
         [
             [
-                ScheduleBinaryParameterDescription(
-                    name=f"{name}_{ATTR_SCHEDULE_SWITCH}"
-                ),
-                ScheduleParameterDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
+                ScheduleSwitchDescription(name=f"{name}_{ATTR_SCHEDULE_SWITCH}"),
+                ScheduleNumberDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
             ]
             for name in SCHEDULES
         ]

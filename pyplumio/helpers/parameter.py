@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from abc import ABC
+from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
@@ -19,7 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 SET_TIMEOUT: Final = 5
 SET_RETRIES: Final = 5
 
-ParameterValueType = Union[int, float, bool, Literal["off"], Literal["on"]]
+ParameterValueType = Union[int, float, bool, Literal["off", "on"]]
+ParameterT = TypeVar("ParameterT", bound="Parameter")
 
 
 def unpack_parameter(
@@ -46,12 +47,9 @@ def check_parameter(data: bytearray) -> bool:
 
 
 def _normalize_parameter_value(value: ParameterValueType) -> int:
-    """Normalize a parameter value to an integer."""
-    if isinstance(value, str):
+    """Normalize a parameter value."""
+    if value in (STATE_OFF, STATE_ON):
         return 1 if value == STATE_ON else 0
-
-    if isinstance(value, ParameterValues):
-        value = value.value
 
     return int(value)
 
@@ -68,20 +66,14 @@ class ParameterValues:
 
 
 @dataclass
-class ParameterDescription(ABC):
+class ParameterDescription:
     """Represents a parameter description."""
 
     name: str
-    unit_of_measurement: UnitOfMeasurement | Literal["%"] | None = None
-
-
-@dataclass
-class BinaryParameterDescription(ParameterDescription, ABC):
-    """Represent a binary parameter description."""
 
 
 class Parameter(ABC):
-    """Represents a parameter."""
+    """Represents a base parameter."""
 
     __slots__ = ("device", "description", "_pending_update", "_index", "_values")
 
@@ -118,7 +110,11 @@ class Parameter(ABC):
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""
         handler = getattr(self.values.value, method_to_call)
-        return handler(_normalize_parameter_value(other))
+        return handler(
+            _normalize_parameter_value(
+                other.value if isinstance(other, ParameterValues) else other
+            )
+        )
 
     def __int__(self) -> int:
         """Return an integer representation of parameter's value."""
@@ -164,11 +160,7 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
-    async def create_request(self) -> Request:
-        """Create a request to change the parameter."""
-        raise NotImplementedError
-
-    async def set(self, value: ParameterValueType, retries: int = SET_RETRIES) -> bool:
+    async def set(self, value: Any, retries: int = SET_RETRIES) -> bool:
         """Set a parameter value."""
         if (value := _normalize_parameter_value(value)) == self.values.value:
             return True
@@ -194,10 +186,6 @@ class Parameter(ABC):
 
         return True
 
-    def set_nowait(self, value: ParameterValueType, retries: int = SET_RETRIES) -> None:
-        """Set a parameter value without waiting."""
-        self.device.create_task(self.set(value, retries))
-
     def update(self, values: ParameterValues) -> None:
         """Update the parameter values."""
         self._values = values
@@ -212,26 +200,6 @@ class Parameter(ABC):
     def values(self) -> ParameterValues:
         """Return the parameter values."""
         return self._values
-
-    @property
-    def value(self) -> ParameterValueType:
-        """Return the parameter value."""
-        return self.values.value
-
-    @property
-    def min_value(self) -> ParameterValueType:
-        """Return the minimum allowed value."""
-        return self.values.min_value
-
-    @property
-    def max_value(self) -> ParameterValueType:
-        """Return the maximum allowed value."""
-        return self.values.max_value
-
-    @property
-    def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
-        """Return the unit of measurement."""
-        return self.description.unit_of_measurement
 
     @classmethod
     def create_or_update(
@@ -252,15 +220,99 @@ class Parameter(ABC):
 
         return parameter
 
+    @property
+    @abstractmethod
+    def value(self) -> Any:
+        """Return the value."""
 
-ParameterT = TypeVar("ParameterT", bound=Parameter)
+    @property
+    @abstractmethod
+    def min_value(self) -> Any:
+        """Return the minimum allowed value."""
+
+    @property
+    @abstractmethod
+    def max_value(self) -> Any:
+        """Return the maximum allowed value."""
+
+    @abstractmethod
+    async def create_request(self) -> Request:
+        """Create a request to change the parameter."""
 
 
-class BinaryParameter(Parameter):
-    """Represents binary device parameter."""
+@dataclass
+class NumberDescription(ParameterDescription):
+    """Represents a parameter description."""
+
+    unit_of_measurement: UnitOfMeasurement | Literal["%"] | None = None
+
+
+class Number(Parameter):
+    """Represents a number."""
+
+    __slots__ = ()
+
+    description: NumberDescription
+
+    async def set(self, value: int | float, retries: int = SET_RETRIES) -> bool:
+        """Set a parameter value."""
+        return await super().set(value, retries)
+
+    def set_nowait(self, value: int | float, retries: int = SET_RETRIES) -> None:
+        """Set a parameter value without waiting."""
+        self.device.create_task(self.set(value, retries))
+
+    async def create_request(self) -> Request:
+        """Create a request to change the number."""
+        return Request()
+
+    @property
+    def value(self) -> int | float:
+        """Return the value."""
+        return self.values.value
+
+    @property
+    def min_value(self) -> int | float:
+        """Return the minimum allowed value."""
+        return self.values.min_value
+
+    @property
+    def max_value(self) -> int | float:
+        """Return the maximum allowed value."""
+        return self.values.max_value
+
+    @property
+    def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
+        """Return the unit of measurement."""
+        return self.description.unit_of_measurement
+
+
+@dataclass
+class SwitchDescription(ParameterDescription):
+    """Represents a switch description."""
+
+
+class Switch(Parameter):
+    """Represents a switch."""
+
+    __slots__ = ()
+
+    description: SwitchDescription
+
+    async def set(
+        self, value: bool | Literal["off", "on"], retries: int = SET_RETRIES
+    ) -> bool:
+        """Set a parameter value."""
+        return await super().set(value, retries)
+
+    def set_nowait(
+        self, value: bool | Literal["off", "on"], retries: int = SET_RETRIES
+    ) -> None:
+        """Set a switch value without waiting."""
+        self.device.create_task(self.set(value, retries))
 
     async def turn_on(self) -> bool:
-        """Set a parameter value to 'on'.
+        """Set a switch value to 'on'.
 
         :return: `True` if parameter was successfully turned on, `False`
             otherwise.
@@ -269,7 +321,7 @@ class BinaryParameter(Parameter):
         return await self.set(STATE_ON)
 
     async def turn_off(self) -> bool:
-        """Set a parameter value to 'off'.
+        """Set a switch value to 'off'.
 
         :return: `True` if parameter was successfully turned off, `False`
             otherwise.
@@ -278,24 +330,28 @@ class BinaryParameter(Parameter):
         return await self.set(STATE_OFF)
 
     def turn_on_nowait(self) -> None:
-        """Set a parameter value to 'on' without waiting."""
+        """Set a switch value to 'on' without waiting."""
         self.set_nowait(STATE_ON)
 
     def turn_off_nowait(self) -> None:
-        """Set a parameter value to 'off' without waiting."""
+        """Set a switch value to 'off' without waiting."""
         self.set_nowait(STATE_OFF)
 
+    async def create_request(self) -> Request:
+        """Create a request to change the switch."""
+        return Request()
+
     @property
-    def value(self) -> ParameterValueType:
-        """Return the parameter value."""
+    def value(self) -> Literal["off", "on"]:
+        """Return the value."""
         return STATE_ON if self.values.value == 1 else STATE_OFF
 
     @property
-    def min_value(self) -> ParameterValueType:
+    def min_value(self) -> Literal["off"]:
         """Return the minimum allowed value."""
         return STATE_OFF
 
     @property
-    def max_value(self) -> ParameterValueType:
+    def max_value(self) -> Literal["on"]:
         """Return the maximum allowed value."""
         return STATE_ON

@@ -12,9 +12,9 @@ from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
     MIXER_PARAMETERS,
-    MixerBinaryParameter,
-    MixerBinaryParameterDescription,
-    MixerParameter,
+    MixerNumber,
+    MixerSwitch,
+    MixerSwitchDescription,
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
@@ -78,9 +78,9 @@ class Mixer(SubDevice):
                     return
 
                 handler = (
-                    MixerBinaryParameter
-                    if isinstance(description, MixerBinaryParameterDescription)
-                    else MixerParameter
+                    MixerSwitch
+                    if isinstance(description, MixerSwitchDescription)
+                    else MixerNumber
                 )
                 yield self.dispatch(
                     description.name,

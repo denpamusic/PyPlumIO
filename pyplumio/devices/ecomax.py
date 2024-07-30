@@ -31,9 +31,9 @@ from pyplumio.structures.ecomax_parameters import (
     ECOMAX_CONTROL_PARAMETER,
     ECOMAX_PARAMETERS,
     THERMOSTAT_PROFILE_PARAMETER,
-    EcomaxBinaryParameter,
-    EcomaxBinaryParameterDescription,
-    EcomaxParameter,
+    EcomaxNumber,
+    EcomaxSwitch,
+    EcomaxSwitchDescription,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
@@ -47,9 +47,9 @@ from pyplumio.structures.schedules import (
     ATTR_SCHEDULES,
     SCHEDULE_PARAMETERS,
     SCHEDULES,
-    ScheduleBinaryParameter,
-    ScheduleBinaryParameterDescription,
-    ScheduleParameter,
+    ScheduleNumber,
+    ScheduleSwitch,
+    ScheduleSwitchDescription,
 )
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -209,9 +209,9 @@ class EcoMAX(AddressableDevice):
                     )
 
                 handler = (
-                    EcomaxBinaryParameter
-                    if isinstance(description, EcomaxBinaryParameterDescription)
-                    else EcomaxParameter
+                    EcomaxSwitch
+                    if isinstance(description, EcomaxSwitchDescription)
+                    else EcomaxNumber
                 )
                 yield self.dispatch(
                     description.name,
@@ -325,9 +325,9 @@ class EcoMAX(AddressableDevice):
             for index, values in parameters:
                 description = SCHEDULE_PARAMETERS[index]
                 handler = (
-                    ScheduleBinaryParameter
-                    if isinstance(description, ScheduleBinaryParameterDescription)
-                    else ScheduleParameter
+                    ScheduleSwitch
+                    if isinstance(description, ScheduleSwitchDescription)
+                    else ScheduleNumber
                 )
                 yield self.dispatch(
                     description.name,
@@ -357,7 +357,7 @@ class EcoMAX(AddressableDevice):
         """Create ecoMAX control parameter instance and dispatch an event."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
-            EcomaxBinaryParameter.create_or_update(
+            EcomaxSwitch.create_or_update(
                 description=ECOMAX_CONTROL_PARAMETER,
                 device=self,
                 values=ParameterValues(
@@ -391,12 +391,12 @@ class EcoMAX(AddressableDevice):
 
     async def _add_thermostat_profile_parameter(
         self, values: ParameterValues | None
-    ) -> EcomaxParameter | None:
+    ) -> EcomaxNumber | None:
         """Add thermostat profile parameter to the dataset."""
         if not values:
             return None
 
-        return EcomaxParameter(
+        return EcomaxNumber(
             device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
         )
 
@@ -425,7 +425,7 @@ class EcoMAX(AddressableDevice):
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""
         try:
-            ecomax_control: EcomaxBinaryParameter = self.data[ATTR_ECOMAX_CONTROL]
+            ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
             return await ecomax_control.turn_on()
         except KeyError:
             _LOGGER.error("ecoMAX control isn't available, please try later")
@@ -434,7 +434,7 @@ class EcoMAX(AddressableDevice):
     async def turn_off(self) -> bool:
         """Turn off the ecoMAX controller."""
         try:
-            ecomax_control: EcomaxBinaryParameter = self.data[ATTR_ECOMAX_CONTROL]
+            ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
             return await ecomax_control.turn_off()
         except KeyError:
             _LOGGER.error("ecoMAX control isn't available, please try later")

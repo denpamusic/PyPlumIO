@@ -57,19 +57,20 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
+from pyplumio.helpers.parameter import SET_RETRIES
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ECOMAX_PARAMETERS,
-    EcomaxBinaryParameter,
-    EcomaxParameter,
+    EcomaxNumber,
+    EcomaxSwitch,
 )
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
-    MixerBinaryParameter,
-    MixerParameter,
+    MixerNumber,
+    MixerSwitch,
 )
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import NetworkInfo
@@ -78,13 +79,13 @@ from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
     ATTR_SCHEDULES,
-    ScheduleBinaryParameter,
-    ScheduleParameter,
+    ScheduleNumber,
+    ScheduleSwitch,
 )
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PROFILE,
-    ThermostatParameter,
+    ThermostatNumber,
 )
 from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTAT_SENSORS,
@@ -194,7 +195,7 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     assert heating_target == 41.0
 
     ecomax_control = await ecomax.get(ATTR_ECOMAX_CONTROL)
-    assert isinstance(ecomax_control, EcomaxBinaryParameter)
+    assert isinstance(ecomax_control, EcomaxSwitch)
     assert ecomax_control.value == STATE_OFF
 
     ecomax_control_request = await ecomax_control.create_request()
@@ -231,7 +232,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     ecomax.handle_frame(EcomaxParametersResponse(message=test_data["message"]))
     await ecomax.wait_until_done()
     fuzzy_logic = await ecomax.get("fuzzy_logic")
-    assert isinstance(fuzzy_logic, EcomaxBinaryParameter)
+    assert isinstance(fuzzy_logic, EcomaxSwitch)
     assert fuzzy_logic == STATE_ON
     assert fuzzy_logic.value == STATE_ON
     fuzzy_logic_request = await fuzzy_logic.create_request()
@@ -258,10 +259,11 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     ) as mock_set:
         await heating_heat_curve.set(2.5)
 
-    mock_set.assert_awaited_once_with(25, 5)
+    mock_set.assert_awaited_once_with(25, SET_RETRIES)
 
     # Test parameter with the offset (heating_heat_curve_shift)
-    heating_heat_curve_shift: EcomaxParameter = await ecomax.get("heating_curve_shift")
+    heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
+    assert isinstance(heating_heat_curve_shift, EcomaxNumber)
     assert heating_heat_curve_shift.value == 0.0
     assert heating_heat_curve_shift.min_value == -20.0
     assert heating_heat_curve_shift.max_value == 20.0
@@ -273,7 +275,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     ) as mock_set:
         await heating_heat_curve_shift.set(1)
 
-    mock_set.assert_awaited_once_with(21, 5)
+    mock_set.assert_awaited_once_with(21, SET_RETRIES)
 
 
 async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
@@ -406,7 +408,7 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     thermostat = thermostats[0]
     assert len(thermostat.data) == 13
     party_target_temp = await thermostat.get("party_target_temp")
-    assert isinstance(party_target_temp, ThermostatParameter)
+    assert isinstance(party_target_temp, ThermostatNumber)
     assert isinstance(party_target_temp.device, Thermostat)
     assert party_target_temp.value == 22.0
     assert party_target_temp.min_value == 10.0
@@ -453,7 +455,7 @@ async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     )
     await ecomax.wait_until_done()
     thermostat_profile = await ecomax.get(ATTR_THERMOSTAT_PROFILE)
-    assert isinstance(thermostat_profile, EcomaxParameter)
+    assert isinstance(thermostat_profile, EcomaxNumber)
     assert thermostat_profile.value == 0.0
     assert thermostat_profile.min_value == 0.0
     assert thermostat_profile.max_value == 5.0
@@ -482,7 +484,7 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     mixer = mixers[0]
     assert len(mixer.data) == 7
     mixer_target_temp = await mixer.get("mixer_target_temp")
-    assert isinstance(mixer_target_temp, MixerParameter)
+    assert isinstance(mixer_target_temp, MixerNumber)
     assert isinstance(mixer_target_temp.device, Mixer)
     assert mixer_target_temp.value == 40.0
     assert mixer_target_temp.min_value == 30.0
@@ -498,11 +500,11 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     }
 
     weather_control = await mixer.get("weather_control")
-    assert isinstance(weather_control, MixerBinaryParameter)
+    assert isinstance(weather_control, MixerSwitch)
     assert weather_control.value == STATE_ON
 
     heat_curve = await mixer.get("heating_curve")
-    assert isinstance(heat_curve, MixerParameter)
+    assert isinstance(heat_curve, MixerNumber)
     assert heat_curve.value == 1.3
     assert heat_curve.min_value == 1.0
     assert heat_curve.max_value == 3.0
@@ -544,12 +546,12 @@ async def test_schedule_callback(ecomax: EcoMAX) -> None:
 
     heating_schedule_switch = await ecomax.get("heating_schedule_switch")
     assert heating_schedule_switch.value == STATE_OFF
-    assert isinstance(heating_schedule_switch, ScheduleBinaryParameter)
+    assert isinstance(heating_schedule_switch, ScheduleSwitch)
 
     water_heater_schedule_parameter = await ecomax.get(
         "water_heater_schedule_parameter"
     )
-    assert isinstance(water_heater_schedule_parameter, ScheduleParameter)
+    assert isinstance(water_heater_schedule_parameter, ScheduleNumber)
     assert water_heater_schedule_parameter.value == 5
     assert water_heater_schedule_parameter.min_value == 0
     assert water_heater_schedule_parameter.max_value == 30
@@ -621,6 +623,7 @@ async def test_set(ecomax: EcoMAX) -> None:
         ThermostatParametersResponse(message=test_thermostat_data["message"])
     )
     ecomax.handle_frame(MixerParametersResponse(message=test_mixer_data["message"]))
+    await ecomax.wait_until_done()
 
     # Test setting an ecomax parameter.
     assert await ecomax.set("max_fuel_flow", 13.0)
