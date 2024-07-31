@@ -53,7 +53,7 @@ docs = [
 ]
 dev = [
     "pyplumio[test,docs]",
-    "pre-commit==3.7.1",
+    "pre-commit==3.8.0",
     "tomli==2.0.1"
 ]
 
