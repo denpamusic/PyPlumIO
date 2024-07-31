@@ -181,7 +181,7 @@ class String(DataType):
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
-        self._value = data.split(b"\0", 1)[0].decode()
+        self._value = data.split(b"\0", 1)[0].decode("utf-8", "replace")
         self._size = len(self.value) + 1
 
 

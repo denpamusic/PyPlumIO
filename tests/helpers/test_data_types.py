@@ -229,6 +229,12 @@ def test_string() -> None:
     assert data_type == data_types.String.from_bytes(buffer)
     assert data_type == "test"
 
+    # Test with unknown unicode char.
+    buffer = b"test\xd8\x00"
+    data_type = data_types.String.from_bytes(buffer)
+    assert data_type.value == "test�"
+    assert data_type.size == 6
+
 
 def test_var_bytes() -> None:
     """Test a variable bytes data type."""
