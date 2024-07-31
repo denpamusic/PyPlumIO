@@ -170,6 +170,13 @@ class Parameter(ABC):
         """Compare if parameter value is less that other."""
         return self._call_relational_method("__lt__", other)
 
+    def __copy__(self) -> Parameter:
+        """Create a copy of parameter."""
+        values = type(self.values)(
+            self.values.value, self.values.min_value, self.values.max_value
+        )
+        return type(self)(self.device, self.description, values)
+
     async def set(self, value: Any, retries: int = SET_RETRIES) -> bool:
         """Set a parameter value."""
         if (value := _normalize_parameter_value(value)) == self.values.value:
