@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union
 
+from dataslots import dataslots
 from typing_extensions import TypeAlias
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
@@ -67,6 +68,7 @@ class ParameterValues:
     max_value: int
 
 
+@dataslots
 @dataclass
 class ParameterDescription:
     """Represents a parameter description."""
@@ -239,6 +241,7 @@ class Parameter(ABC):
         """Create a request to change the parameter."""
 
 
+@dataslots
 @dataclass
 class NumberDescription(ParameterDescription):
     """Represents a parameter description."""
@@ -286,6 +289,7 @@ class Number(Parameter):
         return self.description.unit_of_measurement
 
 
+@dataslots
 @dataclass
 class SwitchDescription(ParameterDescription):
     """Represents a switch description."""

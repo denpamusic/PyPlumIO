@@ -8,6 +8,8 @@ from functools import reduce
 from itertools import chain
 from typing import Any, Final
 
+from dataslots import dataslots
+
 from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
@@ -86,6 +88,8 @@ SCHEDULES: tuple[str, ...] = (
 class ScheduleParameterDescription(ParameterDescription):
     """Represent a schedule parameter description."""
 
+    __slots__ = ()
+
 
 class ScheduleParameter(Parameter):
     """Represents a schedule parameter."""
@@ -93,6 +97,7 @@ class ScheduleParameter(Parameter):
     __slots__ = ()
 
     device: AddressableDevice
+    description: ScheduleParameterDescription
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
@@ -104,6 +109,7 @@ class ScheduleParameter(Parameter):
         )
 
 
+@dataslots
 @dataclass
 class ScheduleNumberDescription(ScheduleParameterDescription, NumberDescription):
     """Represents a schedule number description."""
@@ -117,6 +123,7 @@ class ScheduleNumber(ScheduleParameter, Number):
     description: ScheduleNumberDescription
 
 
+@dataslots
 @dataclass
 class ScheduleSwitchDescription(ScheduleParameterDescription, SwitchDescription):
     """Represents a schedule switch description."""

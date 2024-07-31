@@ -6,6 +6,8 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Final
 
+from dataslots import dataslots
+
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -40,19 +42,29 @@ ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
 THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
+@dataclass
+class ThermostatParameterDescription(ParameterDescription):
+    """Represents a thermostat parameter description."""
+
+    __slots__ = ()
+
+    multiplier: float = 1.0
+    size: int = 1
+
+
 class ThermostatParameter(Parameter):
     """Represents a thermostat parameter."""
 
     __slots__ = ("offset",)
 
     device: Thermostat
-    description: ThermostatNumberDescription
+    description: ThermostatParameterDescription
     offset: int
 
     def __init__(
         self,
         device: Thermostat,
-        description: ParameterDescription,
+        description: ThermostatParameterDescription,
         values: ParameterValues | None = None,
         index: int = 0,
         offset: int = 0,
@@ -77,14 +89,7 @@ class ThermostatParameter(Parameter):
         )
 
 
-@dataclass
-class ThermostatParameterDescription(ParameterDescription):
-    """Represents a thermostat parameter description."""
-
-    multiplier: float = 1.0
-    size: int = 1
-
-
+@dataslots
 @dataclass
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
     """Represent a thermostat number description."""
@@ -118,8 +123,9 @@ class ThermostatNumber(ThermostatParameter, Number):
         return self.values.max_value * self.description.multiplier
 
 
+@dataslots
 @dataclass
-class ThermostatSwitchDescription(SwitchDescription, ThermostatNumberDescription):
+class ThermostatSwitchDescription(ThermostatParameterDescription, SwitchDescription):
     """Represents a thermostat switch description."""
 
 

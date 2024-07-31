@@ -22,7 +22,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Home Automation",
 ]
-dependencies = ["pyserial-asyncio==0.6", "typing-extensions==4.12.2"]
+dependencies = [
+    "dataslots==1.2.0",
+    "pyserial-asyncio==0.6",
+    "typing-extensions==4.12.2"
+]
 dynamic = ["version"]
 
 [project.urls]

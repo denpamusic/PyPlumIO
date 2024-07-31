@@ -6,6 +6,8 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Final
 
+from dataslots import dataslots
+
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
@@ -41,6 +43,8 @@ MIXER_PARAMETER_SIZE: Final = 3
 class MixerParameterDescription(ParameterDescription):
     """Represents a mixer parameter description."""
 
+    __slots__ = ()
+
     multiplier: float = 1.0
     offset: int = 0
 
@@ -66,6 +70,7 @@ class MixerParameter(Parameter):
         )
 
 
+@dataslots
 @dataclass
 class MixerNumberDescription(MixerParameterDescription, NumberDescription):
     """Represent a mixer number description."""
@@ -105,6 +110,7 @@ class MixerNumber(MixerParameter, Number):
         ) * self.description.multiplier
 
 
+@dataslots
 @dataclass
 class MixerSwitchDescription(MixerParameterDescription, SwitchDescription):
     """Represents a mixer switch description."""

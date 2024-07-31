@@ -6,6 +6,8 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Any, Final
 
+from dataslots import dataslots
+
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -42,6 +44,8 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 @dataclass
 class EcomaxParameterDescription(ParameterDescription):
     """Represents an ecoMAX parameter description."""
+
+    __slots__ = ()
 
     multiplier: float = 1.0
     offset: int = 0
@@ -80,6 +84,7 @@ class EcomaxParameter(Parameter):
         )
 
 
+@dataslots
 @dataclass
 class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
     """Represents an ecoMAX number description."""
@@ -119,6 +124,7 @@ class EcomaxNumber(EcomaxParameter, Number):
         ) * self.description.multiplier
 
 
+@dataslots
 @dataclass
 class EcomaxSwitchDescription(EcomaxParameterDescription, SwitchDescription):
     """Represents an ecoMAX switch description."""
