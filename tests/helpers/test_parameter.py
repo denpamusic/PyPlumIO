@@ -1,5 +1,6 @@
 """Contains tests for the parameter helper class."""
 
+from copy import copy
 from unittest.mock import Mock, patch
 
 import pytest
@@ -171,21 +172,32 @@ def test_switch_update(switch: Switch) -> None:
 
 def test_number_relational(number: Number):
     """Test number relational methods."""
+    new_number = copy(number)
+    assert number == new_number
     assert (number - 1) == 0
+    new_values = ParameterValues(value=1, min_value=0, max_value=5)
+    number.update(new_values)
+    assert number == new_values
     assert (number + 1) == 2
     assert (number * 5) == 5
     assert (number / 1) == 1
     assert (number // 1) == 1
+    assert number.__eq__("cola") is NotImplemented
 
 
 def test_switch_relational(switch: Switch):
     """Test switch relational methods."""
+    new_switch = copy(switch)
+    assert switch == new_switch
+    new_values = ParameterValues(value=1, min_value=0, max_value=1)
     assert (switch + 1) == 1
-    switch.update(ParameterValues(value=1, min_value=0, max_value=0))
+    switch.update(new_values)
+    assert switch == new_values
     assert (switch - 1) == 0
     assert (switch * 0) == 0
     assert (switch / 1) == 1
     assert (switch // 1) == 1
+    assert switch.__eq__("cola") is NotImplemented
 
 
 def test_number_compare(number: Number) -> None:
