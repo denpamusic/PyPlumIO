@@ -264,6 +264,8 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
 class MixerParametersStructure(StructureDecoder):
     """Represents a mixer parameters data structure."""
 
+    __slots__ = ("_offset",)
+
     _offset: int
 
     def _mixer_parameter(
