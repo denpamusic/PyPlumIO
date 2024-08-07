@@ -206,8 +206,7 @@ class String(DataType[str]):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        value = self.value
-        return value.encode() + b"\0"
+        return self.value.encode() + b"\0"
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -227,8 +226,7 @@ class VarBytes(DataType[bytes]):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        value = self.value
-        return UnsignedChar(self.size - 1).to_bytes() + value
+        return UnsignedChar(self.size - 1).to_bytes() + self.value
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -248,8 +246,7 @@ class VarString(DataType[str]):
 
     def pack(self) -> bytes:
         """Pack the data."""
-        value = self.value
-        return UnsignedChar(self.size - 1).to_bytes() + value.encode()
+        return UnsignedChar(self.size - 1).to_bytes() + self.value.encode()
 
     def unpack(self, data: bytes) -> None:
         """Unpack the data."""
@@ -283,7 +280,7 @@ class SignedChar(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<b")
+    _struct = struct.Struct("<b")
 
 
 class UnsignedChar(BuiltInDataType[int]):
@@ -291,7 +288,7 @@ class UnsignedChar(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<B")
+    _struct = struct.Struct("<B")
 
 
 class Short(BuiltInDataType[int]):
@@ -299,7 +296,7 @@ class Short(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<h")
+    _struct = struct.Struct("<h")
 
 
 class UnsignedShort(BuiltInDataType[int]):
@@ -307,7 +304,7 @@ class UnsignedShort(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<H")
+    _struct = struct.Struct("<H")
 
 
 class Int(BuiltInDataType[int]):
@@ -315,7 +312,7 @@ class Int(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<i")
+    _struct = struct.Struct("<i")
 
 
 class UnsignedInt(BuiltInDataType[int]):
@@ -323,7 +320,7 @@ class UnsignedInt(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<I")
+    _struct = struct.Struct("<I")
 
 
 class Float(BuiltInDataType[int]):
@@ -331,7 +328,7 @@ class Float(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<f")
+    _struct = struct.Struct("<f")
 
 
 class Double(BuiltInDataType[int]):
@@ -339,7 +336,7 @@ class Double(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<d")
+    _struct = struct.Struct("<d")
 
 
 class Int64(BuiltInDataType[int]):
@@ -347,14 +344,15 @@ class Int64(BuiltInDataType[int]):
 
     __slots__ = ()
 
-    _struct: ClassVar[struct.Struct] = struct.Struct("<q")
+    _struct = struct.Struct("<q")
 
 
 class UInt64(BuiltInDataType[int]):
     """Represents a 64 bit unsigned integer."""
 
     __slots__ = ()
-    _struct: ClassVar[struct.Struct] = struct.Struct("<Q")
+
+    _struct = struct.Struct("<Q")
 
 
 # The regdata type map links data type classes to their
