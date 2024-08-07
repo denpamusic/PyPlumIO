@@ -148,7 +148,7 @@ class EventManager(TaskManager, Generic[T]):
     async def dispatch(self, name: str, value: T) -> None:
         """Call registered callbacks and dispatch the event."""
         if callbacks := self._callbacks.get(name, None):
-            for callback in list(callbacks):
+            for callback in callbacks:
                 result = await callback(value)
                 value = result if result is not None else value
 
