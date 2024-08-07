@@ -21,9 +21,8 @@ class RegulatorDataSchemaStructure(StructureDecoder):
     def _unpack_block(self, message: bytearray) -> tuple[int, DataType]:
         """Unpack a block."""
         param_type = message[self._offset]
-        self._offset += 1
-        param_id = UnsignedShort.from_bytes(message, self._offset)
-        self._offset += param_id.size
+        param_id = UnsignedShort.from_bytes(message, self._offset + 1)
+        self._offset += param_id.size + 1
         return param_id.value, DATA_TYPES[param_type]()
 
     def decode(

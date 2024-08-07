@@ -36,25 +36,28 @@ class ThermostatSensorsStructure(StructureDecoder):
         self, message: bytearray, contacts: int
     ) -> dict[str, Any] | None:
         """Unpack sensors for a thermostat."""
-        state = message[self._offset]
-        self._offset += 1
-        current_temp = Float.from_bytes(message, self._offset)
-        self._offset += current_temp.size
-        target_temp = Float.from_bytes(message, self._offset)
-        self._offset += target_temp.size
+        offset = self._offset
+        state = message[offset]
+        offset += 1
+        current_temp = Float.from_bytes(message, offset)
+        offset += current_temp.size
+        target_temp = Float.from_bytes(message, offset)
+        offset += target_temp.size
 
         try:
-            if not math.isnan(current_temp.value) and target_temp.value > 0:
-                return {
+            return (
+                {
                     ATTR_STATE: state,
                     ATTR_CURRENT_TEMP: current_temp.value,
                     ATTR_TARGET_TEMP: target_temp.value,
                     ATTR_CONTACTS: bool(contacts & self._contact_mask),
                     ATTR_SCHEDULE: bool(contacts & self._schedule_mask),
                 }
-
-            return None
+                if not math.isnan(current_temp.value) and target_temp.value > 0
+                else None
+            )
         finally:
+            self._offset = offset
             self._contact_mask <<= 1
             self._schedule_mask <<= 1
 

@@ -66,23 +66,23 @@ class NetworkInfoStructure(Structure):
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
-        message = bytearray(b"\x01")
         network_info: NetworkInfo = data.get(ATTR_NETWORK, NetworkInfo())
-        message += IPv4(network_info.eth.ip).to_bytes()
-        message += IPv4(network_info.eth.netmask).to_bytes()
-        message += IPv4(network_info.eth.gateway).to_bytes()
-        message.append(network_info.eth.status)
-        message += IPv4(network_info.wlan.ip).to_bytes()
-        message += IPv4(network_info.wlan.netmask).to_bytes()
-        message += IPv4(network_info.wlan.gateway).to_bytes()
-        message.append(network_info.server_status)
-        message.append(network_info.wlan.encryption)
-        message.append(network_info.wlan.signal_quality)
-        message.append(network_info.wlan.status)
-        message += b"\x00" * 4
-        message += VarString(network_info.wlan.ssid).to_bytes()
-
-        return message
+        return bytearray(
+            b"\1"
+            + IPv4(network_info.eth.ip).to_bytes()
+            + IPv4(network_info.eth.netmask).to_bytes()
+            + IPv4(network_info.eth.gateway).to_bytes()
+            + network_info.eth.status.to_bytes(length=1, byteorder="little")
+            + IPv4(network_info.wlan.ip).to_bytes()
+            + IPv4(network_info.wlan.netmask).to_bytes()
+            + IPv4(network_info.wlan.gateway).to_bytes()
+            + network_info.server_status.to_bytes(length=1, byteorder="little")
+            + network_info.wlan.encryption.to_bytes(length=1, byteorder="little")
+            + network_info.wlan.signal_quality.to_bytes(length=1, byteorder="little")
+            + network_info.wlan.status.to_bytes(length=1, byteorder="little")
+            + b"\0" * 4
+            + VarString(network_info.wlan.ssid).to_bytes()
+        )
 
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None

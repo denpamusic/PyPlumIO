@@ -28,18 +28,20 @@ class MixerSensorsStructure(StructureDecoder):
 
     def _unpack_mixer_sensors(self, message: bytearray) -> dict[str, Any] | None:
         """Unpack sensors for a mixer."""
-        current_temp = Float.from_bytes(message, self._offset)
+        offset = self._offset
+        current_temp = Float.from_bytes(message, offset)
         try:
-            if not math.isnan(current_temp.value):
-                return {
+            return (
+                {
                     ATTR_CURRENT_TEMP: current_temp.value,
-                    ATTR_TARGET_TEMP: message[self._offset + 4],
-                    ATTR_PUMP: bool(message[self._offset + 6] & 0x01),
+                    ATTR_TARGET_TEMP: message[offset + 4],
+                    ATTR_PUMP: bool(message[offset + 6] & 0x01),
                 }
-
-            return None
+                if not math.isnan(current_temp.value)
+                else None
+            )
         finally:
-            self._offset += MIXER_SENSOR_SIZE
+            self._offset = offset + MIXER_SENSOR_SIZE
 
     def _mixer_sensors(
         self, message: bytearray, mixers: int

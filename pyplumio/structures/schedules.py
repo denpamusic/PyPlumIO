@@ -179,16 +179,20 @@ class SchedulesStructure(Structure):
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
-        message = bytearray([1])
         try:
-            message.append(SCHEDULES.index(data[ATTR_TYPE]))
-            message.append(int(data[ATTR_SWITCH]))
-            message.append(int(data[ATTR_PARAMETER]))
+            header = bytearray(
+                b"\1"
+                + SCHEDULES.index(data[ATTR_TYPE]).to_bytes(
+                    length=1, byteorder="little"
+                )
+                + int(data[ATTR_SWITCH]).to_bytes(length=1, byteorder="little")
+                + int(data[ATTR_PARAMETER]).to_bytes(length=1, byteorder="little")
+            )
             schedule = data[ATTR_SCHEDULE]
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
-        return message + bytearray(
+        return header + bytearray(
             chain.from_iterable(
                 [_join_bits(day[i : i + 8]) for i in range(0, len(day), 8)]
                 for day in list(schedule)
@@ -198,10 +202,13 @@ class SchedulesStructure(Structure):
     def _unpack_schedule(self, message: bytearray) -> list[list[bool]]:
         """Unpack a schedule."""
         schedule: list[bool] = []
-        last_offset = self._offset + SCHEDULE_SIZE
-        while self._offset < last_offset:
-            schedule += _split_byte(message[self._offset])
-            self._offset += 1
+        offset = self._offset
+        last_offset = offset + SCHEDULE_SIZE
+        while offset < last_offset:
+            schedule += _split_byte(message[offset])
+            offset += 1
+
+        self._offset = offset
 
         # Split schedule. Each day consists of 48 half-hour intervals.
         return [schedule[i : i + 48] for i in range(0, len(schedule), 48)]

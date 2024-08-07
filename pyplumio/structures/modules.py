@@ -58,17 +58,16 @@ class ModulesStructure(StructureDecoder):
             self._offset += 1
             return None
 
-        version_data = struct_version.unpack_from(message, self._offset)
+        offset = self._offset
+        version_data = struct_version.unpack_from(message, offset)
         version = ".".join(str(i) for i in version_data)
-        self._offset += struct_version.size
-
+        offset += struct_version.size
         if module == ATTR_MODULE_A:
-            vendor_code, vendor_version = struct_vendor.unpack_from(
-                message, self._offset
-            )
+            vendor_code, vendor_version = struct_vendor.unpack_from(message, offset)
             version += f".{chr(vendor_code) + str(vendor_version)}"
-            self._offset += struct_vendor.size
+            offset += struct_vendor.size
 
+        self._offset = offset
         return version
 
     def decode(
