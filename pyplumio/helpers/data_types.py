@@ -272,7 +272,10 @@ class BuiltInDataType(DataType[T], ABC):
     @property
     def size(self) -> int:
         """Return a data type size."""
-        return self._struct.size
+        if not self._size:
+            self._size = self._struct.size
+
+        return self._size
 
 
 class SignedChar(BuiltInDataType[int]):
