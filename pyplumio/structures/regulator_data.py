@@ -36,10 +36,8 @@ class RegulatorDataStructure(StructureDecoder):
         if isinstance(data_type, BitArray):
             self._bitarray_index = data_type.next(self._bitarray_index)
 
-        try:
-            return data_type.value
-        finally:
-            self._offset += data_type.size
+        self._offset += data_type.size
+        return data_type.value
 
     def decode(
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None

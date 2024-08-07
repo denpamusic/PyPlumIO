@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Generator
 from dataclasses import dataclass
+from functools import partial
 from typing import Any, Final
 
 from dataslots import dataslots
@@ -58,27 +59,29 @@ class EcomaxParameter(Parameter):
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
+        handler = partial(Request.create, recipient=self.device.address)
         if self.description.name == ATTR_ECOMAX_CONTROL:
-            frame_type = FrameType.REQUEST_ECOMAX_CONTROL
-            data = {ATTR_VALUE: self.values.value}
+            request = await handler(
+                frame_type=FrameType.REQUEST_ECOMAX_CONTROL,
+                data={ATTR_VALUE: self.values.value},
+            )
         elif self.description.name == ATTR_THERMOSTAT_PROFILE:
-            frame_type = FrameType.REQUEST_SET_THERMOSTAT_PARAMETER
-            data = {
-                ATTR_INDEX: self._index,
-                ATTR_VALUE: self.values.value,
-                ATTR_OFFSET: 0,
-                ATTR_SIZE: 1,
-            }
+            request = await handler(
+                frame_type=FrameType.REQUEST_SET_THERMOSTAT_PARAMETER,
+                data={
+                    ATTR_INDEX: self._index,
+                    ATTR_VALUE: self.values.value,
+                    ATTR_OFFSET: 0,
+                    ATTR_SIZE: 1,
+                },
+            )
         else:
-            frame_type = FrameType.REQUEST_SET_ECOMAX_PARAMETER
-            data = {
-                ATTR_INDEX: self._index,
-                ATTR_VALUE: self.values.value,
-            }
+            request = await handler(
+                frame_type=FrameType.REQUEST_SET_ECOMAX_PARAMETER,
+                data={ATTR_INDEX: self._index, ATTR_VALUE: self.values.value},
+            )
 
-        return await Request.create(
-            frame_type, recipient=self.device.address, data=data
-        )
+        return request
 
 
 @dataslots

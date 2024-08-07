@@ -150,7 +150,7 @@ def on_change(callback: Callback) -> _OnChange:
     previous call.
 
     :param callback: A callback function to be awaited on value change
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :return: A instance of callable filter
     :rtype: _OnChange
     """
@@ -197,7 +197,7 @@ def debounce(callback: Callback, min_calls: int) -> _Debounce:
     across multiple filter calls.
 
     :param callback: A callback function to be awaited on value change
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :param min_calls: Value shouldn't change for this amount of
         filter calls
     :type min_calls: int
@@ -244,7 +244,7 @@ def throttle(callback: Callback, seconds: float) -> _Throttle:
 
     :param callback: A callback function that will be awaited once
         filter conditions are fulfilled
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :param seconds: A callback will be awaited at most once per
         this amount of seconds
     :type seconds: float
@@ -284,7 +284,7 @@ def delta(callback: Callback) -> _Delta:
 
     :param callback: A callback function that will be awaited with
         difference between values in two subsequent calls
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :return: A instance of callable filter
     :rtype: _Delta
     """
@@ -336,7 +336,7 @@ def aggregate(callback: Callback, seconds: float) -> _Aggregate:
 
     :param callback: A callback function to be awaited once filter
         conditions are fulfilled
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :param seconds: A callback will be awaited with a sum of values
         aggregated over this amount of seconds.
     :type seconds: float
@@ -378,7 +378,7 @@ def custom(callback: Callback, filter_fn: Callable[[Any], bool]) -> _Custom:
 
     :param callback: A callback function to be awaited when
         filter function return true
-    :type callback: Callable[[Any], Coroutine[Any, Any, Any]]
+    :type callback: Callback
     :param filter_fn: Filter function, that will be called with a
         value and should return `True` to await filter's callback
     :type filter_fn: Callable[[Any], bool]

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
 import math
-from typing import Final, Literal
+from typing import Final
 
 from pyplumio.const import STATE_OFF, STATE_ON, FrameType
 from pyplumio.devices import AddressableDevice
@@ -42,13 +42,13 @@ def _parse_interval(start: str, end: str) -> tuple[int, int]:
     if end_dt <= start_dt:
         raise ValueError(
             f"Invalid interval ({start}, {end}). "
-            + "Lower boundary must be less than upper."
+            "Lower boundary must be less than upper."
         )
 
-    start_index = math.floor((start_dt - start_of_day_dt).total_seconds() // (60 * 30))
-    end_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
+    first_index = math.floor((start_dt - start_of_day_dt).total_seconds() // (60 * 30))
+    last_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
 
-    return start_index, end_index
+    return first_index, last_index
 
 
 class ScheduleDay(MutableMapping):
@@ -91,21 +91,14 @@ class ScheduleDay(MutableMapping):
         self._intervals.append(item)
 
     def set_state(
-        self,
-        state: Literal["on", "off", "day", "night"],
-        start: str = START_OF_DAY,
-        end: str = END_OF_DAY,
+        self, state: str, start: str = START_OF_DAY, end: str = END_OF_DAY
     ) -> None:
-        """Set an interval state.
-
-        Can be on of the following:
-        'on', 'off', 'day' or 'night'.
-        """
+        """Set an interval state."""
         if state not in ALLOWED_STATES:
             raise ValueError(f'state "{state}" is not allowed')
 
-        index, end_index = _parse_interval(start, end)
-        while index <= end_index:
+        index, last_index = _parse_interval(start, end)
+        while index <= last_index:
             self._intervals[index] = state in ON_STATES
             index += 1
 

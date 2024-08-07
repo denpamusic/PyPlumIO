@@ -60,6 +60,7 @@ class EventManager(TaskManager, Generic[T]):
             become available, defaults to `None`
         :type timeout: float, optional
         :return: An event data
+        :rtype: T
         :raise asyncio.TimeoutError: when waiting past specified timeout
         """
         await self.wait_for(name, timeout=timeout)
@@ -81,8 +82,9 @@ class EventManager(TaskManager, Generic[T]):
         :type name: str
         :param default: default value to return if data is unavailable,
             defaults to `None`
-        :type default: Any, optional
+        :type default: T, optional
         :return: An event data
+        :rtype: T, optional
         """
         try:
             return self.data[name]
@@ -149,8 +151,8 @@ class EventManager(TaskManager, Generic[T]):
         """Call registered callbacks and dispatch the event."""
         if callbacks := self._callbacks.get(name, None):
             for callback in callbacks:
-                result = await callback(value)
-                value = result if result is not None else value
+                if (result := await callback(value)) is not None:
+                    value = result
 
         self.data[name] = value
         self.set_event(name)

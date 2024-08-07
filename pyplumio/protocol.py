@@ -204,7 +204,7 @@ class AsyncProtocol(Protocol, EventManager[AddressableDevice]):
                     await writer.write(await queues.write.get())
                     queues.write.task_done()
 
-                if (response := await reader.read()) is not None:
+                if response := await reader.read():
                     queues.read.put_nowait(response)
 
             except ProtocolError as e:
