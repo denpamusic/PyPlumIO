@@ -150,6 +150,13 @@ def test_bitarray() -> None:
     assert data_type == 85
 
 
+def test_bitarray_no_value() -> None:
+    """Test a bit array data type with no value."""
+    data_type = data_types.BitArray()
+    with pytest.raises(ValueError):
+        assert not data_type.value
+
+
 def test_int64() -> None:
     """Test a 64 bit integer data type."""
     buffer = bytearray([0xFF, 0xFF, 0xFF, 0xFF, 0xF8, 0xA4, 0x32, 0xEB])

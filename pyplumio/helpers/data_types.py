@@ -148,7 +148,7 @@ class BitArray(DataType[int]):
         if hasattr(self, "_value"):
             return bool(self._value & (1 << self._index))
 
-        return False
+        raise ValueError
 
     @property
     def size(self) -> int:
