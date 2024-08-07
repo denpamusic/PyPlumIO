@@ -12,7 +12,7 @@ DataTypeT = TypeVar("DataTypeT", bound="DataType")
 
 
 class DataType(ABC, Generic[T]):
-    """Represents a base data type."""
+    """Represents a data type."""
 
     __slots__ = ("_value", "_size")
 
@@ -195,12 +195,12 @@ class IPv6(DataType[str]):
 
 
 class String(DataType[str]):
-    """Represents a null terminated string."""
+    """Represents a null-terminated string."""
 
     __slots__ = ()
 
     def __init__(self, value: str = ""):
-        """Initialize a new null terminated string data type."""
+        """Initialize a new null-terminated string data type."""
         super().__init__(value)
         self._size = len(self.value) + 1
 
@@ -215,12 +215,12 @@ class String(DataType[str]):
 
 
 class VarBytes(DataType[bytes]):
-    """Represents a variable length bytes."""
+    """Represents a variable-length bytes."""
 
     __slots__ = ()
 
     def __init__(self, value: bytes = b""):
-        """Initialize a new variable length bytes data type."""
+        """Initialize a new variable-length bytes data type."""
         super().__init__(value)
         self._size = len(value) + 1
 
@@ -292,7 +292,7 @@ class UnsignedChar(BuiltInDataType[int]):
 
 
 class Short(BuiltInDataType[int]):
-    """Represents a 16 bit integer."""
+    """Represents a 16-bit integer."""
 
     __slots__ = ()
 
@@ -300,7 +300,7 @@ class Short(BuiltInDataType[int]):
 
 
 class UnsignedShort(BuiltInDataType[int]):
-    """Represents an unsigned 16 bit integer."""
+    """Represents an unsigned 16-bit integer."""
 
     __slots__ = ()
 
@@ -308,7 +308,7 @@ class UnsignedShort(BuiltInDataType[int]):
 
 
 class Int(BuiltInDataType[int]):
-    """Represents a 32 bit integer."""
+    """Represents a 32-bit integer."""
 
     __slots__ = ()
 
@@ -316,7 +316,7 @@ class Int(BuiltInDataType[int]):
 
 
 class UnsignedInt(BuiltInDataType[int]):
-    """Represents a unsigned 32 bit integer."""
+    """Represents a unsigned 32-bit integer."""
 
     __slots__ = ()
 
@@ -340,7 +340,7 @@ class Double(BuiltInDataType[int]):
 
 
 class Int64(BuiltInDataType[int]):
-    """Represents a 64 bit signed integer."""
+    """Represents a 64-bit signed integer."""
 
     __slots__ = ()
 
@@ -348,7 +348,7 @@ class Int64(BuiltInDataType[int]):
 
 
 class UInt64(BuiltInDataType[int]):
-    """Represents a 64 bit unsigned integer."""
+    """Represents a 64-bit unsigned integer."""
 
     __slots__ = ()
 
