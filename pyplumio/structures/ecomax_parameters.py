@@ -47,9 +47,6 @@ class EcomaxParameterDescription(ParameterDescription):
 
     __slots__ = ()
 
-    multiplier: float = 1.0
-    offset: int = 0
-
 
 class EcomaxParameter(Parameter):
     """Represents an ecoMAX parameter."""
@@ -88,6 +85,9 @@ class EcomaxParameter(Parameter):
 @dataclass
 class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
     """Represents an ecoMAX number description."""
+
+    multiplier: float = 1.0
+    offset: int = 0
 
 
 class EcomaxNumber(EcomaxParameter, Number):

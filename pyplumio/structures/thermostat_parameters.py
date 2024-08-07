@@ -48,7 +48,6 @@ class ThermostatParameterDescription(ParameterDescription):
 
     __slots__ = ()
 
-    multiplier: float = 1.0
     size: int = 1
 
 
@@ -93,6 +92,8 @@ class ThermostatParameter(Parameter):
 @dataclass
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
     """Represent a thermostat number description."""
+
+    multiplier: float = 1.0
 
 
 class ThermostatNumber(ThermostatParameter, Number):
