@@ -181,9 +181,7 @@ class EventManager(TaskManager, Generic[T]):
     def set_event(self, name: str) -> None:
         """Set an event."""
         if name in self.events:
-            event = self.events[name]
-            if not event.is_set():
-                event.set()
+            self.events[name].set()
 
     @property
     def events(self) -> dict[str, asyncio.Event]:
