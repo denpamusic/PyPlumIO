@@ -233,7 +233,6 @@ class AsyncProtocol(Protocol, EventManager[AddressableDevice]):
             )
             device.dispatch_nowait(ATTR_CONNECTED, True)
             self.create_task(device.async_setup(), name=f"device_setup_task ({name})")
-            self.set_event(name)
-            self.data[name] = device
+            await self.dispatch(name, device)
 
         return self.data[name]
