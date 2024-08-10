@@ -65,6 +65,9 @@ class DataFrameDescription:
     provides: str
 
 
+FrameT = TypeVar("FrameT", bound="Frame")
+
+
 class Frame(ABC):
     """Represents a frame."""
 
@@ -232,9 +235,6 @@ class Frame(ABC):
     @abstractmethod
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode frame message."""
-
-
-FrameT = TypeVar("FrameT", bound=Frame)
 
 
 class Request(Frame):

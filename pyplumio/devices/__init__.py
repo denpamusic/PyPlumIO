@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
-from collections.abc import Iterable
 from functools import cache
 from typing import Any, ClassVar
 
@@ -121,7 +120,7 @@ class AddressableDevice(Device, ABC):
 
     address: ClassVar[int]
     _network: NetworkInfo
-    _setup_frames: Iterable[DataFrameDescription]
+    _setup_frames: tuple[DataFrameDescription, ...]
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
         """Initialize a new addressable device."""

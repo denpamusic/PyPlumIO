@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Any, ClassVar
+from typing import Any
 
 from pyplumio.const import (
     ATTR_SENSORS,
@@ -37,7 +37,7 @@ class RegulatorDataMessage(Message):
 
     __slots__ = ()
 
-    frame_type: ClassVar[FrameType] = FrameType.MESSAGE_REGULATOR_DATA
+    frame_type = FrameType.MESSAGE_REGULATOR_DATA
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
@@ -49,7 +49,7 @@ class SensorDataMessage(Message):
 
     __slots__ = ()
 
-    frame_type: ClassVar[FrameType] = FrameType.MESSAGE_SENSOR_DATA
+    frame_type = FrameType.MESSAGE_SENSOR_DATA
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""

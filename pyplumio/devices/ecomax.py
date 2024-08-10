@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Coroutine, Generator, Iterable, Sequence
 import logging
 import time
-from typing import Any, ClassVar, Final
+from typing import Any, Final
 
 from pyplumio.const import (
     ATTR_FRAME_ERRORS,
@@ -104,10 +104,11 @@ _LOGGER = logging.getLogger(__name__)
 class EcoMAX(AddressableDevice):
     """Represents an ecoMAX controller."""
 
-    address: ClassVar[int] = DeviceType.ECOMAX
-    _setup_frames: tuple[DataFrameDescription, ...] = SETUP_FRAME_TYPES
+    address = DeviceType.ECOMAX
+
     _frame_versions: dict[int, int]
     _fuel_burned_timestamp_ns: int
+    _setup_frames = SETUP_FRAME_TYPES
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
         """Initialize a new ecoMAX controller."""
@@ -216,10 +217,7 @@ class EcoMAX(AddressableDevice):
                 yield self.dispatch(
                     description.name,
                     handler.create_or_update(
-                        device=self,
-                        description=description,
-                        values=values,
-                        index=index,
+                        device=self, description=description, values=values, index=index
                     ),
                 )
 
@@ -332,10 +330,7 @@ class EcoMAX(AddressableDevice):
                 yield self.dispatch(
                     description.name,
                     handler.create_or_update(
-                        device=self,
-                        description=description,
-                        values=values,
-                        index=index,
+                        device=self, description=description, values=values, index=index
                     ),
                 )
 

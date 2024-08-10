@@ -85,10 +85,7 @@ class Mixer(SubDevice):
                 yield self.dispatch(
                     description.name,
                     handler.create_or_update(
-                        device=self,
-                        description=description,
-                        values=values,
-                        index=index,
+                        device=self, description=description, values=values, index=index
                     ),
                 )
 
