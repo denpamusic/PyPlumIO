@@ -64,7 +64,7 @@ def test_schedule_day_with_incorrect_interval(schedule_day: ScheduleDay) -> None
 def test_schedule_day_with_incorrect_state(schedule_day: ScheduleDay) -> None:
     """Test a schedule day with an incorrect state."""
     with pytest.raises(ValueError):
-        schedule_day.set_state("invalid_state", "00:00", "01:00")
+        schedule_day.set_state("invalid_state", "00:00", "01:00")  # type: ignore[arg-type]
 
 
 def test_setting_whole_day_schedule(schedule_day: ScheduleDay) -> None:

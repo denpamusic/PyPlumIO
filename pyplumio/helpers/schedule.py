@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableMapping
+from collections.abc import Generator, Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
 import math
-from typing import Final
+from typing import Final, Literal, get_args
+
+from typing_extensions import TypeAlias
 
 from pyplumio.const import STATE_OFF, STATE_ON, FrameType
 from pyplumio.devices import AddressableDevice
@@ -15,40 +17,50 @@ from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
-START_OF_DAY: Final = "00:00"
-END_OF_DAY: Final = "00:00"
 
 STATE_NIGHT: Final = "night"
 STATE_DAY: Final = "day"
 
 ON_STATES: Final = (STATE_ON, STATE_DAY)
 OFF_STATES: Final = (STATE_OFF, STATE_NIGHT)
-ALLOWED_STATES: Final = ON_STATES + OFF_STATES
+
+ScheduleState: TypeAlias = Literal["on", "off", "day", "night"]
+Minutes: TypeAlias = int
+
+start_of_day_dt = dt.datetime.strptime("00:00", TIME_FORMAT)
 
 
-@lru_cache(maxsize=10)
-def _parse_interval(start: str, end: str) -> tuple[int, int]:
-    """Parse an interval string.
+def _get_time_range(
+    start: str, end: str, step: Minutes = 30
+) -> Generator[int, None, None]:
+    """Get a time range.
 
-    Intervals should be specified in '%H:%M' format.
+    Start and end times should be specified in '%H:%M' format, step in
+    minutes.
     """
-    start_dt = dt.datetime.strptime(start, TIME_FORMAT)
-    end_dt = dt.datetime.strptime(end, TIME_FORMAT)
-    start_of_day_dt = dt.datetime.strptime(START_OF_DAY, TIME_FORMAT)
-    if end_dt == start_of_day_dt:
-        # Upper bound of interval is midnight.
-        end_dt += dt.timedelta(hours=23, minutes=30)
 
-    if end_dt <= start_dt:
-        raise ValueError(
-            f"Invalid interval ({start}, {end}). "
-            "Lower boundary must be less than upper."
-        )
+    @lru_cache(maxsize=10)
+    def _get_time_range_cached(start: str, end: str, step: Minutes = 30) -> range:
+        """Get a time range and cache it using LRU cache."""
+        start_dt = dt.datetime.strptime(start, TIME_FORMAT)
+        end_dt = dt.datetime.strptime(end, TIME_FORMAT)
+        if end_dt == start_of_day_dt:
+            # Upper boundary of the interval is midnight.
+            end_dt += dt.timedelta(hours=24) - dt.timedelta(minutes=step)
 
-    first_index = math.floor((start_dt - start_of_day_dt).total_seconds() // (60 * 30))
-    last_index = math.floor((end_dt - start_of_day_dt).total_seconds() // (60 * 30))
+        if end_dt <= start_dt:
+            raise ValueError(
+                f"Invalid interval ({start}, {end}). "
+                "Lower boundary must be less than upper."
+            )
 
-    return first_index, last_index
+        def _dt_to_index(dt: dt.datetime) -> int:
+            """Convert datetime to index in schedule list."""
+            return math.floor((dt - start_of_day_dt).total_seconds() // (60 * step))
+
+        return range(_dt_to_index(start_dt), _dt_to_index(end_dt) + 1)
+
+    yield from _get_time_range_cached(start, end, step)
 
 
 class ScheduleDay(MutableMapping):
@@ -91,23 +103,21 @@ class ScheduleDay(MutableMapping):
         self._intervals.append(item)
 
     def set_state(
-        self, state: str, start: str = START_OF_DAY, end: str = END_OF_DAY
+        self, state: ScheduleState, start: str = "00:00", end: str = "00:00"
     ) -> None:
-        """Set an interval state."""
-        if state not in ALLOWED_STATES:
+        """Set a schedule interval state."""
+        if state not in get_args(ScheduleState):
             raise ValueError(f'state "{state}" is not allowed')
 
-        index, last_index = _parse_interval(start, end)
-        while index <= last_index:
+        for index in _get_time_range(start, end):
             self._intervals[index] = state in ON_STATES
-            index += 1
 
-    def set_on(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set an interval state to 'on'."""
+    def set_on(self, start: str = "00:00", end: str = "00:00") -> None:
+        """Set a schedule interval state to 'on'."""
         self.set_state(STATE_ON, start, end)
 
-    def set_off(self, start: str = START_OF_DAY, end: str = END_OF_DAY) -> None:
-        """Set an interval state to 'off'."""
+    def set_off(self, start: str = "00:00", end: str = "00:00") -> None:
+        """Set a schedule interval state to 'off'."""
         self.set_state(STATE_OFF, start, end)
 
     @property
