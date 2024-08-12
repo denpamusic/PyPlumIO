@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
 import math
-from typing import Final, Literal, get_args
+from typing import Annotated, Final, Literal, get_args
 
 from typing_extensions import TypeAlias
 
@@ -25,22 +25,22 @@ ON_STATES: Final = (STATE_ON, STATE_DAY)
 OFF_STATES: Final = (STATE_OFF, STATE_NIGHT)
 
 ScheduleState: TypeAlias = Literal["on", "off", "day", "night"]
-Minutes: TypeAlias = int
+Time = Annotated[str, "time in HH:MM format"]
 
 start_of_day_dt = dt.datetime.strptime("00:00", TIME_FORMAT)
 
 
 def _get_time_range(
-    start: str, end: str, step: Minutes = 30
+    start: Time, end: Time, step: int = 30
 ) -> Generator[int, None, None]:
     """Get a time range.
 
-    Start and end times should be specified in '%H:%M' format, step in
+    Start and end times should be specified in HH:MM format, step in
     minutes.
     """
 
     @lru_cache(maxsize=10)
-    def _get_time_range_cached(start: str, end: str, step: Minutes = 30) -> range:
+    def _get_time_range_cached(start: Time, end: Time, step: int = 30) -> range:
         """Get a time range and cache it using LRU cache."""
         start_dt = dt.datetime.strptime(start, TIME_FORMAT)
         end_dt = dt.datetime.strptime(end, TIME_FORMAT)
@@ -103,7 +103,7 @@ class ScheduleDay(MutableMapping):
         self._intervals.append(item)
 
     def set_state(
-        self, state: ScheduleState, start: str = "00:00", end: str = "00:00"
+        self, state: ScheduleState, start: Time = "00:00", end: Time = "00:00"
     ) -> None:
         """Set a schedule interval state."""
         if state not in get_args(ScheduleState):
@@ -112,11 +112,11 @@ class ScheduleDay(MutableMapping):
         for index in _get_time_range(start, end):
             self._intervals[index] = state in ON_STATES
 
-    def set_on(self, start: str = "00:00", end: str = "00:00") -> None:
+    def set_on(self, start: Time = "00:00", end: Time = "00:00") -> None:
         """Set a schedule interval state to 'on'."""
         self.set_state(STATE_ON, start, end)
 
-    def set_off(self, start: str = "00:00", end: str = "00:00") -> None:
+    def set_off(self, start: Time = "00:00", end: Time = "00:00") -> None:
         """Set a schedule interval state to 'off'."""
         self.set_state(STATE_OFF, start, end)
 
@@ -133,24 +133,25 @@ class Schedule(Iterable):
     __slots__ = (
         "name",
         "device",
+        "sunday",
         "monday",
         "tuesday",
         "wednesday",
         "thursday",
         "friday",
         "saturday",
-        "sunday",
     )
 
     name: str
     device: AddressableDevice
+
+    sunday: ScheduleDay
     monday: ScheduleDay
     tuesday: ScheduleDay
     wednesday: ScheduleDay
     thursday: ScheduleDay
     friday: ScheduleDay
     saturday: ScheduleDay
-    sunday: ScheduleDay
 
     def __iter__(self) -> Iterator[ScheduleDay]:
         """Return list of days."""
