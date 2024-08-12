@@ -110,7 +110,7 @@ class ScheduleDay(MutableMapping):
             raise ValueError(f'state "{state}" is not allowed')
 
         for index in _get_time_range(start, end):
-            self._intervals[index] = state in ON_STATES
+            self._intervals[index] = True if state in ON_STATES else False
 
     def set_on(self, start: Time = "00:00", end: Time = "00:00") -> None:
         """Set a schedule interval state to 'on'."""
