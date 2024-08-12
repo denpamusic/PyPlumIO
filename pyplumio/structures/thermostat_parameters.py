@@ -18,7 +18,6 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    SET_TIMEOUT,
     Number,
     NumberDescription,
     Parameter,
@@ -103,7 +102,9 @@ class ThermostatNumber(ThermostatParameter, Number):
 
     description: ThermostatNumberDescription
 
-    async def set(self, value: int | float, retries: int = SET_TIMEOUT) -> bool:
+    async def set(
+        self, value: int | float, retries: int = 5, timeout: float = 5.0
+    ) -> bool:
         """Set a parameter value."""
         value = value / self.description.multiplier
         return await super().set(value, retries)

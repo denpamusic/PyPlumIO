@@ -22,7 +22,6 @@ from pyplumio.const import (
 from pyplumio.devices import AddressableDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    SET_TIMEOUT,
     Number,
     NumberDescription,
     Parameter,
@@ -100,10 +99,12 @@ class EcomaxNumber(EcomaxParameter, Number):
 
     description: EcomaxNumberDescription
 
-    async def set(self, value: float | int, retries: int = SET_TIMEOUT) -> bool:
+    async def set(
+        self, value: float | int, retries: int = 5, timeout: float = 5.0
+    ) -> bool:
         """Set a parameter value."""
         value = (value + self.description.offset) / self.description.multiplier
-        return await super().set(value, retries)
+        return await super().set(value, retries, timeout)
 
     @property
     def value(self) -> float:

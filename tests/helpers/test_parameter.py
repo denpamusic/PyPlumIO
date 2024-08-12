@@ -8,7 +8,6 @@ import pytest
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.helpers.parameter import (
-    SET_RETRIES,
     Number,
     NumberDescription,
     Parameter,
@@ -145,7 +144,7 @@ async def test_number_set_nowait(mock_set, mock_create_task, number: Number):
     number.set_nowait(1)
     await number.device.wait_until_done()
     mock_create_task.assert_called_once()
-    mock_set.assert_called_once_with(1, SET_RETRIES)
+    mock_set.assert_called_once_with(1, 5, 5.0)
 
 
 @patch("pyplumio.devices.Device.create_task")
@@ -155,7 +154,7 @@ async def test_switch_set_nowait(mock_set, mock_create_task, switch: Switch):
     switch.set_nowait(STATE_ON)
     await switch.device.wait_until_done()
     mock_create_task.assert_called_once()
-    mock_set.assert_called_once_with(STATE_ON, SET_RETRIES)
+    mock_set.assert_called_once_with(STATE_ON, 5, 5.0)
 
 
 def test_number_update(number: Number) -> None:

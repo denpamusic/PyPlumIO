@@ -57,7 +57,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.parameter import SET_RETRIES
 from pyplumio.helpers.schedule import Schedule
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
@@ -259,7 +258,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     ) as mock_set:
         await heating_heat_curve.set(2.5)
 
-    mock_set.assert_awaited_once_with(25, SET_RETRIES)
+    mock_set.assert_awaited_once_with(25, 5, 5.0)
 
     # Test parameter with the offset (heating_heat_curve_shift)
     heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
@@ -275,7 +274,7 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     ) as mock_set:
         await heating_heat_curve_shift.set(1)
 
-    mock_set.assert_awaited_once_with(21, SET_RETRIES)
+    mock_set.assert_awaited_once_with(21, 5, 5.0)
 
 
 async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:

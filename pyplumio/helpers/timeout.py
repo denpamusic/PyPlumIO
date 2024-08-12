@@ -14,7 +14,7 @@ P = ParamSpec("P")
 
 
 def timeout(
-    seconds: int,
+    seconds: float,
 ) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Coroutine[Any, Any, T]]]:
     """Decorate a timeout for the awaitable."""
 

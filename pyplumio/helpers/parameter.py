@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union
 
 from dataslots import dataslots
 from typing_extensions import TypeAlias
@@ -19,8 +19,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-SET_TIMEOUT: Final = 5
-SET_RETRIES: Final = 5
 
 ParameterValueType: TypeAlias = Union[int, float, bool, Literal["off", "on"]]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
@@ -177,7 +175,7 @@ class Parameter(ABC):
         )
         return type(self)(self.device, self.description, values)
 
-    async def set(self, value: Any, retries: int = SET_RETRIES) -> bool:
+    async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
         if (value := _normalize_parameter_value(value)) == self.values.value:
             return True
@@ -198,7 +196,7 @@ class Parameter(ABC):
                 return False
 
             await self.device.queue.put(await self.create_request())
-            await asyncio.sleep(SET_TIMEOUT)
+            await asyncio.sleep(timeout)
             retries -= 1
 
         return True
@@ -272,13 +270,17 @@ class Number(Parameter):
 
     description: NumberDescription
 
-    async def set(self, value: int | float, retries: int = SET_RETRIES) -> bool:
+    async def set(
+        self, value: int | float, retries: int = 5, timeout: float = 5.0
+    ) -> bool:
         """Set a parameter value."""
-        return await super().set(value, retries)
+        return await super().set(value, retries, timeout)
 
-    def set_nowait(self, value: int | float, retries: int = SET_RETRIES) -> None:
+    def set_nowait(
+        self, value: int | float, retries: int = 5, timeout: float = 5.0
+    ) -> None:
         """Set a parameter value without waiting."""
-        self.device.create_task(self.set(value, retries))
+        self.device.create_task(self.set(value, retries, timeout))
 
     async def create_request(self) -> Request:
         """Create a request to change the number."""
@@ -319,16 +321,16 @@ class Switch(Parameter):
     description: SwitchDescription
 
     async def set(
-        self, value: bool | Literal["off", "on"], retries: int = SET_RETRIES
+        self, value: bool | Literal["off", "on"], retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
-        return await super().set(value, retries)
+        return await super().set(value, retries, timeout)
 
     def set_nowait(
-        self, value: bool | Literal["off", "on"], retries: int = SET_RETRIES
+        self, value: bool | Literal["off", "on"], retries: int = 5, timeout: float = 5.0
     ) -> None:
         """Set a switch value without waiting."""
-        self.device.create_task(self.set(value, retries))
+        self.device.create_task(self.set(value, retries, timeout))
 
     async def turn_on(self) -> bool:
         """Set a switch value to 'on'.

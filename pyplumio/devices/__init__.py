@@ -12,7 +12,7 @@ from pyplumio.exceptions import UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import create_instance
-from pyplumio.helpers.parameter import SET_RETRIES, Parameter, ParameterValueType
+from pyplumio.helpers.parameter import Parameter, ParameterValueType
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
@@ -55,7 +55,7 @@ class Device(ABC, EventManager):
         name: str,
         value: ParameterValueType,
         timeout: float | None = None,
-        retries: int = SET_RETRIES,
+        retries: int = 5,
     ) -> bool:
         """Set a parameter value.
 
@@ -87,7 +87,7 @@ class Device(ABC, EventManager):
         name: str,
         value: ParameterValueType,
         timeout: float | None = None,
-        retries: int = SET_RETRIES,
+        retries: int = 5,
     ) -> None:
         """Set a parameter value without waiting for the result.
 

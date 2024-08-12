@@ -18,7 +18,6 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    SET_RETRIES,
     Number,
     NumberDescription,
     Parameter,
@@ -83,10 +82,12 @@ class MixerNumber(MixerParameter, Number):
 
     description: MixerNumberDescription
 
-    async def set(self, value: int | float, retries: int = SET_RETRIES) -> bool:
+    async def set(
+        self, value: int | float, retries: int = 5, timeout: float = 5.0
+    ) -> bool:
         """Set a parameter value."""
         value = (value + self.description.offset) / self.description.multiplier
-        return await super().set(value, retries)
+        return await super().set(value, retries, timeout)
 
     @property
     def value(self) -> float:
