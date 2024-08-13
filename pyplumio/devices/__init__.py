@@ -127,10 +127,6 @@ class AddressableDevice(Device, ABC):
         super().__init__(queue)
         self._network = network
 
-    def __int__(self) -> int:
-        """Return the device address."""
-        return int(self.address)
-
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the device."""
         frame.sender_device = self

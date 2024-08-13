@@ -116,11 +116,6 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
-async def test_int(ecoster: EcoSTER) -> None:
-    """Test getting addressable device's address via int()."""
-    assert int(ecoster) == DeviceType.ECOSTER
-
-
 async def test_async_setup() -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
