@@ -54,8 +54,8 @@ class Device(ABC, EventManager):
         self,
         name: str,
         value: ParameterValueType,
-        timeout: float | None = None,
         retries: int = 5,
+        timeout: float | None = None,
     ) -> bool:
         """Set a parameter value.
 
@@ -63,12 +63,12 @@ class Device(ABC, EventManager):
         :type name: str
         :param value: New value for the parameter
         :type value: int | float | bool | Literal["off", "on"]
-        :param timeout: Wait this amount of seconds for confirmation,
-            defaults to `None`
-        :type timeout: float, optional
         :param retries: Try setting parameter for this amount of
             times, defaults to 5
         :type retries: int, optional
+        :param timeout: Wait this amount of seconds for confirmation,
+            defaults to `None`
+        :type timeout: float, optional
         :return: `True` if parameter was successfully set, `False`
             otherwise.
         :rtype: bool
@@ -76,7 +76,7 @@ class Device(ABC, EventManager):
         :raise ValueError: when a new value is outside of allowed range
         :raise TypeError: when found data is not valid parameter
         """
-        parameter = await self.get(name, timeout=timeout)
+        parameter = await self.get(name, timeout)
         if not isinstance(parameter, Parameter):
             raise TypeError(f"{name} is not valid parameter")
 
@@ -86,8 +86,8 @@ class Device(ABC, EventManager):
         self,
         name: str,
         value: ParameterValueType,
-        timeout: float | None = None,
         retries: int = 5,
+        timeout: float | None = None,
     ) -> None:
         """Set a parameter value without waiting for the result.
 
@@ -95,19 +95,19 @@ class Device(ABC, EventManager):
         :type name: str
         :param value: New value for the parameter
         :type value: int | float | bool | Literal["off", "on"]
+        :param retries: Try setting parameter for this amount of
+            times, defaults to 5
+        :type retries: int, optional
         :param timeout: Wait this amount of seconds for confirmation.
             As this method operates in the background without waiting,
             this value is used to determine failure when
             retrying and doesn't block, defaults to `None`
         :type timeout: float, optional
-        :param retries: Try setting parameter for this amount of
-            times, defaults to 5
-        :type retries: int, optional
         :return: `True` if parameter was successfully set, `False`
             otherwise.
         :rtype: bool
         """
-        self.create_task(self.set(name, value, timeout, retries))
+        self.create_task(self.set(name, value, retries, timeout))
 
     async def shutdown(self) -> None:
         """Cancel device tasks."""
