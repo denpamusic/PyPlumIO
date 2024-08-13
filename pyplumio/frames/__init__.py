@@ -26,7 +26,7 @@ ECONET_VERSION: Final = 5
 struct_header = struct.Struct("<BH4B")
 
 if TYPE_CHECKING:
-    from pyplumio.devices import AddressableDevice
+    from pyplumio.devices import PhysicalDevice
 
 
 def bcc(data: bytes) -> int:
@@ -83,9 +83,9 @@ class Frame(ABC):
     )
 
     recipient: DeviceType
-    recipient_device: AddressableDevice | None
+    recipient_device: PhysicalDevice | None
     sender: DeviceType
-    sender_device: AddressableDevice | None
+    sender_device: PhysicalDevice | None
     econet_type: int
     econet_version: int
     frame_type: ClassVar[FrameType]

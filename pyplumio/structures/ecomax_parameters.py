@@ -19,7 +19,7 @@ from pyplumio.const import (
     ProductType,
     UnitOfMeasurement,
 )
-from pyplumio.devices import AddressableDevice
+from pyplumio.devices import PhysicalDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
     Number,
@@ -53,7 +53,7 @@ class EcomaxParameter(Parameter):
 
     __slots__ = ()
 
-    device: AddressableDevice
+    device: PhysicalDevice
     description: EcomaxParameterDescription
 
     async def create_request(self) -> Request:

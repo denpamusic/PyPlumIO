@@ -12,7 +12,7 @@ from typing import Annotated, Final, Literal, get_args
 from typing_extensions import TypeAlias
 
 from pyplumio.const import STATE_OFF, STATE_ON, FrameType
-from pyplumio.devices import AddressableDevice
+from pyplumio.devices import PhysicalDevice
 from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
@@ -143,7 +143,7 @@ class Schedule(Iterable):
     )
 
     name: str
-    device: AddressableDevice
+    device: PhysicalDevice
 
     sunday: ScheduleDay
     monday: ScheduleDay

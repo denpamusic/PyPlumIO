@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from pyplumio.const import DeviceType
-from pyplumio.devices import AddressableDevice
+from pyplumio.devices import PhysicalDevice
 
 
-class EcoSTER(AddressableDevice):
+class EcoSTER(PhysicalDevice):
     """Represents an ecoSTER thermostat."""
 
     address = DeviceType.ECOSTER

@@ -115,15 +115,19 @@ class Device(ABC, EventManager):
         await self.wait_until_done()
 
 
-class AddressableDevice(Device, ABC):
-    """Represents an addressable device."""
+class PhysicalDevice(Device, ABC):
+    """Represents a physical device.
+
+    Physical device have network address and can have multiple
+    virtual devices associated with them via parent property.
+    """
 
     address: ClassVar[int]
     _network: NetworkInfo
     _setup_frames: tuple[DataFrameDescription, ...]
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
-        """Initialize a new addressable device."""
+        """Initialize a new physical device."""
         super().__init__(queue)
         self._network = network
 
@@ -171,19 +175,19 @@ class AddressableDevice(Device, ABC):
         raise ValueError(f'could not request "{name}"', frame_type)
 
     @classmethod
-    async def create(cls, device_type: int, **kwargs: Any) -> AddressableDevice:
-        """Create a device handler object."""
+    async def create(cls, device_type: int, **kwargs: Any) -> PhysicalDevice:
+        """Create a physical device handler object."""
         return await create_instance(get_device_handler(device_type), cls=cls, **kwargs)
 
 
-class SubDevice(Device, ABC):
-    """Represents a sub-device."""
+class VirtualDevice(Device, ABC):
+    """Represents a virtual device associated with physical device."""
 
-    parent: AddressableDevice
+    parent: PhysicalDevice
     index: int
 
     def __init__(
-        self, queue: asyncio.Queue[Frame], parent: AddressableDevice, index: int = 0
+        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ):
         """Initialize a new sub-device."""
         super().__init__(queue)

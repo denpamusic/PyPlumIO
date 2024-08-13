@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Coroutine, Generator, Sequence
 from typing import TYPE_CHECKING, Any
 
-from pyplumio.devices import AddressableDevice, SubDevice
+from pyplumio.devices import PhysicalDevice, VirtualDevice
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -21,11 +21,11 @@ if TYPE_CHECKING:
     from pyplumio.frames import Frame
 
 
-class Thermostat(SubDevice):
+class Thermostat(VirtualDevice):
     """Represents a thermostat."""
 
     def __init__(
-        self, queue: asyncio.Queue[Frame], parent: AddressableDevice, index: int = 0
+        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ):
         """Initialize a new thermostat."""
         super().__init__(queue, parent, index)

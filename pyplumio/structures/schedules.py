@@ -17,7 +17,7 @@ from pyplumio.const import (
     ATTR_TYPE,
     FrameType,
 )
-from pyplumio.devices import AddressableDevice, Device
+from pyplumio.devices import Device, PhysicalDevice
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
@@ -96,7 +96,7 @@ class ScheduleParameter(Parameter):
 
     __slots__ = ()
 
-    device: AddressableDevice
+    device: PhysicalDevice
     description: ScheduleParameterDescription
 
     async def create_request(self) -> Request:

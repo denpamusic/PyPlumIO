@@ -7,7 +7,7 @@ from collections.abc import Coroutine, Generator, Sequence
 import logging
 from typing import TYPE_CHECKING, Any
 
-from pyplumio.devices import AddressableDevice, SubDevice
+from pyplumio.devices import PhysicalDevice, VirtualDevice
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
@@ -25,11 +25,11 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class Mixer(SubDevice):
-    """Represents an mixer."""
+class Mixer(VirtualDevice):
+    """Represents a mixer."""
 
     def __init__(
-        self, queue: asyncio.Queue[Frame], parent: AddressableDevice, index: int = 0
+        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ):
         """Initialize a new mixer."""
         super().__init__(queue, parent, index)

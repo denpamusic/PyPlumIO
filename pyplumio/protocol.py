@@ -11,7 +11,7 @@ import logging
 from typing_extensions import TypeAlias
 
 from pyplumio.const import ATTR_CONNECTED, DeviceType
-from pyplumio.devices import AddressableDevice
+from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
@@ -113,7 +113,7 @@ class Queues:
         await asyncio.gather(self.read.join(), self.write.join())
 
 
-class AsyncProtocol(Protocol, EventManager[AddressableDevice]):
+class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     """Represents an async protocol.
 
     This protocol implements producer-consumers pattern using
@@ -224,11 +224,11 @@ class AsyncProtocol(Protocol, EventManager[AddressableDevice]):
             device.handle_frame(frame)
             queue.task_done()
 
-    async def get_device_entry(self, device_type: DeviceType) -> AddressableDevice:
+    async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Set up or return a device entry."""
         name = device_type.name.lower()
         if name not in self.data:
-            device = await AddressableDevice.create(
+            device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
             device.dispatch_nowait(ATTR_CONNECTED, True)
