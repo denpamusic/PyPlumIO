@@ -107,7 +107,7 @@ class ThermostatNumber(ThermostatParameter, Number):
     ) -> bool:
         """Set a parameter value."""
         value = value / self.description.multiplier
-        return await super().set(value, retries)
+        return await super().set(value, retries, timeout)
 
     @property
     def value(self) -> float:
