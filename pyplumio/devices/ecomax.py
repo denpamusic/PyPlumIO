@@ -261,17 +261,16 @@ class EcoMAX(PhysicalDevice):
         parameter's name and value. Events are dispatched for the
         respective mixer instance.
         """
-        if not parameters:
-            return False
-
-        await asyncio.gather(
-            *(
-                mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
-                for mixer in self._mixers(indexes=parameters.keys())
+        if parameters:
+            await asyncio.gather(
+                *(
+                    mixer.dispatch(ATTR_MIXER_PARAMETERS, parameters[mixer.index])
+                    for mixer in self._mixers(indexes=parameters.keys())
+                )
             )
-        )
+            return True
 
-        return True
+        return False
 
     async def _handle_mixer_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
@@ -282,17 +281,16 @@ class EcoMAX(PhysicalDevice):
         sensor's name and value. Events are dispatched for the
         respective mixer instance.
         """
-        if not sensors:
-            return False
-
-        await asyncio.gather(
-            *(
-                mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
-                for mixer in self._mixers(indexes=sensors.keys())
+        if sensors:
+            await asyncio.gather(
+                *(
+                    mixer.dispatch(ATTR_MIXER_SENSORS, sensors[mixer.index])
+                    for mixer in self._mixers(indexes=sensors.keys())
+                )
             )
-        )
+            return True
 
-        return True
+        return False
 
     async def _add_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
@@ -371,29 +369,29 @@ class EcoMAX(PhysicalDevice):
         parameter's name and value. Events are dispatched for the
         respective thermostat instance.
         """
-        if not parameters:
-            return False
-
-        await asyncio.gather(
-            *(
-                thermostat.dispatch(
-                    ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
+        if parameters:
+            await asyncio.gather(
+                *(
+                    thermostat.dispatch(
+                        ATTR_THERMOSTAT_PARAMETERS, parameters[thermostat.index]
+                    )
+                    for thermostat in self._thermostats(indexes=parameters.keys())
                 )
-                for thermostat in self._thermostats(indexes=parameters.keys())
             )
-        )
-        return True
+            return True
+
+        return False
 
     async def _add_thermostat_profile_parameter(
         self, values: ParameterValues | None
     ) -> EcomaxNumber | None:
         """Add thermostat profile parameter to the dataset."""
-        if not values:
-            return None
+        if values:
+            return EcomaxNumber(
+                device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
+            )
 
-        return EcomaxNumber(
-            device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
-        )
+        return None
 
     async def _handle_thermostat_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
@@ -404,18 +402,19 @@ class EcoMAX(PhysicalDevice):
         sensor's name and value. Events are dispatched for the
         respective thermostat instance.
         """
-        if not sensors:
-            return False
+        if sensors:
+            await asyncio.gather(
+                *(
+                    thermostat.dispatch(
+                        ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index]
+                    )
+                    for thermostat in self._thermostats(indexes=sensors.keys())
+                ),
+                return_exceptions=True,
+            )
+            return True
 
-        await asyncio.gather(
-            *(
-                thermostat.dispatch(ATTR_THERMOSTAT_SENSORS, sensors[thermostat.index])
-                for thermostat in self._thermostats(indexes=sensors.keys())
-            ),
-            return_exceptions=True,
-        )
-
-        return True
+        return False
 
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""
