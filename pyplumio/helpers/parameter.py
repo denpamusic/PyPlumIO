@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-ParameterValueType: TypeAlias = Union[int, float, bool, Literal["off", "on"]]
+ParameterValue: TypeAlias = Union[int, float, bool, Literal["off", "on"]]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
 
 
@@ -47,7 +47,7 @@ def check_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-def _normalize_parameter_value(value: ParameterValueType) -> int:
+def _normalize_parameter_value(value: ParameterValue) -> int:
     """Normalize a parameter value."""
     if value in (STATE_OFF, STATE_ON):
         return 1 if value == STATE_ON else 0
