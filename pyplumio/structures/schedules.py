@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import reduce
-from itertools import chain
 from typing import Any, Final
 
 from dataslots import dataslots
@@ -137,17 +136,14 @@ class ScheduleSwitch(ScheduleParameter, Switch):
     description: ScheduleSwitchDescription
 
 
-SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = list(
-    chain.from_iterable(
-        [
-            [
-                ScheduleSwitchDescription(name=f"{name}_{ATTR_SCHEDULE_SWITCH}"),
-                ScheduleNumberDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
-            ]
-            for name in SCHEDULES
-        ]
-    )
-)
+SCHEDULE_PARAMETERS: list[ScheduleParameterDescription] = [
+    description
+    for name in SCHEDULES
+    for description in [
+        ScheduleSwitchDescription(name=f"{name}_{ATTR_SCHEDULE_SWITCH}"),
+        ScheduleNumberDescription(name=f"{name}_{ATTR_SCHEDULE_PARAMETER}"),
+    ]
+]
 
 
 def collect_schedule_data(name: str, device: Device) -> dict[str, Any]:
@@ -193,24 +189,21 @@ class SchedulesStructure(Structure):
             raise FrameDataError from e
 
         return header + bytearray(
-            chain.from_iterable(
-                [_join_bits(day[i : i + 8]) for i in range(0, len(day), 8)]
-                for day in list(schedule)
-            )
+            _join_bits(day[i : i + 8])
+            for day in schedule
+            for i in range(0, len(day), 8)
         )
 
     def _unpack_schedule(self, message: bytearray) -> list[list[bool]]:
         """Unpack a schedule."""
-        schedule: list[bool] = []
         offset = self._offset
-        last_offset = offset + SCHEDULE_SIZE
-        while offset < last_offset:
-            schedule += _split_byte(message[offset])
-            offset += 1
-
-        self._offset = offset
-
-        # Split schedule. Each day consists of 48 half-hour intervals.
+        schedule = [
+            bit
+            for i in range(offset, offset + SCHEDULE_SIZE)
+            for bit in _split_byte(message[i])
+        ]
+        self._offset = offset + SCHEDULE_SIZE
+        # Split the schedule. Each day consists of 48 half-hour intervals.
         return [schedule[i : i + 48] for i in range(0, len(schedule), 48)]
 
     def decode(
@@ -218,17 +211,15 @@ class SchedulesStructure(Structure):
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
         try:
-            offset += 1
-            start = message[offset]
-            offset += 1
-            end = message[offset]
+            start = message[offset + 1]
+            end = message[offset + 2]
         except IndexError:
             return ensure_dict(data, {ATTR_SCHEDULES: []}), offset
 
-        self._offset = offset + 1
         schedules: list[tuple[int, list[list[bool]]]] = []
         parameters: list[tuple[int, ParameterValues]] = []
 
+        self._offset = offset + 3
         for _ in range(start, start + end):
             index = message[self._offset]
             switch = ParameterValues(
