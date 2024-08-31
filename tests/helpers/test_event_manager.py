@@ -107,6 +107,18 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     callback.assert_not_awaited()
 
 
+async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
+    """Test subscribing once doesn't affect other callbacks."""
+    callback1 = AsyncMock(return_value=None)
+    callback2 = AsyncMock(return_value=None)
+    event_manager.subscribe_once("test_key1", callback1)
+    assert event_manager.subscribe("test_key1", callback2) is callback2
+    event_manager.dispatch_nowait("test_key1", "test_value1")
+    event_manager.dispatch_nowait("test_key1", "test_value2")
+    await event_manager.wait_until_done()
+    callback2.assert_has_awaits([call("test_value1"), call("test_value2")])
+
+
 async def test_unsubscribe(event_manager: EventManager) -> None:
     """Test unsubscribing from the event."""
     callback = AsyncMock(return_value=True)
