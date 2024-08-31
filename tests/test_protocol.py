@@ -32,7 +32,7 @@ from pyplumio.structures.network_info import (
 UNKNOWN_DEVICE: int = 99
 
 
-@pytest.fixture()
+@pytest.fixture
 def bypass_asyncio_create_task():
     """Bypass asyncio create task."""
     with patch("asyncio.create_task"):
