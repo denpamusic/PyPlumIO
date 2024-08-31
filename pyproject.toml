@@ -47,7 +47,7 @@ test = [
     "types-pyserial==3.5.0.20240826"
 ]
 docs = [
-    "sphinx==7.4.7",
+    "sphinx==8.0.2",
     "sphinx_rtd_theme==2.0.0",
     "readthedocs-sphinx-search==0.3.2"
 ]
