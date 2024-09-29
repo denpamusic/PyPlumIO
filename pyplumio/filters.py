@@ -66,13 +66,12 @@ def _significantly_changed(
 def _significantly_changed(old: Comparable, new: Comparable) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        result = new.pending_update or old.values != new.values
-    elif isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
-        result = not math.isclose(old, new, abs_tol=TOLERANCE)
-    else:
-        result = old != new
+        return new.pending_update or old.values.__ne__(new.values)
 
-    return result
+    if isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
+        return not math.isclose(old, new, abs_tol=TOLERANCE)
+
+    return old.__ne__(new)
 
 
 @overload
@@ -91,10 +90,11 @@ def _diffence_between(
     """Return a difference between values."""
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
-    elif isinstance(old, SupportsSubtraction) and isinstance(new, SupportsSubtraction):
-        return new - old
-    else:
-        return None
+
+    if isinstance(old, SupportsSubtraction) and isinstance(new, SupportsSubtraction):
+        return new.__sub__(old)
+
+    return None
 
 
 class Filter(ABC):

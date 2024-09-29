@@ -60,12 +60,13 @@ class EcomaxParameter(Parameter):
         """Create a request to change the parameter."""
         handler = partial(Request.create, recipient=self.device.address)
         if self.description.name == ATTR_ECOMAX_CONTROL:
-            request = await handler(
+            return await handler(
                 frame_type=FrameType.REQUEST_ECOMAX_CONTROL,
                 data={ATTR_VALUE: self.values.value},
             )
-        elif self.description.name == ATTR_THERMOSTAT_PROFILE:
-            request = await handler(
+
+        if self.description.name == ATTR_THERMOSTAT_PROFILE:
+            return await handler(
                 frame_type=FrameType.REQUEST_SET_THERMOSTAT_PARAMETER,
                 data={
                     ATTR_INDEX: self._index,
@@ -74,13 +75,11 @@ class EcomaxParameter(Parameter):
                     ATTR_SIZE: 1,
                 },
             )
-        else:
-            request = await handler(
-                frame_type=FrameType.REQUEST_SET_ECOMAX_PARAMETER,
-                data={ATTR_INDEX: self._index, ATTR_VALUE: self.values.value},
-            )
 
-        return request
+        return await handler(
+            frame_type=FrameType.REQUEST_SET_ECOMAX_PARAMETER,
+            data={ATTR_INDEX: self._index, ATTR_VALUE: self.values.value},
+        )
 
 
 @dataslots
