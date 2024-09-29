@@ -415,10 +415,10 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             unit_of_measurement=PERCENTAGE,
         ),
         EcomaxNumberDescription(
-            name="burning_off_airflow_work",
+            name="burning_off_fan_work",
         ),
         EcomaxNumberDescription(
-            name="burning_off_airflow_pause",
+            name="burning_off_fan_pause",
         ),
         EcomaxNumberDescription(
             name="start_burning_off",
