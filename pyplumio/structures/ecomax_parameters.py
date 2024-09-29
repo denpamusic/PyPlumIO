@@ -292,11 +292,11 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         EcomaxNumberDescription(
-            name="supervision_airflow_work",
+            name="grate_fan_work",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
         EcomaxNumberDescription(
-            name="supervision_airflow_pause",
+            name="grate_fan_pause",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
         EcomaxNumberDescription(
