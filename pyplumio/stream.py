@@ -99,9 +99,10 @@ class FrameReader:
     async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object.
 
-        Raise pyplumio.ReadError on unexpected frame length or
-        incomplete frame and pyplumio. Raise ChecksumError on incorrect
-        frame checksum.
+        Raise pyplumio.UnknownDeviceError when sender device has
+        unknown address, raise pyplumio.ReadError on unexpected frame
+        length or incomplete frame, rase pyplumio.ChecksumError on
+        incorrect frame checksum.
         """
         (
             header_bytes,
@@ -114,6 +115,7 @@ class FrameReader:
         ) = await self._read_header()
 
         if recipient not in (DeviceType.ECONET, DeviceType.ALL):
+            # Not an intended recipient, ignore the frame.
             return None
 
         if not is_known_device_type(sender):
