@@ -53,7 +53,7 @@ class RegulatorDataStructure(StructureDecoder):
             message, offset + 2, data
         )
 
-        if (device := self.frame.sender_device) is not None and (
+        if (device := self.frame.handler) is not None and (
             schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])
         ):
             self._bitarray_index = 0

@@ -133,7 +133,7 @@ class PhysicalDevice(Device, ABC):
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the device."""
-        frame.sender_device = self
+        frame.assign_to(self)
         if frame.data is not None:
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)

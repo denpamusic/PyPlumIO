@@ -73,22 +73,20 @@ class Frame(ABC):
 
     __slots__ = (
         "recipient",
-        "recipient_device",
         "sender",
-        "sender_device",
         "econet_type",
         "econet_version",
+        "_handler",
         "_message",
         "_data",
     )
 
     recipient: DeviceType
-    recipient_device: PhysicalDevice | None
     sender: DeviceType
-    sender_device: PhysicalDevice | None
     econet_type: int
     econet_version: int
     frame_type: ClassVar[FrameType]
+    _handler: PhysicalDevice | None
     _message: bytearray | None
     _data: dict[str, Any] | None
 
@@ -104,11 +102,10 @@ class Frame(ABC):
     ) -> None:
         """Process a frame data and message."""
         self.recipient = recipient
-        self.recipient_device = None
         self.sender = sender
-        self.sender_device = None
         self.econet_type = econet_type
         self.econet_version = econet_version
+        self._handler = None
         self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
 
@@ -152,6 +149,15 @@ class Frame(ABC):
     def hex(self, *args: Any, **kwargs: Any) -> str:
         """Return a frame message represented as hex string."""
         return self.bytes.hex(*args, **kwargs)
+
+    def assign_to(self, device: PhysicalDevice) -> None:
+        """Assign device handler to the frame."""
+        self._handler = device
+
+    @property
+    def handler(self) -> PhysicalDevice | None:
+        """Return the frame handler."""
+        return self._handler
 
     @property
     def data(self) -> dict[str, Any]:

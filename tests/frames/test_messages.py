@@ -36,9 +36,9 @@ def test_messages_type() -> None:
 async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
     """Test a regulator data message."""
     frame = RegulatorDataMessage(message=regdata["message"])
-    frame.sender_device = ecomax
-    frame.sender_device.load_nowait(schema["data"])
-    await frame.sender_device.wait_until_done()
+    frame.assign_to(ecomax)
+    ecomax.load_nowait(schema["data"])
+    await ecomax.wait_until_done()
 
     if regdata["id"] == "unknown_regulator_data_version":
         assert ATTR_FRAME_VERSIONS not in frame.data

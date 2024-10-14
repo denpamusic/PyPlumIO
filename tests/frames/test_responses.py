@@ -123,9 +123,9 @@ def test_schedules_response(message, data) -> None:
 async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> None:
     """Test a thermostat parameters response."""
     frame = ThermostatParametersResponse(message=message)
-    frame.sender_device = ecomax
-    frame.sender_device.load_nowait({ATTR_THERMOSTATS_AVAILABLE: 3})
-    await frame.sender_device.wait_until_done()
+    frame.assign_to(ecomax)
+    ecomax.load_nowait({ATTR_THERMOSTATS_AVAILABLE: 3})
+    await ecomax.wait_until_done()
 
     assert frame.data == data
 
