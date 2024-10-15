@@ -96,7 +96,7 @@ class FrameReader:
                 buffer += await self._reader.readexactly(HEADER_SIZE - DELIMITER_SIZE)
             except IncompleteReadError as e:
                 raise ReadError(
-                    f"Incomplete header, while trying to read {e.expected} bytes"
+                    f"Got incomplete header, while trying to read {e.expected} bytes"
                 ) from e
 
             return Header(*struct_header.unpack_from(buffer)[DELIMITER_SIZE:]), buffer
@@ -129,7 +129,7 @@ class FrameReader:
             buffer += await self._reader.readexactly(frame_length - HEADER_SIZE)
         except IncompleteReadError as e:
             raise ReadError(
-                f"Incomplete frame, while trying to read {e.expected} bytes"
+                f"Got incomplete frame, while trying to read {e.expected} bytes"
             ) from e
 
         if (checksum := bcc(buffer[:-2])) and checksum != buffer[-2]:

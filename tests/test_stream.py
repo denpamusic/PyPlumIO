@@ -53,7 +53,7 @@ async def test_frame_writer_with_close_error(
     writer = FrameWriter(mock_stream_writer)
     getattr(mock_stream_writer, method).side_effect = exception
     await writer.close()
-    assert "Unexpected error while closing the writer" in caplog.text
+    assert "Unexpected error, while closing the writer" in caplog.text
 
 
 @patch(
@@ -104,9 +104,7 @@ async def test_frame_reader_with_short_header(
     with pytest.raises(ReadError) as exc_info:
         await frame_reader.read()
 
-    assert "Got an incomplete header while trying to read 7 bytes" in str(
-        exc_info.value
-    )
+    assert "Got incomplete header, while trying to read 7 bytes" in str(exc_info.value)
 
 
 @patch(
@@ -139,9 +137,7 @@ async def test_frame_reader_with_incomplete_read(
     with pytest.raises(ReadError) as exc_info:
         await frame_reader.read()
 
-    assert "Got an incomplete frame while trying to read 10 bytes" in str(
-        exc_info.value
-    )
+    assert "Got incomplete frame, while trying to read 10 bytes" in str(exc_info.value)
 
 
 @patch(
