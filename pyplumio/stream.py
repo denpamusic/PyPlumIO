@@ -58,7 +58,6 @@ class Header(NamedTuple):
     """Represents a frame header."""
 
     bytes: bytes
-    frame_start: int
     frame_length: int
     recipient: int
     sender: int
@@ -96,7 +95,7 @@ class FrameReader:
                     f"Got an incomplete header while trying to read {e.expected} bytes"
                 ) from e
 
-            return Header(buffer, *struct_header.unpack_from(buffer))
+            return Header(buffer, *struct_header.unpack_from(buffer)[DELIMITER_SIZE:])
 
         raise OSError("Serial connection broken")
 
@@ -111,7 +110,6 @@ class FrameReader:
         """
         (
             header_bytes,
-            _,
             frame_length,
             recipient,
             sender,
