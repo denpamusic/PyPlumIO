@@ -110,7 +110,7 @@ class EcoMAX(PhysicalDevice):
     _fuel_burned_timestamp_ns: int
     _setup_frames = SETUP_FRAME_TYPES
 
-    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
+    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
         self._frame_versions = {}

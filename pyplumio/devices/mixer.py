@@ -30,7 +30,7 @@ class Mixer(VirtualDevice):
 
     def __init__(
         self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
-    ):
+    ) -> None:
         """Initialize a new mixer."""
         super().__init__(queue, parent, index)
         self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)

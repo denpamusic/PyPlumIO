@@ -45,7 +45,7 @@ class Device(ABC, EventManager):
 
     queue: asyncio.Queue[Frame]
 
-    def __init__(self, queue: asyncio.Queue[Frame]):
+    def __init__(self, queue: asyncio.Queue[Frame]) -> None:
         """Initialize a new device."""
         super().__init__()
         self.queue = queue
@@ -126,7 +126,7 @@ class PhysicalDevice(Device, ABC):
     _network: NetworkInfo
     _setup_frames: tuple[DataFrameDescription, ...]
 
-    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo):
+    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new physical device."""
         super().__init__(queue)
         self._network = network
@@ -188,7 +188,7 @@ class VirtualDevice(Device, ABC):
 
     def __init__(
         self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
-    ):
+    ) -> None:
         """Initialize a new sub-device."""
         super().__init__(queue)
         self.parent = parent

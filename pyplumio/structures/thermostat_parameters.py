@@ -66,7 +66,7 @@ class ThermostatParameter(Parameter):
         values: ParameterValues | None = None,
         index: int = 0,
         offset: int = 0,
-    ):
+    ) -> None:
         """Initialize a new thermostat parameter."""
         self.offset = offset
         super().__init__(device, description, values, index)

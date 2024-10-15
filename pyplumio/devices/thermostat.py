@@ -26,7 +26,7 @@ class Thermostat(VirtualDevice):
 
     def __init__(
         self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
-    ):
+    ) -> None:
         """Initialize a new thermostat."""
         super().__init__(queue, parent, index)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)

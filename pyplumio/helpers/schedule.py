@@ -70,7 +70,7 @@ class ScheduleDay(MutableMapping):
 
     _intervals: list[bool]
 
-    def __init__(self, intervals: list[bool]):
+    def __init__(self, intervals: list[bool]) -> None:
         """Initialize a new schedule day."""
         self._intervals = intervals
 

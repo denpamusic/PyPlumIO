@@ -19,7 +19,7 @@ class DataType(ABC, Generic[T]):
     _value: T
     _size: int
 
-    def __init__(self, value: T | None = None):
+    def __init__(self, value: T | None = None) -> None:
         """Initialize a new data type."""
         if value is not None:
             self._value = value
@@ -112,7 +112,7 @@ class BitArray(DataType[int]):
 
     _index: int
 
-    def __init__(self, value: bool | None = None, index: int = 0):
+    def __init__(self, value: bool | None = None, index: int = 0) -> None:
         """Initialize a new bit array."""
         super().__init__(value)
         self._index = index
@@ -199,7 +199,7 @@ class String(DataType[str]):
 
     __slots__ = ()
 
-    def __init__(self, value: str = ""):
+    def __init__(self, value: str = "") -> None:
         """Initialize a new null-terminated string data type."""
         super().__init__(value)
         self._size = len(self.value) + 1
@@ -219,7 +219,7 @@ class VarBytes(DataType[bytes]):
 
     __slots__ = ()
 
-    def __init__(self, value: bytes = b""):
+    def __init__(self, value: bytes = b"") -> None:
         """Initialize a new variable-length bytes data type."""
         super().__init__(value)
         self._size = len(value) + 1
@@ -239,7 +239,7 @@ class VarString(DataType[str]):
 
     __slots__ = ()
 
-    def __init__(self, value: str = ""):
+    def __init__(self, value: str = "") -> None:
         """Initialize a new variable length bytes data type."""
         super().__init__(value)
         self._size = len(value) + 1
