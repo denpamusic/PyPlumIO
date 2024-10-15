@@ -10,7 +10,7 @@ from typing import Final, NamedTuple
 from pyplumio.const import DeviceType
 from pyplumio.devices import is_known_device_type
 from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
-from pyplumio.frames import FRAME_START, Frame, bcc, struct_header
+from pyplumio.frames import DELIMITER_SIZE, FRAME_START, Frame, bcc, struct_header
 from pyplumio.helpers.timeout import timeout
 
 READER_TIMEOUT: Final = 10
@@ -83,12 +83,14 @@ class FrameReader:
         Raise pyplumio.ReadError if header size is too small and
         OSError if serial connection is broken.
         """
-        while buffer := await self._reader.read(1):
+        while buffer := await self._reader.read(DELIMITER_SIZE):
             if FRAME_START not in buffer:
                 continue
 
             try:
-                buffer += await self._reader.readexactly(struct_header.size - 1)
+                buffer += await self._reader.readexactly(
+                    struct_header.size - DELIMITER_SIZE
+                )
             except IncompleteReadError as e:
                 raise ReadError(
                     f"Got an incomplete header while trying to read {e.expected} bytes"
