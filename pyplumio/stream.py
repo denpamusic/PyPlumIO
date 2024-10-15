@@ -10,7 +10,14 @@ from typing import Final, NamedTuple
 from pyplumio.const import DeviceType
 from pyplumio.devices import is_known_device_type
 from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
-from pyplumio.frames import DELIMITER_SIZE, FRAME_START, Frame, bcc, struct_header
+from pyplumio.frames import (
+    DELIMITER_SIZE,
+    FRAME_START,
+    HEADER_SIZE,
+    Frame,
+    bcc,
+    struct_header,
+)
 from pyplumio.helpers.timeout import timeout
 
 READER_TIMEOUT: Final = 10
@@ -29,7 +36,7 @@ class FrameWriter:
 
     _writer: StreamWriter
 
-    def __init__(self, writer: StreamWriter):
+    def __init__(self, writer: StreamWriter) -> None:
         """Initialize a new frame writer."""
         self._writer = writer
 
@@ -46,7 +53,7 @@ class FrameWriter:
             self._writer.close()
             await self.wait_closed()
         except (OSError, asyncio.TimeoutError):
-            _LOGGER.exception("Unexpected error while closing the writer")
+            _LOGGER.exception("Unexpected error, while closing the writer")
 
     @timeout(WRITER_TIMEOUT)
     async def wait_closed(self) -> None:
@@ -57,7 +64,6 @@ class FrameWriter:
 class Header(NamedTuple):
     """Represents a frame header."""
 
-    bytes: bytes
     frame_length: int
     recipient: int
     sender: int
@@ -72,11 +78,11 @@ class FrameReader:
 
     _reader: StreamReader
 
-    def __init__(self, reader: StreamReader):
+    def __init__(self, reader: StreamReader) -> None:
         """Initialize a new frame reader."""
         self._reader = reader
 
-    async def _read_header(self) -> Header:
+    async def _read_header(self) -> tuple[Header, bytes]:
         """Locate and read a frame header.
 
         Raise pyplumio.ReadError if header size is too small and
@@ -87,15 +93,13 @@ class FrameReader:
                 continue
 
             try:
-                buffer += await self._reader.readexactly(
-                    struct_header.size - DELIMITER_SIZE
-                )
+                buffer += await self._reader.readexactly(HEADER_SIZE - DELIMITER_SIZE)
             except IncompleteReadError as e:
                 raise ReadError(
-                    f"Got an incomplete header while trying to read {e.expected} bytes"
+                    f"Incomplete header, while trying to read {e.expected} bytes"
                 ) from e
 
-            return Header(buffer, *struct_header.unpack_from(buffer)[DELIMITER_SIZE:])
+            return Header(*struct_header.unpack_from(buffer)[DELIMITER_SIZE:]), buffer
 
         raise OSError("Serial connection broken")
 
@@ -103,19 +107,13 @@ class FrameReader:
     async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object.
 
-        Raise pyplumio.UnknownDeviceError when sender device has
+        Raise pyplumio.UnknownDeviceError when sender device has an
         unknown address, raise pyplumio.ReadError on unexpected frame
-        length or incomplete frame, rase pyplumio.ChecksumError on
+        length or incomplete frame, raise pyplumio.ChecksumError on
         incorrect frame checksum.
         """
-        (
-            header_bytes,
-            frame_length,
-            recipient,
-            sender,
-            econet_type,
-            econet_version,
-        ) = await self._read_header()
+        header, buffer = await self._read_header()
+        frame_length, recipient, sender, econet_type, econet_version = header
 
         if recipient not in (DeviceType.ECONET, DeviceType.ALL):
             # Not an intended recipient, ignore the frame.
@@ -128,24 +126,24 @@ class FrameReader:
             raise ReadError(f"Unexpected frame length ({frame_length})")
 
         try:
-            payload = await self._reader.readexactly(frame_length - struct_header.size)
+            buffer += await self._reader.readexactly(frame_length - HEADER_SIZE)
         except IncompleteReadError as e:
             raise ReadError(
-                f"Got an incomplete frame while trying to read {e.expected} bytes"
+                f"Incomplete frame, while trying to read {e.expected} bytes"
             ) from e
 
-        if (checksum := bcc(header_bytes + payload[:-2])) and checksum != payload[-2]:
+        if (checksum := bcc(buffer[:-2])) and checksum != buffer[-2]:
             raise ChecksumError(
-                f"Incorrect frame checksum ({checksum} != {payload[-2]})"
+                f"Incorrect frame checksum ({checksum} != {buffer[-2]})"
             )
 
         frame = await Frame.create(
-            frame_type=payload[0],
+            frame_type=buffer[HEADER_SIZE],
             recipient=DeviceType(recipient),
             sender=DeviceType(sender),
             econet_type=econet_type,
             econet_version=econet_version,
-            message=payload[1:-2],
+            message=buffer[HEADER_SIZE + 1 : -2],
         )
         _LOGGER.debug("Received frame: %s", frame)
 

@@ -24,6 +24,7 @@ ECONET_VERSION: Final = 5
 
 # Frame header structure.
 struct_header = struct.Struct("<BH4B")
+HEADER_SIZE = struct_header.size
 
 if TYPE_CHECKING:
     from pyplumio.devices import PhysicalDevice
