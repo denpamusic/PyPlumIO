@@ -152,12 +152,12 @@ class Frame(ABC):
         return self.bytes.hex(*args, **kwargs)
 
     def assign_to(self, device: PhysicalDevice) -> None:
-        """Assign device handler to the frame."""
+        """Assign device to the frame."""
         self._handler = device
 
     @property
     def handler(self) -> PhysicalDevice | None:
-        """Return the frame handler."""
+        """Return the device associated to the frame."""
         return self._handler
 
     @property
