@@ -326,7 +326,7 @@ class UnsignedInt(BuiltInDataType[int]):
     _struct = struct.Struct("<I")
 
 
-class Float(BuiltInDataType[int]):
+class Float(BuiltInDataType[float]):
     """Represents a float."""
 
     __slots__ = ()
@@ -334,7 +334,7 @@ class Float(BuiltInDataType[int]):
     _struct = struct.Struct("<f")
 
 
-class Double(BuiltInDataType[int]):
+class Double(BuiltInDataType[float]):
     """Represents a double."""
 
     __slots__ = ()
