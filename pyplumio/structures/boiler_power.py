@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Float
@@ -24,7 +23,7 @@ class BoilerPowerStructure(StructureDecoder):
         boiler_power = Float.from_bytes(message, offset)
         offset += boiler_power.size
 
-        if math.isnan(boiler_power.value):
+        if boiler_power.isnan():
             return ensure_dict(data), offset
 
         return ensure_dict(data, {ATTR_BOILER_POWER: boiler_power.value}), offset

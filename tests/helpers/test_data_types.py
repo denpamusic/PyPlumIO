@@ -2,6 +2,7 @@
 
 import pytest
 
+from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.helpers import data_types
 
 
@@ -57,6 +58,10 @@ def test_signed_char() -> None:
     assert repr(data_types.SignedChar()) == "SignedChar()"
     assert data_type == data_types.SignedChar.from_bytes(buffer)
     assert data_type == 22
+    assert not data_type.isnan()
+    undefined = bytearray([BYTE_UNDEFINED])
+    data_type = data_types.SignedChar.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_short() -> None:
@@ -70,6 +75,10 @@ def test_short() -> None:
     assert repr(data_types.Short()) == "Short()"
     assert data_type == data_types.Short.from_bytes(buffer)
     assert data_type == -20
+    assert not data_type.isnan()
+    undefined = bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED])
+    data_type = data_types.Short.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_int() -> None:
@@ -83,6 +92,12 @@ def test_int() -> None:
     assert repr(data_types.Int()) == "Int()"
     assert data_type == data_types.Int.from_bytes(buffer)
     assert data_type == -26111
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED]
+    )
+    data_type = data_types.Int.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_unsigned_char() -> None:
@@ -96,6 +111,10 @@ def test_unsigned_char() -> None:
     assert repr(data_types.UnsignedChar()) == "UnsignedChar()"
     assert data_type == data_types.UnsignedChar.from_bytes(buffer)
     assert data_type == 3
+    assert not data_type.isnan()
+    undefined = bytearray([BYTE_UNDEFINED])
+    data_type = data_types.UnsignedChar.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_ushort() -> None:
@@ -109,6 +128,10 @@ def test_ushort() -> None:
     assert repr(data_types.UnsignedShort()) == "UnsignedShort()"
     assert data_type == data_types.UnsignedShort.from_bytes(buffer)
     assert data_type == 298
+    assert not data_type.isnan()
+    undefined = bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED])
+    data_type = data_types.UnsignedShort.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_uint() -> None:
@@ -122,6 +145,12 @@ def test_uint() -> None:
     assert repr(data_types.UnsignedInt()) == "UnsignedInt()"
     assert data_type == data_types.UnsignedInt.from_bytes(buffer)
     assert data_type == 16282
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED]
+    )
+    data_type = data_types.UnsignedInt.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_float() -> None:
@@ -135,6 +164,12 @@ def test_float() -> None:
     assert repr(data_types.Float()) == "Float()"
     assert data_type == data_types.Float.from_bytes(buffer)
     assert data_type == 12.0
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED]
+    )
+    data_type = data_types.Float.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_double() -> None:
@@ -148,6 +183,21 @@ def test_double() -> None:
     assert repr(data_types.Double()) == "Double()"
     assert data_type == data_types.Double.from_bytes(buffer)
     assert data_type == 12.12
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+        ]
+    )
+    data_type = data_types.Double.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_bitarray() -> None:
@@ -190,6 +240,21 @@ def test_int64() -> None:
     assert repr(data_types.Int64()) == "Int64()"
     assert data_type == data_types.Int64.from_bytes(buffer)
     assert data_type == -1498954336607141889
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+        ]
+    )
+    data_type = data_types.Int64.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_uint64() -> None:
@@ -203,6 +268,21 @@ def test_uint64() -> None:
     assert repr(data_types.UInt64()) == "UInt64()"
     assert data_type == data_types.UInt64.from_bytes(buffer)
     assert data_type == 6148631004284209477
+    assert not data_type.isnan()
+    undefined = bytearray(
+        [
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+            BYTE_UNDEFINED,
+        ]
+    )
+    data_type = data_types.UInt64.from_bytes(undefined)
+    assert data_type.isnan()
 
 
 def test_ipv4() -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from pyplumio.helpers.data_types import BitArray, DataType
+from pyplumio.helpers.data_types import BitArray, DataType, NumericDataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
@@ -37,6 +37,9 @@ class RegulatorDataStructure(StructureDecoder):
             self._bitarray_index = data_type.next(self._bitarray_index)
 
         self._offset += data_type.size
+        if isinstance(data_type, NumericDataType) and data_type.isnan():
+            return None
+
         return data_type.value
 
     def decode(
@@ -58,8 +61,12 @@ class RegulatorDataStructure(StructureDecoder):
         ):
             self._bitarray_index = 0
             data[ATTR_REGDATA] = {
-                param_id: self._unpack_regulator_data(message, data_type)
-                for param_id, data_type in schema
+                param_id: value
+                for param_id, value in {
+                    param_id: self._unpack_regulator_data(message, data_type)
+                    for param_id, data_type in schema
+                }.items()
+                if value is not None
             }
 
         return data, self._offset

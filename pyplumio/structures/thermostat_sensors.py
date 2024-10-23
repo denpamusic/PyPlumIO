@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-import math
 from typing import Any, Final
 
 from pyplumio.const import (
@@ -53,7 +52,7 @@ class ThermostatSensorsStructure(StructureDecoder):
                     ATTR_CONTACTS: bool(contacts & self._contact_mask),
                     ATTR_SCHEDULE: bool(contacts & self._schedule_mask),
                 }
-                if not math.isnan(current_temp.value) and target_temp.value > 0
+                if not current_temp.isnan() and target_temp.value > 0
                 else None
             )
         finally:

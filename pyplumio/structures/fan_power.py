@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Float
@@ -24,7 +23,7 @@ class FanPowerStructure(StructureDecoder):
         fan_power = Float.from_bytes(message, offset)
         offset += fan_power.size
 
-        if math.isnan(fan_power.value):
+        if fan_power.isnan():
             return ensure_dict(data), offset
 
         return ensure_dict(data, {ATTR_FAN_POWER: fan_power.value}), offset

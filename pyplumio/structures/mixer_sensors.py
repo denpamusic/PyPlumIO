@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-import math
 from typing import Any, Final
 
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
@@ -37,7 +36,7 @@ class MixerSensorsStructure(StructureDecoder):
                     ATTR_TARGET_TEMP: message[offset + 4],
                     ATTR_PUMP: bool(message[offset + 6] & 0x01),
                 }
-                if not math.isnan(current_temp.value)
+                if not current_temp.isnan()
                 else None
             )
         finally:

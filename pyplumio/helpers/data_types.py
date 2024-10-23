@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import math
 import socket
 import struct
-from typing import ClassVar, Final, Generic, TypeVar
+from typing import ClassVar, Final, Generic, SupportsFloat, TypeVar
+
+from pyplumio.const import BYTE_UNDEFINED
 
 T = TypeVar("T")
 DataTypeT = TypeVar("DataTypeT", bound="DataType")
@@ -278,7 +281,33 @@ class BuiltInDataType(DataType[T], ABC):
         return self._size
 
 
-class SignedChar(BuiltInDataType[int]):
+FloatT = TypeVar("FloatT", bound=SupportsFloat)
+
+
+class NumericDataType(BuiltInDataType[FloatT], ABC):
+    """Represents a checkable data type."""
+
+    __slots__ = ("_nan",)
+
+    _nan: bool
+
+    def __init__(self, value: FloatT | None = None) -> None:
+        """Initialize a new checkable data type."""
+        self._nan = False
+        super().__init__(value)
+
+    def isnan(self) -> bool:
+        """Return True if value is not a number, False otherwise."""
+        return self._nan
+
+    def unpack(self, data: bytes) -> None:
+        """Unpack the data."""
+        undefined = bytearray([BYTE_UNDEFINED] * self.size)
+        self._value = self._struct.unpack_from(data)[0]
+        self._nan = data[0 : self.size] == undefined or math.isnan(self._value)
+
+
+class SignedChar(NumericDataType[int]):
     """Represents a signed char."""
 
     __slots__ = ()
@@ -286,7 +315,7 @@ class SignedChar(BuiltInDataType[int]):
     _struct = struct.Struct("<b")
 
 
-class UnsignedChar(BuiltInDataType[int]):
+class UnsignedChar(NumericDataType[int]):
     """Represents an unsigned char."""
 
     __slots__ = ()
@@ -294,7 +323,7 @@ class UnsignedChar(BuiltInDataType[int]):
     _struct = struct.Struct("<B")
 
 
-class Short(BuiltInDataType[int]):
+class Short(NumericDataType[int]):
     """Represents a 16-bit integer."""
 
     __slots__ = ()
@@ -302,7 +331,7 @@ class Short(BuiltInDataType[int]):
     _struct = struct.Struct("<h")
 
 
-class UnsignedShort(BuiltInDataType[int]):
+class UnsignedShort(NumericDataType[int]):
     """Represents an unsigned 16-bit integer."""
 
     __slots__ = ()
@@ -310,7 +339,7 @@ class UnsignedShort(BuiltInDataType[int]):
     _struct = struct.Struct("<H")
 
 
-class Int(BuiltInDataType[int]):
+class Int(NumericDataType[int]):
     """Represents a 32-bit integer."""
 
     __slots__ = ()
@@ -318,7 +347,7 @@ class Int(BuiltInDataType[int]):
     _struct = struct.Struct("<i")
 
 
-class UnsignedInt(BuiltInDataType[int]):
+class UnsignedInt(NumericDataType[int]):
     """Represents a unsigned 32-bit integer."""
 
     __slots__ = ()
@@ -326,7 +355,7 @@ class UnsignedInt(BuiltInDataType[int]):
     _struct = struct.Struct("<I")
 
 
-class Float(BuiltInDataType[float]):
+class Float(NumericDataType[float]):
     """Represents a float."""
 
     __slots__ = ()
@@ -334,7 +363,7 @@ class Float(BuiltInDataType[float]):
     _struct = struct.Struct("<f")
 
 
-class Double(BuiltInDataType[float]):
+class Double(NumericDataType[float]):
     """Represents a double."""
 
     __slots__ = ()
@@ -342,7 +371,7 @@ class Double(BuiltInDataType[float]):
     _struct = struct.Struct("<d")
 
 
-class Int64(BuiltInDataType[int]):
+class Int64(NumericDataType[int]):
     """Represents a 64-bit signed integer."""
 
     __slots__ = ()
@@ -350,7 +379,7 @@ class Int64(BuiltInDataType[int]):
     _struct = struct.Struct("<q")
 
 
-class UInt64(BuiltInDataType[int]):
+class UInt64(NumericDataType[int]):
     """Represents a 64-bit unsigned integer."""
 
     __slots__ = ()

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Float
@@ -24,7 +23,7 @@ class FuelConsumptionStructure(StructureDecoder):
         fuel_consumption = Float.from_bytes(message, offset)
         offset += fuel_consumption.size
 
-        if math.isnan(fuel_consumption.value):
+        if fuel_consumption.isnan():
             return ensure_dict(data), offset
 
         return (

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import Float
@@ -65,7 +64,7 @@ class TemperaturesStructure(StructureDecoder):
             offset += 1
             temp = Float.from_bytes(message, offset)
             offset += temp.size
-            if (not math.isnan(temp.value)) and 0 <= index < len(TEMPERATURES):
+            if not temp.isnan() and 0 <= index < len(TEMPERATURES):
                 # Temperature exists and index is in the correct range.
                 data[TEMPERATURES[index]] = temp.value
 
