@@ -69,7 +69,7 @@ working with device classes and queues.
     async def main():
         """Open a connection and request alerts."""
         async with pyplumio.open_tcp_connection(
-            host="localhost", port=8899, protocol=pyplumio.DummyProtocol()
+            host="localhost", port=8899, protocol=pyplumio.DummyProtocol
         ) as connection:
             await connection.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
