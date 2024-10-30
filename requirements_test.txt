@@ -5,7 +5,7 @@ pre-commit==4.0.1
 pyserial-asyncio-fast==0.14
 pytest-asyncio==0.24.0
 pytest==8.3.3
-ruff==0.7.0
+ruff==0.7.1
 tomli==2.0.2
 tox==4.23.2
 types-pyserial==3.5.0.20240826
