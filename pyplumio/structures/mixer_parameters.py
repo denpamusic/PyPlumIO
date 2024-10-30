@@ -73,6 +73,7 @@ class MixerNumberDescription(MixerParameterDescription, NumberDescription):
 
     multiplier: float = 1.0
     offset: int = 0
+    precision: int = 6
 
 
 class MixerNumber(MixerParameter, Number):
@@ -86,29 +87,27 @@ class MixerNumber(MixerParameter, Number):
         self, value: int | float, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
-        value = (value + self.description.offset) / self.description.multiplier
+        value += self.description.offset
+        value = round(value / self.description.multiplier, self.description.precision)
         return await super().set(value, retries, timeout)
 
     @property
     def value(self) -> float:
         """Return the parameter value."""
-        return (
-            self.values.value - self.description.offset
-        ) * self.description.multiplier
+        value = self.values.value - self.description.offset
+        return round(value * self.description.multiplier, self.description.precision)
 
     @property
     def min_value(self) -> float:
         """Return the minimum allowed value."""
-        return (
-            self.values.min_value - self.description.offset
-        ) * self.description.multiplier
+        value = self.values.min_value - self.description.offset
+        return round(value * self.description.multiplier, self.description.precision)
 
     @property
     def max_value(self) -> float:
         """Return the maximum allowed value."""
-        return (
-            self.values.max_value - self.description.offset
-        ) * self.description.multiplier
+        value = self.values.max_value - self.description.offset
+        return round(value * self.description.multiplier, self.description.precision)
 
 
 @dataslots
