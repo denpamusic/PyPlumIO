@@ -69,18 +69,22 @@ working with device classes and queues.
     async def main():
         """Open a connection and request alerts."""
         async with pyplumio.open_tcp_connection(
-            host="localhost", port=8899, protocol=pyplumio.DummyProtocol
+            host="localhost", port=8899, protocol=pyplumio.DummyProtocol()
         ) as connection:
             await connection.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
             )
 
             while connection.connected:
-                if isinstance(
-                    (frame := await connection.reader.read()), responses.AlertsResponse
-                ):
-                    print(frame.data)
-                    break
+                try:
+                    if isinstance(
+                        (frame := await connection.reader.read()), responses.AlertsResponse
+                    ):
+                        print(frame.data)
+                        break
+                except pyplumio.ProtocolError:
+                    # Skip protocol errors and read the next frame.
+                    pass
 
 
     asyncio.run(main())
