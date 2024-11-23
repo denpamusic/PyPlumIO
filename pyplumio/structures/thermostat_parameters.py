@@ -113,25 +113,20 @@ class ThermostatNumber(ThermostatParameter, Number):
     @property
     def value(self) -> float:
         """Return the value."""
-        return round(
-            self.values.value * self.description.multiplier, self.description.precision
-        )
+        value = self.values.value * self.description.multiplier
+        return round(value, self.description.precision)
 
     @property
     def min_value(self) -> float:
         """Return the minimum allowed value."""
-        return round(
-            self.values.min_value * self.description.multiplier,
-            self.description.precision,
-        )
+        value = self.values.min_value * self.description.multiplier
+        return round(value, self.description.precision)
 
     @property
     def max_value(self) -> float:
         """Return the maximum allowed value."""
-        return round(
-            self.values.max_value * self.description.multiplier,
-            self.description.precision,
-        )
+        value = self.values.max_value * self.description.multiplier
+        return round(value, self.description.precision)
 
 
 @dataslots

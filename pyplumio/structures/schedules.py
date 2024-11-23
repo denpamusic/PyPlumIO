@@ -100,7 +100,7 @@ class ScheduleParameter(Parameter):
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
-        schedule_name, _ = self.description.name.split("_schedule_", 1)
+        schedule_name = self.description.name.split("_schedule_", 1)[0]
         return await Request.create(
             FrameType.REQUEST_SET_SCHEDULE,
             recipient=self.device.address,
@@ -163,7 +163,7 @@ def _split_byte(byte: int) -> list[bool]:
 
 def _join_bits(bits: Sequence[int | bool]) -> int:
     """Join eight bits into a single byte."""
-    return reduce(lambda x, y: (x << 1) | y, bits)
+    return reduce(lambda bit, byte: (bit << 1) | byte, bits)
 
 
 class SchedulesStructure(Structure):
