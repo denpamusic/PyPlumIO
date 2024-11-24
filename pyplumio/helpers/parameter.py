@@ -77,11 +77,19 @@ class ParameterDescription:
 class Parameter(ABC):
     """Represents a base parameter."""
 
-    __slots__ = ("device", "description", "_pending_update", "_index", "_values")
+    __slots__ = (
+        "device",
+        "description",
+        "_pending_update",
+        "_previous_value",
+        "_index",
+        "_values",
+    )
 
     device: Device
     description: ParameterDescription
     _pending_update: bool
+    _previous_value: int
     _index: int
     _values: ParameterValues
 
@@ -96,6 +104,7 @@ class Parameter(ABC):
         self.device = device
         self.description = description
         self._pending_update = False
+        self._previous_value = 0
         self._index = index
         self._values = values if values else ParameterValues(0, 0, 0)
 
@@ -185,6 +194,7 @@ class Parameter(ABC):
                 f"Value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
+        self._previous_value = self._values.value
         self._values.value = value
         self._pending_update = True
         while self.pending_update:
@@ -203,8 +213,10 @@ class Parameter(ABC):
 
     def update(self, values: ParameterValues) -> None:
         """Update the parameter values."""
+        if self.pending_update and self._previous_value != values.value:
+            self._pending_update = False
+
         self._values = values
-        self._pending_update = False
 
     @property
     def pending_update(self) -> bool:
