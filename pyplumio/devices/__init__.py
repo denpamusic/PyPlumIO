@@ -133,19 +133,20 @@ class PhysicalDevice(Device, ABC):
         super().__init__(queue)
         self._frame_versions = {}
         self._network = network
-        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
 
-    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
-        """Check frame versions and update outdated frames."""
-        for frame_type, version in versions.items():
-            if (
-                is_known_frame_type(frame_type)
-                and self.supports_frame_type(frame_type)
-                and not self.has_frame_version(frame_type, version)
-            ):
-                request = await Request.create(frame_type, recipient=self.address)
-                self.queue.put_nowait(request)
-                self._frame_versions[frame_type] = version
+        async def update_frame_versions(versions: dict[int, int]) -> None:
+            """Check frame versions and update outdated frames."""
+            for frame_type, version in versions.items():
+                if (
+                    is_known_frame_type(frame_type)
+                    and self.supports_frame_type(frame_type)
+                    and not self.has_frame_version(frame_type, version)
+                ):
+                    request = await Request.create(frame_type, recipient=self.address)
+                    self.queue.put_nowait(request)
+                    self._frame_versions[frame_type] = version
+
+        self.subscribe(ATTR_FRAME_VERSIONS, update_frame_versions)
 
     def has_frame_version(self, frame_type: int, version: int | None = None) -> bool:
         """Return True if frame data is up to date, False otherwise."""
