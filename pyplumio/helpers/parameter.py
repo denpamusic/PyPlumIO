@@ -222,12 +222,12 @@ class Parameter(ABC):
         self._values = values
 
     async def force_refresh(self) -> None:
-        """Refresh the parameters from remote."""
+        """Refresh the parameter from remote."""
         await self.device.queue.put(await self.create_refresh_request())
 
     @property
     def is_tracking_changes(self) -> bool:
-        """Returns True if remote is tracking changes, False otherwise."""
+        """Return True if remote's tracking changes, False otherwise."""
         return False
 
     @property

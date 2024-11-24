@@ -143,15 +143,12 @@ class PhysicalDevice(Device, ABC):
                 and self.supports_frame_type(frame_type)
                 and not self.has_frame_version(frame_type, version)
             ):
-                # We don't have this frame or it's version has changed.
                 request = await Request.create(frame_type, recipient=self.address)
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
 
-    def has_frame_version(
-        self, frame_type: FrameType | int, version: int | None = None
-    ) -> bool:
-        """Check if ecoMAX controller has this version of the frame."""
+    def has_frame_version(self, frame_type: int, version: int | None = None) -> bool:
+        """Return True if frame data is up to date, False otherwise."""
         if frame_type not in self._frame_versions:
             return False
 
@@ -160,8 +157,8 @@ class PhysicalDevice(Device, ABC):
 
         return False
 
-    def supports_frame_type(self, frame_type: FrameType | int) -> bool:
-        """Check if frame is supported by the device."""
+    def supports_frame_type(self, frame_type: int) -> bool:
+        """Check if frame type is supported by the device."""
         return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
 
     def handle_frame(self, frame: Frame) -> None:

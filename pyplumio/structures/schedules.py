@@ -115,7 +115,7 @@ class ScheduleParameter(Parameter):
 
     @property
     def is_tracking_changes(self) -> bool:
-        """Return True if remote is tracking changes, False otherwise."""
+        """Return True if remote's tracking changes, False otherwise."""
         return self.device.has_frame_version(FrameType.REQUEST_SCHEDULES)
 
 
