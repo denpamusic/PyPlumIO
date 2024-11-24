@@ -107,6 +107,17 @@ class ScheduleParameter(Parameter):
             data=collect_schedule_data(schedule_name, self.device),
         )
 
+    async def create_refresh_request(self) -> Request:
+        """Create a request to refresh the parameter."""
+        return await Request.create(
+            FrameType.REQUEST_SCHEDULES, recipient=self.device.address
+        )
+
+    @property
+    def is_tracking_changes(self) -> bool:
+        """Return True if remote is tracking changes, False otherwise."""
+        return self.device.has_frame_version(FrameType.REQUEST_SCHEDULES)
+
 
 @dataslots
 @dataclass

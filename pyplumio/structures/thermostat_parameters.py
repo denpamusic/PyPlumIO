@@ -86,6 +86,20 @@ class ThermostatParameter(Parameter):
             },
         )
 
+    async def create_refresh_request(self) -> Request:
+        """Create a request to refresh the parameter."""
+        return await Request.create(
+            FrameType.REQUEST_THERMOSTAT_PARAMETERS,
+            recipient=self.device.parent.address,
+        )
+
+    @property
+    def is_tracking_changes(self) -> bool:
+        """Return True if remote is tracking changes, False otherwise."""
+        return self.device.parent.has_frame_version(
+            FrameType.REQUEST_THERMOSTAT_PARAMETERS
+        )
+
 
 @dataslots
 @dataclass

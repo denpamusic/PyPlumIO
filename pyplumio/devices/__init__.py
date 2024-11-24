@@ -9,10 +9,11 @@ from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import UnknownDeviceError
-from pyplumio.frames import DataFrameDescription, Frame, Request
+from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import Parameter, ParameterValue
+from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
@@ -125,11 +126,43 @@ class PhysicalDevice(Device, ABC):
     address: ClassVar[int]
     _network: NetworkInfo
     _setup_frames: tuple[DataFrameDescription, ...]
+    _frame_versions: dict[int, int]
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new physical device."""
         super().__init__(queue)
+        self._frame_versions = {}
         self._network = network
+        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
+
+    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
+        """Check frame versions and update outdated frames."""
+        for frame_type, version in versions.items():
+            if (
+                is_known_frame_type(frame_type)
+                and self.supports_frame_type(frame_type)
+                and not self.has_frame_version(frame_type, version)
+            ):
+                # We don't have this frame or it's version has changed.
+                request = await Request.create(frame_type, recipient=self.address)
+                self.queue.put_nowait(request)
+                self._frame_versions[frame_type] = version
+
+    def has_frame_version(
+        self, frame_type: FrameType | int, version: int | None = None
+    ) -> bool:
+        """Check if ecoMAX controller has this version of the frame."""
+        if frame_type not in self._frame_versions:
+            return False
+
+        if version is None or self._frame_versions[frame_type] == version:
+            return True
+
+        return False
+
+    def supports_frame_type(self, frame_type: FrameType | int) -> bool:
+        """Check if frame is supported by the device."""
+        return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the device."""
