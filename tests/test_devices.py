@@ -165,11 +165,14 @@ async def test_async_setup_error() -> None:
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
+    assert not ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type)
     test_data = load_json_test_data("messages/sensor_data.json")[0]
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
         ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
         await ecomax.wait_until_done()
 
+    assert not ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type, 0)
+    assert ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type, 45559)
     mock_put_nowait.assert_has_calls(
         [
             call(RegulatorDataSchemaRequest(recipient=DeviceType.ECOMAX)),
@@ -254,6 +257,14 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
         await fuel_calorific_value.set(2.5)
 
     mock_set.assert_awaited_once_with(25, 5, 5.0)
+
+    # Test remote tracking support.
+    assert not fuel_calorific_value.is_tracking_changes
+    refresh_request = await fuel_calorific_value.create_refresh_request()
+    assert refresh_request.frame_type == FrameType.REQUEST_ECOMAX_PARAMETERS
+    assert refresh_request.recipient == ecomax.address
+    await ecomax.dispatch(ATTR_FRAME_VERSIONS, {FrameType.REQUEST_ECOMAX_PARAMETERS: 1})
+    assert fuel_calorific_value.is_tracking_changes
 
     # Test parameter with the offset (heating_heat_curve_shift)
     heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
@@ -408,7 +419,19 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert party_target_temp.min_value == 10.0
     assert party_target_temp.max_value == 35.0
     assert party_target_temp.offset == 0
-    party_target_temp_request = await party_target_temp.create_request()
+
+    # Test remote tracking support.
+    assert not party_target_temp.is_tracking_changes
+    refresh_request = await party_target_temp.create_refresh_request()
+    assert refresh_request.frame_type == FrameType.REQUEST_THERMOSTAT_PARAMETERS
+    assert refresh_request.recipient == ecomax.address
+    await ecomax.dispatch(
+        ATTR_FRAME_VERSIONS, {FrameType.REQUEST_THERMOSTAT_PARAMETERS: 1}
+    )
+    assert party_target_temp.is_tracking_changes
+
+    # Test creating a request.
+    party_target_temp_request = await party_target_temp.create_request()  # type: ignore [unreachable]
     assert isinstance(party_target_temp_request, SetThermostatParameterRequest)
     assert party_target_temp_request.data == {
         ATTR_INDEX: 2,
@@ -484,8 +507,16 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert mixer_target_temp.min_value == 30.0
     assert mixer_target_temp.max_value == 60.0
 
+    # Test remote tracking support.
+    assert not mixer_target_temp.is_tracking_changes
+    refresh_request = await mixer_target_temp.create_refresh_request()
+    assert refresh_request.frame_type == FrameType.REQUEST_MIXER_PARAMETERS
+    assert refresh_request.recipient == ecomax.address
+    await ecomax.dispatch(ATTR_FRAME_VERSIONS, {FrameType.REQUEST_MIXER_PARAMETERS: 1})
+    assert mixer_target_temp.is_tracking_changes
+
     # Test creating a request.
-    mixer_target_temp_request = await mixer_target_temp.create_request()
+    mixer_target_temp_request = await mixer_target_temp.create_request()  # type: ignore [unreachable]
     assert isinstance(mixer_target_temp_request, SetMixerParameterRequest)
     assert mixer_target_temp_request.data == {
         ATTR_INDEX: 0,
@@ -549,7 +580,17 @@ async def test_schedule_callback(ecomax: EcoMAX) -> None:
     assert water_heater_schedule_parameter.value == 5
     assert water_heater_schedule_parameter.min_value == 0
     assert water_heater_schedule_parameter.max_value == 30
-    water_heater_schedule_parameter_request = (
+
+    # Test remote tracking support.
+    assert not water_heater_schedule_parameter.is_tracking_changes
+    refresh_request = await water_heater_schedule_parameter.create_refresh_request()
+    assert refresh_request.frame_type == FrameType.REQUEST_SCHEDULES
+    assert refresh_request.recipient == ecomax.address
+    await ecomax.dispatch(ATTR_FRAME_VERSIONS, {FrameType.REQUEST_SCHEDULES: 1})
+    assert water_heater_schedule_parameter.is_tracking_changes
+
+    # Test creating a request.
+    water_heater_schedule_parameter_request = (  # type: ignore [unreachable]
         await water_heater_schedule_parameter.create_request()
     )
     assert isinstance(water_heater_schedule_parameter_request, SetScheduleRequest)

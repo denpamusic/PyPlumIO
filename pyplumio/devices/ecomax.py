@@ -9,7 +9,6 @@ import time
 from typing import Any, Final
 
 from pyplumio.const import (
-    ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
@@ -21,7 +20,7 @@ from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
-from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
+from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -35,7 +34,6 @@ from pyplumio.structures.ecomax_parameters import (
     EcomaxSwitch,
     EcomaxSwitchDescription,
 )
-from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
@@ -106,17 +104,14 @@ class EcoMAX(PhysicalDevice):
 
     address = DeviceType.ECOMAX
 
-    _frame_versions: dict[int, int]
     _fuel_burned_timestamp_ns: int
     _setup_frames = SETUP_FRAME_TYPES
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
-        self._frame_versions = {}
         self._fuel_burned_timestamp_ns = time.perf_counter_ns()
         self.subscribe(ATTR_ECOMAX_PARAMETERS, self._handle_ecomax_parameters)
-        self.subscribe(ATTR_FRAME_VERSIONS, self._update_frame_versions)
         self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
         self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
@@ -141,17 +136,6 @@ class EcoMAX(PhysicalDevice):
             self.queue.put_nowait(response)
 
         super().handle_frame(frame)
-
-    def _has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
-        """Check if ecoMAX controller has this version of the frame."""
-        return (
-            frame_type in self._frame_versions
-            and self._frame_versions[frame_type] == version
-        )
-
-    def _frame_is_supported(self, frame_type: FrameType | int) -> bool:
-        """Check if frame is supported by the device."""
-        return frame_type not in self.data.get(ATTR_FRAME_ERRORS, [])
 
     def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer, None, None]:
         """Iterate through the mixer indexes.
@@ -223,19 +207,6 @@ class EcoMAX(PhysicalDevice):
 
         await asyncio.gather(*_ecomax_parameter_events())
         return True
-
-    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
-        """Check frame versions and update outdated frames."""
-        for frame_type, version in versions.items():
-            if (
-                is_known_frame_type(frame_type)
-                and self._frame_is_supported(frame_type)
-                and not self._has_frame_version(frame_type, version)
-            ):
-                # We don't have this frame or it's version has changed.
-                request = await Request.create(frame_type, recipient=self.address)
-                self.queue.put_nowait(request)
-                self._frame_versions[frame_type] = version
 
     async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Calculate fuel burned since last sensor's data message."""
