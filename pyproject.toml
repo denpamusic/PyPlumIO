@@ -37,7 +37,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
     "codespell==2.3.0",
-    "coverage==7.6.7",
+    "coverage==7.6.8",
     "mypy==1.13.0",
     "pyserial-asyncio-fast==0.14",
     "pytest==8.3.4",
