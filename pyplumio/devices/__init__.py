@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC
 import asyncio
 from functools import cache
+import logging
 from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
@@ -16,6 +17,8 @@ from pyplumio.helpers.parameter import Parameter, ParameterValue
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @cache
@@ -131,8 +134,8 @@ class PhysicalDevice(Device, ABC):
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new physical device."""
         super().__init__(queue)
-        self._frame_versions = {}
         self._network = network
+        self._frame_versions = {}
 
         async def update_frame_versions(versions: dict[int, int]) -> None:
             """Check frame versions and update outdated frames."""
@@ -142,6 +145,9 @@ class PhysicalDevice(Device, ABC):
                     and self.supports_frame_type(frame_type)
                     and not self.has_frame_version(frame_type, version)
                 ):
+                    _LOGGER.debug(
+                        "Updating frame %s to version %i", repr(frame_type), version
+                    )
                     request = await Request.create(frame_type, recipient=self.address)
                     self.queue.put_nowait(request)
                     self._frame_versions[frame_type] = version
