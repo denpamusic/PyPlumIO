@@ -54,7 +54,7 @@ docs = [
 dev = [
     "pyplumio[test,docs]",
     "pre-commit==4.0.1",
-    "tomli==2.1.0"
+    "tomli==2.2.1"
 ]
 
 
