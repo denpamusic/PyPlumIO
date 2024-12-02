@@ -40,7 +40,7 @@ test = [
     "coverage==7.6.7",
     "mypy==1.13.0",
     "pyserial-asyncio-fast==0.14",
-    "pytest==8.3.3",
+    "pytest==8.3.4",
     "pytest-asyncio==0.24.0",
     "ruff==0.7.4",
     "tox==4.23.2",
