@@ -38,7 +38,7 @@ dynamic = ["version"]
 test = [
     "codespell==2.3.0",
     "coverage==7.6.8",
-    "mypy==1.13.0",
+    "mypy==1.14.0",
     "pyserial-asyncio-fast==0.14",
     "pytest==8.3.4",
     "pytest-asyncio==0.24.0",
