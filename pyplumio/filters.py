@@ -125,6 +125,52 @@ class Filter(ABC):
         """Set a new value for the callback."""
 
 
+class _Clamp(Filter):
+    """Represents a clamp filter.
+
+    Calls callback with a value clamped between specified boundaries.
+    """
+
+    __slots__ = ("_min_value", "_max_value")
+
+    _min_value: float
+    _max_value: float
+
+    def __init__(self, callback: Callback, min_value: float, max_value: float) -> None:
+        """Initialize a new clamp filter."""
+        super().__init__(callback)
+        self._min_value = min_value
+        self._max_value = max_value
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if new_value < self._min_value:
+            return await self._callback(self._min_value)
+
+        if new_value > self._max_value:
+            return await self._callback(self._max_value)
+
+        return await self._callback(new_value)
+
+
+def clamp(callback: Callback, min_value: float, max_value: float) -> _Clamp:
+    """Return a clamp filter.
+
+    A callback function will be called with value clamped between
+    specified boundaries.
+
+    :param callback: A callback function to be awaited on new value
+    :type callback: Callback
+    :param min_value: A lower boundary
+    :type min_value: float
+    :param max_value: An upper boundary
+    :type max_value: float
+    :return: An instance of callable filter
+    :rtype: _Clamp
+    """
+    return _Clamp(callback, min_value, max_value)
+
+
 class _OnChange(Filter):
     """Represents a value changed filter.
 

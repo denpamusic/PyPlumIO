@@ -23,7 +23,7 @@ Subscribing to events
 .. autofunction:: pyplumio.devices.Device.subscribe_once
 
 To remove the previously registered callback, use the
-``unsubcribe()`` method.
+``unsubscribe()`` method.
 
 .. autofunction:: pyplumio.devices.Device.unsubscribe
 
@@ -48,6 +48,17 @@ then calls the callback with the sum of values collected.
     # Await the callback with the fuel burned during 30 seconds.
     ecomax.subscribe("fuel_burned", aggregate(my_callback, seconds=30))
 
+.. autofunction:: pyplumio.filters.clamp
+
+This filter clamps value between specified boundaries.
+It can be used to filter out outliers and corrupted data.
+
+.. code-block:: python
+
+    from pyplumio.filters import clamp
+
+    # Await the callback with value clamped between 0 and 100.
+    ecomax.subscribe("load", clamp(my_callback, min_value=0, max_value=100))
 
 .. autofunction:: pyplumio.filters.on_change
 

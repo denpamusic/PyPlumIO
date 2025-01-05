@@ -5,9 +5,33 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.filters import aggregate, custom, debounce, delta, on_change, throttle
+from pyplumio.filters import (
+    aggregate,
+    clamp,
+    custom,
+    debounce,
+    delta,
+    on_change,
+    throttle,
+)
 from pyplumio.helpers.parameter import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
+
+
+async def test_clamp() -> None:
+    """Test clamp filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = clamp(test_callback, min_value=10, max_value=15)
+    await wrapped_callback(1)
+    test_callback.assert_awaited_once_with(10)
+    test_callback.reset_mock()
+
+    await wrapped_callback(50)
+    test_callback.assert_awaited_once_with(15)
+    test_callback.reset_mock()
+
+    await wrapped_callback(11)
+    test_callback.assert_awaited_once_with(11)
 
 
 async def test_on_change() -> None:
