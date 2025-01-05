@@ -151,7 +151,7 @@ def on_change(callback: Callback) -> _OnChange:
 
     :param callback: A callback function to be awaited on value change
     :type callback: Callback
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _OnChange
     """
     return _OnChange(callback)
@@ -201,7 +201,7 @@ def debounce(callback: Callback, min_calls: int) -> _Debounce:
     :param min_calls: Value shouldn't change for this amount of
         filter calls
     :type min_calls: int
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _Debounce
     """
     return _Debounce(callback, min_calls)
@@ -248,7 +248,7 @@ def throttle(callback: Callback, seconds: float) -> _Throttle:
     :param seconds: A callback will be awaited at most once per
         this amount of seconds
     :type seconds: float
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _Throttle
     """
     return _Throttle(callback, seconds)
@@ -285,7 +285,7 @@ def delta(callback: Callback) -> _Delta:
     :param callback: A callback function that will be awaited with
         difference between values in two subsequent calls
     :type callback: Callback
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _Delta
     """
     return _Delta(callback)
@@ -340,7 +340,7 @@ def aggregate(callback: Callback, seconds: float) -> _Aggregate:
     :param seconds: A callback will be awaited with a sum of values
         aggregated over this amount of seconds.
     :type seconds: float
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _Aggregate
     """
     return _Aggregate(callback, seconds)
@@ -382,7 +382,7 @@ def custom(callback: Callback, filter_fn: Callable[[Any], bool]) -> _Custom:
     :param filter_fn: Filter function, that will be called with a
         value and should return `True` to await filter's callback
     :type filter_fn: Callable[[Any], bool]
-    :return: A instance of callable filter
+    :return: An instance of callable filter
     :rtype: _Custom
     """
     return _Custom(callback, filter_fn)
