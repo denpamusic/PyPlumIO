@@ -661,9 +661,9 @@ async def test_set(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
 
     # Test setting an ecomax parameter.
-    assert await ecomax.set("max_fuel_flow", 13.0)
+    assert await ecomax.set("max_fuel_flow", 2500)
     max_fuel_flow = await ecomax.get("max_fuel_flow")
-    assert max_fuel_flow.value == 13.0
+    assert max_fuel_flow.value == 2500
 
     # Test setting an ecomax parameter without blocking.
     with (
@@ -672,7 +672,7 @@ async def test_set(ecomax: EcoMAX) -> None:
             "pyplumio.helpers.task_manager.TaskManager.create_task"
         ) as mock_create_task,
     ):
-        ecomax.set_nowait("max_fuel_flow", 10)
+        ecomax.set_nowait("max_fuel_flow", 20)
 
     mock_create_task.assert_called_once()
 
