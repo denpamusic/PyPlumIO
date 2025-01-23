@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Generator
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 from dataslots import dataslots
 
@@ -19,7 +19,6 @@ from pyplumio.const import (
     ProductType,
     UnitOfMeasurement,
 )
-from pyplumio.devices import PhysicalDevice
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
     Number,
@@ -34,6 +33,9 @@ from pyplumio.helpers.parameter import (
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 from pyplumio.utils import ensure_dict
+
+if TYPE_CHECKING:
+    from pyplumio.devices.ecomax import EcoMAX
 
 ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
 ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
@@ -53,7 +55,7 @@ class EcomaxParameter(Parameter):
 
     __slots__ = ()
 
-    device: PhysicalDevice
+    device: EcoMAX
     description: EcomaxParameterDescription
 
     async def create_request(self) -> Request:
