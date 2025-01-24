@@ -111,14 +111,7 @@ async def test_switch_value(switch: Switch) -> None:
 
 async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
     """Test setting a number."""
-    retries = 5
-    with patch(
-        "pyplumio.helpers.parameter.Number.create_refresh_request"
-    ) as mock_create_refresh_request:
-        await number.set(5, retries=retries)
-
-    assert not number.is_tracking_changes
-    assert mock_create_refresh_request.await_count == retries
+    await number.set(5)
     number.update(ParameterValues(value=5, min_value=0, max_value=5))
     assert number == 5
     assert not number.pending_update
@@ -134,14 +127,7 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
 
 async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
     """Test setting a number."""
-    retries = 5
-    with patch(
-        "pyplumio.helpers.parameter.Switch.create_refresh_request"
-    ) as mock_create_refresh_request:
-        await switch.set(STATE_ON, retries=retries)
-
-    assert not switch.is_tracking_changes
-    assert mock_create_refresh_request.await_count == retries
+    await switch.set(STATE_ON)
     switch.update(ParameterValues(value=1, min_value=0, max_value=1))
     assert switch == 1
     assert not switch.pending_update
@@ -275,7 +261,7 @@ async def test_number_request_with_unchanged_value(
     assert not number.pending_update
     assert not await number.set(5, retries=3)
     assert number.pending_update
-    assert mock_put.await_count == 6  # type: ignore [unreachable]
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
     assert "Timed out while trying to set 'test_number' parameter" in caplog.text
     await number.set(5)
@@ -290,7 +276,7 @@ async def test_switch_request_with_unchanged_value(
     assert not switch.pending_update
     assert not await switch.set(True, retries=3)
     assert switch.pending_update
-    assert mock_put.await_count == 6  # type: ignore [unreachable]
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
     assert "Timed out while trying to set 'test_switch' parameter" in caplog.text
     await switch.set(True)

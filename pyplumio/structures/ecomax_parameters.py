@@ -83,17 +83,6 @@ class EcomaxParameter(Parameter):
             data={ATTR_INDEX: self._index, ATTR_VALUE: self.values.value},
         )
 
-    async def create_refresh_request(self) -> Request:
-        """Create a request to refresh the parameter."""
-        return await Request.create(
-            FrameType.REQUEST_ECOMAX_PARAMETERS, recipient=self.device.address
-        )
-
-    @property
-    def is_tracking_changes(self) -> bool:
-        """Return True if remote's tracking changes, False otherwise."""
-        return self.device.has_frame_version(FrameType.REQUEST_ECOMAX_PARAMETERS)
-
 
 @dataslots
 @dataclass
