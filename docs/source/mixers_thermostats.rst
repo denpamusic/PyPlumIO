@@ -52,7 +52,7 @@ get it's current_temp property and set it's target temperature to
 Thermostat Examples
 -------------------
 
-In the following example, we'll get single thermostat by it's index,
+In the following example, we'll get a single thermostat by it's index,
 get current room temperature and set daytime target temperature to 20
 degrees Celsius.
 

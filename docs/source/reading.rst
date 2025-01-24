@@ -78,8 +78,8 @@ available and print it out.
 
 Regulator Data
 --------------
-Regulator Data messages are broadcasted by the ecoMAX controller
-once per second and allow access to some device-specific
+Regulator Data message is broadcasted by the ecoMAX controller
+once per second and allows access to some device-specific
 information that isn't available elsewhere.
 
 .. note::
@@ -87,9 +87,8 @@ information that isn't available elsewhere.
     RegData is device-specific. Each ecoMAX controller has different
     keys and their associated meanings.
 
-It's represented by a dictionary mapped with numerical keys.
-
-RegData can be accessed via the **regdata** property.
+Regulator data is represented by a dictionary mapped with numerical
+keys, and can be accessed via the **regdata** property.
 
 .. code-block:: python
 
@@ -103,8 +102,8 @@ RegData can be accessed via the **regdata** property.
 Reading Examples
 ----------------
 
-The following example make uses of all available methods to get
-heating current and target temperatures and device state and outputs it
+The following example makes use of all available methods to get
+current and target heating temperatures and device state and outputs it
 to the terminal.
 
 .. code-block:: python
@@ -122,14 +121,14 @@ to the terminal.
             # Get the ecoMAX device.
             ecomax = await conn.get("ecomax")
 
-            # Get the heating temperature if it is available, or return
-            # default value (65).
+            # Get heating temperature, if it's available otherwise
+            # return the default value (65).
             heating_temp = ecomax.get_nowait("heating_temp", default=65)
 
-            # Wait for the heating temperature and get it's value.
+            # Wait for heating temperature and get it's value.
             heating_target_temp = await ecomax.get("heating_target_temp")
 
-            # Wait until regulator data is available, and grab key 1792.
+            # Wait until regulator data is available then grab key 1792.
             await ecomax.wait_for("regdata")
             status = ecomax.regdata[1792]
 
