@@ -1,7 +1,7 @@
 """Contains tests for the parameter helper class."""
 
 from copy import copy
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -109,6 +109,17 @@ async def test_switch_value(switch: Switch) -> None:
     assert switch.max_value == STATE_ON
 
 
+async def test_number_validate(number: Number) -> None:
+    """Test the number validation."""
+    assert number.validate(2)
+
+    with pytest.raises(ValueError):
+        number.validate(1)
+
+    with pytest.raises(ValueError):
+        number.validate(6)
+
+
 async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
     """Test setting a number."""
     await number.set(5)
@@ -117,12 +128,18 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
     assert not number.pending_update
     with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
         assert await number.set(3)
+        assert number == 3
 
-    assert number == 3
 
-    # Test out of range.
+async def test_switch_validate(switch: Switch) -> None:
+    """Test the switch validation."""
+    assert switch.validate(STATE_ON)
+
     with pytest.raises(ValueError):
-        await number.set(39)
+        assert switch.validate(STATE_OFF)
+
+    with pytest.raises(ValueError):
+        switch.validate(2)
 
 
 async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
@@ -137,24 +154,18 @@ async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
     assert switch == 0
 
 
-@patch("pyplumio.devices.Device.create_task")
-@patch("pyplumio.helpers.parameter.Number.set", new_callable=Mock)
-async def test_number_set_nowait(mock_set, mock_create_task, number: Number):
+async def test_number_set_nowait(number: Number):
     """Test setting a number without waiting for result."""
-    number.set_nowait(1)
+    number.set_nowait(5)
     await number.device.wait_until_done()
-    mock_create_task.assert_called_once()
-    mock_set.assert_called_once_with(1, 5, 5.0)
+    assert number == 5
 
 
-@patch("pyplumio.devices.Device.create_task")
-@patch("pyplumio.helpers.parameter.Switch.set", new_callable=Mock)
-async def test_switch_set_nowait(mock_set, mock_create_task, switch: Switch):
+async def test_switch_set_nowait(switch: Switch):
     """Test setting a number without waiting for result."""
     switch.set_nowait(STATE_ON)
     await switch.device.wait_until_done()
-    mock_create_task.assert_called_once()
-    mock_set.assert_called_once_with(STATE_ON, 5, 5.0)
+    assert switch == STATE_ON
 
 
 def test_number_update(number: Number) -> None:
@@ -251,36 +262,6 @@ def test_switch_repr(switch: Switch) -> None:
         "values=ParameterValues(value=0, min_value=0, max_value=1), "
         "index=0)"
     )
-
-
-@patch("asyncio.Queue.put")
-async def test_number_request_with_unchanged_value(
-    mock_put, number: Number, bypass_asyncio_sleep, caplog
-) -> None:
-    """Test that a frame doesn't get dispatched if it's value is unchanged."""
-    assert not number.pending_update
-    assert not await number.set(5, retries=3)
-    assert number.pending_update
-    assert mock_put.await_count == 3  # type: ignore [unreachable]
-    mock_put.reset_mock()
-    assert "Timed out while trying to set 'test_number' parameter" in caplog.text
-    await number.set(5)
-    mock_put.assert_not_awaited()
-
-
-@patch("asyncio.Queue.put")
-async def test_switch_request_with_unchanged_value(
-    mock_put, switch: Switch, bypass_asyncio_sleep, caplog
-) -> None:
-    """Test that a frame doesn't get dispatched if it's value is unchanged."""
-    assert not switch.pending_update
-    assert not await switch.set(True, retries=3)
-    assert switch.pending_update
-    assert mock_put.await_count == 3  # type: ignore [unreachable]
-    mock_put.reset_mock()
-    assert "Timed out while trying to set 'test_switch' parameter" in caplog.text
-    await switch.set(True)
-    mock_put.assert_not_awaited()
 
 
 @patch("pyplumio.helpers.parameter.Switch.set")

@@ -184,16 +184,31 @@ class Parameter(ABC):
         )
         return type(self)(self.device, self.description, values)
 
-    async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
-        """Set a parameter value."""
-        if (value := _normalize_parameter_value(value)) == self.values.value:
-            return True
+    def validate(self, value: ParameterValue) -> int:
+        """Validate a parameter value."""
+        value = _normalize_parameter_value(value)
+        if value == self.values.value:
+            raise ValueError("Parameter value is unchanged.")
 
         if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
                 f"Value must be between '{self.min_value}' and '{self.max_value}'"
             )
 
+        return value
+
+    async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
+        """Set a parameter value."""
+        return await self._try_set(self.validate(value), retries, timeout)
+
+    def set_nowait(self, value: Any, retries: int = 5, timeout: float = 5.0) -> None:
+        """Set a parameter value without waiting."""
+        self.device.create_task(self._try_set(self.validate(value), retries, timeout))
+
+    async def _try_set(
+        self, value: Any, retries: int = 5, timeout: float = 5.0
+    ) -> bool:
+        """Try to set a parameter value."""
         self._previous_value = self._values.value
         self._values.value = value
         self._pending_update = True
@@ -292,7 +307,7 @@ class Number(Parameter):
         self, value: int | float, retries: int = 5, timeout: float = 5.0
     ) -> None:
         """Set a parameter value without waiting."""
-        self.device.create_task(self.set(value, retries, timeout))
+        super().set_nowait(value, retries, timeout)
 
     async def create_request(self) -> Request:
         """Create a request to change the number."""
@@ -342,7 +357,7 @@ class Switch(Parameter):
         self, value: bool | Literal["off", "on"], retries: int = 5, timeout: float = 5.0
     ) -> None:
         """Set a switch value without waiting."""
-        self.device.create_task(self.set(value, retries, timeout))
+        super().set_nowait(value, retries, timeout)
 
     async def turn_on(self) -> bool:
         """Set a switch value to 'on'.
