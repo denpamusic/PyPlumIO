@@ -107,9 +107,6 @@ class Device(ABC, EventManager):
             this value is used to determine failure when
             retrying and doesn't block, defaults to `None`
         :type timeout: float, optional
-        :return: `True` if parameter was successfully set, `False`
-            otherwise.
-        :rtype: bool
         """
         self.create_task(self.set(name, value, retries, timeout))
 
