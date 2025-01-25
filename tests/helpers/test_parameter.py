@@ -114,9 +114,6 @@ async def test_number_validate(number: Number) -> None:
     assert number.validate(2)
 
     with pytest.raises(ValueError):
-        number.validate(1)
-
-    with pytest.raises(ValueError):
         number.validate(6)
 
 
@@ -134,9 +131,6 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
 async def test_switch_validate(switch: Switch) -> None:
     """Test the switch validation."""
     assert switch.validate(STATE_ON)
-
-    with pytest.raises(ValueError):
-        assert switch.validate(STATE_OFF)
 
     with pytest.raises(ValueError):
         switch.validate(2)
@@ -262,6 +256,36 @@ def test_switch_repr(switch: Switch) -> None:
         "values=ParameterValues(value=0, min_value=0, max_value=1), "
         "index=0)"
     )
+
+
+@patch("asyncio.Queue.put")
+async def test_number_request_with_unchanged_value(
+    mock_put, number: Number, bypass_asyncio_sleep, caplog
+) -> None:
+    """Test that a frame doesn't get dispatched if it's value is unchanged."""
+    assert not number.pending_update
+    assert not await number.set(5, retries=3)
+    assert number.pending_update
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
+    mock_put.reset_mock()
+    assert "Timed out while trying to set 'test_number' parameter" in caplog.text
+    await number.set(5)
+    mock_put.assert_not_awaited()
+
+
+@patch("asyncio.Queue.put")
+async def test_switch_request_with_unchanged_value(
+    mock_put, switch: Switch, bypass_asyncio_sleep, caplog
+) -> None:
+    """Test that a frame doesn't get dispatched if it's value is unchanged."""
+    assert not switch.pending_update
+    assert not await switch.set(True, retries=3)
+    assert switch.pending_update
+    assert mock_put.await_count == 3  # type: ignore [unreachable]
+    mock_put.reset_mock()
+    assert "Timed out while trying to set 'test_switch' parameter" in caplog.text
+    await switch.set(True)
+    mock_put.assert_not_awaited()
 
 
 @patch("pyplumio.helpers.parameter.Switch.set")

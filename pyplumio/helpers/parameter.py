@@ -187,9 +187,6 @@ class Parameter(ABC):
     def validate(self, value: ParameterValue) -> int:
         """Validate a parameter value."""
         value = _normalize_parameter_value(value)
-        if value == self.values.value:
-            raise ValueError("Parameter value is unchanged.")
-
         if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
                 f"Value must be between '{self.min_value}' and '{self.max_value}'"
@@ -209,6 +206,10 @@ class Parameter(ABC):
         self, value: Any, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Try to set a parameter value."""
+        if value == self.values.value:
+            # Value is unchanged
+            return True
+
         self._previous_value = self._values.value
         self._values.value = value
         self._pending_update = True
