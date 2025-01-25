@@ -9,7 +9,7 @@ import logging
 from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
-from pyplumio.exceptions import UnknownDeviceError
+from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import create_instance
@@ -180,7 +180,7 @@ class PhysicalDevice(Device, ABC):
         )
 
         errors = [
-            result.args[1] for result in results if isinstance(result, BaseException)
+            result.args[1] for result in results if isinstance(result, RequestError)
         ]
 
         await asyncio.gather(
@@ -203,9 +203,10 @@ class PhysicalDevice(Device, ABC):
             except asyncio.TimeoutError:
                 retries -= 1
 
-        raise ValueError(
+        raise RequestError(
             f"Failed to request parameter '{name}' with frame type '{frame_type}' "
-            f"after {retries} retries."
+            f"after {retries} retries.",
+            frame_type,
         )
 
     @classmethod

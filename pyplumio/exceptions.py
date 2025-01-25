@@ -15,6 +15,10 @@ class ProtocolError(PyPlumIOError):
     """Base class for protocol-related errors."""
 
 
+class RequestError(PyPlumIOError):
+    """Raised on request error."""
+
+
 class ReadError(ProtocolError):
     """Raised on read error."""
 

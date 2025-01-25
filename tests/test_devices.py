@@ -36,7 +36,7 @@ from pyplumio.devices.ecomax import (
 from pyplumio.devices.ecoster import EcoSTER
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
-from pyplumio.exceptions import UnknownDeviceError
+from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.frames import Response
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
@@ -144,7 +144,7 @@ async def test_async_setup_error() -> None:
         patch(
             "pyplumio.devices.ecomax.EcoMAX.request",
             side_effect=(
-                ValueError("test", FrameType.REQUEST_ALERTS),
+                RequestError("test", FrameType.REQUEST_ALERTS),
                 True,
                 True,
                 True,
@@ -597,7 +597,7 @@ async def test_request_error(ecomax: EcoMAX) -> None:
             "pyplumio.devices.ecomax.EcoMAX.get",
             side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
         ),
-        pytest.raises(ValueError),
+        pytest.raises(RequestError),
     ):
         await ecomax.request("foo", FrameType.REQUEST_ALERTS, retries=1)
 
