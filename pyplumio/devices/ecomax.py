@@ -192,6 +192,7 @@ class EcoMAX(PhysicalDevice):
                         values,
                         product.model,
                     )
+                    return
 
                 handler = (
                     EcomaxSwitch
