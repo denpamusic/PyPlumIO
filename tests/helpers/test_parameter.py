@@ -268,7 +268,7 @@ async def test_number_request_with_unchanged_value(
     assert number.pending_update
     assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
-    assert "Timed out while trying to set 'test_number' parameter" in caplog.text
+    assert "Failed to set parameter 'test_number' after 0 retries" in caplog.text
     await number.set(5)
     mock_put.assert_not_awaited()
 
@@ -283,7 +283,7 @@ async def test_switch_request_with_unchanged_value(
     assert switch.pending_update
     assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
-    assert "Timed out while trying to set 'test_switch' parameter" in caplog.text
+    assert "Failed to set parameter 'test_switch' after 0 retries" in caplog.text
     await switch.set(True)
     mock_put.assert_not_awaited()
 

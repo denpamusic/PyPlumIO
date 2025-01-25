@@ -82,7 +82,7 @@ class Device(ABC, EventManager):
         """
         parameter = await self.get(name, timeout)
         if not isinstance(parameter, Parameter):
-            raise TypeError(f"{name} is not valid parameter")
+            raise TypeError(f"The parameter '{name}' is not valid or does not exist.")
 
         return await parameter.set(value, retries=retries)
 
@@ -143,7 +143,7 @@ class PhysicalDevice(Device, ABC):
                     and not self.has_frame_version(frame_type, version)
                 ):
                     _LOGGER.debug(
-                        "Updating frame %s to version %i", repr(frame_type), version
+                        "Updating frame %s to version %i", frame_type, version
                     )
                     request = await Request.create(frame_type, recipient=self.address)
                     self.queue.put_nowait(request)
@@ -203,7 +203,10 @@ class PhysicalDevice(Device, ABC):
             except asyncio.TimeoutError:
                 retries -= 1
 
-        raise ValueError(f'could not request "{name}"', frame_type)
+        raise ValueError(
+            f"Failed to request parameter '{name}' with frame type '{frame_type}' "
+            f"after {retries} retries."
+        )
 
     @classmethod
     async def create(cls, device_type: int, **kwargs: Any) -> PhysicalDevice:

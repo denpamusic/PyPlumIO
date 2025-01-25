@@ -26,9 +26,12 @@ async def create_instance(class_path: str, cls: type[T], **kwargs: Any) -> T:
         module = await _import_module(module_name)
         instance = getattr(module, class_name)(**kwargs)
         if not isinstance(instance, cls):
-            raise TypeError(f"class '{class_name}' should be derived from {cls}")
+            raise TypeError(
+                f"Expected instance of '{cls.__name__}', but got "
+                f"'{type(instance).__name__}' from '{class_name}'"
+            )
 
         return instance
     except Exception:
-        _LOGGER.error("Failed to load module (%s)", class_path)
+        _LOGGER.exception("Failed to create instance for class path '%s'", class_path)
         raise

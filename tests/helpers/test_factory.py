@@ -19,7 +19,7 @@ async def test_get_object_with_incorrect_base_class() -> None:
         await create_instance("frames.responses.UIDResponse", cls=Request)
 
     assert str(exc_info.value) == (
-        "class 'UIDResponse' should be derived from <class 'pyplumio.frames.Request'>"
+        "Expected instance of 'Request', but got 'UIDResponse' from 'UIDResponse'"
     )
 
 

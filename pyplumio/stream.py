@@ -45,7 +45,7 @@ class FrameWriter:
         """Send the frame and wait until send buffer is empty."""
         self._writer.write(frame.bytes)
         await self._writer.drain()
-        _LOGGER.debug("Sent frame: %s", frame)
+        _LOGGER.debug("Sent frame: %s, bytes: %s", frame, frame.bytes)
 
     async def close(self) -> None:
         """Close the frame writer."""
@@ -53,7 +53,9 @@ class FrameWriter:
             self._writer.close()
             await self.wait_closed()
         except (OSError, asyncio.TimeoutError):
-            _LOGGER.exception("Unexpected error, while closing the writer")
+            _LOGGER.exception(
+                "Failed to close the frame writer due to an unexpected error"
+            )
 
     @timeout(WRITER_TIMEOUT)
     async def wait_closed(self) -> None:
@@ -96,7 +98,7 @@ class FrameReader:
                 buffer += await self._reader.readexactly(HEADER_SIZE - DELIMITER_SIZE)
             except IncompleteReadError as e:
                 raise ReadError(
-                    f"Got incomplete header, while trying to read {e.expected} bytes"
+                    f"Incomplete header, expected {e.expected} bytes"
                 ) from e
 
             return Header(*struct_header.unpack_from(buffer)[DELIMITER_SIZE:]), buffer
@@ -123,18 +125,21 @@ class FrameReader:
             raise UnknownDeviceError(f"Unknown sender type ({sender})")
 
         if frame_length > MAX_FRAME_LENGTH or frame_length < MIN_FRAME_LENGTH:
-            raise ReadError(f"Unexpected frame length ({frame_length})")
+            raise ReadError(
+                f"Unexpected frame length ({frame_length}), expected between "
+                f"{MIN_FRAME_LENGTH} and {MAX_FRAME_LENGTH}"
+            )
 
         try:
             buffer += await self._reader.readexactly(frame_length - HEADER_SIZE)
         except IncompleteReadError as e:
-            raise ReadError(
-                f"Got incomplete frame, while trying to read {e.expected} bytes"
-            ) from e
+            raise ReadError(f"Incomplete frame, expected {e.expected} bytes") from e
 
         if (checksum := bcc(buffer[:-2])) and checksum != buffer[-2]:
             raise ChecksumError(
-                f"Incorrect frame checksum ({checksum} != {buffer[-2]})"
+                f"Incorrect frame checksum: calculated {checksum}, "
+                f"expected {buffer[-2]}. "
+                f"Frame data: {buffer.hex()}"
             )
 
         frame = await Frame.create(
@@ -145,6 +150,6 @@ class FrameReader:
             econet_version=econet_version,
             message=buffer[HEADER_SIZE + 1 : -2],
         )
-        _LOGGER.debug("Received frame: %s", frame)
+        _LOGGER.debug("Received frame: %s, bytes: %s", frame, buffer.hex())
 
         return frame

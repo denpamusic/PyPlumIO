@@ -53,7 +53,7 @@ async def test_frame_writer_with_close_error(
     writer = FrameWriter(mock_stream_writer)
     getattr(mock_stream_writer, method).side_effect = exception
     await writer.close()
-    assert "Unexpected error, while closing the writer" in caplog.text
+    assert "Failed to close the frame writer due to an unexpected error" in caplog.text
 
 
 @patch(
@@ -104,7 +104,7 @@ async def test_frame_reader_with_short_header(
     with pytest.raises(ReadError) as exc_info:
         await frame_reader.read()
 
-    assert "Got incomplete header, while trying to read 7 bytes" in str(exc_info.value)
+    assert "Incomplete header, expected 7 bytes" in str(exc_info.value)
 
 
 @patch(
@@ -137,7 +137,7 @@ async def test_frame_reader_with_incomplete_read(
     with pytest.raises(ReadError) as exc_info:
         await frame_reader.read()
 
-    assert "Got incomplete frame, while trying to read 10 bytes" in str(exc_info.value)
+    assert "Incomplete frame, expected 10 bytes" in str(exc_info.value)
 
 
 @patch(
@@ -152,7 +152,10 @@ async def test_frame_reader_with_incorrect_bcc(
     with pytest.raises(ChecksumError) as exc_info:
         await frame_reader.read()
 
-    assert "Incorrect frame checksum (200 != 201)" in str(exc_info.value)
+    assert (
+        "Incorrect frame checksum: calculated 200, expected 201. "
+        "Frame data: 680c000056300531fe00c916"
+    ) in str(exc_info.value)
 
 
 @patch(

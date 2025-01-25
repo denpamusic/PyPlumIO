@@ -98,6 +98,8 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 
 _LOGGER = logging.getLogger(__name__)
 
+ecomax_control_error = "ecoMAX control is not available. Please try again later."
+
 
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
@@ -394,7 +396,7 @@ class EcoMAX(PhysicalDevice):
             ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
             return await ecomax_control.turn_on()
         except KeyError:
-            _LOGGER.error("ecoMAX control isn't available, please try later")
+            _LOGGER.error(ecomax_control_error)
             return False
 
     async def turn_off(self) -> bool:
@@ -403,7 +405,7 @@ class EcoMAX(PhysicalDevice):
             ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
             return await ecomax_control.turn_off()
         except KeyError:
-            _LOGGER.error("ecoMAX control isn't available, please try later")
+            _LOGGER.error(ecomax_control_error)
             return False
 
     def turn_on_nowait(self) -> None:

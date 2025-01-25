@@ -189,7 +189,8 @@ class Parameter(ABC):
         value = _normalize_parameter_value(value)
         if value < self.values.min_value or value > self.values.max_value:
             raise ValueError(
-                f"Value must be between '{self.min_value}' and '{self.max_value}'"
+                f"Invalid value: {value}. Must be between "
+                f"{self.min_value} and {self.max_value}."
             )
 
         return value
@@ -215,9 +216,10 @@ class Parameter(ABC):
         self._pending_update = True
         while self.pending_update:
             if retries <= 0:
-                _LOGGER.error(
-                    "Timed out while trying to set '%s' parameter",
+                _LOGGER.warning(
+                    "Failed to set parameter '%s' after %d retries",
                     self.description.name,
+                    retries,
                 )
                 return False
 

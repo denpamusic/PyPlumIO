@@ -656,7 +656,7 @@ async def test_set(ecomax: EcoMAX) -> None:
 async def test_turn_on(ecomax: EcoMAX, caplog) -> None:
     """Test turning the controller on."""
     assert not await ecomax.turn_on()
-    assert "ecoMAX control isn't available" in caplog.text
+    assert "ecoMAX control is not available. Please try again later." in caplog.text
     ecomax.data[ATTR_ECOMAX_CONTROL] = AsyncMock()
     assert await ecomax.turn_on()
     ecomax.data[ATTR_ECOMAX_CONTROL].turn_on.assert_awaited_once()
@@ -665,7 +665,7 @@ async def test_turn_on(ecomax: EcoMAX, caplog) -> None:
 async def test_turn_off(ecomax: EcoMAX, caplog) -> None:
     """Test turning the controller off."""
     await ecomax.turn_off()
-    assert "ecoMAX control isn't available" in caplog.text
+    assert "ecoMAX control is not available. Please try again later." in caplog.text
     ecomax.data[ATTR_ECOMAX_CONTROL] = AsyncMock()
     await ecomax.turn_off()
     ecomax.data[ATTR_ECOMAX_CONTROL].turn_off.assert_awaited_once()

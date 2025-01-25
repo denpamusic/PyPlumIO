@@ -50,8 +50,8 @@ def _get_time_range(
 
         if end_dt <= start_dt:
             raise ValueError(
-                f"Invalid interval ({start}, {end}). "
-                "Lower boundary must be less than upper."
+                f"Invalid time range: start time ({start}) must be earlier "
+                f"than end time ({end})."
             )
 
         def _dt_to_index(dt: dt.datetime) -> int:
@@ -107,7 +107,10 @@ class ScheduleDay(MutableMapping):
     ) -> None:
         """Set a schedule interval state."""
         if state not in get_args(ScheduleState):
-            raise ValueError(f'state "{state}" is not allowed')
+            raise ValueError(
+                f"Invalid state '{state}'. Allowed states are: "
+                f"{', '.join(get_args(ScheduleState))}"
+            )
 
         for index in _get_time_range(start, end):
             self._intervals[index] = True if state in ON_STATES else False
