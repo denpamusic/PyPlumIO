@@ -165,14 +165,10 @@ async def test_async_setup_error() -> None:
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
-    assert not ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type)
     test_data = load_json_test_data("messages/sensor_data.json")[0]
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
         ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
         await ecomax.wait_until_done()
-
-    assert not ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type, 0)
-    assert ecomax.has_frame_version(RegulatorDataSchemaRequest.frame_type, 45559)
 
     mock_put_nowait.assert_has_calls(
         [

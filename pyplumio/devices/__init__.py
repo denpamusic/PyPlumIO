@@ -151,15 +151,12 @@ class PhysicalDevice(Device, ABC):
 
         self.subscribe(ATTR_FRAME_VERSIONS, update_frame_versions)
 
-    def has_frame_version(self, frame_type: int, version: int | None = None) -> bool:
+    def has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
         """Return True if frame data is up to date, False otherwise."""
-        if frame_type not in self._frame_versions:
-            return False
-
-        if version is None or self._frame_versions[frame_type] == version:
-            return True
-
-        return False
+        return (
+            frame_type in self._frame_versions
+            and self._frame_versions[frame_type] == version
+        )
 
     def supports_frame_type(self, frame_type: int) -> bool:
         """Check if frame type is supported by the device."""
