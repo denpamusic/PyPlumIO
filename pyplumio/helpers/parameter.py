@@ -217,7 +217,7 @@ class Parameter(ABC):
         while self.pending_update:
             if retries <= 0:
                 _LOGGER.warning(
-                    "Failed to set parameter '%s' after %d retries",
+                    "Unable to confirm that parameter '%s' was set after %d retries",
                     self.description.name,
                     retries,
                 )
