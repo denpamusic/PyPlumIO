@@ -204,7 +204,7 @@ class Parameter(ABC):
         self.device.create_task(self._try_set(self.validate(value), retries, timeout))
 
     async def _try_set(
-        self, value: Any, retries: int = 5, timeout: float = 5.0
+        self, value: int, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Try to set a parameter value."""
         if value == self.values.value:
@@ -214,7 +214,7 @@ class Parameter(ABC):
         self._previous_value = self._values.value
         self._values.value = value
         self._pending_update = True
-        while self.pending_update:
+        while self._pending_update:
             if retries <= 0:
                 _LOGGER.warning(
                     "Unable to confirm that parameter '%s' was set after %d retries",
