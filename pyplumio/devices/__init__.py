@@ -180,7 +180,7 @@ class PhysicalDevice(Device, ABC):
         )
 
         errors = [
-            result.args[1] for result in results if isinstance(result, RequestError)
+            result.frame_type for result in results if isinstance(result, RequestError)
         ]
 
         await asyncio.gather(
@@ -204,9 +204,9 @@ class PhysicalDevice(Device, ABC):
                 retries -= 1
 
         raise RequestError(
-            f"Failed to request parameter '{name}' with frame type '{frame_type}' "
-            f"after {retries} retries.",
-            frame_type,
+            f"Failed to request '{name}' with frame type '{frame_type}' after "
+            f"{retries} retries.",
+            frame_type=frame_type,
         )
 
     @classmethod

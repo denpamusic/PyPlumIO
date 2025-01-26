@@ -601,13 +601,11 @@ async def test_request_error(ecomax: EcoMAX) -> None:
     ):
         await ecomax.request("foo", FrameType.REQUEST_ALERTS, retries=1)
 
-    assert len(excinfo.value.args) == 2
     assert (
-        excinfo.value.args[0]
-        == "Failed to request parameter 'foo' with frame type '61' "
+        excinfo.value.args[0] == "Failed to request 'foo' with frame type '61' "
         "after 0 retries."
     )
-    assert isinstance(excinfo.value.args[1], FrameType)
+    assert excinfo.value.frame_type == FrameType.REQUEST_ALERTS
 
 
 @patch("pyplumio.helpers.parameter.Parameter.pending_update", False)
