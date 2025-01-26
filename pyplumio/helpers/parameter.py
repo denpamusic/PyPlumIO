@@ -214,12 +214,13 @@ class Parameter(ABC):
         self._previous_value = self._values.value
         self._values.value = value
         self._pending_update = True
-        while self._pending_update:
+        initial_retries = retries
+        while self.pending_update:
             if retries <= 0:
                 _LOGGER.warning(
                     "Unable to confirm that parameter '%s' was set after %d retries",
                     self.description.name,
-                    retries,
+                    initial_retries,
                 )
                 return False
 

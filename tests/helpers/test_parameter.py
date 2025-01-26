@@ -269,7 +269,7 @@ async def test_number_request_with_unchanged_value(
     assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
     assert (
-        "Unable to confirm that parameter 'test_number' was set after 0 retries"
+        "Unable to confirm that parameter 'test_number' was set after 3 retries"
         in caplog.text
     )
     await number.set(5)
@@ -287,7 +287,7 @@ async def test_switch_request_with_unchanged_value(
     assert mock_put.await_count == 3  # type: ignore [unreachable]
     mock_put.reset_mock()
     assert (
-        "Unable to confirm that parameter 'test_switch' was set after 0 retries"
+        "Unable to confirm that parameter 'test_switch' was set after 3 retries"
         in caplog.text
     )
     await switch.set(True)
