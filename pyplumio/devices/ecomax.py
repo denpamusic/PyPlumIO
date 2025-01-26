@@ -226,7 +226,7 @@ class EcoMAX(PhysicalDevice):
             fuel_burned = (
                 fuel_consumption * time_passed_ns / (3600 * NANOSECONDS_IN_SECOND)
             )
-            await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
+            self.dispatch_nowait(ATTR_FUEL_BURNED, fuel_burned)
 
     async def _handle_mixer_parameters(
         self,
