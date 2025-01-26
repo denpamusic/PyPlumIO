@@ -101,6 +101,7 @@ __all__ = [
     "ProtocolError",
     "PyPlumIOError",
     "ReadError",
+    "RequestError",
     "SerialConnection",
     "TcpConnection",
     "UnknownDeviceError",
