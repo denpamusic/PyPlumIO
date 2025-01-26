@@ -59,7 +59,8 @@ ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
-MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * 1000000000
+NANOSECONDS_IN_SECOND: Final = 1000000000
+MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * NANOSECONDS_IN_SECOND
 
 SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
@@ -219,10 +220,12 @@ class EcoMAX(PhysicalDevice):
         if time_passed_ns >= MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
             _LOGGER.warning(
                 "Skipping outdated fuel consumption data, was %i seconds old",
-                time_passed_ns / 1000000000,
+                time_passed_ns / NANOSECONDS_IN_SECOND,
             )
         else:
-            fuel_burned = fuel_consumption * time_passed_ns / (3600 * 1000000000)
+            fuel_burned = (
+                fuel_consumption * time_passed_ns / (3600 * NANOSECONDS_IN_SECOND)
+            )
             await self.dispatch(ATTR_FUEL_BURNED, fuel_burned)
 
     async def _handle_mixer_parameters(
