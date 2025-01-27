@@ -47,7 +47,7 @@ def validate_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-def _normalize_parameter_value(value: ParameterValue) -> int:
+def parameter_value_to_int(value: ParameterValue) -> int:
     """Normalize a parameter value."""
     if value in {STATE_OFF, STATE_ON}:
         return 1 if value == STATE_ON else 0
@@ -129,7 +129,7 @@ class Parameter(ABC):
 
         if isinstance(other, (int, float, bool)) or other in (STATE_OFF, STATE_ON):
             handler = getattr(self.values.value, method_to_call)
-            return handler(_normalize_parameter_value(other))
+            return handler(parameter_value_to_int(other))
         else:
             return NotImplemented
 
@@ -186,14 +186,14 @@ class Parameter(ABC):
 
     def validate(self, value: ParameterValue) -> int:
         """Validate a parameter value."""
-        value = _normalize_parameter_value(value)
-        if value < self.values.min_value or value > self.values.max_value:
+        int_value = parameter_value_to_int(value)
+        if int_value < self.values.min_value or int_value > self.values.max_value:
             raise ValueError(
                 f"Invalid value: {value}. Must be between "
                 f"{self.min_value} and {self.max_value}."
             )
 
-        return value
+        return int_value
 
     async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
