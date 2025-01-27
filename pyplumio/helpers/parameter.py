@@ -28,7 +28,7 @@ def unpack_parameter(
     data: bytearray, offset: int = 0, size: int = 1
 ) -> ParameterValues | None:
     """Unpack a device parameter."""
-    if not check_parameter(data[offset : offset + size * 3]):
+    if not validate_parameter(data[offset : offset + size * 3]):
         return None
 
     value = data[offset : offset + size]
@@ -42,14 +42,14 @@ def unpack_parameter(
     )
 
 
-def check_parameter(data: bytearray) -> bool:
+def validate_parameter(data: bytearray) -> bool:
     """Check if parameter contains any bytes besides 0xFF."""
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
 def _normalize_parameter_value(value: ParameterValue) -> int:
     """Normalize a parameter value."""
-    if value in (STATE_OFF, STATE_ON):
+    if value in {STATE_OFF, STATE_ON}:
         return 1 if value == STATE_ON else 0
 
     return int(value)
