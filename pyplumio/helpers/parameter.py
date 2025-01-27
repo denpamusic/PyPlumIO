@@ -201,16 +201,18 @@ class Parameter(ABC):
 
     async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
-        return await self._try_set(self.validate(value), retries, timeout)
+        return await self._attempt_update(self.validate(value), retries, timeout)
 
     def set_nowait(self, value: Any, retries: int = 5, timeout: float = 5.0) -> None:
         """Set a parameter value without waiting."""
-        self.device.create_task(self._try_set(self.validate(value), retries, timeout))
+        self.device.create_task(
+            self._attempt_update(self.validate(value), retries, timeout)
+        )
 
-    async def _try_set(
+    async def _attempt_update(
         self, value: int, retries: int = 5, timeout: float = 5.0
     ) -> bool:
-        """Try to set a parameter value."""
+        """Attempt to update a parameter value on the remote device."""
         if value == self.values.value:
             # Value is unchanged
             return True
@@ -222,7 +224,7 @@ class Parameter(ABC):
         while self.pending_update:
             if retries <= 0:
                 _LOGGER.warning(
-                    "Unable to confirm that parameter '%s' was set after %d retries",
+                    "Unable to confirm update of '%s' parameter after %d retries",
                     self.description.name,
                     initial_retries,
                 )
