@@ -20,16 +20,20 @@ from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionRes
 from pyplumio.structures.schedules import SchedulesStructure
 
 
-class ProgramVersionRequest(Request):
-    """Represents a program version request."""
+class AlertsRequest(Request):
+    """Represents an alerts request.
+
+    Contains number of alerts to get and index of the first
+    alert.
+    """
 
     __slots__ = ()
 
-    frame_type = FrameType.REQUEST_PROGRAM_VERSION
+    frame_type = FrameType.REQUEST_ALERTS
 
-    def response(self, **kwargs: Any) -> Response | None:
-        """Return a response frame."""
-        return ProgramVersionResponse(recipient=self.sender, **kwargs)
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create a frame message."""
+        return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
 
 
 class CheckDeviceRequest(Request):
@@ -44,20 +48,23 @@ class CheckDeviceRequest(Request):
         return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 
 
-class UIDRequest(Request):
-    """Represents an UID request."""
+class EcomaxControlRequest(Request):
+    """Represents an ecoMAX control request.
+
+    Contains single binary value. 0 - means that controller should
+    be turned off, 1 - means that it should be turned on.
+    """
 
     __slots__ = ()
 
-    frame_type = FrameType.REQUEST_UID
+    frame_type = FrameType.REQUEST_ECOMAX_CONTROL
 
-
-class PasswordRequest(Request):
-    """Represents a password request."""
-
-    __slots__ = ()
-
-    frame_type = FrameType.REQUEST_PASSWORD
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create a frame message."""
+        try:
+            return bytearray([data[ATTR_VALUE]])
+        except KeyError as e:
+            raise FrameDataError from e
 
 
 class EcomaxParametersRequest(Request):
@@ -91,20 +98,24 @@ class MixerParametersRequest(Request):
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-class ThermostatParametersRequest(Request):
-    """Represents a thermostat parameters request.
-
-    Contains number of parameters to get and index of the first
-    parameter.
-    """
+class PasswordRequest(Request):
+    """Represents a password request."""
 
     __slots__ = ()
 
-    frame_type = FrameType.REQUEST_THERMOSTAT_PARAMETERS
+    frame_type = FrameType.REQUEST_PASSWORD
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
+
+class ProgramVersionRequest(Request):
+    """Represents a program version request."""
+
+    __slots__ = ()
+
+    frame_type = FrameType.REQUEST_PROGRAM_VERSION
+
+    def response(self, **kwargs: Any) -> Response | None:
+        """Return a response frame."""
+        return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
 
 class RegulatorDataSchemaRequest(Request):
@@ -113,6 +124,14 @@ class RegulatorDataSchemaRequest(Request):
     __slots__ = ()
 
     frame_type = FrameType.REQUEST_REGULATOR_DATA_SCHEMA
+
+
+class SchedulesRequest(Request):
+    """Represents a schedules request."""
+
+    __slots__ = ()
+
+    frame_type = FrameType.REQUEST_SCHEDULES
 
 
 class SetEcomaxParameterRequest(Request):
@@ -153,6 +172,18 @@ class SetMixerParameterRequest(Request):
             raise FrameDataError from e
 
 
+class SetScheduleRequest(Request):
+    """Represents a request to set a schedule."""
+
+    __slots__ = ()
+
+    frame_type = FrameType.REQUEST_SET_SCHEDULE
+
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create a frame message."""
+        return SchedulesStructure(self).encode(data)
+
+
 class SetThermostatParameterRequest(Request):
     """Represents a request to set a thermostat parameter.
 
@@ -183,25 +214,6 @@ class SetThermostatParameterRequest(Request):
             raise FrameDataError from e
 
 
-class EcomaxControlRequest(Request):
-    """Represents an ecoMAX control request.
-
-    Contains single binary value. 0 - means that controller should
-    be turned off, 1 - means that it should be turned on.
-    """
-
-    __slots__ = ()
-
-    frame_type = FrameType.REQUEST_ECOMAX_CONTROL
-
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        try:
-            return bytearray([data[ATTR_VALUE]])
-        except KeyError as e:
-            raise FrameDataError from e
-
-
 class StartMasterRequest(Request):
     """Represents a request to become a master.
 
@@ -226,37 +238,25 @@ class StopMasterRequest(Request):
     frame_type = FrameType.REQUEST_STOP_MASTER
 
 
-class AlertsRequest(Request):
-    """Represents an alerts request.
+class ThermostatParametersRequest(Request):
+    """Represents a thermostat parameters request.
 
-    Contains number of alerts to get and index of the first
-    alert.
+    Contains number of parameters to get and index of the first
+    parameter.
     """
 
     __slots__ = ()
 
-    frame_type = FrameType.REQUEST_ALERTS
+    frame_type = FrameType.REQUEST_THERMOSTAT_PARAMETERS
 
     def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
+        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-class SchedulesRequest(Request):
-    """Represents a schedules request."""
-
-    __slots__ = ()
-
-    frame_type = FrameType.REQUEST_SCHEDULES
-
-
-class SetScheduleRequest(Request):
-    """Represents a request to set a schedule."""
+class UIDRequest(Request):
+    """Represents an UID request."""
 
     __slots__ = ()
 
-    frame_type = FrameType.REQUEST_SET_SCHEDULE
-
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        return SchedulesStructure(self).encode(data)
+    frame_type = FrameType.REQUEST_UID

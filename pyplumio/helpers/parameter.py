@@ -92,9 +92,9 @@ class Parameter(ABC):
 
     device: Device
     description: ParameterDescription
+    _index: int
     _pending_update: bool
     _previous_value: int
-    _index: int
     _values: ParameterValues
 
     def __init__(
@@ -107,9 +107,9 @@ class Parameter(ABC):
         """Initialize a new parameter."""
         self.device = device
         self.description = description
+        self._index = index
         self._pending_update = False
         self._previous_value = 0
-        self._index = index
         self._values = values if values else ParameterValues(0, 0, 0)
 
     def __repr__(self) -> str:

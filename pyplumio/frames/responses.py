@@ -17,23 +17,16 @@ from pyplumio.structures.schedules import SchedulesStructure
 from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
 
-class ProgramVersionResponse(Response):
-    """Represents a program version response.
-
-    Contains software version info.
-    """
+class AlertsResponse(Response):
+    """Represents response to a device alerts request."""
 
     __slots__ = ()
 
-    frame_type = FrameType.RESPONSE_PROGRAM_VERSION
-
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        return ProgramVersionStructure(self).encode(data)
+    frame_type = FrameType.RESPONSE_ALERTS
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
-        return ProgramVersionStructure(self).decode(message)[0]
+        return AlertsStructure(self).decode(message)[0]
 
 
 class DeviceAvailableResponse(Response):
@@ -55,39 +48,16 @@ class DeviceAvailableResponse(Response):
         return NetworkInfoStructure(self).decode(message, offset=1)[0]
 
 
-class UIDResponse(Response):
-    """Represents an UID response.
+class EcomaxControlResponse(Response):
+    """Represents response to an ecoMAX control request.
 
-    Contains product info and product UID.
+    Empty response acknowledges, that ecoMAX control request was
+    successfully processed.
     """
 
     __slots__ = ()
 
-    frame_type = FrameType.RESPONSE_UID
-
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        return ProductInfoStructure(self).encode(data)
-
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
-        """Decode a frame message."""
-        return ProductInfoStructure(self).decode(message)[0]
-
-
-class PasswordResponse(Response):
-    """Represents a password response.
-
-    Contains device service password as plaintext.
-    """
-
-    __slots__ = ()
-
-    frame_type = FrameType.RESPONSE_PASSWORD
-
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
-        """Decode a frame message."""
-        password = message[1:].decode() if message[1:] else None
-        return {ATTR_PASSWORD: password}
+    frame_type = FrameType.RESPONSE_ECOMAX_CONTROL
 
 
 class EcomaxParametersResponse(Response):
@@ -120,19 +90,39 @@ class MixerParametersResponse(Response):
         return MixerParametersStructure(self).decode(message)[0]
 
 
-class ThermostatParametersResponse(Response):
-    """Represents a thermostat parameters response.
+class PasswordResponse(Response):
+    """Represents a password response.
 
-    Contains editable thermostat parameters.
+    Contains device service password as plaintext.
     """
 
     __slots__ = ()
 
-    frame_type = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
+    frame_type = FrameType.RESPONSE_PASSWORD
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
-        return ThermostatParametersStructure(self).decode(message)[0]
+        password = message[1:].decode() if message[1:] else None
+        return {ATTR_PASSWORD: password}
+
+
+class ProgramVersionResponse(Response):
+    """Represents a program version response.
+
+    Contains software version info.
+    """
+
+    __slots__ = ()
+
+    frame_type = FrameType.RESPONSE_PROGRAM_VERSION
+
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create a frame message."""
+        return ProgramVersionStructure(self).encode(data)
+
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
+        """Decode a frame message."""
+        return ProgramVersionStructure(self).decode(message)[0]
 
 
 class RegulatorDataSchemaResponse(Response):
@@ -149,6 +139,18 @@ class RegulatorDataSchemaResponse(Response):
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         return RegulatorDataSchemaStructure(self).decode(message)[0]
+
+
+class SchedulesResponse(Response):
+    """Represents response to a device schedules request."""
+
+    __slots__ = ()
+
+    frame_type = FrameType.RESPONSE_SCHEDULES
+
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
+        """Decode a frame message."""
+        return SchedulesStructure(self).decode(message)[0]
 
 
 class SetEcomaxParameterResponse(Response):
@@ -187,37 +189,35 @@ class SetThermostatParameterResponse(Response):
     frame_type = FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER
 
 
-class EcomaxControlResponse(Response):
-    """Represents response to an ecoMAX control request.
+class ThermostatParametersResponse(Response):
+    """Represents a thermostat parameters response.
 
-    Empty response acknowledges, that ecoMAX control request was
-    successfully processed.
+    Contains editable thermostat parameters.
     """
 
     __slots__ = ()
 
-    frame_type = FrameType.RESPONSE_ECOMAX_CONTROL
-
-
-class AlertsResponse(Response):
-    """Represents response to a device alerts request."""
-
-    __slots__ = ()
-
-    frame_type = FrameType.RESPONSE_ALERTS
+    frame_type = FrameType.RESPONSE_THERMOSTAT_PARAMETERS
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
-        return AlertsStructure(self).decode(message)[0]
+        return ThermostatParametersStructure(self).decode(message)[0]
 
 
-class SchedulesResponse(Response):
-    """Represents response to a device schedules request."""
+class UIDResponse(Response):
+    """Represents an UID response.
+
+    Contains product info and product UID.
+    """
 
     __slots__ = ()
 
-    frame_type = FrameType.RESPONSE_SCHEDULES
+    frame_type = FrameType.RESPONSE_UID
+
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create a frame message."""
+        return ProductInfoStructure(self).encode(data)
 
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
-        return SchedulesStructure(self).decode(message)[0]
+        return ProductInfoStructure(self).decode(message)[0]
