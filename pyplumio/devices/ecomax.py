@@ -184,13 +184,10 @@ class EcoMAX(PhysicalDevice):
                     description = ECOMAX_PARAMETERS[product.type][index]
                 except IndexError:
                     _LOGGER.warning(
-                        (
-                            "Encountered unknown ecoMAX parameter (%i): %s. "
-                            "Your device isn't fully compatible with this software and "
-                            "may not work properly. "
-                            "Please visit the issue tracker and open a feature "
-                            "request to support %s"
-                        ),
+                        "Encountered unknown ecoMAX parameter (%i): %s. "
+                        "Your device isn't fully compatible with this software "
+                        "and may not work properly. Please visit the issue tracker "
+                        "and open a feature request to support %s",
                         index,
                         values,
                         product.model,
