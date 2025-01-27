@@ -108,7 +108,7 @@ class EcoMAX(PhysicalDevice):
     address = DeviceType.ECOMAX
     _setup_frames = SETUP_FRAME_TYPES
 
-    _fuel_burned_timestamp_ns: int
+    _fuel_burned_time_ns: int
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
@@ -124,7 +124,7 @@ class EcoMAX(PhysicalDevice):
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
-        self._fuel_burned_timestamp_ns = time.perf_counter_ns()
+        self._fuel_burned_time_ns = time.perf_counter_ns()
 
     async def async_setup(self) -> bool:
         """Set up an ecoMAX controller."""
@@ -210,20 +210,27 @@ class EcoMAX(PhysicalDevice):
         return True
 
     async def _add_burned_fuel_meter(self, fuel_consumption: float) -> None:
-        """Calculate fuel burned since last sensor's data message."""
-        current_timestamp_ns = time.perf_counter_ns()
-        time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
-        self._fuel_burned_timestamp_ns = current_timestamp_ns
-        if time_passed_ns < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
+        """Calculate and dispatch the amount of fuel burned.
+
+        This method calculates the fuel burned based on the time
+        elapsed since the last sensor message, which contains fuel
+        consumption data. If the elapsed time is within the acceptable
+        range, it dispatches the fuel burned data. Otherwise, it logs a
+        warning and skips the outdated data.
+        """
+        time_ns = time.perf_counter_ns()
+        nanoseconds_passed = time_ns - self._fuel_burned_time_ns
+        self._fuel_burned_time_ns = time_ns
+        if nanoseconds_passed < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
             return self.dispatch_nowait(
                 ATTR_FUEL_BURNED,
-                fuel_consumption * time_passed_ns / (3600 * NANOSECONDS_IN_SECOND),
+                fuel_consumption * nanoseconds_passed / (3600 * NANOSECONDS_IN_SECOND),
             )
 
         _LOGGER.warning(
             "Skipping outdated fuel consumption data: %f (was %i seconds old)",
             fuel_consumption,
-            time_passed_ns / NANOSECONDS_IN_SECOND,
+            nanoseconds_passed / NANOSECONDS_IN_SECOND,
         )
 
     async def _handle_mixer_parameters(
