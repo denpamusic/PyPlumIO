@@ -1,4 +1,4 @@
-"""Contains an UID helpers."""
+"""Contains UID helpers."""
 
 from __future__ import annotations
 
@@ -18,18 +18,18 @@ def decode_uid(buffer: bytes) -> str:
 def _base5(buffer: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
     number = int.from_bytes(buffer, byteorder="little")
-    output = ""
+    output = []
     while number:
-        output = BASE5_KEY[number & 0b00011111] + output
+        output.append(BASE5_KEY[number & 0b00011111])
         number >>= 5
 
-    return output
+    return "".join(reversed(output))
 
 
 def _crc16(buffer: bytes) -> bytes:
     """Return a CRC 16."""
     crc16 = reduce(_crc16_byte, buffer, CRC)
-    return crc16.to_bytes(byteorder="little", length=2)
+    return crc16.to_bytes(length=2, byteorder="little")
 
 
 def _crc16_byte(crc: int, byte: int) -> int:
