@@ -21,8 +21,7 @@ TIME_FORMAT: Final = "%H:%M"
 STATE_NIGHT: Final = "night"
 STATE_DAY: Final = "day"
 
-ON_STATES: Final = (STATE_ON, STATE_DAY)
-OFF_STATES: Final = (STATE_OFF, STATE_NIGHT)
+_ON_STATES: Final = {STATE_ON, STATE_DAY}
 
 ScheduleState: TypeAlias = Literal["on", "off", "day", "night"]
 Time = Annotated[str, "time in HH:MM format"]
@@ -113,7 +112,7 @@ class ScheduleDay(MutableMapping):
             )
 
         for index in _get_time_range(start, end):
-            self._intervals[index] = True if state in ON_STATES else False
+            self._intervals[index] = True if state in _ON_STATES else False
 
     def set_on(self, start: Time = "00:00", end: Time = "00:00") -> None:
         """Set a schedule interval state to 'on'."""

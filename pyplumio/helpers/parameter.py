@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union
 
 from dataslots import dataslots
 from typing_extensions import TypeAlias
@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+_VALID_STATES: Final = {STATE_ON, STATE_OFF}
 
 ParameterValue: TypeAlias = Union[int, float, bool, Literal["off", "on"]]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
@@ -52,7 +53,7 @@ def parameter_value_to_int(value: ParameterValue) -> int:
 
     If the value is STATE_OFF or STATE_ON, it returns 0 or 1 respectively.
     """
-    if value in {STATE_OFF, STATE_ON}:
+    if value in _VALID_STATES:
         return 1 if value == STATE_ON else 0
 
     return int(value)
@@ -130,7 +131,7 @@ class Parameter(ABC):
             handler = getattr(self.values, method_to_call)
             return handler(other)
 
-        if isinstance(other, (int, float, bool)) or other in (STATE_OFF, STATE_ON):
+        if isinstance(other, (int, float, bool)) or other in _VALID_STATES:
             handler = getattr(self.values.value, method_to_call)
             return handler(parameter_value_to_int(other))
         else:
