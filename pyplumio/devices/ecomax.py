@@ -106,16 +106,15 @@ class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
     address = DeviceType.ECOMAX
+    _setup_frames = SETUP_FRAME_TYPES
 
     _fuel_burned_timestamp_ns: int
-    _setup_frames = SETUP_FRAME_TYPES
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
-        self._fuel_burned_timestamp_ns = time.perf_counter_ns()
         self.subscribe(ATTR_ECOMAX_PARAMETERS, self._handle_ecomax_parameters)
-        self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_counter)
+        self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_meter)
         self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
         self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
         self.subscribe(ATTR_SCHEDULES, self._add_schedules)
@@ -125,6 +124,7 @@ class EcoMAX(PhysicalDevice):
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
+        self._fuel_burned_timestamp_ns = time.perf_counter_ns()
 
     async def async_setup(self) -> bool:
         """Set up an ecoMAX controller."""
@@ -212,21 +212,22 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_ecomax_parameter_events())
         return True
 
-    async def _add_burned_fuel_counter(self, fuel_consumption: float) -> None:
+    async def _add_burned_fuel_meter(self, fuel_consumption: float) -> None:
         """Calculate fuel burned since last sensor's data message."""
         current_timestamp_ns = time.perf_counter_ns()
         time_passed_ns = current_timestamp_ns - self._fuel_burned_timestamp_ns
         self._fuel_burned_timestamp_ns = current_timestamp_ns
-        if time_passed_ns >= MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
-            _LOGGER.warning(
-                "Skipping outdated fuel consumption data, was %i seconds old",
-                time_passed_ns / NANOSECONDS_IN_SECOND,
-            )
-        else:
-            self.dispatch_nowait(
+        if time_passed_ns < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
+            return self.dispatch_nowait(
                 ATTR_FUEL_BURNED,
                 fuel_consumption * time_passed_ns / (3600 * NANOSECONDS_IN_SECOND),
             )
+
+        _LOGGER.warning(
+            "Skipping outdated fuel consumption data: %f (was %i seconds old)",
+            fuel_consumption,
+            time_passed_ns / NANOSECONDS_IN_SECOND,
+        )
 
     async def _handle_mixer_parameters(
         self,
