@@ -48,7 +48,10 @@ def validate_parameter(data: bytearray) -> bool:
 
 
 def parameter_value_to_int(value: ParameterValue) -> int:
-    """Normalize a parameter value."""
+    """Convert a parameter value to an integer.
+
+    If the value is STATE_OFF or STATE_ON, it returns 0 or 1 respectively.
+    """
     if value in {STATE_OFF, STATE_ON}:
         return 1 if value == STATE_ON else 0
 
