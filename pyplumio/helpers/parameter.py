@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
 
 from dataslots import dataslots
 from typing_extensions import TypeAlias
@@ -18,8 +18,6 @@ if TYPE_CHECKING:
     from pyplumio.devices import Device
 
 _LOGGER = logging.getLogger(__name__)
-
-_VALID_STATES: Final = {STATE_ON, STATE_OFF}
 
 NumericType: TypeAlias = Union[int, float]
 State: TypeAlias = Literal["on", "off"]
