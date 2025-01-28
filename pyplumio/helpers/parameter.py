@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union, get_args
 
 from dataslots import dataslots
 from typing_extensions import TypeAlias
@@ -21,7 +21,8 @@ _LOGGER = logging.getLogger(__name__)
 
 _VALID_STATES: Final = {STATE_ON, STATE_OFF}
 
-ParameterValue: TypeAlias = Union[int, float, bool, Literal["off", "on"]]
+NumericType: TypeAlias = Union[int, float]
+State: TypeAlias = Literal["on", "off"]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
 
 
@@ -48,12 +49,12 @@ def validate_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-def parameter_value_to_int(value: ParameterValue) -> int:
+def parameter_value_to_int(value: NumericType | State | bool) -> int:
     """Convert a parameter value to an integer.
 
     If the value is STATE_OFF or STATE_ON, it returns 0 or 1 respectively.
     """
-    if value in _VALID_STATES:
+    if value in get_args(State):
         return 1 if value == STATE_ON else 0
 
     return int(value)
@@ -131,7 +132,7 @@ class Parameter(ABC):
             handler = getattr(self.values, method_to_call)
             return handler(other)
 
-        if isinstance(other, (int, float, bool)) or other in _VALID_STATES:
+        if isinstance(other, (int, float, bool)) or other in get_args(State):
             handler = getattr(self.values.value, method_to_call)
             return handler(parameter_value_to_int(other))
         else:
@@ -188,7 +189,7 @@ class Parameter(ABC):
         )
         return type(self)(self.device, self.description, values)
 
-    def validate(self, value: ParameterValue) -> int:
+    def validate(self, value: NumericType | State | bool) -> int:
         """Validate a parameter value."""
         int_value = parameter_value_to_int(value)
         if int_value < self.values.min_value or int_value > self.values.max_value:
@@ -274,17 +275,17 @@ class Parameter(ABC):
 
     @property
     @abstractmethod
-    def value(self) -> Any:
+    def value(self) -> NumericType | State | bool:
         """Return the value."""
 
     @property
     @abstractmethod
-    def min_value(self) -> Any:
+    def min_value(self) -> NumericType | State | bool:
         """Return the minimum allowed value."""
 
     @property
     @abstractmethod
-    def max_value(self) -> Any:
+    def max_value(self) -> NumericType | State | bool:
         """Return the maximum allowed value."""
 
     @abstractmethod
@@ -308,13 +309,13 @@ class Number(Parameter):
     description: NumberDescription
 
     async def set(
-        self, value: int | float, retries: int = 5, timeout: float = 5.0
+        self, value: NumericType, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
         return await super().set(value, retries, timeout)
 
     def set_nowait(
-        self, value: int | float, retries: int = 5, timeout: float = 5.0
+        self, value: NumericType, retries: int = 5, timeout: float = 5.0
     ) -> None:
         """Set a parameter value without waiting."""
         super().set_nowait(value, retries, timeout)
@@ -324,17 +325,17 @@ class Number(Parameter):
         return Request()
 
     @property
-    def value(self) -> int | float:
+    def value(self) -> NumericType:
         """Return the value."""
         return self.values.value
 
     @property
-    def min_value(self) -> int | float:
+    def min_value(self) -> NumericType:
         """Return the minimum allowed value."""
         return self.values.min_value
 
     @property
-    def max_value(self) -> int | float:
+    def max_value(self) -> NumericType:
         """Return the maximum allowed value."""
         return self.values.max_value
 
@@ -358,13 +359,13 @@ class Switch(Parameter):
     description: SwitchDescription
 
     async def set(
-        self, value: bool | Literal["off", "on"], retries: int = 5, timeout: float = 5.0
+        self, value: State | bool, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
         return await super().set(value, retries, timeout)
 
     def set_nowait(
-        self, value: bool | Literal["off", "on"], retries: int = 5, timeout: float = 5.0
+        self, value: State | bool, retries: int = 5, timeout: float = 5.0
     ) -> None:
         """Set a switch value without waiting."""
         super().set_nowait(value, retries, timeout)
@@ -400,7 +401,7 @@ class Switch(Parameter):
         return Request()
 
     @property
-    def value(self) -> Literal["off", "on"]:
+    def value(self) -> State:
         """Return the value."""
         return STATE_ON if self.values.value == 1 else STATE_OFF
 

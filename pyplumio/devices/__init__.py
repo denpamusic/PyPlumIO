@@ -13,7 +13,7 @@ from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.helpers.factory import create_instance
-from pyplumio.helpers.parameter import Parameter, ParameterValue
+from pyplumio.helpers.parameter import NumericType, Parameter, State
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
@@ -57,7 +57,7 @@ class Device(ABC, EventManager):
     async def set(
         self,
         name: str,
-        value: ParameterValue,
+        value: NumericType | State | bool,
         retries: int = 5,
         timeout: float | None = None,
     ) -> bool:
@@ -89,7 +89,7 @@ class Device(ABC, EventManager):
     def set_nowait(
         self,
         name: str,
-        value: ParameterValue,
+        value: NumericType | State | bool,
         retries: int = 5,
         timeout: float | None = None,
     ) -> None:
