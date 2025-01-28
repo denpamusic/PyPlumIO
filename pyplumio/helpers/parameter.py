@@ -82,20 +82,12 @@ class ParameterDescription:
 class Parameter(ABC):
     """Represents a base parameter."""
 
-    __slots__ = (
-        "device",
-        "description",
-        "_pending_update",
-        "_previous_value",
-        "_index",
-        "_values",
-    )
+    __slots__ = ("device", "description", "_pending_update", "_index", "_values")
 
     device: Device
     description: ParameterDescription
-    _index: int
     _pending_update: bool
-    _previous_value: int
+    _index: int
     _values: ParameterValues
 
     def __init__(
@@ -110,7 +102,7 @@ class Parameter(ABC):
         self.description = description
         self._index = index
         self._pending_update = False
-        self._previous_value = 0
+        self._index = index
         self._values = values if values else ParameterValues(0, 0, 0)
 
     def __repr__(self) -> str:
@@ -218,9 +210,8 @@ class Parameter(ABC):
             # Value is unchanged
             return True
 
-        self._previous_value = self._values.value
-        self._values.value = value
         self._pending_update = True
+        self._values.value = value
         initial_retries = retries
         while self.pending_update:
             if retries <= 0:
@@ -239,9 +230,7 @@ class Parameter(ABC):
 
     def update(self, values: ParameterValues) -> None:
         """Update the parameter values."""
-        if self.pending_update and self._previous_value != values.value:
-            self._pending_update = False
-
+        self._pending_update = False
         self._values = values
 
     @property
