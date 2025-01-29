@@ -6,8 +6,9 @@
 Welcome to PyPlumIO's documentation!
 ====================================
 
-This project aims to provide complete and easy to use solution for communicating with
-climate devices by `Plum Sp. z o.o. <https://www.plum.pl/>`_
+The `PyPlumIO <https://github.com/denpamusic/PyPlumIO/>` projects aims to
+provide complete and easy to use solution for communicating with
+climate devices manufactured by `Plum Sp. z o.o. <https://www.plum.pl/>`_
 
 Currently it supports reading and writing parameters of ecoMAX controllers by
 Plum Sp. z o.o., getting service password and sending network information to
