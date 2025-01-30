@@ -15,7 +15,7 @@ from pyplumio.helpers.parameter import (
     ParameterValues,
     Switch,
     SwitchDescription,
-    validate_parameter,
+    is_valid_parameter,
 )
 
 
@@ -41,16 +41,16 @@ def fixture_switch(ecomax: EcoMAX) -> Switch:
     )
 
 
-def test_validate_parameter() -> None:
+def test_is_valid_parameter() -> None:
     """Test checking if parameter is valid."""
-    assert validate_parameter(
+    assert is_valid_parameter(
         bytearray([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED])
     )
 
 
-def test_validate_parameter_invalid() -> None:
+def test_is_valid_parameter_invalid() -> None:
     """Test checking if parameter is invalid."""
-    assert not validate_parameter(
+    assert not is_valid_parameter(
         bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED])
     )
 
