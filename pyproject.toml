@@ -243,7 +243,7 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = lint, type, py{39,310,311,312}
+    envlist = lint, type, py{39,310,311,312,313}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
@@ -253,7 +253,8 @@ legacy_tox_ini = """
         3.9: py39
         3.10: py310
         3.11: py311
-        3.12: py312, lint, type
+        3.12: py312
+        3.13: py313, lint, type
 
     [testenv]
     deps =
