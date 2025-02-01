@@ -127,6 +127,14 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
         assert await number.set(3)
         assert number == 3
 
+async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) -> None:
+    """Test setting a number with no retries."""
+    with patch("asyncio.Queue.put") as mock_put:
+        assert await number.set(5, retries=0)
+
+    mock_put.assert_awaited_once_with(await number.create_request())
+    assert number == 5
+
 
 async def test_switch_validate(switch: Switch) -> None:
     """Test the switch validation."""
@@ -146,6 +154,14 @@ async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
         assert await switch.set(STATE_OFF)
 
     assert switch == 0
+
+async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) -> None:
+    """Test setting a switch with no retries."""
+    with patch("asyncio.Queue.put") as mock_put:
+        assert await switch.set(STATE_ON, retries=0)
+
+    mock_put.assert_awaited_once_with(await switch.create_request())
+    assert switch == 1
 
 
 async def test_number_set_nowait(number: Number):

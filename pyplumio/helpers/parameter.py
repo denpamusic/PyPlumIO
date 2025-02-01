@@ -208,9 +208,14 @@ class Parameter(ABC):
             # Value is unchanged
             return True
 
-        self._pending_update = True
         self._values.value = value
-        initial_retries = retries
+        request = await self.create_request()
+        if not (initial_retries := retries):
+            # No retries
+            await self.device.queue.put(request)
+            return True
+
+        self._pending_update = True
         while self.pending_update:
             if retries <= 0:
                 _LOGGER.warning(
@@ -220,7 +225,7 @@ class Parameter(ABC):
                 )
                 return False
 
-            await self.device.queue.put(await self.create_request())
+            await self.device.queue.put(request)
             await asyncio.sleep(timeout)
             retries -= 1
 
