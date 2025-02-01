@@ -120,12 +120,14 @@ async def test_number_validate(number: Number) -> None:
 async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
     """Test setting a number."""
     await number.set(5)
+    assert number.pending_update
     number.update(ParameterValues(value=5, min_value=0, max_value=5))
     assert number == 5
     assert not number.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
         assert await number.set(3)
         assert number == 3
+
 
 async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) -> None:
     """Test setting a number with no retries."""
@@ -134,6 +136,7 @@ async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) 
 
     mock_put.assert_awaited_once_with(await number.create_request())
     assert number == 5
+    assert not number.pending_update
 
 
 async def test_switch_validate(switch: Switch) -> None:
@@ -147,13 +150,15 @@ async def test_switch_validate(switch: Switch) -> None:
 async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
     """Test setting a number."""
     await switch.set(STATE_ON)
+    assert switch.pending_update
     switch.update(ParameterValues(value=1, min_value=0, max_value=1))
     assert switch == 1
     assert not switch.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):
+    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
         assert await switch.set(STATE_OFF)
 
     assert switch == 0
+
 
 async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) -> None:
     """Test setting a switch with no retries."""
@@ -162,6 +167,7 @@ async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) 
 
     mock_put.assert_awaited_once_with(await switch.create_request())
     assert switch == 1
+    assert not switch.pending_update
 
 
 async def test_number_set_nowait(number: Number):
