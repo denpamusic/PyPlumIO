@@ -204,6 +204,9 @@ class Parameter(ABC):
         self, value: int, retries: int = 5, timeout: float = 5.0
     ) -> bool:
         """Attempt to update a parameter value on the remote device."""
+        _LOGGER.debug(
+            "Attempting to update '%s' parameter to %d", self.description.name, value
+        )
         if value == self.values.value:
             # Value is unchanged
             return True
