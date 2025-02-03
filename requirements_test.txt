@@ -8,4 +8,4 @@ pytest==8.3.4
 ruff==0.9.4
 tomli==2.2.1
 tox==4.24.1
-types-pyserial==3.5.0.20250124
+types-pyserial==3.5.0.20250130
