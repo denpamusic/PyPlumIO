@@ -75,6 +75,7 @@ class ParameterDescription:
     """Represents a parameter description."""
 
     name: str
+    optimistic: bool = False
 
 
 class Parameter(ABC):
@@ -213,7 +214,7 @@ class Parameter(ABC):
 
         self._values.value = value
         request = await self.create_request()
-        if not (initial_retries := retries):
+        if self.description.optimistic or not (initial_retries := retries):
             # No retries
             await self.device.queue.put(request)
             return True

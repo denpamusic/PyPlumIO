@@ -825,7 +825,9 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
     ),
 }
 
-ECOMAX_CONTROL_PARAMETER = EcomaxSwitchDescription(name=ATTR_ECOMAX_CONTROL)
+ECOMAX_CONTROL_PARAMETER = EcomaxSwitchDescription(
+    name=ATTR_ECOMAX_CONTROL, optimistic=True
+)
 THERMOSTAT_PROFILE_PARAMETER = EcomaxNumberDescription(name=ATTR_THERMOSTAT_PROFILE)
 
 
