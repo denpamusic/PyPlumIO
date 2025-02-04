@@ -139,6 +139,17 @@ async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) 
     assert not number.pending_update
 
 
+async def test_number_set_optimistic(number: Number, bypass_asyncio_sleep) -> None:
+    """Test setting a number optimistically."""
+    number.description.optimistic = True
+    with patch("asyncio.Queue.put") as mock_put:
+        assert await number.set(5)
+
+    mock_put.assert_awaited_once_with(await number.create_request())
+    assert number == 5
+    assert not number.pending_update
+
+
 async def test_switch_validate(switch: Switch) -> None:
     """Test the switch validation."""
     assert switch.validate(STATE_ON)
@@ -164,6 +175,17 @@ async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) 
     """Test setting a switch with no retries."""
     with patch("asyncio.Queue.put") as mock_put:
         assert await switch.set(STATE_ON, retries=0)
+
+    mock_put.assert_awaited_once_with(await switch.create_request())
+    assert switch == 1
+    assert not switch.pending_update
+
+
+async def test_switch_set_optimistic(switch: Switch, bypass_asyncio_sleep) -> None:
+    """Test setting a switch optimistically."""
+    switch.description.optimistic = True
+    with patch("asyncio.Queue.put") as mock_put:
+        assert await switch.set(STATE_ON)
 
     mock_put.assert_awaited_once_with(await switch.create_request())
     assert switch == 1
@@ -263,7 +285,7 @@ def test_number_repr(number: Number) -> None:
     """Test a number representation."""
     assert repr(number) == (
         "Number(device=EcoMAX, "
-        "description=NumberDescription(name='test_number', "
+        "description=NumberDescription(name='test_number', optimistic=False, "
         "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
         "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "index=0)"
@@ -274,7 +296,7 @@ def test_switch_repr(switch: Switch) -> None:
     """Test a number representation."""
     assert repr(switch) == (
         "Switch(device=EcoMAX, "
-        "description=SwitchDescription(name='test_switch'), "
+        "description=SwitchDescription(name='test_switch', optimistic=False), "
         "values=ParameterValues(value=0, min_value=0, max_value=1), "
         "index=0)"
     )
