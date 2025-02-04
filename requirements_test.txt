@@ -3,7 +3,7 @@ coverage==7.6.10
 mypy==1.14.1
 pre-commit==4.1.0
 pyserial-asyncio-fast==0.14
-pytest-asyncio==0.25.2
+pytest-asyncio==0.25.3
 pytest==8.3.4
 ruff==0.9.4
 tomli==2.2.1
