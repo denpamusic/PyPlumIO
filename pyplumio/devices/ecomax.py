@@ -12,6 +12,8 @@ from pyplumio.const import (
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
+    STATE_OFF,
+    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
@@ -21,7 +23,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
-from pyplumio.helpers.parameter import ParameterValues
+from pyplumio.helpers.parameter import ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
@@ -98,8 +100,6 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 )
 
 _LOGGER = logging.getLogger(__name__)
-
-ecomax_control_error = "ecoMAX control is not available. Please try again later."
 
 
 class EcoMAX(PhysicalDevice):
@@ -398,23 +398,23 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
+    async def _set_ecomax_state(self, state: State) -> bool:
+        """Try to set the ecoMAX control state."""
+        try:
+            switch: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
+            return await switch.set(state)
+        except KeyError:
+            _LOGGER.error("ecoMAX control is not available. Please try again later.")
+
+        return False
+
     async def turn_on(self) -> bool:
         """Turn on the ecoMAX controller."""
-        try:
-            ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
-            return await ecomax_control.turn_on()
-        except KeyError:
-            _LOGGER.error(ecomax_control_error)
-            return False
+        return await self._set_ecomax_state(STATE_ON)
 
     async def turn_off(self) -> bool:
         """Turn off the ecoMAX controller."""
-        try:
-            ecomax_control: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
-            return await ecomax_control.turn_off()
-        except KeyError:
-            _LOGGER.error(ecomax_control_error)
-            return False
+        return await self._set_ecomax_state(STATE_OFF)
 
     def turn_on_nowait(self) -> None:
         """Turn on the ecoMAX controller without waiting."""
