@@ -17,7 +17,7 @@ from pyplumio.utils import ensure_dict
 ATTR_ALERTS: Final = "alerts"
 ATTR_TOTAL_ALERTS: Final = "total_alerts"
 
-MAX_UINT32: Final = 4294967295
+MAX_UINT32: Final = 0xFFFFFFFF
 
 
 class DateTimeInterval(NamedTuple):
