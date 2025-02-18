@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 from typing import Any, Final
 
 from pyplumio.helpers.data_types import UnsignedInt
@@ -60,7 +59,7 @@ class OutputsStructure(StructureDecoder):
             ensure_dict(
                 data,
                 {
-                    output: bool(outputs.value & int(math.pow(2, index)))
+                    output: bool(outputs.value & 2**index)
                     for index, output in enumerate(OUTPUTS)
                 },
             ),
