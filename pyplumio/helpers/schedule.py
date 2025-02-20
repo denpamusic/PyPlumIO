@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator, Iterable, Iterator, MutableMapping
+from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
-import math
 from typing import Annotated, Final, Literal, get_args
 
 from typing_extensions import TypeAlias
@@ -26,93 +25,93 @@ _ON_STATES: Final = {STATE_ON, STATE_DAY}
 ScheduleState: TypeAlias = Literal["on", "off", "day", "night"]
 Time = Annotated[str, "time in HH:MM format"]
 
-start_of_day_dt = dt.datetime.strptime("00:00", TIME_FORMAT)
+START_OF_DAY = dt.datetime.strptime("00:00", TIME_FORMAT)
+STEP = dt.timedelta(minutes=30)
 
 
-def _get_time_range(
-    start: Time, end: Time, step: int = 30
-) -> Generator[int, None, None]:
+def _get_time(
+    index: int, start: dt.datetime = START_OF_DAY, step: dt.timedelta = STEP
+) -> Time:
+    """Return time from in index."""
+    time_dt = start + (step * index)
+    return time_dt.strftime(TIME_FORMAT)
+
+
+@lru_cache(maxsize=10)
+def _get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[Time]:
     """Get a time range.
 
-    Start and end times should be specified in HH:MM format, step in
-    minutes.
+    Start and end times should be specified in HH:MM format.
     """
+    start_dt = dt.datetime.strptime(start, TIME_FORMAT)
+    end_dt = dt.datetime.strptime(end, TIME_FORMAT)
 
-    @lru_cache(maxsize=10)
-    def _get_time_range_cached(start: Time, end: Time, step: int = 30) -> range:
-        """Get a time range and cache it using LRU cache."""
-        start_dt = dt.datetime.strptime(start, TIME_FORMAT)
-        end_dt = dt.datetime.strptime(end, TIME_FORMAT)
-        if end_dt == start_of_day_dt:
-            # Upper boundary of the interval is midnight.
-            end_dt += dt.timedelta(hours=24) - dt.timedelta(minutes=step)
+    if end_dt == START_OF_DAY:
+        # Upper boundary of the interval is midnight.
+        end_dt += dt.timedelta(hours=24) - step
 
-        if end_dt <= start_dt:
-            raise ValueError(
-                f"Invalid time range: start time ({start}) must be earlier "
-                f"than end time ({end})."
-            )
+    if end_dt <= start_dt:
+        raise ValueError(
+            f"Invalid time range: start time ({start}) must be earlier "
+            f"than end time ({end})."
+        )
 
-        def _dt_to_index(dt: dt.datetime) -> int:
-            """Convert datetime to index in schedule list."""
-            return math.floor((dt - start_of_day_dt).total_seconds() // (60 * step))
+    seconds = (end_dt - start_dt).total_seconds()
+    steps = seconds // step.total_seconds() + 1
 
-        return range(_dt_to_index(start_dt), _dt_to_index(end_dt) + 1)
-
-    yield from _get_time_range_cached(start, end, step)
+    return [_get_time(index, start=start_dt, step=step) for index in range(int(steps))]
 
 
 class ScheduleDay(MutableMapping):
     """Represents a single day of schedule."""
 
-    __slots__ = ("_intervals",)
+    __slots__ = ("_schedule",)
 
-    _intervals: list[bool]
+    _schedule: dict[Time, bool]
 
-    def __init__(self, intervals: list[bool]) -> None:
+    def __init__(self, schedule: dict[Time, bool]) -> None:
         """Initialize a new schedule day."""
-        self._intervals = intervals
+        self._schedule = schedule
 
     def __repr__(self) -> str:
         """Return serializable representation of the class."""
-        return f"ScheduleDay({self._intervals})"
+        return f"ScheduleDay({self._schedule})"
 
     def __len__(self) -> int:
         """Return a schedule length."""
-        return len(self._intervals)
+        return len(self._schedule)
 
-    def __iter__(self) -> Iterator[bool]:
+    def __iter__(self) -> Iterator[Time]:
         """Return an iterator."""
-        return self._intervals.__iter__()
+        return iter(self._schedule)
 
-    def __getitem__(self, index: int) -> bool:
+    def __getitem__(self, time: Time) -> bool:
         """Return a schedule item."""
-        return self._intervals.__getitem__(index)
+        return self._schedule.__getitem__(time)
 
-    def __delitem__(self, index: int) -> None:
+    def __delitem__(self, time: Time) -> None:
         """Delete a schedule item."""
-        return self._intervals.__delitem__(index)
+        return self._schedule.__delitem__(time)
 
-    def __setitem__(self, index: int, value: bool) -> None:
+    def __setitem__(self, time: Time, state: ScheduleState | bool) -> None:
         """Set a schedule item."""
-        return self._intervals.__setitem__(index, value)
+        if not isinstance(state, bool):
+            if state not in get_args(ScheduleState):
+                raise ValueError(
+                    f"Invalid state '{state}'. Allowed states are: "
+                    f"{', '.join(get_args(ScheduleState))}"
+                )
 
-    def append(self, item: bool) -> None:
-        """Append a value to the interval."""
-        self._intervals.append(item)
+            state = True if state in _ON_STATES else False
+
+        return self._schedule.__setitem__(time, state)
 
     def set_state(
-        self, state: ScheduleState, start: Time = "00:00", end: Time = "00:00"
+        self, state: ScheduleState | bool, start: Time = "00:00", end: Time = "00:00"
     ) -> None:
         """Set a schedule interval state."""
-        if state not in get_args(ScheduleState):
-            raise ValueError(
-                f"Invalid state '{state}'. Allowed states are: "
-                f"{', '.join(get_args(ScheduleState))}"
-            )
-
-        for index in _get_time_range(start, end):
-            self._intervals[index] = True if state in _ON_STATES else False
+        for time in _get_time_range(start, end):
+            self.__setitem__(time, state)
 
     def set_on(self, start: Time = "00:00", end: Time = "00:00") -> None:
         """Set a schedule interval state to 'on'."""
@@ -123,9 +122,14 @@ class ScheduleDay(MutableMapping):
         self.set_state(STATE_OFF, start, end)
 
     @property
-    def intervals(self) -> list[bool]:
-        """Return the schedule intervals."""
-        return self._intervals
+    def schedule(self) -> dict[Time, bool]:
+        """Return the schedule."""
+        return self._schedule
+
+    @classmethod
+    def from_iterable(cls: type[ScheduleDay], intervals: Iterable[bool]) -> ScheduleDay:
+        """Make schedule day from iterable."""
+        return cls({_get_time(index): state for index, state in enumerate(intervals)})
 
 
 @dataclass

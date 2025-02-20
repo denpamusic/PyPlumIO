@@ -282,13 +282,13 @@ class EcoMAX(PhysicalDevice):
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
                 device=self,
-                monday=ScheduleDay(schedule[1]),
-                tuesday=ScheduleDay(schedule[2]),
-                wednesday=ScheduleDay(schedule[3]),
-                thursday=ScheduleDay(schedule[4]),
-                friday=ScheduleDay(schedule[5]),
-                saturday=ScheduleDay(schedule[6]),
-                sunday=ScheduleDay(schedule[0]),
+                monday=ScheduleDay.from_iterable(schedule[1]),
+                tuesday=ScheduleDay.from_iterable(schedule[2]),
+                wednesday=ScheduleDay.from_iterable(schedule[3]),
+                thursday=ScheduleDay.from_iterable(schedule[4]),
+                friday=ScheduleDay.from_iterable(schedule[5]),
+                saturday=ScheduleDay.from_iterable(schedule[6]),
+                sunday=ScheduleDay.from_iterable(schedule[0]),
             )
             for index, schedule in schedules
         }

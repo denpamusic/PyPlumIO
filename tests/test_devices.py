@@ -57,7 +57,7 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.schedule import Schedule
+from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ECOMAX_PARAMETERS,
@@ -565,7 +565,10 @@ async def test_schedule_callback(ecomax: EcoMAX) -> None:
         ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday")
     ):
         schedule = getattr(heating_schedule, weekday)
-        assert schedule.intervals == schedule_data[index]
+        assert (
+            schedule.schedule
+            == ScheduleDay.from_iterable(schedule_data[index]).schedule
+        )
 
     # Test that parameter instance is not recreated on subsequent calls.
     ecomax.handle_frame(SchedulesResponse(message=test_data["message"]))

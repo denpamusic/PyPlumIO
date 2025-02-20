@@ -14,7 +14,7 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.devices import Device, DeviceType
-from pyplumio.helpers.schedule import Schedule, ScheduleDay
+from pyplumio.helpers.schedule import Schedule, ScheduleDay, Time
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
@@ -22,10 +22,65 @@ from pyplumio.structures.schedules import (
 )
 
 
+@pytest.fixture(name="intervals")
+def fixture_intervals() -> list[Time]:
+    """Return example schedule for a day."""
+    return [
+        "00:00",
+        "00:30",
+        "01:00",
+        "01:30",
+        "02:00",
+        "02:30",
+        "03:00",
+        "03:30",
+        "04:00",
+        "04:30",
+        "05:00",
+        "05:30",
+        "06:00",
+        "06:30",
+        "07:00",
+        "07:30",
+        "08:00",
+        "08:30",
+        "09:00",
+        "09:30",
+        "10:00",
+        "10:30",
+        "11:00",
+        "11:30",
+        "12:00",
+        "12:30",
+        "13:00",
+        "13:30",
+        "14:00",
+        "14:30",
+        "15:00",
+        "15:30",
+        "16:00",
+        "16:30",
+        "17:00",
+        "17:30",
+        "18:00",
+        "18:30",
+        "19:00",
+        "19:30",
+        "20:00",
+        "20:30",
+        "21:00",
+        "21:30",
+        "22:00",
+        "22:30",
+        "23:00",
+        "23:30",
+    ]
+
+
 @pytest.fixture(name="schedule_day")
 def fixture_schedule_day() -> ScheduleDay:
     """Return a schedule day object."""
-    return ScheduleDay([False for _ in range(48)])
+    return ScheduleDay.from_iterable([False for _ in range(48)])
 
 
 @pytest.fixture(name="schedule")
@@ -34,7 +89,7 @@ def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
     return Schedule(
         name="test",
         device=Mock(spec=Device),
-        monday=ScheduleDay([True for _ in range(48)]),
+        monday=ScheduleDay.from_iterable([True for _ in range(48)]),
         tuesday=schedule_day,
         wednesday=schedule_day,
         thursday=schedule_day,
@@ -47,11 +102,20 @@ def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
 def test_schedule_day(schedule_day: ScheduleDay) -> None:
     """Test a schedule day."""
     schedule_day.set_state(STATE_ON, "00:00", "01:00")
-    assert schedule_day.intervals[0]  # 00:00
-    assert schedule_day.intervals[1]  # 00:30
-    assert schedule_day.intervals[2]  # 01:00
-    assert not schedule_day.intervals[3]  # 01:30
+    assert schedule_day["00:00"]
+    assert schedule_day["00:30"]
+    assert schedule_day["01:00"]
+    assert not schedule_day["01:30"]
     assert len(schedule_day) == 48
+    assert not schedule_day["02:00"]
+    schedule_day["02:00"] = STATE_ON
+    assert schedule_day["02:00"]
+
+
+def test_schedule_day_with_missing_key(schedule_day: ScheduleDay) -> None:
+    """Test a schedule day with a missing key."""
+    with pytest.raises(KeyError):
+        assert not schedule_day["00:20"]
 
 
 def test_schedule_day_with_incorrect_interval(schedule_day: ScheduleDay) -> None:
@@ -67,38 +131,40 @@ def test_schedule_day_with_incorrect_state(schedule_day: ScheduleDay) -> None:
         schedule_day.set_state("invalid_state", "00:00", "01:00")  # type: ignore[arg-type]
 
 
-def test_setting_whole_day_schedule(schedule_day: ScheduleDay) -> None:
+def test_setting_whole_day_schedule(
+    schedule_day: ScheduleDay, intervals: list[Time]
+) -> None:
     """Test setting schedule for a whole day."""
     schedule_day.set_on()
-    assert schedule_day.intervals == [True for _ in range(48)]
+    assert schedule_day.schedule == {interval: True for interval in intervals}
     schedule_day.set_off()
-    assert schedule_day.intervals == [False for _ in range(48)]
+    assert schedule_day.schedule == {interval: False for interval in intervals}
 
 
 def test_setting_schedule_with_sequence(schedule_day: ScheduleDay) -> None:
     """Test setting a schedule via sequence methods."""
     schedule_day.set_on("00:30", "01:00")
     schedule_day_iter = iter(schedule_day)
-    assert not next(schedule_day_iter)
-    assert next(schedule_day_iter)
-    assert schedule_day[1]
-    schedule_day[1] = False
-    del schedule_day[0]
-    assert not schedule_day[0]
-    schedule_day.append(True)
-    assert schedule_day[-1]
+    assert not schedule_day[next(schedule_day_iter)]
+    assert schedule_day[next(schedule_day_iter)]
+    assert "00:30" in schedule_day
+    assert schedule_day["00:30"]
+    schedule_day["00:30"] = False
+    del schedule_day["00:00"]
+    assert "00:00" not in schedule_day
 
 
-def test_schedule_day_repr(schedule_day: ScheduleDay) -> None:
+def test_schedule_day_repr(schedule_day: ScheduleDay, intervals: list[Time]) -> None:
     """Test serializable representation of a schedule day."""
-    assert repr(schedule_day) == f"ScheduleDay({[False for _ in range(48)]})"
+    schedule = {interval: False for interval in intervals}
+    assert repr(schedule_day) == (f"ScheduleDay({schedule})")
 
 
 def test_schedule(schedule: Schedule) -> None:
     """Test a schedule."""
     schedule_iter = iter(schedule)
-    assert not next(schedule_iter)[0]
-    assert next(schedule_iter)[0]
+    assert not next(schedule_iter)["00:00"]
+    assert next(schedule_iter)["00:00"]
 
 
 @patch("pyplumio.helpers.schedule.Request.create")

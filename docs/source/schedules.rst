@@ -42,9 +42,11 @@ temperature by 10 degrees Celsius.
 Setting Schedule
 ----------------
 
-To set the schedule, you can use ``set_state(state)``, ``set_on()`` or
-``set_off()`` methods and call ``commit()`` to send changes to the
-device.
+To set the schedule, you can either directly set the state via key or
+by using ``set_state(state)``, ``set_on()`` or ``set_off()``.
+
+After updating the state you must call ``commit()`` method to save
+changes on the device.
 
 This example sets nighttime mode for Monday from 00:00 to 07:00 and
 switches back to daytime mode from 07:00 to 00:00.
@@ -64,6 +66,7 @@ For clarity sake, you might want to use ``STATE_NIGHT`` and
 
     from pyplumio.helpers.schedule import STATE_NIGHT
 
+    heating_schedule.monday["18:00"] = STATE_NIGHT
     heating_schedule.monday.set_state(STATE_NIGHT, "00:00", "07:00")
 
 You may also omit one of the boundaries.
@@ -127,6 +130,7 @@ Schedule Examples
                 weekday.set_state(STATE_DAY, "00:00", "00:30")
                 weekday.set_state(STATE_NIGHT, "00:30", "09:00")
                 weekday.set_state(STATE_DAY, "09:00", "00:00")
+                weekday["19:00"] = STATE_NIGHT
 
             # There will be no nighttime mode on sunday.
             heating_schedule.sunday.set_state(STATE_DAY)
