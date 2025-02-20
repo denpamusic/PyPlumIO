@@ -16,7 +16,8 @@ from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
-START_OF_DAY = dt.datetime.strptime("00:00", TIME_FORMAT)
+MIDNIGHT: Final = "00:00"
+START_OF_DAY = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
 STEP = dt.timedelta(minutes=30)
 
 STATE_DAY: Final = "day"
@@ -105,17 +106,17 @@ class ScheduleDay(MutableMapping):
             )
 
     def set_state(
-        self, state: State | bool, start: Time = "00:00", end: Time = "00:00"
+        self, state: State | bool, start: Time = MIDNIGHT, end: Time = MIDNIGHT
     ) -> None:
         """Set a schedule interval state."""
         for time in _get_time_range(start, end):
             self.__setitem__(time, state)
 
-    def set_day(self, start: Time = "00:00", end: Time = "00:00") -> None:
+    def set_day(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
         """Set a schedule interval state to 'day'."""
         self.set_state(STATE_DAY, start, end)
 
-    def set_night(self, start: Time = "00:00", end: Time = "00:00") -> None:
+    def set_night(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
         """Set a schedule interval state to 'night'."""
         self.set_state(STATE_NIGHT, start, end)
 
