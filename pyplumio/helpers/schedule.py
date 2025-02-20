@@ -6,27 +6,22 @@ from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
-from typing import Annotated, Final, Literal, get_args
+from typing import Annotated, Final, get_args
 
-from typing_extensions import TypeAlias
-
-from pyplumio.const import STATE_OFF, STATE_ON, FrameType
+from pyplumio.const import STATE_OFF, STATE_ON, FrameType, State
 from pyplumio.devices import PhysicalDevice
 from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
 
-STATE_NIGHT: Final = "night"
-STATE_DAY: Final = "day"
-
-_ON_STATES: Final = {STATE_ON, STATE_DAY}
-
-ScheduleState: TypeAlias = Literal["on", "off", "day", "night"]
-Time = Annotated[str, "time in HH:MM format"]
-
 START_OF_DAY = dt.datetime.strptime("00:00", TIME_FORMAT)
 STEP = dt.timedelta(minutes=30)
+
+STATE_NIGHT = STATE_OFF
+STATE_DAY = STATE_ON
+
+Time = Annotated[str, "time in HH:MM format"]
 
 
 def _get_time(
@@ -79,35 +74,35 @@ class ScheduleDay(MutableMapping):
 
     def __len__(self) -> int:
         """Return a schedule length."""
-        return len(self._schedule)
+        return self._schedule.__len__()
 
     def __iter__(self) -> Iterator[Time]:
         """Return an iterator."""
-        return iter(self._schedule)
+        return self._schedule.__iter__()
 
-    def __getitem__(self, time: Time) -> bool:
+    def __getitem__(self, time: Time) -> State:
         """Return a schedule item."""
-        return self._schedule.__getitem__(time)
+        state = self._schedule.__getitem__(time)
+        return STATE_ON if state else STATE_OFF
 
     def __delitem__(self, time: Time) -> None:
         """Delete a schedule item."""
-        return self._schedule.__delitem__(time)
+        self._schedule.__delitem__(time)
 
-    def __setitem__(self, time: Time, state: ScheduleState | bool) -> None:
+    def __setitem__(self, time: Time, state: State | bool) -> None:
         """Set a schedule item."""
-        if not isinstance(state, bool):
-            if state not in get_args(ScheduleState):
-                raise ValueError(
-                    f"Invalid state '{state}'. Allowed states are: "
-                    f"{', '.join(get_args(ScheduleState))}"
-                )
-
-            state = True if state in _ON_STATES else False
-
-        return self._schedule.__setitem__(time, state)
+        if state in get_args(State):
+            state = True if state == STATE_ON else False
+        if isinstance(state, bool):
+            self._schedule.__setitem__(time, state)
+        else:
+            raise TypeError(
+                f"Invalid state '{state}'. Allowed states are: "
+                f"{', '.join(get_args(State))}"
+            )
 
     def set_state(
-        self, state: ScheduleState | bool, start: Time = "00:00", end: Time = "00:00"
+        self, state: State | bool, start: Time = "00:00", end: Time = "00:00"
     ) -> None:
         """Set a schedule interval state."""
         for time in _get_time_range(start, end):

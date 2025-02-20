@@ -10,6 +10,7 @@ from pyplumio.const import (
     ATTR_SCHEDULE,
     ATTR_SWITCH,
     ATTR_TYPE,
+    STATE_OFF,
     STATE_ON,
     FrameType,
 )
@@ -25,62 +26,21 @@ from pyplumio.structures.schedules import (
 @pytest.fixture(name="intervals")
 def fixture_intervals() -> list[Time]:
     """Return example schedule for a day."""
-    return [
-        "00:00",
-        "00:30",
-        "01:00",
-        "01:30",
-        "02:00",
-        "02:30",
-        "03:00",
-        "03:30",
-        "04:00",
-        "04:30",
-        "05:00",
-        "05:30",
-        "06:00",
-        "06:30",
-        "07:00",
-        "07:30",
-        "08:00",
-        "08:30",
-        "09:00",
-        "09:30",
-        "10:00",
-        "10:30",
-        "11:00",
-        "11:30",
-        "12:00",
-        "12:30",
-        "13:00",
-        "13:30",
-        "14:00",
-        "14:30",
-        "15:00",
-        "15:30",
-        "16:00",
-        "16:30",
-        "17:00",
-        "17:30",
-        "18:00",
-        "18:30",
-        "19:00",
-        "19:30",
-        "20:00",
-        "20:30",
-        "21:00",
-        "21:30",
-        "22:00",
-        "22:30",
-        "23:00",
-        "23:30",
-    ]
+    return (
+        "00:00, 00:30, 01:00, 01:30, 02:00, 02:30, 03:00, 03:30, 04:00, 04:30, 05:00, "
+        "05:30, 06:00, 06:30, 07:00, 07:30, 08:00, 08:30, 09:00, 09:30, 10:00, 10:30, "
+        "11:00, 11:30, 12:00, 12:30, 13:00, 13:30, 14:00, 14:30, 15:00, 15:30, 16:00, "
+        "16:30, 17:00, 17:30, 18:00, 18:30, 19:00, 19:30, 20:00, 20:30, 21:00, 21:30, "
+        "22:00, 22:30, 23:00, 23:30"
+    ).split(", ")
 
 
 @pytest.fixture(name="schedule_day")
 def fixture_schedule_day() -> ScheduleDay:
     """Return a schedule day object."""
-    return ScheduleDay.from_iterable([False for _ in range(48)])
+    schedule_day = ScheduleDay.from_iterable([False for _ in range(48)])
+    assert len(schedule_day) == 48
+    return schedule_day
 
 
 @pytest.fixture(name="schedule")
@@ -102,20 +62,17 @@ def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
 def test_schedule_day(schedule_day: ScheduleDay) -> None:
     """Test a schedule day."""
     schedule_day.set_state(STATE_ON, "00:00", "01:00")
-    assert schedule_day["00:00"]
-    assert schedule_day["00:30"]
-    assert schedule_day["01:00"]
-    assert not schedule_day["01:30"]
-    assert len(schedule_day) == 48
-    assert not schedule_day["02:00"]
+    for time in ("00:00", "00:30", "01:00"):
+        assert schedule_day[time] == STATE_ON
+    assert schedule_day["01:30"] == schedule_day["02:00"] == STATE_OFF
     schedule_day["02:00"] = STATE_ON
-    assert schedule_day["02:00"]
+    assert schedule_day.schedule["02:00"]
 
 
 def test_schedule_day_with_missing_key(schedule_day: ScheduleDay) -> None:
     """Test a schedule day with a missing key."""
     with pytest.raises(KeyError):
-        assert not schedule_day["00:20"]
+        assert schedule_day["00:20"] == STATE_OFF
 
 
 def test_schedule_day_with_incorrect_interval(schedule_day: ScheduleDay) -> None:
@@ -127,7 +84,7 @@ def test_schedule_day_with_incorrect_interval(schedule_day: ScheduleDay) -> None
 
 def test_schedule_day_with_incorrect_state(schedule_day: ScheduleDay) -> None:
     """Test a schedule day with an incorrect state."""
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         schedule_day.set_state("invalid_state", "00:00", "01:00")  # type: ignore[arg-type]
 
 
@@ -141,16 +98,17 @@ def test_setting_whole_day_schedule(
     assert schedule_day.schedule == {interval: False for interval in intervals}
 
 
-def test_setting_schedule_with_sequence(schedule_day: ScheduleDay) -> None:
-    """Test setting a schedule via sequence methods."""
+def test_setting_schedule_as_iterable(schedule_day: ScheduleDay) -> None:
+    """Test setting schedule using iterable methods."""
     schedule_day.set_on("00:30", "01:00")
     schedule_day_iter = iter(schedule_day)
-    assert not schedule_day[next(schedule_day_iter)]
-    assert schedule_day[next(schedule_day_iter)]
+    assert schedule_day[next(schedule_day_iter)] == STATE_OFF
+    assert schedule_day[next(schedule_day_iter)] == STATE_ON
     assert "00:30" in schedule_day
-    assert schedule_day["00:30"]
-    schedule_day["00:30"] = False
+    assert schedule_day["00:30"] == STATE_ON
+    schedule_day["00:30"] = STATE_OFF
     del schedule_day["00:00"]
+    assert len(schedule_day) == 47
     assert "00:00" not in schedule_day
 
 
@@ -163,8 +121,8 @@ def test_schedule_day_repr(schedule_day: ScheduleDay, intervals: list[Time]) -> 
 def test_schedule(schedule: Schedule) -> None:
     """Test a schedule."""
     schedule_iter = iter(schedule)
-    assert not next(schedule_iter)["00:00"]
-    assert next(schedule_iter)["00:00"]
+    assert next(schedule_iter)["00:00"] == STATE_OFF
+    assert next(schedule_iter)["00:00"] == STATE_ON
 
 
 @patch("pyplumio.helpers.schedule.Request.create")
