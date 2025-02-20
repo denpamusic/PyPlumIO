@@ -5,9 +5,11 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
+from pyplumio.const import BYTE_UNDEFINED, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.helpers.parameter import (
+    STATE_OFF,
+    STATE_ON,
     Number,
     NumberDescription,
     Parameter,

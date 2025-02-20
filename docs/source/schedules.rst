@@ -43,7 +43,7 @@ Setting Schedule
 ----------------
 
 To set the schedule, you can either directly set the state via key or
-by using ``set_state(state)``, ``set_on()`` or ``set_off()``.
+by using ``set_state(state)``, ``set_day()`` or ``set_night()``.
 
 After updating the state you must call ``commit()`` method to save
 changes on the device.
@@ -55,8 +55,8 @@ switches back to daytime mode from 07:00 to 00:00.
 
     schedules = await ecomax.get("schedules")
     heating_schedule = schedules["heating"]
-    heating_schedule.monday.set_off(start="00:00", end="07:00")
-    heating_schedule.monday.set_on(start="07:00", end="00:00")
+    heating_schedule.monday.set_night(start="00:00", end="07:00")
+    heating_schedule.monday.set_day(start="07:00", end="00:00")
     await heating_schedule.commit()
 
 For clarity sake, you might want to use ``STATE_NIGHT`` and
@@ -74,18 +74,18 @@ The other boundary is then set to the end or start of the day.
 
 .. code-block:: python
 
-    heating_schedule.monday.set_on(start="07:00")
+    heating_schedule.monday.set_day(start="07:00")
     # is equivalent to
-    heating_schedule.monday.set_on(start="07:00", end="00:00")
+    heating_schedule.monday.set_day(start="07:00", end="00:00")
 
 .. code-block:: python
 
-    heating_schedule.monday.set_off(end="07:00")
+    heating_schedule.monday.set_night(end="07:00")
     # is equivalent to
-    heating_schedule.monday.set_off(start="00:00", end="07:00")
+    heating_schedule.monday.set_night(start="00:00", end="07:00")
 
 This can be used to set state for a whole day with
-``heating_schedule.monday.set_on()``.
+``heating_schedule.monday.set_day()``.
 
 To set schedule for all days you can iterate through the
 Schedule object:
@@ -97,9 +97,9 @@ Schedule object:
 
     for weekday in heating_schedule:
         # Set a nighttime mode from 00:00 to 07:00
-        weekday.set_on("00:00", "07:00")
+        weekday.set_day("00:00", "07:00")
         # Set a daytime mode from 07:00 to 00:00
-        weekday.set_off("07:00", "00:00")
+        weekday.set_night("07:00", "00:00")
 
     # Commit changes to the device.
     await heating_schedule.commit()

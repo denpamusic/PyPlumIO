@@ -12,8 +12,6 @@ from pyplumio.const import (
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
-    STATE_OFF,
-    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
@@ -23,7 +21,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
-from pyplumio.helpers.parameter import ParameterValues, State
+from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (

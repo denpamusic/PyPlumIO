@@ -3,13 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum, unique
-from typing import Any, Final, Literal
-
-from typing_extensions import TypeAlias
-
-# Binary states.
-STATE_ON: Final = "on"
-STATE_OFF: Final = "off"
+from typing import Any, Final
 
 # General attributes.
 ATTR_CONNECTED: Final = "connected"
@@ -223,5 +217,3 @@ class UnitOfMeasurement(Enum):
 
 
 PERCENTAGE: Final = "%"
-
-State: TypeAlias = Literal["on", "off"]
