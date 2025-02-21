@@ -20,7 +20,7 @@ MIDNIGHT_DT = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
 
 STEP = dt.timedelta(minutes=30)
 
-Time = Annotated[str, "time in HH:MM format"]
+Time = Annotated[str, "Time string in %H:%M format"]
 
 
 def _get_time(
