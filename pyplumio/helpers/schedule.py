@@ -101,8 +101,7 @@ class ScheduleDay(MutableMapping):
             self._schedule.__setitem__(time, state)
         else:
             raise TypeError(
-                f"Invalid state '{state}'. Allowed states are: "
-                f"{', '.join(get_args(State))}"
+                f"Expected boolean value or one of: {', '.join(get_args(State))}."
             )
 
     def set_state(
