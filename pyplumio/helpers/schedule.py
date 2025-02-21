@@ -14,15 +14,17 @@ from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
+
 MIDNIGHT: Final = "00:00"
-START_OF_DAY = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
+MIDNIGHT_DT = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
+
 STEP = dt.timedelta(minutes=30)
 
 Time = Annotated[str, "time in HH:MM format"]
 
 
 def _get_time(
-    index: int, start: dt.datetime = START_OF_DAY, step: dt.timedelta = STEP
+    index: int, start: dt.datetime = MIDNIGHT_DT, step: dt.timedelta = STEP
 ) -> Time:
     """Return time from in index."""
     time_dt = start + (step * index)
@@ -38,7 +40,7 @@ def _get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[T
     start_dt = dt.datetime.strptime(start, TIME_FORMAT)
     end_dt = dt.datetime.strptime(end, TIME_FORMAT)
 
-    if end_dt == START_OF_DAY:
+    if end_dt == MIDNIGHT_DT:
         # Upper boundary of the interval is midnight.
         end_dt += dt.timedelta(hours=24) - step
 
