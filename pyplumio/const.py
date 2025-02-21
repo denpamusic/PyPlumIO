@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum, unique
-from typing import Any, Final
+from typing import Any, Final, Literal
+
+from typing_extensions import TypeAlias
 
 # General attributes.
 ATTR_CONNECTED: Final = "connected"
@@ -217,3 +219,9 @@ class UnitOfMeasurement(Enum):
 
 
 PERCENTAGE: Final = "%"
+
+STATE_ON: Final = "on"
+STATE_OFF: Final = "off"
+
+
+State: TypeAlias = Literal["on", "off"]

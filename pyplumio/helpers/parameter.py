@@ -6,12 +6,12 @@ from abc import ABC, abstractmethod
 import asyncio
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Final, Literal, TypeVar, Union, get_args
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
 
 from dataslots import dataslots
 from typing_extensions import TypeAlias
 
-from pyplumio.const import BYTE_UNDEFINED, UnitOfMeasurement
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.frames import Request
 
 if TYPE_CHECKING:
@@ -19,10 +19,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-STATE_ON: Final = "on"
-STATE_OFF: Final = "off"
 
-State: TypeAlias = Literal["on", "off"]
 NumericType: TypeAlias = Union[int, float]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
 

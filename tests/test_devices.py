@@ -18,6 +18,8 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
+    STATE_OFF,
+    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
@@ -55,7 +57,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.parameter import STATE_OFF, STATE_ON
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,

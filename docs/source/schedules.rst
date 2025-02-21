@@ -43,7 +43,7 @@ Setting Schedule
 ----------------
 
 To set the schedule, you can either directly set the state via key or
-by using ``set_state(state)``, ``set_day()`` or ``set_night()``.
+by using ``set_state(state)``, ``set_on()`` or ``set_off()``.
 
 After updating the state you must call ``commit()`` method to save
 changes on the device.
@@ -55,37 +55,37 @@ switches back to daytime mode from 07:00 to 00:00.
 
     schedules = await ecomax.get("schedules")
     heating_schedule = schedules["heating"]
-    heating_schedule.monday.set_night(start="00:00", end="07:00")
-    heating_schedule.monday.set_day(start="07:00", end="00:00")
+    heating_schedule.monday.set_off(start="00:00", end="07:00")
+    heating_schedule.monday.set_on(start="07:00", end="00:00")
     await heating_schedule.commit()
 
-For clarity sake, you might want to use ``STATE_NIGHT`` and
-``STATE_DAY`` constants from ``pyplumio.helpers.schedule`` module.
+For clarity sake, you might want to use ``STATE_OFF`` and
+``STATE_ON`` constants from ``pyplumio.helpers.schedule`` module.
 
 .. code-block:: python
 
-    from pyplumio.helpers.schedule import STATE_NIGHT
+    from pyplumio.helpers.schedule import STATE_OFF
 
-    heating_schedule.monday["18:00"] = STATE_NIGHT
-    heating_schedule.monday.set_state(STATE_NIGHT, "00:00", "07:00")
+    heating_schedule.monday["18:00"] = STATE_OFF
+    heating_schedule.monday.set_state(STATE_OFF, "00:00", "07:00")
 
 You may also omit one of the boundaries.
 The other boundary is then set to the end or start of the day.
 
 .. code-block:: python
 
-    heating_schedule.monday.set_day(start="07:00")
+    heating_schedule.monday.set_on(start="07:00")
     # is equivalent to
-    heating_schedule.monday.set_day(start="07:00", end="00:00")
+    heating_schedule.monday.set_on(start="07:00", end="00:00")
 
 .. code-block:: python
 
-    heating_schedule.monday.set_night(end="07:00")
+    heating_schedule.monday.set_off(end="07:00")
     # is equivalent to
-    heating_schedule.monday.set_night(start="00:00", end="07:00")
+    heating_schedule.monday.set_off(start="00:00", end="07:00")
 
 This can be used to set state for a whole day with
-``heating_schedule.monday.set_day()``.
+``heating_schedule.monday.set_on()``.
 
 To set schedule for all days you can iterate through the
 Schedule object:
@@ -97,9 +97,9 @@ Schedule object:
 
     for weekday in heating_schedule:
         # Set a nighttime mode from 00:00 to 07:00
-        weekday.set_day("00:00", "07:00")
+        weekday.set_on("00:00", "07:00")
         # Set a daytime mode from 07:00 to 00:00
-        weekday.set_night("07:00", "00:00")
+        weekday.set_off("07:00", "00:00")
 
     # Commit changes to the device.
     await heating_schedule.commit()
@@ -110,7 +110,7 @@ Schedule Examples
 .. code-block:: python
 
     import pyplumio
-    from pyplumio.helpers.schedule import STATE_DAY, STATE_NIGHT
+    from pyplumio.helpers.schedule import STATE_ON, STATE_OFF
 
 
     async def main():
@@ -127,13 +127,13 @@ Schedule Examples
             await ecomax.set("schedule_heating_parameter", 10)
 
             for weekday in heating_schedule:
-                weekday.set_state(STATE_DAY, "00:00", "00:30")
-                weekday.set_state(STATE_NIGHT, "00:30", "09:00")
-                weekday.set_state(STATE_DAY, "09:00", "00:00")
-                weekday["19:00"] = STATE_NIGHT
+                weekday.set_state(STATE_ON, "00:00", "00:30")
+                weekday.set_state(STATE_OFF, "00:30", "09:00")
+                weekday.set_state(STATE_ON, "09:00", "00:00")
+                weekday["19:00"] = STATE_OFF
 
             # There will be no nighttime mode on sunday.
-            heating_schedule.sunday.set_state(STATE_DAY)
+            heating_schedule.sunday.set_state(STATE_ON)
             
             await heating_schedule.commit()
 

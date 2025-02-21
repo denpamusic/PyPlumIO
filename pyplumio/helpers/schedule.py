@@ -6,11 +6,9 @@ from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
 from functools import lru_cache
-from typing import Annotated, Final, Literal, get_args
+from typing import Annotated, Final, get_args
 
-from typing_extensions import TypeAlias
-
-from pyplumio.const import FrameType
+from pyplumio.const import STATE_OFF, STATE_ON, FrameType, State
 from pyplumio.devices import PhysicalDevice
 from pyplumio.frames import Request
 from pyplumio.structures.schedules import collect_schedule_data
@@ -19,11 +17,6 @@ TIME_FORMAT: Final = "%H:%M"
 MIDNIGHT: Final = "00:00"
 START_OF_DAY = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
 STEP = dt.timedelta(minutes=30)
-
-STATE_DAY: Final = "day"
-STATE_NIGHT: Final = "night"
-
-State: TypeAlias = Literal["day", "night"]
 
 Time = Annotated[str, "time in HH:MM format"]
 
@@ -87,7 +80,7 @@ class ScheduleDay(MutableMapping):
     def __getitem__(self, time: Time) -> State:
         """Return a schedule item."""
         state = self._schedule.__getitem__(time)
-        return STATE_DAY if state else STATE_NIGHT
+        return STATE_ON if state else STATE_OFF
 
     def __delitem__(self, time: Time) -> None:
         """Delete a schedule item."""
@@ -96,7 +89,7 @@ class ScheduleDay(MutableMapping):
     def __setitem__(self, time: Time, state: State | bool) -> None:
         """Set a schedule item."""
         if state in get_args(State):
-            state = True if state == STATE_DAY else False
+            state = True if state == STATE_ON else False
         if isinstance(state, bool):
             self._schedule.__setitem__(time, state)
         else:
@@ -111,13 +104,13 @@ class ScheduleDay(MutableMapping):
         for time in _get_time_range(start, end):
             self.__setitem__(time, state)
 
-    def set_day(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
-        """Set a schedule interval state to 'day'."""
-        self.set_state(STATE_DAY, start, end)
+    def set_on(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
+        """Set a schedule interval state to 'on'."""
+        self.set_state(STATE_ON, start, end)
 
-    def set_night(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
-        """Set a schedule interval state to 'night'."""
-        self.set_state(STATE_NIGHT, start, end)
+    def set_off(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
+        """Set a schedule interval state to 'off'."""
+        self.set_state(STATE_OFF, start, end)
 
     @property
     def schedule(self) -> dict[Time, bool]:
