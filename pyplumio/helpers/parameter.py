@@ -108,7 +108,7 @@ class Parameter(ABC):
         """Return a serializable string representation."""
         return (
             f"{self.__class__.__name__}("
-            f"device={self.device.__class__.__name__}, "
+            f"device={self.device}, "
             f"description={self.description}, "
             f"values={self.values}, "
             f"index={self._index})"

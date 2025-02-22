@@ -284,7 +284,7 @@ def test_switch_int(switch: Switch) -> None:
 def test_number_repr(number: Number) -> None:
     """Test a number representation."""
     assert repr(number) == (
-        "Number(device=EcoMAX, "
+        f"Number(device={number.device}, "
         "description=NumberDescription(name='test_number', optimistic=False, "
         "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
         "values=ParameterValues(value=1, min_value=0, max_value=5), "
@@ -295,7 +295,7 @@ def test_number_repr(number: Number) -> None:
 def test_switch_repr(switch: Switch) -> None:
     """Test a number representation."""
     assert repr(switch) == (
-        "Switch(device=EcoMAX, "
+        f"Switch(device={switch.device}, "
         "description=SwitchDescription(name='test_switch', optimistic=False), "
         "values=ParameterValues(value=0, min_value=0, max_value=1), "
         "index=0)"
