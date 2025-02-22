@@ -26,7 +26,7 @@ Time = Annotated[str, "Time string in %H:%M format"]
 def _get_time(
     index: int, start: dt.datetime = MIDNIGHT_DT, step: dt.timedelta = STEP
 ) -> Time:
-    """Return time from in index."""
+    """Return time for a specific index."""
     time_dt = start + (step * index)
     return time_dt.strftime(TIME_FORMAT)
 
@@ -35,7 +35,8 @@ def _get_time(
 def _get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[Time]:
     """Get a time range.
 
-    Start and end times should be specified in HH:MM format.
+    Start and end boundaries should be specified in %H:%M format.
+    Both are inclusive.
     """
     start_dt = dt.datetime.strptime(start, TIME_FORMAT)
     end_dt = dt.datetime.strptime(end, TIME_FORMAT)
