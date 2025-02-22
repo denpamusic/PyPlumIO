@@ -19,7 +19,7 @@ async def _import_module(name: str) -> ModuleType:
     return await loop.run_in_executor(None, importlib.import_module, f"pyplumio.{name}")
 
 
-async def create_instance(class_path: str, cls: type[T], **kwargs: Any) -> T:
+async def create_instance(class_path: str, /, cls: type[T], **kwargs: Any) -> T:
     """Return a class instance from the class path."""
     module_name, class_name = class_path.rsplit(".", 1)
     try:
