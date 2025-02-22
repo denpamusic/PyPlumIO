@@ -10,7 +10,7 @@ from typing import Any, Final
 
 from pyplumio.const import ProductType
 from pyplumio.helpers.data_types import UnsignedShort, VarBytes, VarString
-from pyplumio.helpers.uid import decode_uid
+from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 
@@ -69,7 +69,7 @@ class ProductInfoStructure(StructureDecoder):
                     ATTR_PRODUCT: ProductInfo(
                         type=ProductType(product_type),
                         id=product_id,
-                        uid=decode_uid(uid.value),
+                        uid=unpack_uid(uid.value),
                         logo=logo.value,
                         image=image.value,
                         model=format_model_name(model_name.value),

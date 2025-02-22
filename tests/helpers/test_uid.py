@@ -2,7 +2,7 @@
 
 import pytest
 
-from pyplumio.helpers.uid import decode_uid
+from pyplumio.helpers.uid import unpack_uid
 
 
 @pytest.mark.parametrize(
@@ -14,4 +14,4 @@ from pyplumio.helpers.uid import decode_uid
 )
 def test_from_bytes(message, uid) -> None:
     """Test unpacking an UID from bytes."""
-    assert decode_uid(bytes.fromhex(message)) == uid
+    assert unpack_uid(bytes.fromhex(message)) == uid

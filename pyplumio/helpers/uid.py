@@ -10,8 +10,8 @@ POLYNOMIAL: Final = 0xA001
 BASE5_KEY: Final = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
 
 
-def decode_uid(buffer: bytes) -> str:
-    """Decode an UID string."""
+def unpack_uid(buffer: bytes) -> str:
+    """Unpack UID from bytes."""
     return _base5(buffer + _crc16(buffer))
 
 
