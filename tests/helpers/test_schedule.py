@@ -93,9 +93,9 @@ def test_setting_whole_day_schedule(
 ) -> None:
     """Test setting schedule for a whole day."""
     schedule_day.set_on()
-    assert schedule_day.schedule == {interval: True for interval in intervals}
+    assert schedule_day.schedule == dict.fromkeys(intervals, True)
     schedule_day.set_off()
-    assert schedule_day.schedule == {interval: False for interval in intervals}
+    assert schedule_day.schedule == dict.fromkeys(intervals, False)
 
 
 def test_setting_schedule_as_iterable(schedule_day: ScheduleDay) -> None:
@@ -114,7 +114,7 @@ def test_setting_schedule_as_iterable(schedule_day: ScheduleDay) -> None:
 
 def test_schedule_day_repr(schedule_day: ScheduleDay, intervals: list[Time]) -> None:
     """Test serializable representation of a schedule day."""
-    schedule = {interval: False for interval in intervals}
+    schedule = dict.fromkeys(intervals, False)
     assert repr(schedule_day) == (f"ScheduleDay({schedule})")
 
 
