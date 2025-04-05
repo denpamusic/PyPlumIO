@@ -427,7 +427,7 @@ class Switch(Parameter):
     @property
     def value(self) -> State:
         """Return the value."""
-        return STATE_ON if self.values.value == 1 else STATE_OFF
+        return self._unpack_value(self.values.value)
 
     @property
     def min_value(self) -> Literal["off"]:
