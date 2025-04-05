@@ -629,9 +629,9 @@ async def test_set(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
 
     # Test setting an ecomax parameter.
-    assert await ecomax.set("max_fuel_flow", 2600)
+    assert await ecomax.set("max_fuel_flow", 26.00)
     max_fuel_flow = await ecomax.get("max_fuel_flow")
-    assert max_fuel_flow.value == 2600
+    assert max_fuel_flow.value == 26.00
 
     # Test setting an ecomax parameter without blocking.
     with (

@@ -453,8 +453,8 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="max_fuel_flow",
-            multiplier=20,
-            unit_of_measurement=UnitOfMeasurement.GRAMS,
+            multiplier=0.2,
+            unit_of_measurement=UnitOfMeasurement.KILOGRAMS_PER_HOUR,
         ),
         EcomaxNumberDescription(
             name="feeder_calibration",
