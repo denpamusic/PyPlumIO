@@ -30,7 +30,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
-from pyplumio.utils import ensure_dict
+from pyplumio.utils import ensure_dict, is_divisible
 
 if TYPE_CHECKING:
     from pyplumio.devices.thermostat import Thermostat
@@ -103,6 +103,16 @@ class ThermostatNumber(ThermostatParameter, Number):
     __slots__ = ()
 
     description: ThermostatNumberDescription
+
+    def validate(self, value: NumericType) -> bool:
+        """Validate the parameter value."""
+        if not is_divisible(value, self.description.step):
+            raise ValueError(
+                f"Invalid value: {value}. The value must be adjusted in increments of "
+                f"{self.description.step}."
+            )
+
+        return super().validate(value)
 
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""

@@ -29,7 +29,7 @@ from pyplumio.helpers.parameter import (
     unpack_parameter,
 )
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
+from pyplumio.utils import ensure_dict, is_divisible
 
 if TYPE_CHECKING:
     from pyplumio.devices.mixer import Mixer
@@ -83,6 +83,16 @@ class MixerNumber(MixerParameter, Number):
     __slots__ = ()
 
     description: MixerNumberDescription
+
+    def validate(self, value: NumericType) -> bool:
+        """Validate the parameter value."""
+        if not is_divisible(value, self.description.step):
+            raise ValueError(
+                f"Invalid value: {value}. The value must be adjusted in increments of "
+                f"{self.description.step}."
+            )
+
+        return super().validate(value)
 
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
