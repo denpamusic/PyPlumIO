@@ -86,7 +86,7 @@ class MixerNumber(MixerParameter, Number):
 
     def validate(self, value: NumericType) -> bool:
         """Validate the parameter value."""
-        if not is_divisible(value, self.description.step):
+        if not is_divisible(value, self.description.step, self.description.precision):
             raise ValueError(
                 f"Invalid value: {value}. The value must be adjusted in increments of "
                 f"{self.description.step}."
