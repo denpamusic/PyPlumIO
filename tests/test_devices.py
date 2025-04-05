@@ -629,9 +629,13 @@ async def test_set(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
 
     # Test setting an ecomax parameter.
-    assert await ecomax.set("max_fuel_flow", 26.00)
+    assert await ecomax.set("max_fuel_flow", 26.0)
     max_fuel_flow = await ecomax.get("max_fuel_flow")
-    assert max_fuel_flow.value == 26.00
+    assert max_fuel_flow.value == 26.0
+
+    # Test setting an ecomax parameter with invalid step.
+    with pytest.raises(ValueError):
+        await ecomax.set("max_fuel_flow", 26.1)
 
     # Test setting an ecomax parameter without blocking.
     with (
@@ -646,15 +650,23 @@ async def test_set(ecomax: EcoMAX) -> None:
 
     # Test setting a thermostat parameter.
     thermostat = ecomax.data[ATTR_THERMOSTATS][0]
-    assert await thermostat.set("party_target_temp", 21.0)
+    assert await thermostat.set("party_target_temp", 21)
     target_party_temp = await thermostat.get("party_target_temp")
     assert target_party_temp.value == 21.0
+
+    # Test setting a thermostat parameter with invalid step.
+    with pytest.raises(ValueError):
+        await thermostat.set("party_target_temp", 26.01)
 
     # Test setting a mixer parameter.
     mixer = ecomax.data[ATTR_MIXERS][0]
     assert await mixer.set("mixer_target_temp", 35.0)
     mixer_target_temp = await mixer.get("mixer_target_temp")
     assert mixer_target_temp.value == 35.0
+
+    # Test setting a mixer parameter with invalid step.
+    with pytest.raises(ValueError):
+        await mixer.set("mixer_target_temp", 35.01)
 
     # Test with invalid parameter.
     ecomax.data["bar"] = Mock()
