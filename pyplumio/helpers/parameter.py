@@ -47,17 +47,6 @@ def is_valid_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-def parameter_value_to_int(value: NumericType | State | bool) -> int:
-    """Convert a parameter value to an integer.
-
-    If the value is STATE_OFF or STATE_ON, it returns 0 or 1 respectively.
-    """
-    if value in get_args(State):
-        return 1 if value == STATE_ON else 0
-
-    return int(value)
-
-
 @dataclass
 class ParameterValues:
     """Represents a parameter values."""
@@ -125,7 +114,7 @@ class Parameter(ABC):
 
         if isinstance(other, (int, float, bool)) or other in get_args(State):
             handler = getattr(self.values.value, method_to_call)
-            return handler(parameter_value_to_int(other))
+            return handler(self._pack_value(other))
         else:
             return NotImplemented
 
@@ -180,25 +169,16 @@ class Parameter(ABC):
         )
         return type(self)(self.device, self.description, values)
 
-    def validate(self, value: NumericType | State | bool) -> int:
-        """Validate a parameter value."""
-        int_value = parameter_value_to_int(value)
-        if int_value < self.values.min_value or int_value > self.values.max_value:
-            raise ValueError(
-                f"Invalid value: {value}. Must be between "
-                f"{self.min_value} and {self.max_value}."
-            )
-
-        return int_value
-
     async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
-        return await self._attempt_update(self.validate(value), retries, timeout)
+        self.validate(value)
+        return await self._attempt_update(self._pack_value(value), retries, timeout)
 
     def set_nowait(self, value: Any, retries: int = 5, timeout: float = 5.0) -> None:
         """Set a parameter value without waiting."""
+        self.validate(value)
         self.device.create_task(
-            self._attempt_update(self.validate(value), retries, timeout)
+            self._attempt_update(self._pack_value(value), retries, timeout)
         )
 
     async def _attempt_update(
@@ -269,6 +249,18 @@ class Parameter(ABC):
 
         return parameter
 
+    @abstractmethod
+    def _pack_value(self, value: Any) -> int:
+        """Pack the parameter value."""
+
+    @abstractmethod
+    def _unpack_value(self, value: int) -> Any:
+        """Unpack the parameter value."""
+
+    @abstractmethod
+    def validate(self, value: Any) -> bool:
+        """Validate a parameter value."""
+
     @property
     @abstractmethod
     def value(self) -> NumericType | State | bool:
@@ -304,6 +296,24 @@ class Number(Parameter):
 
     description: NumberDescription
 
+    def _pack_value(self, value: NumericType) -> int:
+        """Pack the parameter value."""
+        return int(value)
+
+    def _unpack_value(self, value: int) -> NumericType:
+        """Unpack the parameter value."""
+        return value
+
+    def validate(self, value: Any) -> bool:
+        """Validate a parameter value."""
+        if value < self.min_value or value > self.max_value:
+            raise ValueError(
+                f"Invalid number value: {value}. Must be between "
+                f"{self.min_value} and {self.max_value}."
+            )
+
+        return True
+
     async def set(
         self, value: NumericType, retries: int = 5, timeout: float = 5.0
     ) -> bool:
@@ -323,17 +333,17 @@ class Number(Parameter):
     @property
     def value(self) -> NumericType:
         """Return the value."""
-        return self.values.value
+        return self._unpack_value(self.values.value)
 
     @property
     def min_value(self) -> NumericType:
         """Return the minimum allowed value."""
-        return self.values.min_value
+        return self._unpack_value(self.values.min_value)
 
     @property
     def max_value(self) -> NumericType:
         """Return the maximum allowed value."""
-        return self.values.max_value
+        return self._unpack_value(self.values.max_value)
 
     @property
     def unit_of_measurement(self) -> UnitOfMeasurement | Literal["%"] | None:
@@ -353,6 +363,24 @@ class Switch(Parameter):
     __slots__ = ()
 
     description: SwitchDescription
+
+    def _pack_value(self, value: State | bool) -> int:
+        """Pack the parameter value."""
+        if value in get_args(State):
+            return 1 if value == STATE_ON else 0
+
+        return int(value)
+
+    def _unpack_value(self, value: int) -> State:
+        """Unpack the parameter value."""
+        return STATE_ON if value == 1 else STATE_OFF
+
+    def validate(self, value: Any) -> bool:
+        """Validate a parameter value."""
+        if not isinstance(value, bool) and value not in get_args(State):
+            raise ValueError(f"Invalid switch value: {value}. Must be 'on' or 'off'.")
+
+        return True
 
     async def set(
         self, value: State | bool, retries: int = 5, timeout: float = 5.0

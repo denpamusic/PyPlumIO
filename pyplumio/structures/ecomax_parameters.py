@@ -23,6 +23,7 @@ from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
     Number,
     NumberDescription,
+    NumericType,
     Parameter,
     ParameterDescription,
     ParameterValues,
@@ -101,30 +102,14 @@ class EcomaxNumber(EcomaxParameter, Number):
 
     description: EcomaxNumberDescription
 
-    async def set(
-        self, value: float | int, retries: int = 5, timeout: float = 5.0
-    ) -> bool:
-        """Set a parameter value."""
+    def _pack_value(self, value: NumericType) -> int:
+        """Pack the parameter value."""
         value += self.description.offset
-        value = round(value / self.description.multiplier, self.description.precision)
-        return await super().set(value, retries, timeout)
+        return round(value / self.description.multiplier)
 
-    @property
-    def value(self) -> float:
-        """Return the value."""
-        value = self.values.value - self.description.offset
-        return round(value * self.description.multiplier, self.description.precision)
-
-    @property
-    def min_value(self) -> float:
-        """Return the minimum allowed value."""
-        value = self.values.min_value - self.description.offset
-        return round(value * self.description.multiplier, self.description.precision)
-
-    @property
-    def max_value(self) -> float:
-        """Return the maximum allowed value."""
-        value = self.values.max_value - self.description.offset
+    def _unpack_value(self, value: int) -> NumericType:
+        """Unpack the parameter value."""
+        value -= self.description.offset
         return round(value * self.description.multiplier, self.description.precision)
 
 

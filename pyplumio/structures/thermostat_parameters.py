@@ -20,6 +20,7 @@ from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
     Number,
     NumberDescription,
+    NumericType,
     Parameter,
     ParameterDescription,
     ParameterValues,
@@ -103,30 +104,13 @@ class ThermostatNumber(ThermostatParameter, Number):
 
     description: ThermostatNumberDescription
 
-    async def set(
-        self, value: int | float, retries: int = 5, timeout: float = 5.0
-    ) -> bool:
-        """Set a parameter value."""
-        value = round(value / self.description.multiplier, self.description.precision)
-        return await super().set(value, retries, timeout)
+    def _pack_value(self, value: NumericType) -> int:
+        """Pack the parameter value."""
+        return round(value / self.description.multiplier)
 
-    @property
-    def value(self) -> float:
-        """Return the value."""
-        value = self.values.value * self.description.multiplier
-        return round(value, self.description.precision)
-
-    @property
-    def min_value(self) -> float:
-        """Return the minimum allowed value."""
-        value = self.values.min_value * self.description.multiplier
-        return round(value, self.description.precision)
-
-    @property
-    def max_value(self) -> float:
-        """Return the maximum allowed value."""
-        value = self.values.max_value * self.description.multiplier
-        return round(value, self.description.precision)
+    def _unpack_value(self, value: int) -> NumericType:
+        """Unpack the parameter value."""
+        return round(value * self.description.multiplier, self.description.precision)
 
 
 @dataslots

@@ -248,12 +248,12 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert fuel_calorific_value.max_value == 25.0
 
     # Test setting parameter with the multiplier.
-    with patch(
-        "pyplumio.structures.ecomax_parameters.Parameter.set", new_callable=AsyncMock
-    ) as mock_set:
+    with patch("asyncio.Queue.put", new_callable=AsyncMock) as mock_put:
         await fuel_calorific_value.set(2.5)
 
-    mock_set.assert_awaited_once_with(25, 5, 5.0)
+    request = mock_put.call_args[0][0]
+    assert isinstance(request, SetEcomaxParameterRequest)
+    assert request.data[ATTR_VALUE] == 25
 
     # Test parameter with the offset (heating_heat_curve_shift)
     heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
@@ -264,12 +264,12 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     assert heating_heat_curve_shift.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
     # Test setting the parameter with the offset.
-    with patch(
-        "pyplumio.structures.ecomax_parameters.Parameter.set", new_callable=AsyncMock
-    ) as mock_set:
+    with patch("asyncio.Queue.put", new_callable=AsyncMock) as mock_put:
         await heating_heat_curve_shift.set(1)
 
-    mock_set.assert_awaited_once_with(21, 5, 5.0)
+    request = mock_put.call_args[0][0]
+    assert isinstance(request, SetEcomaxParameterRequest)
+    assert request.data[ATTR_VALUE] == 21
 
 
 async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
