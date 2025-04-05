@@ -1,5 +1,7 @@
 """Contains tests for the utility functions."""
 
+import pytest
+
 from pyplumio import utils
 
 
@@ -20,3 +22,13 @@ def test_ensure_dict() -> None:
         "foo": "bar",
         "baz": "foobar",
     }
+
+
+def test_is_divisible() -> None:
+    """Test divisibility check."""
+    assert utils.is_divisible(10.0, 0.2)
+    assert utils.is_divisible(0.0, 1.0)
+    assert not utils.is_divisible(10.0, 3.0)
+
+    with pytest.raises(ValueError, match="Division by zero is not allowed."):
+        utils.is_divisible(10.0, 0.0)

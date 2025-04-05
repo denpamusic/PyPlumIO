@@ -28,3 +28,14 @@ def ensure_dict(initial: dict[KT, VT] | None, *args: dict[KT, VT]) -> dict[KT, V
         data |= extra
 
     return data
+
+
+def is_divisible(a: float, b: float, precision: int = 6) -> bool:
+    """Check if a is divisible by b."""
+    scale: int = 10**precision
+    b_scaled = round(b * scale)
+    if b_scaled == 0:
+        raise ValueError("Division by zero is not allowed.")
+
+    a_scaled = round(a * scale)
+    return a_scaled % b_scaled == 0
