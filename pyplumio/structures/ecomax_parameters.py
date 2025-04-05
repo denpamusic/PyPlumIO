@@ -90,7 +90,7 @@ class EcomaxParameter(Parameter):
 class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
     """Represents an ecoMAX number description."""
 
-    multiplier: float = 1.0
+    step: float = 1.0
     offset: int = 0
     precision: int = 6
 
@@ -105,12 +105,12 @@ class EcomaxNumber(EcomaxParameter, Number):
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
         value += self.description.offset
-        return round(value / self.description.multiplier)
+        return round(value / self.description.step)
 
     def _unpack_value(self, value: int) -> NumericType:
         """Unpack the parameter value."""
         value -= self.description.offset
-        return round(value * self.description.multiplier, self.description.precision)
+        return round(value * self.description.step, self.description.precision)
 
 
 @dataslots
@@ -453,7 +453,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="max_fuel_flow",
-            multiplier=0.2,
+            step=0.2,
             unit_of_measurement=UnitOfMeasurement.KILOGRAMS_PER_HOUR,
         ),
         EcomaxNumberDescription(
@@ -464,7 +464,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="fuel_calorific_value",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.KILO_WATT_HOUR_PER_KILOGRAM,
         ),
         EcomaxNumberDescription(
@@ -531,7 +531,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="heating_curve",
-            multiplier=0.1,
+            step=0.1,
         ),
         EcomaxNumberDescription(
             name="heating_curve_shift",
@@ -688,12 +688,12 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="solar_pump_on_delta_temp",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         EcomaxNumberDescription(
             name="solar_pump_off_delta_temp",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         EcomaxNumberDescription(
@@ -786,7 +786,7 @@ ECOMAX_PARAMETERS: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
         ),
         EcomaxNumberDescription(
             name="thermostat_hysteresis",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         EcomaxNumberDescription(

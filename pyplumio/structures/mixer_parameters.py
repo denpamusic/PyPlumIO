@@ -72,7 +72,7 @@ class MixerParameter(Parameter):
 class MixerNumberDescription(MixerParameterDescription, NumberDescription):
     """Represent a mixer number description."""
 
-    multiplier: float = 1.0
+    step: float = 1.0
     offset: int = 0
     precision: int = 6
 
@@ -87,12 +87,12 @@ class MixerNumber(MixerParameter, Number):
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
         value += self.description.offset
-        return round(value / self.description.multiplier)
+        return round(value / self.description.step)
 
     def _unpack_value(self, value: int) -> NumericType:
         """Unpack the parameter value."""
         value -= self.description.offset
-        return round(value * self.description.multiplier, self.description.precision)
+        return round(value * self.description.step, self.description.precision)
 
 
 @dataslots
@@ -132,7 +132,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         ),
         MixerNumberDescription(
             name="heating_curve",
-            multiplier=0.1,
+            step=0.1,
         ),
         MixerNumberDescription(
             name="heating_curve_shift",
@@ -147,7 +147,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         ),
         MixerNumberDescription(
             name="mixer_input_dead_zone",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         MixerSwitchDescription(
@@ -217,7 +217,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         ),
         MixerNumberDescription(
             name="mixer_input_dead_zone",
-            multiplier=0.1,
+            step=0.1,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         MixerNumberDescription(
@@ -228,7 +228,7 @@ MIXER_PARAMETERS: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         ),
         MixerNumberDescription(
             name="heating_curve",
-            multiplier=0.1,
+            step=0.1,
         ),
         MixerNumberDescription(
             name="heating_curve_shift",

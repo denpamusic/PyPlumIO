@@ -93,7 +93,7 @@ class ThermostatParameter(Parameter):
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
     """Represent a thermostat number description."""
 
-    multiplier: float = 1.0
+    step: float = 1.0
     precision: int = 6
 
 
@@ -106,11 +106,11 @@ class ThermostatNumber(ThermostatParameter, Number):
 
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
-        return round(value / self.description.multiplier)
+        return round(value / self.description.step)
 
     def _unpack_value(self, value: int) -> NumericType:
         """Unpack the parameter value."""
-        return round(value * self.description.multiplier, self.description.precision)
+        return round(value * self.description.step, self.description.precision)
 
 
 @dataslots
@@ -134,13 +134,13 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ThermostatNumberDescription(
         name="party_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
         name="holidays_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
@@ -165,31 +165,31 @@ THERMOSTAT_PARAMETERS: tuple[ThermostatParameterDescription, ...] = (
     ),
     ThermostatNumberDescription(
         name="hysteresis",
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
         name="day_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
         name="night_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
         name="antifreeze_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(
         name="heating_target_temp",
         size=2,
-        multiplier=0.1,
+        step=0.1,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     ),
     ThermostatNumberDescription(

@@ -241,13 +241,13 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
     assert await ecomax.get("fuzzy_logic") is fuzzy_logic
 
-    # Test parameter with the multiplier (heating_heat_curve)
+    # Test parameter with the step (heating_heat_curve)
     fuel_calorific_value = await ecomax.get("fuel_calorific_value")
     assert fuel_calorific_value.value == 4.6
     assert fuel_calorific_value.min_value == 0.1
     assert fuel_calorific_value.max_value == 25.0
 
-    # Test setting parameter with the multiplier.
+    # Test setting parameter with the step.
     with patch("asyncio.Queue.put", new_callable=AsyncMock) as mock_put:
         await fuel_calorific_value.set(2.5)
 
