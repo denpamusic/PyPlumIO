@@ -13,6 +13,7 @@ from typing_extensions import TypeAlias
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.frames import Request
+from pyplumio.utils import is_divisible
 
 if TYPE_CHECKING:
     from pyplumio.devices import Device
@@ -286,6 +287,8 @@ class Parameter(ABC):
 class NumberDescription(ParameterDescription):
     """Represents a parameter description."""
 
+    step: float = 1.0
+    precision: int = 6
     unit_of_measurement: UnitOfMeasurement | Literal["%"] | None = None
 
 
@@ -298,14 +301,20 @@ class Number(Parameter):
 
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
-        return int(value)
+        return int(round(value / self.description.step))
 
     def _unpack_value(self, value: int) -> NumericType:
         """Unpack the parameter value."""
-        return value
+        return round(value * self.description.step, self.description.precision)
 
     def validate(self, value: Any) -> bool:
         """Validate a parameter value."""
+        if not is_divisible(value, self.description.step, self.description.precision):
+            raise ValueError(
+                f"Invalid value: {value}. The value must be adjusted in increments of "
+                f"{self.description.step}."
+            )
+
         if value < self.min_value or value > self.max_value:
             raise ValueError(
                 f"Invalid number value: {value}. Must be between "

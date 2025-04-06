@@ -33,7 +33,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
-from pyplumio.utils import ensure_dict, is_divisible
+from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
     from pyplumio.devices.ecomax import EcoMAX
@@ -90,9 +90,7 @@ class EcomaxParameter(Parameter):
 class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
     """Represents an ecoMAX number description."""
 
-    step: float = 1.0
     offset: int = 0
-    precision: int = 6
 
 
 class EcomaxNumber(EcomaxParameter, Number):
@@ -102,25 +100,13 @@ class EcomaxNumber(EcomaxParameter, Number):
 
     description: EcomaxNumberDescription
 
-    def validate(self, value: NumericType) -> bool:
-        """Validate the parameter value."""
-        if not is_divisible(value, self.description.step, self.description.precision):
-            raise ValueError(
-                f"Invalid value: {value}. The value must be adjusted in increments of "
-                f"{self.description.step}."
-            )
-
-        return super().validate(value)
-
     def _pack_value(self, value: NumericType) -> int:
         """Pack the parameter value."""
-        value += self.description.offset
-        return round(value / self.description.step)
+        return super()._pack_value(value + self.description.offset)
 
     def _unpack_value(self, value: int) -> NumericType:
         """Unpack the parameter value."""
-        value -= self.description.offset
-        return round(value * self.description.step, self.description.precision)
+        return super()._unpack_value(value - self.description.offset)
 
 
 @dataslots

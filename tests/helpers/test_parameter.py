@@ -285,7 +285,8 @@ def test_number_repr(number: Number) -> None:
     """Test a number representation."""
     assert repr(number) == (
         f"Number(device={number.device}, "
-        "description=NumberDescription(name='test_number', optimistic=False, "
+        "description=NumberDescription("
+        "name='test_number', optimistic=False, step=1.0, precision=6, "
         "unit_of_measurement=<UnitOfMeasurement.CELSIUS: '°C'>), "
         "values=ParameterValues(value=1, min_value=0, max_value=5), "
         "index=0)"

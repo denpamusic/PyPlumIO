@@ -20,7 +20,6 @@ from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
     Number,
     NumberDescription,
-    NumericType,
     Parameter,
     ParameterDescription,
     ParameterValues,
@@ -30,7 +29,7 @@ from pyplumio.helpers.parameter import (
 )
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
-from pyplumio.utils import ensure_dict, is_divisible
+from pyplumio.utils import ensure_dict
 
 if TYPE_CHECKING:
     from pyplumio.devices.thermostat import Thermostat
@@ -93,9 +92,6 @@ class ThermostatParameter(Parameter):
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
     """Represent a thermostat number description."""
 
-    step: float = 1.0
-    precision: int = 6
-
 
 class ThermostatNumber(ThermostatParameter, Number):
     """Represents a thermostat number."""
@@ -103,24 +99,6 @@ class ThermostatNumber(ThermostatParameter, Number):
     __slots__ = ()
 
     description: ThermostatNumberDescription
-
-    def validate(self, value: NumericType) -> bool:
-        """Validate the parameter value."""
-        if not is_divisible(value, self.description.step, self.description.precision):
-            raise ValueError(
-                f"Invalid value: {value}. The value must be adjusted in increments of "
-                f"{self.description.step}."
-            )
-
-        return super().validate(value)
-
-    def _pack_value(self, value: NumericType) -> int:
-        """Pack the parameter value."""
-        return round(value / self.description.step)
-
-    def _unpack_value(self, value: int) -> NumericType:
-        """Unpack the parameter value."""
-        return round(value * self.description.step, self.description.precision)
 
 
 @dataslots
