@@ -309,16 +309,16 @@ class Number(Parameter):
 
     def validate(self, value: Any) -> bool:
         """Validate a parameter value."""
+        if value < self.min_value or value > self.max_value:
+            raise ValueError(
+                f"Invalid value: {value}. Must be between {self.min_value} "
+                f"and {self.max_value}."
+            )
+
         if not is_divisible(value, self.description.step, self.description.precision):
             raise ValueError(
                 f"Invalid value: {value}. The value must be adjusted in increments of "
                 f"{self.description.step}."
-            )
-
-        if value < self.min_value or value > self.max_value:
-            raise ValueError(
-                f"Invalid number value: {value}. Must be between "
-                f"{self.min_value} and {self.max_value}."
             )
 
         return True
