@@ -311,7 +311,7 @@ class Number(Parameter):
         """Validate a parameter value."""
         if value < self.min_value or value > self.max_value:
             raise ValueError(
-                f"Invalid value: {value}. Must be between {self.min_value} "
+                f"Invalid value: {value}. The value must be between {self.min_value} "
                 f"and {self.max_value}."
             )
 
