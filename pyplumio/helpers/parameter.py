@@ -387,7 +387,10 @@ class Switch(Parameter):
     def validate(self, value: Any) -> bool:
         """Validate a parameter value."""
         if not isinstance(value, bool) and value not in get_args(State):
-            raise ValueError(f"Invalid switch value: {value}. Must be 'on' or 'off'.")
+            raise ValueError(
+                f"Invalid value: {value}. The value must be either 'on', 'off' or "
+                f"boolean."
+            )
 
         return True
 
