@@ -2,7 +2,7 @@ codespell==2.4.1
 coverage==7.8.0
 mypy==1.15.0
 pre-commit==4.2.0
-pyserial-asyncio-fast==0.14
+pyserial-asyncio-fast==0.16
 pytest-asyncio==0.25.3
 pytest==8.3.5
 ruff==0.11.4
