@@ -362,6 +362,30 @@ class Number(Parameter):
 
 @dataslots
 @dataclass
+class OffsetNumberDescription(NumberDescription):
+    """Represents a parameter description."""
+
+    offset: int = 0
+
+
+class OffsetNumber(Number):
+    """Represents a number with offset."""
+
+    __slots__ = ()
+
+    description: OffsetNumberDescription
+
+    def _pack_value(self, value: NumericType) -> int:
+        """Pack the parameter value."""
+        return super()._pack_value(value + self.description.offset)
+
+    def _unpack_value(self, value: int) -> NumericType:
+        """Unpack the parameter value."""
+        return super()._unpack_value(value - self.description.offset)
+
+
+@dataslots
+@dataclass
 class SwitchDescription(ParameterDescription):
     """Represents a switch description."""
 

@@ -21,9 +21,8 @@ from pyplumio.const import (
 )
 from pyplumio.frames import Request
 from pyplumio.helpers.parameter import (
-    Number,
-    NumberDescription,
-    NumericType,
+    OffsetNumber,
+    OffsetNumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
@@ -85,28 +84,19 @@ class EcomaxParameter(Parameter):
         )
 
 
-@dataslots
 @dataclass
-class EcomaxNumberDescription(EcomaxParameterDescription, NumberDescription):
+class EcomaxNumberDescription(EcomaxParameterDescription, OffsetNumberDescription):
     """Represents an ecoMAX number description."""
 
-    offset: int = 0
+    __slots__ = ()
 
 
-class EcomaxNumber(EcomaxParameter, Number):
+class EcomaxNumber(EcomaxParameter, OffsetNumber):
     """Represents a ecoMAX number."""
 
     __slots__ = ()
 
     description: EcomaxNumberDescription
-
-    def _pack_value(self, value: NumericType) -> int:
-        """Pack the parameter value."""
-        return super()._pack_value(value + self.description.offset)
-
-    def _unpack_value(self, value: int) -> NumericType:
-        """Unpack the parameter value."""
-        return super()._unpack_value(value - self.description.offset)
 
 
 @dataslots
