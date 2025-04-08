@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 import logging
-from typing import Any, Final, cast
+from typing import Any, Final
 
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
 
@@ -24,7 +24,7 @@ try:
 
     _LOGGER.info("Using pyserial-asyncio-fast in place of pyserial-asyncio")
 except ImportError:
-    import serial_asyncio as pyserial_asyncio
+    import serial_asyncio as pyserial_asyncio  # type: ignore[no-redef]
 
 
 class Connection(ABC, TaskManager):
@@ -184,14 +184,11 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return cast(
-            tuple[asyncio.StreamReader, asyncio.StreamWriter],
-            await pyserial_asyncio.open_serial_connection(
-                url=self.device,
-                baudrate=self.baudrate,
-                bytesize=EIGHTBITS,
-                parity=PARITY_NONE,
-                stopbits=STOPBITS_ONE,
-                **self._kwargs,
-            ),
+        return await pyserial_asyncio.open_serial_connection(
+            url=self.device,
+            baudrate=self.baudrate,
+            bytesize=EIGHTBITS,
+            parity=PARITY_NONE,
+            stopbits=STOPBITS_ONE,
+            **self._kwargs,
         )
