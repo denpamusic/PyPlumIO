@@ -50,20 +50,18 @@ Comparable = TypeVar("Comparable", Parameter, SupportsFloat, SupportsComparison)
 
 
 @overload
-def _significantly_changed(old: Parameter, new: Parameter) -> bool: ...
+def is_close(old: Parameter, new: Parameter) -> bool: ...
 
 
 @overload
-def _significantly_changed(old: SupportsFloat, new: SupportsFloat) -> bool: ...
+def is_close(old: SupportsFloat, new: SupportsFloat) -> bool: ...
 
 
 @overload
-def _significantly_changed(
-    old: SupportsComparison, new: SupportsComparison
-) -> bool: ...
+def is_close(old: SupportsComparison, new: SupportsComparison) -> bool: ...
 
 
-def _significantly_changed(old: Comparable, new: Comparable) -> bool:
+def is_close(old: Comparable, new: Comparable) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
         return new.pending_update or old.values.__ne__(new.values)
@@ -75,16 +73,16 @@ def _significantly_changed(old: Comparable, new: Comparable) -> bool:
 
 
 @overload
-def _diffence_between(old: list, new: list) -> list: ...
+def diffence_between(old: list, new: list) -> list: ...
 
 
 @overload
-def _diffence_between(
+def diffence_between(
     old: SupportsSubtraction, new: SupportsSubtraction
 ) -> SupportsSubtraction: ...
 
 
-def _diffence_between(
+def diffence_between(
     old: SupportsSubtraction | list, new: SupportsSubtraction | list
 ) -> SupportsSubtraction | list | None:
     """Return a difference between values."""
@@ -190,7 +188,7 @@ class OnChange(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or is_close(self._value, new_value):
             self._value = (
                 copy(new_value) if isinstance(new_value, Parameter) else new_value
             )
@@ -229,7 +227,7 @@ class Debounce(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or is_close(self._value, new_value):
             self._calls += 1
         else:
             self._calls = 0
@@ -308,14 +306,14 @@ class Delta(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self._value == UNDEFINED or _significantly_changed(self._value, new_value):
+        if self._value == UNDEFINED or is_close(self._value, new_value):
             old_value = self._value
             self._value = (
                 copy(new_value) if isinstance(new_value, Parameter) else new_value
             )
             if (
                 self._value != UNDEFINED
-                and (difference := _diffence_between(old_value, new_value)) is not None
+                and (difference := diffence_between(old_value, new_value)) is not None
             ):
                 return await self._callback(difference)
 
