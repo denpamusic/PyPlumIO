@@ -379,3 +379,5 @@ DATA_TYPES: tuple[type[DataType], ...] = (
     IPv4,
     IPv6,
 )
+
+__all__ = ["DataType"] + list({dt.__name__ for dt in DATA_TYPES})

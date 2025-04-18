@@ -27,3 +27,6 @@ class BoilerLoadStructure(StructureDecoder):
             return ensure_dict(data), offset
 
         return (ensure_dict(data, {ATTR_BOILER_LOAD: boiler_load}), offset)
+
+
+__all__ = ["ATTR_BOILER_LOAD", "BoilerLoadStructure"]

@@ -23,7 +23,7 @@ STEP = dt.timedelta(minutes=30)
 Time = Annotated[str, "Time string in %H:%M format"]
 
 
-def _get_time(
+def get_time(
     index: int, start: dt.datetime = MIDNIGHT_DT, step: dt.timedelta = STEP
 ) -> Time:
     """Return time for a specific index."""
@@ -32,7 +32,7 @@ def _get_time(
 
 
 @lru_cache(maxsize=10)
-def _get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[Time]:
+def get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[Time]:
     """Get a time range.
 
     Start and end boundaries should be specified in %H:%M format.
@@ -54,7 +54,7 @@ def _get_time_range(start: Time, end: Time, step: dt.timedelta = STEP) -> list[T
     seconds = (end_dt - start_dt).total_seconds()
     steps = seconds // step.total_seconds() + 1
 
-    return [_get_time(index, start=start_dt, step=step) for index in range(int(steps))]
+    return [get_time(index, start=start_dt, step=step) for index in range(int(steps))]
 
 
 class ScheduleDay(MutableMapping):
@@ -104,7 +104,7 @@ class ScheduleDay(MutableMapping):
         self, state: State | bool, start: Time = MIDNIGHT, end: Time = MIDNIGHT
     ) -> None:
         """Set a schedule interval state."""
-        for time in _get_time_range(start, end):
+        for time in get_time_range(start, end):
             self.__setitem__(time, state)
 
     def set_on(self, start: Time = MIDNIGHT, end: Time = MIDNIGHT) -> None:
@@ -123,7 +123,7 @@ class ScheduleDay(MutableMapping):
     @classmethod
     def from_iterable(cls: type[ScheduleDay], intervals: Iterable[bool]) -> ScheduleDay:
         """Make schedule day from iterable."""
-        return cls({_get_time(index): state for index, state in enumerate(intervals)})
+        return cls({get_time(index): state for index, state in enumerate(intervals)})
 
 
 @dataclass
@@ -174,3 +174,6 @@ class Schedule(Iterable):
                 data=collect_schedule_data(self.name, self.device),
             )
         )
+
+
+__all__ = ["Schedule", "ScheduleDay"]

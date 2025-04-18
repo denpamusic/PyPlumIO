@@ -28,3 +28,6 @@ class FanPowerStructure(StructureDecoder):
             return ensure_dict(data), offset
 
         return ensure_dict(data, {ATTR_FAN_POWER: fan_power.value}), offset
+
+
+__all__ = ["ATTR_FAN_POWER", "FanPowerStructure"]

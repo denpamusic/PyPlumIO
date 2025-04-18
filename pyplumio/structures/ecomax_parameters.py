@@ -837,3 +837,18 @@ class EcomaxParametersStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_ECOMAX_CONTROL",
+    "ATTR_ECOMAX_PARAMETERS",
+    "ECOMAX_PARAMETERS",
+    "EcomaxNumber",
+    "EcomaxNumberDescription",
+    "EcomaxParameter",
+    "EcomaxParameterDescription",
+    "EcomaxParametersStructure",
+    "EcomaxSwitch",
+    "EcomaxSwitchDescription",
+    "THERMOSTAT_PROFILE_PARAMETER",
+]

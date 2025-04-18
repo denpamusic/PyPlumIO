@@ -28,3 +28,6 @@ class BoilerPowerStructure(StructureDecoder):
             return ensure_dict(data), offset
 
         return ensure_dict(data, {ATTR_BOILER_POWER: boiler_power.value}), offset
+
+
+__all__ = ["ATTR_BOILER_POWER", "BoilerPowerStructure"]

@@ -280,3 +280,15 @@ class Message(Response):
     """Represents a message."""
 
     __slots__ = ()
+
+
+__all__ = [
+    "Frame",
+    "Request",
+    "Response",
+    "Message",
+    "DataFrameDescription",
+    "bcc",
+    "is_known_frame_type",
+    "get_frame_handler",
+]

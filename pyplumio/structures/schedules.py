@@ -238,3 +238,20 @@ class SchedulesStructure(Structure):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_SCHEDULES",
+    "ATTR_SCHEDULE_PARAMETERS",
+    "ATTR_SCHEDULE_SWITCH",
+    "ATTR_SCHEDULE_PARAMETER",
+    "ScheduleParameterDescription",
+    "ScheduleParameter",
+    "ScheduleNumberDescription",
+    "ScheduleNumber",
+    "ScheduleSwitchDescription",
+    "ScheduleSwitch",
+    "SCHEDULE_PARAMETERS",
+    "collect_schedule_data",
+    "SchedulesStructure",
+]

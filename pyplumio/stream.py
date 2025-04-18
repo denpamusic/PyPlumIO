@@ -153,3 +153,6 @@ class FrameReader:
         _LOGGER.debug("Received frame: %s, bytes: %s", frame, buffer.hex())
 
         return frame
+
+
+__all__ = ["FrameReader", "FrameWriter"]

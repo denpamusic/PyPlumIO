@@ -40,3 +40,6 @@ class TaskManager:
     def tasks(self) -> set[asyncio.Task]:
         """Return the tasks."""
         return self._tasks
+
+
+__all__ = ["TaskManager"]

@@ -25,7 +25,7 @@ from pyplumio.structures.network_info import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_Callback: TypeAlias = Callable[[], Awaitable[None]]
+Callback: TypeAlias = Callable[[], Awaitable[None]]
 
 
 class Protocol(ABC):
@@ -34,7 +34,7 @@ class Protocol(ABC):
     connected: asyncio.Event
     reader: FrameReader | None
     writer: FrameWriter | None
-    _on_connection_lost: set[_Callback]
+    _on_connection_lost: set[Callback]
 
     def __init__(self) -> None:
         """Initialize a new protocol."""
@@ -51,7 +51,7 @@ class Protocol(ABC):
             self.writer = None
 
     @property
-    def on_connection_lost(self) -> set[_Callback]:
+    def on_connection_lost(self) -> set[Callback]:
         """Return the callbacks that'll be called on connection lost."""
         return self._on_connection_lost
 
@@ -236,3 +236,6 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             await self.dispatch(name, device)
 
         return self.data[name]
+
+
+__all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]

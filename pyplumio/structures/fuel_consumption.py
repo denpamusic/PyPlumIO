@@ -31,3 +31,6 @@ class FuelConsumptionStructure(StructureDecoder):
             ensure_dict(data, {ATTR_FUEL_CONSUMPTION: fuel_consumption.value}),
             offset,
         )
+
+
+__all__ = ["ATTR_FUEL_CONSUMPTION", "FuelConsumptionStructure"]

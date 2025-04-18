@@ -39,21 +39,21 @@ DATETIME_INTERVALS: tuple[DateTimeInterval, ...] = (
 
 
 @lru_cache(maxsize=10)
-def _seconds_to_datetime(timestamp: int) -> datetime:
+def seconds_to_datetime(timestamp: int) -> datetime:
     """Convert timestamp to a datetime object.
 
     The ecoMAX controller stores alert time as a special timestamp value
     in seconds counted from Jan 1st, 2000.
     """
 
-    def _datetime_kwargs(timestamp: int) -> Generator[Any, None, None]:
+    def datetime_kwargs(timestamp: int) -> Generator[Any, None, None]:
         """Yield a tuple, that represents a single datetime kwarg."""
         for name, seconds, offset in DATETIME_INTERVALS:
             value = timestamp // seconds
             timestamp -= value * seconds
             yield name, (value + offset)
 
-    return datetime(**dict(_datetime_kwargs(timestamp)))
+    return datetime(**dict(datetime_kwargs(timestamp)))
 
 
 @dataclass
@@ -83,11 +83,11 @@ class AlertsStructure(StructureDecoder):
         offset += from_seconds.size
         to_seconds = UnsignedInt.from_bytes(message, offset)
         offset += to_seconds.size
-        from_dt = _seconds_to_datetime(from_seconds.value)
+        from_dt = seconds_to_datetime(from_seconds.value)
         to_dt = (
             None
             if to_seconds.value == MAX_UINT32
-            else _seconds_to_datetime(to_seconds.value)
+            else seconds_to_datetime(to_seconds.value)
         )
         with suppress(ValueError):
             code = AlertType(code)
@@ -119,3 +119,6 @@ class AlertsStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = ["AlertsStructure", "Alert"]

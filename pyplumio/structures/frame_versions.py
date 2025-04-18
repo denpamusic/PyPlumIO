@@ -48,3 +48,6 @@ class FrameVersionsStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = ["ATTR_FRAME_VERSIONS", "FrameVersionsStructure"]

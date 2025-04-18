@@ -41,3 +41,12 @@ class StatusesStructure(StructureDecoder):
             ),
             offset + STATUSES_SIZE,
         )
+
+
+__all__ = [
+    "ATTR_HEATING_TARGET",
+    "ATTR_HEATING_STATUS",
+    "ATTR_WATER_HEATER_TARGET",
+    "ATTR_WATER_HEATER_STATUS",
+    "StatusesStructure",
+]

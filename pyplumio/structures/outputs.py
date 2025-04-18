@@ -65,3 +65,24 @@ class OutputsStructure(StructureDecoder):
             ),
             offset + outputs.size,
         )
+
+
+__all__ = [
+    "ATTR_FAN",
+    "ATTR_FEEDER",
+    "ATTR_HEATING_PUMP",
+    "ATTR_WATER_HEATER_PUMP",
+    "ATTR_CIRCULATION_PUMP",
+    "ATTR_LIGHTER",
+    "ATTR_ALARM",
+    "ATTR_OUTER_BOILER",
+    "ATTR_FAN2_EXHAUST",
+    "ATTR_FEEDER2",
+    "ATTR_OUTER_FEEDER",
+    "ATTR_SOLAR_PUMP",
+    "ATTR_FIREPLACE_PUMP",
+    "ATTR_GCZ_CONTACT",
+    "ATTR_BLOW_FAN1",
+    "ATTR_BLOW_FAN2",
+    "OutputsStructure",
+]

@@ -114,3 +114,14 @@ class NetworkInfoStructure(Structure):
             ),
             offset + NETWORK_INFO_SIZE,
         )
+
+
+__all__ = [
+    "EthernetParameters",
+    "WirelessParameters",
+    "NetworkInfo",
+    "NetworkInfoStructure",
+    "ATTR_NETWORK",
+    "DEFAULT_IP",
+    "DEFAULT_NETMASK",
+]

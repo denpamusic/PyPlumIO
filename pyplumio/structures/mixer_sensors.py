@@ -69,3 +69,12 @@ class MixerSensorsStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_PUMP",
+    "ATTR_MIXERS_AVAILABLE",
+    "ATTR_MIXERS_CONNECTED",
+    "ATTR_MIXER_SENSORS",
+    "MixerSensorsStructure",
+]

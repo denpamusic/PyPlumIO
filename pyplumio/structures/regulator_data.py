@@ -45,7 +45,7 @@ class RegulatorDataStructure(StructureDecoder):
         """Decode bytes and return message data and offset."""
         data = ensure_dict(data)
         offset += 2
-        regdata_version = f"{message[offset+1]}.{message[offset]}"
+        regdata_version = f"{message[offset + 1]}.{message[offset]}"
         if regdata_version != REGDATA_VERSION:
             return data, offset
 
@@ -63,3 +63,6 @@ class RegulatorDataStructure(StructureDecoder):
             }
 
         return data, self._offset
+
+
+__all__ = ["ATTR_REGDATA", "REGDATA_VERSION", "RegulatorDataStructure"]

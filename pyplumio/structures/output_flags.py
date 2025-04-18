@@ -36,3 +36,12 @@ class OutputFlagsStructure(StructureDecoder):
             ),
             offset + output_flags.size,
         )
+
+
+__all__ = [
+    "ATTR_HEATING_PUMP_FLAG",
+    "ATTR_WATER_HEATER_PUMP_FLAG",
+    "ATTR_CIRCULATION_PUMP_FLAG",
+    "ATTR_SOLAR_PUMP_FLAG",
+    "OutputFlagsStructure",
+]

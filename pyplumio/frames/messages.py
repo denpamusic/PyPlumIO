@@ -79,3 +79,6 @@ class SensorDataMessage(Message):
             sensors[ATTR_STATE] = DeviceState(sensors[ATTR_STATE])
 
         return {ATTR_SENSORS: sensors}
+
+
+__all__ = ["RegulatorDataMessage", "SensorDataMessage"]

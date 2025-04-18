@@ -84,3 +84,6 @@ class ProgramVersionStructure(Structure):
             ),
             offset + VERSION_INFO_SIZE,
         )
+
+
+__all__ = ["ATTR_VERSION", "VersionInfo", "ProgramVersionStructure"]

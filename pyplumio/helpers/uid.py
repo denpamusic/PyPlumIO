@@ -12,10 +12,10 @@ BASE5_KEY: Final = "0123456789ABCDEFGHIJKLMNZPQRSTUV"
 
 def unpack_uid(buffer: bytes) -> str:
     """Unpack UID from bytes."""
-    return _base5(buffer + _crc16(buffer))
+    return base5(buffer + crc16(buffer))
 
 
-def _base5(buffer: bytes) -> str:
+def base5(buffer: bytes) -> str:
     """Encode bytes to a base5 encoded string."""
     number = int.from_bytes(buffer, byteorder="little")
     output = []
@@ -26,16 +26,19 @@ def _base5(buffer: bytes) -> str:
     return "".join(reversed(output))
 
 
-def _crc16(buffer: bytes) -> bytes:
+def crc16(buffer: bytes) -> bytes:
     """Return a CRC 16."""
-    crc16 = reduce(_crc16_byte, buffer, CRC)
+    crc16 = reduce(crc16_byte, buffer, CRC)
     return crc16.to_bytes(length=2, byteorder="little")
 
 
-def _crc16_byte(crc: int, byte: int) -> int:
+def crc16_byte(crc: int, byte: int) -> int:
     """Add a byte to the CRC."""
     crc ^= byte
     for _ in range(8):
         crc = (crc >> 1) ^ POLYNOMIAL if crc & 1 else crc >> 1
 
     return crc
+
+
+__all__ = ["unpack_uid"]

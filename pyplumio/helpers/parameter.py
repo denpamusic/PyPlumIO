@@ -20,8 +20,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-
-NumericType: TypeAlias = Union[int, float]
 ParameterT = TypeVar("ParameterT", bound="Parameter")
 
 
@@ -66,6 +64,9 @@ class ParameterDescription:
 
     name: str
     optimistic: bool = False
+
+
+NumericType: TypeAlias = Union[int, float]
 
 
 class Parameter(ABC):
@@ -474,3 +475,18 @@ class Switch(Parameter):
     def max_value(self) -> Literal["on"]:
         """Return the maximum allowed value."""
         return STATE_ON
+
+
+__all__ = [
+    "NumericType",
+    "Number",
+    "NumberDescription",
+    "OffsetNumber",
+    "OffsetNumberDescription",
+    "Parameter",
+    "ParameterDescription",
+    "ParameterValues",
+    "State",
+    "Switch",
+    "SwitchDescription",
+]

@@ -95,3 +95,12 @@ class ThermostatSensorsStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_THERMOSTAT_SENSORS",
+    "ATTR_THERMOSTATS_AVAILABLE",
+    "ATTR_THERMOSTATS_CONNECTED",
+    "ATTR_CONTACTS",
+    "ThermostatSensorsStructure",
+]

@@ -189,3 +189,6 @@ class EventManager(TaskManager, Generic[T]):
     def events(self) -> dict[str, asyncio.Event]:
         """Return the events."""
         return self._events
+
+
+__all__ = ["EventManager", "Callback"]

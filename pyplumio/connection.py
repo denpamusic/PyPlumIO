@@ -192,3 +192,6 @@ class SerialConnection(Connection):
             stopbits=STOPBITS_ONE,
             **self._kwargs,
         )
+
+
+__all__ = ["Connection", "TcpConnection", "SerialConnection"]

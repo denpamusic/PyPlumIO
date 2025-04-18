@@ -276,3 +276,15 @@ class MixerParametersStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "MixerParameterDescription",
+    "MixerParameter",
+    "MixerNumberDescription",
+    "MixerNumber",
+    "MixerSwitchDescription",
+    "MixerSwitch",
+    "MIXER_PARAMETERS",
+    "MixerParametersStructure",
+]

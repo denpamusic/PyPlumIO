@@ -34,3 +34,6 @@ class FuelLevelStructure(StructureDecoder):
             fuel_level -= FUEL_LEVEL_OFFSET
 
         return (ensure_dict(data, {ATTR_FUEL_LEVEL: fuel_level}), offset)
+
+
+__all__ = ["ATTR_FUEL_LEVEL", "FuelLevelStructure"]

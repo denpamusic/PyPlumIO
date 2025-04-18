@@ -89,3 +89,17 @@ class ModulesStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_MODULES",
+    "ATTR_MODULE_A",
+    "ATTR_MODULE_B",
+    "ATTR_MODULE_C",
+    "ATTR_ECOLAMBDA",
+    "ATTR_ECOSTER",
+    "ATTR_PANEL",
+    "MODULES",
+    "ConnectedModules",
+    "ModulesStructure",
+]

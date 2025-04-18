@@ -70,3 +70,25 @@ class TemperaturesStructure(StructureDecoder):
                 data[TEMPERATURES[index]] = temp.value
 
         return data, offset
+
+
+__all__ = [
+    "ATTR_HEATING_TEMP",
+    "ATTR_FEEDER_TEMP",
+    "ATTR_WATER_HEATER_TEMP",
+    "ATTR_OUTSIDE_TEMP",
+    "ATTR_RETURN_TEMP",
+    "ATTR_EXHAUST_TEMP",
+    "ATTR_OPTICAL_TEMP",
+    "ATTR_UPPER_BUFFER_TEMP",
+    "ATTR_LOWER_BUFFER_TEMP",
+    "ATTR_UPPER_SOLAR_TEMP",
+    "ATTR_LOWER_SOLAR_TEMP",
+    "ATTR_FIREPLACE_TEMP",
+    "ATTR_TOTAL_GAIN",
+    "ATTR_HYDRAULIC_COUPLER_TEMP",
+    "ATTR_EXCHANGER_TEMP",
+    "ATTR_AIR_IN_TEMP",
+    "ATTR_AIR_OUT_TEMP",
+    "TemperaturesStructure",
+]

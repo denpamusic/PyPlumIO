@@ -23,3 +23,6 @@ class PendingAlertsStructure(StructureDecoder):
         return ensure_dict(data, {ATTR_PENDING_ALERTS: alerts_number}), (
             offset + alerts_number + 1
         )
+
+
+__all__ = ["ATTR_PENDING_ALERTS", "PendingAlertsStructure"]

@@ -45,3 +45,6 @@ class RegulatorDataSchemaStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = ["ATTR_REGDATA_SCHEMA", "RegulatorDataSchemaStructure"]

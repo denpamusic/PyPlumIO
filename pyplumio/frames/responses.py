@@ -221,3 +221,21 @@ class UIDResponse(Response):
     def decode_message(self, message: bytearray) -> dict[str, Any]:
         """Decode a frame message."""
         return ProductInfoStructure(self).decode(message)[0]
+
+
+__all__ = [
+    "AlertsResponse",
+    "DeviceAvailableResponse",
+    "EcomaxControlResponse",
+    "EcomaxParametersResponse",
+    "MixerParametersResponse",
+    "PasswordResponse",
+    "ProgramVersionResponse",
+    "RegulatorDataSchemaResponse",
+    "SchedulesResponse",
+    "SetEcomaxParameterResponse",
+    "SetMixerParameterResponse",
+    "SetThermostatParameterResponse",
+    "ThermostatParametersResponse",
+    "UIDResponse",
+]

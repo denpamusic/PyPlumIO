@@ -78,3 +78,6 @@ class ProductInfoStructure(StructureDecoder):
             ),
             offset,
         )
+
+
+__all__ = ["ATTR_PRODUCT", "ProductInfo", "ProductInfoStructure"]

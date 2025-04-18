@@ -260,3 +260,24 @@ class UIDRequest(Request):
     __slots__ = ()
 
     frame_type = FrameType.REQUEST_UID
+
+
+__all__ = [
+    "AlertsRequest",
+    "CheckDeviceRequest",
+    "EcomaxControlRequest",
+    "EcomaxParametersRequest",
+    "MixerParametersRequest",
+    "PasswordRequest",
+    "ProgramVersionRequest",
+    "RegulatorDataSchemaRequest",
+    "SchedulesRequest",
+    "SetEcomaxParameterRequest",
+    "SetMixerParameterRequest",
+    "SetScheduleRequest",
+    "SetThermostatParameterRequest",
+    "StartMasterRequest",
+    "StopMasterRequest",
+    "ThermostatParametersRequest",
+    "UIDRequest",
+]

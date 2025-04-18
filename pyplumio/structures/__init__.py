@@ -51,3 +51,6 @@ class StructureDecoder(Structure, ABC):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
+
+
+__all__ = ["Structure", "StructureDecoder"]

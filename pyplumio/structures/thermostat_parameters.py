@@ -248,3 +248,17 @@ class ThermostatParametersStructure(StructureDecoder):
             ),
             self._offset,
         )
+
+
+__all__ = [
+    "ATTR_THERMOSTAT_PROFILE",
+    "ATTR_THERMOSTAT_PARAMETERS",
+    "ThermostatParameterDescription",
+    "ThermostatParameter",
+    "ThermostatNumberDescription",
+    "ThermostatNumber",
+    "ThermostatSwitchDescription",
+    "ThermostatSwitch",
+    "THERMOSTAT_PARAMETERS",
+    "ThermostatParametersStructure",
+]

@@ -50,3 +50,11 @@ class LambdaSensorStructure(StructureDecoder):
             ),
             offset,
         )
+
+
+__all__ = [
+    "ATTR_LAMBDA_STATE",
+    "ATTR_LAMBDA_TARGET",
+    "ATTR_LAMBDA_LEVEL",
+    "LambdaSensorStructure",
+]
