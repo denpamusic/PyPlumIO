@@ -5,23 +5,15 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from pyplumio.filters import (
-    aggregate,
-    clamp,
-    custom,
-    debounce,
-    delta,
-    on_change,
-    throttle,
-)
+from pyplumio import filters
 from pyplumio.helpers.parameter import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
 
 
 async def test_clamp() -> None:
-    """Test clamp filter."""
+    """Test the clamp filter."""
     test_callback = AsyncMock()
-    wrapped_callback = clamp(test_callback, min_value=10, max_value=15)
+    wrapped_callback = filters.Clamp(test_callback, min_value=10, max_value=15)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(10)
     test_callback.reset_mock()
@@ -35,9 +27,9 @@ async def test_clamp() -> None:
 
 
 async def test_on_change() -> None:
-    """Test on change filter."""
+    """Test the value changed filter."""
     test_callback = AsyncMock()
-    wrapped_callback = on_change(test_callback)
+    wrapped_callback = filters.OnChange(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -51,17 +43,17 @@ async def test_on_change() -> None:
 
     # Test equality with callback function and different instance.
     assert test_callback == wrapped_callback
-    assert wrapped_callback == on_change(test_callback)
+    assert wrapped_callback == filters.OnChange(test_callback)
     assert wrapped_callback.__eq__("you shall not pass") is NotImplemented
 
 
 async def test_on_change_parameter() -> None:
-    """Test on change filter with parameters."""
+    """Test the value changed filter with parameters."""
     test_callback = AsyncMock()
     test_parameter = AsyncMock(spec=Parameter)
     test_parameter.values = ParameterValues(0, 0, 1)
     test_parameter.pending_update = False
-    wrapped_callback = on_change(test_callback)
+    wrapped_callback = filters.OnChange(test_callback)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -96,9 +88,9 @@ async def test_on_change_parameter() -> None:
 
 
 async def test_debounce() -> None:
-    """Test debounce filter."""
+    """Test the debounce filter."""
     test_callback = AsyncMock()
-    wrapped_callback = debounce(test_callback, min_calls=3)
+    wrapped_callback = filters.Debounce(test_callback, min_calls=3)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -114,9 +106,9 @@ async def test_debounce() -> None:
 
 @patch("time.monotonic", side_effect=(0, 1, 5, 6))
 async def test_throttle(mock_time) -> None:
-    """Test throttle filter."""
+    """Test the throttle filter."""
     test_callback = AsyncMock()
-    wrapped_callback = throttle(test_callback, seconds=5)
+    wrapped_callback = filters.Throttle(test_callback, seconds=5)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -136,9 +128,9 @@ async def test_throttle(mock_time) -> None:
 
 
 async def test_delta() -> None:
-    """Test delta filter."""
+    """Test the delta filter."""
     test_callback = AsyncMock()
-    wrapped_callback = delta(test_callback)
+    wrapped_callback = filters.Delta(test_callback)
 
     await wrapped_callback(5)
     test_callback.assert_not_awaited()
@@ -151,14 +143,14 @@ async def test_delta() -> None:
     alert1 = Alert(code=0, from_dt=datetime.now(), to_dt=None)
     alert2 = Alert(code=1, from_dt=datetime.now(), to_dt=None)
     alert3 = Alert(code=2, from_dt=datetime.now(), to_dt=None)
-    wrapped_callback = delta(test_callback)
+    wrapped_callback = filters.Delta(test_callback)
     await wrapped_callback([alert1, alert2])
     await wrapped_callback([alert3, alert2])
     test_callback.assert_awaited_once_with([alert3])
     test_callback.reset_mock()
 
     # Test with unknown.
-    wrapped_callback = delta(test_callback)
+    wrapped_callback = filters.Delta(test_callback)
     await wrapped_callback("foo")
     await wrapped_callback("bar")
     test_callback.assert_not_awaited()
@@ -166,9 +158,9 @@ async def test_delta() -> None:
 
 @patch("time.monotonic", side_effect=(0, 0, 1, 5, 6, 7))
 async def test_aggregate(mock_time) -> None:
-    """Test aggregate filter."""
+    """Test the aggregate filter."""
     test_callback = AsyncMock()
-    wrapped_callback = aggregate(test_callback, seconds=5)
+    wrapped_callback = filters.Aggregate(test_callback, seconds=5)
 
     # Zero seconds passed.
     await wrapped_callback(1)
@@ -193,9 +185,9 @@ async def test_aggregate(mock_time) -> None:
 
 
 async def test_custom() -> None:
-    """Test custom filter."""
+    """Test the custom filter."""
     test_callback = AsyncMock()
-    wrapped_callback = custom(test_callback, lambda x: len(x) == 4)
+    wrapped_callback = filters.Custom(test_callback, lambda x: len(x) == 4)
 
     # Test that callback is not called when a list contains 2 items.
     await wrapped_callback([1, 2])

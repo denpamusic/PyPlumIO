@@ -19,7 +19,7 @@ from pyplumio.const import (
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
-from pyplumio.filters import on_change
+from pyplumio.filters import OnChange
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
@@ -118,7 +118,7 @@ class EcoMAX(PhysicalDevice):
         self.subscribe(ATTR_SCHEDULES, self._add_schedules)
         self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
         self.subscribe(ATTR_SENSORS, self._handle_ecomax_sensors)
-        self.subscribe(ATTR_STATE, on_change(self._add_ecomax_control_parameter))
+        self.subscribe(ATTR_STATE, OnChange(self._add_ecomax_control_parameter))
         self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
         self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
         self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
