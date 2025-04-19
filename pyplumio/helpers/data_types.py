@@ -54,15 +54,15 @@ class DataType(ABC, Generic[T]):
 
         return NotImplemented
 
-    def _slice_data(self, data: bytes) -> bytes:
+    def _slice_to_size(self, buffer: bytes) -> bytes:
         """Slice the data to data type size."""
-        return data if self.size == 0 else data[: self.size]
+        return buffer if self.size == 0 else buffer[: self.size]
 
     @classmethod
-    def from_bytes(cls: type[DataTypeT], data: bytes, offset: int = 0) -> DataTypeT:
+    def from_bytes(cls: type[DataTypeT], buffer: bytes, offset: int = 0) -> DataTypeT:
         """Initialize a new data type from bytes."""
         data_type = cls()
-        data_type.unpack(data[offset:])
+        data_type.unpack(buffer[offset:])
         return data_type
 
     def to_bytes(self) -> bytes:
@@ -84,7 +84,7 @@ class DataType(ABC, Generic[T]):
         """Pack the data."""
 
     @abstractmethod
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
 
 
@@ -138,9 +138,9 @@ class BitArray(DataType[int]):
 
         return b""
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._value = UnsignedChar.from_bytes(data[:1]).value
+        self._value = UnsignedChar.from_bytes(buffer[:1]).value
 
     @property
     def value(self) -> bool:
@@ -170,9 +170,9 @@ class IPv4(DataType[str]):
         """Pack the data."""
         return socket.inet_aton(self.value)
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._value = socket.inet_ntoa(self._slice_data(data))
+        self._value = socket.inet_ntoa(self._slice_to_size(buffer))
 
 
 class IPv6(DataType[str]):
@@ -189,9 +189,9 @@ class IPv6(DataType[str]):
         """Pack the data."""
         return socket.inet_pton(socket.AF_INET6, self.value)
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._value = socket.inet_ntop(socket.AF_INET6, self._slice_data(data))
+        self._value = socket.inet_ntop(socket.AF_INET6, self._slice_to_size(buffer))
 
 
 class String(DataType[str]):
@@ -208,9 +208,9 @@ class String(DataType[str]):
         """Pack the data."""
         return self.value.encode() + b"\0"
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._value = data.split(b"\0", 1)[0].decode("utf-8", "replace")
+        self._value = buffer.split(b"\0", 1)[0].decode("utf-8", "replace")
         self._size = len(self.value) + 1
 
 
@@ -228,10 +228,10 @@ class VarBytes(DataType[bytes]):
         """Pack the data."""
         return UnsignedChar(self.size - 1).to_bytes() + self.value
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._size = data[0] + 1
-        self._value = data[1 : self.size]
+        self._size = buffer[0] + 1
+        self._value = buffer[1 : self.size]
 
 
 class VarString(DataType[str]):
@@ -248,10 +248,10 @@ class VarString(DataType[str]):
         """Pack the data."""
         return UnsignedChar(self.size - 1).to_bytes() + self.value.encode()
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._size = data[0] + 1
-        self._value = data[1 : self.size].decode("utf-8", "replace")
+        self._size = buffer[0] + 1
+        self._value = buffer[1 : self.size].decode("utf-8", "replace")
 
 
 class BuiltInDataType(DataType[T], ABC):
@@ -265,9 +265,9 @@ class BuiltInDataType(DataType[T], ABC):
         """Pack the data."""
         return self._struct.pack(self.value)
 
-    def unpack(self, data: bytes) -> None:
+    def unpack(self, buffer: bytes) -> None:
         """Unpack the data."""
-        self._value = self._struct.unpack_from(data)[0]
+        self._value = self._struct.unpack_from(buffer)[0]
 
     @property
     def size(self) -> int:

@@ -30,9 +30,9 @@ if TYPE_CHECKING:
     from pyplumio.devices import PhysicalDevice
 
 
-def bcc(data: bytes) -> int:
+def bcc(buffer: bytes) -> int:
     """Return a block check character."""
-    return reduce(lambda x, y: x ^ y, data)
+    return reduce(lambda x, y: x ^ y, buffer)
 
 
 @cache
