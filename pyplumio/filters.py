@@ -378,7 +378,7 @@ class Custom(Filter):
 
     __slots__ = ("_filter_fn",)
 
-    filter_fn: Callable[[Any], bool]
+    _filter_fn: Callable[[Any], bool]
 
     def __init__(self, callback: Callback, filter_fn: Callable[[Any], bool]) -> None:
         """Initialize a new custom filter.
