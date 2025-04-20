@@ -74,3 +74,6 @@ class Thermostat(VirtualDevice):
 
         await asyncio.gather(*_thermostat_parameter_events())
         return True
+
+
+__all__ = ["Thermostat"]

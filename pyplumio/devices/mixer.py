@@ -88,3 +88,6 @@ class Mixer(VirtualDevice):
 
         await asyncio.gather(*_mixer_parameter_events())
         return True
+
+
+__all__ = ["Mixer"]

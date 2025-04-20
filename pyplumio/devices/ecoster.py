@@ -10,3 +10,6 @@ class EcoSTER(PhysicalDevice):
     """Represents an ecoSTER thermostat."""
 
     address = DeviceType.ECOSTER
+
+
+__all__ = ["EcoSTER"]

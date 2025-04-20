@@ -429,3 +429,6 @@ class EcoMAX(PhysicalDevice):
         devices = (mixers | thermostats).values()
         await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
+
+
+__all__ = ["ATTR_MIXERS", "ATTR_THERMOSTATS", "ATTR_FUEL_BURNED", "EcoMAX"]

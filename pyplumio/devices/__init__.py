@@ -228,3 +228,12 @@ class VirtualDevice(Device, ABC):
         super().__init__(queue)
         self.parent = parent
         self.index = index
+
+
+__all__ = [
+    "Device",
+    "PhysicalDevice",
+    "VirtualDevice",
+    "is_known_device_type",
+    "get_device_handler",
+]
