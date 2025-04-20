@@ -28,6 +28,8 @@ _LOGGER = logging.getLogger(__name__)
 class Mixer(VirtualDevice):
     """Represents a mixer."""
 
+    __slots__ = ()
+
     def __init__(
         self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ) -> None:

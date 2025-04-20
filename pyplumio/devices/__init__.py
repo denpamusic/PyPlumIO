@@ -47,6 +47,8 @@ def get_device_handler(device_type: int) -> str:
 class Device(ABC, EventManager):
     """Represents a device."""
 
+    __slots__ = ("queue",)
+
     queue: asyncio.Queue[Frame]
 
     def __init__(self, queue: asyncio.Queue[Frame]) -> None:
@@ -122,6 +124,8 @@ class PhysicalDevice(Device, ABC):
     Physical device have network address and can have multiple
     virtual devices associated with them via parent property.
     """
+
+    __slots__ = ("address", "_network", "_setup_frames", "_frame_versions")
 
     address: ClassVar[int]
     _network: NetworkInfo
@@ -217,6 +221,8 @@ class PhysicalDevice(Device, ABC):
 
 class VirtualDevice(Device, ABC):
     """Represents a virtual device associated with physical device."""
+
+    __slots__ = ("parent", "index")
 
     parent: PhysicalDevice
     index: int

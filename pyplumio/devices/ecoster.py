@@ -9,6 +9,8 @@ from pyplumio.devices import PhysicalDevice
 class EcoSTER(PhysicalDevice):
     """Represents an ecoSTER thermostat."""
 
+    __slots__ = ()
+
     address = DeviceType.ECOSTER
 
 

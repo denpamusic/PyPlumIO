@@ -24,6 +24,8 @@ if TYPE_CHECKING:
 class Thermostat(VirtualDevice):
     """Represents a thermostat."""
 
+    __slots__ = ()
+
     def __init__(
         self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ) -> None:

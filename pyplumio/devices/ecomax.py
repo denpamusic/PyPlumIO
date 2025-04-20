@@ -103,6 +103,8 @@ _LOGGER = logging.getLogger(__name__)
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
+    __slots__ = ("_fuel_burned_time_ns",)
+
     address = DeviceType.ECOMAX
     _setup_frames = SETUP_FRAME_TYPES
 
