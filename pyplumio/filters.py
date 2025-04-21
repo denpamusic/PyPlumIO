@@ -123,201 +123,6 @@ class Filter(ABC):
         """Set a new value for the callback."""
 
 
-class Clamp(Filter):
-    """Represents a clamp filter.
-
-    Calls callback with a value clamped between specified boundaries.
-    """
-
-    __slots__ = ("_min_value", "_max_value")
-
-    _min_value: float
-    _max_value: float
-
-    def __init__(self, callback: Callback, min_value: float, max_value: float) -> None:
-        """Initialize a new Clamp filter.
-
-        A callback function will be called and passed value clamped
-        between specified boundaries.
-
-        :param callback: A callback function to be awaited on new value
-        :type callback: Callback
-        :param min_value: A lower boundary
-        :type min_value: float
-        :param max_value: An upper boundary
-        :type max_value: float
-        :return: An instance of callable filter
-        :rtype: Clamp
-        """
-        super().__init__(callback)
-        self._min_value = min_value
-        self._max_value = max_value
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if new_value < self._min_value:
-            return await self._callback(self._min_value)
-
-        if new_value > self._max_value:
-            return await self._callback(self._max_value)
-
-        return await self._callback(new_value)
-
-
-class OnChange(Filter):
-    """Represents a value changed filter.
-
-    Calls a callback only when value is changed from the
-    previous callback call.
-    """
-
-    __slots__ = ()
-
-    def __init__(self, callback: Callback) -> None:
-        """Initialize a new value changed filter.
-
-        A callback function will only be called if value is changed from the
-        previous call.
-
-        :param callback: A callback function to be awaited on value change
-        :type callback: Callback
-        :return: An instance of callable filter
-        :rtype: OnChange
-        """
-        super().__init__(callback)
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            return await self._callback(new_value)
-
-
-class Debounce(Filter):
-    """Represents a debounce filter.
-
-    Calls a callback only when value is stabilized across multiple
-    filter calls.
-    """
-
-    __slots__ = ("_calls", "_min_calls")
-
-    _calls: int
-    _min_calls: int
-
-    def __init__(self, callback: Callback, min_calls: int) -> None:
-        """Initialize a new debounce filter.
-
-        A callback function will only called once value is stabilized
-        across multiple filter calls.
-
-        :param callback: A callback function to be awaited on value change
-        :type callback: Callback
-        :param min_calls: Value shouldn't change for this amount of
-            filter calls
-        :type min_calls: int
-        :return: An instance of callable filter
-        :rtype: Debounce
-        """
-        super().__init__(callback)
-        self._calls = 0
-        self._min_calls = min_calls
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            self._calls += 1
-        else:
-            self._calls = 0
-
-        if self._value == UNDEFINED or self._calls >= self._min_calls:
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            self._calls = 0
-            return await self._callback(new_value)
-
-
-class Throttle(Filter):
-    """Represents a throttle filter.
-
-    Calls a callback only when certain amount of seconds passed
-    since the last call.
-    """
-
-    __slots__ = ("_last_called", "_timeout")
-
-    _last_called: float | None
-    _timeout: float
-
-    def __init__(self, callback: Callback, seconds: float) -> None:
-        """Initialize a new throttle filter.
-
-        A callback function will only be called once a certain amount of
-        seconds passed since the last call.
-
-        :param callback: A callback function that will be awaited once
-            filter conditions are fulfilled
-        :type callback: Callback
-        :param seconds: A callback will be awaited at most once per
-            this amount of seconds
-        :type seconds: float
-        :return: An instance of callable filter
-        :rtype: Throttle
-        """
-        super().__init__(callback)
-        self._last_called = None
-        self._timeout = seconds
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        current_timestamp = time.monotonic()
-        if (
-            self._last_called is None
-            or (current_timestamp - self._last_called) >= self._timeout
-        ):
-            self._last_called = current_timestamp
-            return await self._callback(new_value)
-
-
-class Delta(Filter):
-    """Represents a difference filter.
-
-    Calls a callback with a difference between two subsequent values.
-    """
-
-    __slots__ = ()
-
-    def __init__(self, callback: Callback) -> None:
-        """Initialize a new difference filter.
-
-        A callback function will be called with a difference between two
-        subsequent value.
-
-        :param callback: A callback function that will be awaited with
-            difference between values in two subsequent calls
-        :type callback: Callback
-        :return: An instance of callable filter
-        :rtype: Delta
-        """
-        super().__init__(callback)
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            old_value = self._value
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            if (
-                self._value != UNDEFINED
-                and (difference := diffence_between(old_value, new_value)) is not None
-            ):
-                return await self._callback(difference)
-
-
 class Aggregate(Filter):
     """Represents an aggregate filter.
 
@@ -368,6 +173,47 @@ class Aggregate(Filter):
             return result
 
 
+class Clamp(Filter):
+    """Represents a clamp filter.
+
+    Calls callback with a value clamped between specified boundaries.
+    """
+
+    __slots__ = ("_min_value", "_max_value")
+
+    _min_value: float
+    _max_value: float
+
+    def __init__(self, callback: Callback, min_value: float, max_value: float) -> None:
+        """Initialize a new Clamp filter.
+
+        A callback function will be called and passed value clamped
+        between specified boundaries.
+
+        :param callback: A callback function to be awaited on new value
+        :type callback: Callback
+        :param min_value: A lower boundary
+        :type min_value: float
+        :param max_value: An upper boundary
+        :type max_value: float
+        :return: An instance of callable filter
+        :rtype: Clamp
+        """
+        super().__init__(callback)
+        self._min_value = min_value
+        self._max_value = max_value
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if new_value < self._min_value:
+            return await self._callback(self._min_value)
+
+        if new_value > self._max_value:
+            return await self._callback(self._max_value)
+
+        return await self._callback(new_value)
+
+
 class Custom(Filter):
     """Represents a custom filter.
 
@@ -405,13 +251,167 @@ class Custom(Filter):
             await self._callback(new_value)
 
 
+class Debounce(Filter):
+    """Represents a debounce filter.
+
+    Calls a callback only when value is stabilized across multiple
+    filter calls.
+    """
+
+    __slots__ = ("_calls", "_min_calls")
+
+    _calls: int
+    _min_calls: int
+
+    def __init__(self, callback: Callback, min_calls: int) -> None:
+        """Initialize a new debounce filter.
+
+        A callback function will only called once value is stabilized
+        across multiple filter calls.
+
+        :param callback: A callback function to be awaited on value change
+        :type callback: Callback
+        :param min_calls: Value shouldn't change for this amount of
+            filter calls
+        :type min_calls: int
+        :return: An instance of callable filter
+        :rtype: Debounce
+        """
+        super().__init__(callback)
+        self._calls = 0
+        self._min_calls = min_calls
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self._value == UNDEFINED or is_close(self._value, new_value):
+            self._calls += 1
+        else:
+            self._calls = 0
+
+        if self._value == UNDEFINED or self._calls >= self._min_calls:
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
+            self._calls = 0
+            return await self._callback(new_value)
+
+
+class Delta(Filter):
+    """Represents a difference filter.
+
+    Calls a callback with a difference between two subsequent values.
+    """
+
+    __slots__ = ()
+
+    def __init__(self, callback: Callback) -> None:
+        """Initialize a new difference filter.
+
+        A callback function will be called with a difference between two
+        subsequent value.
+
+        :param callback: A callback function that will be awaited with
+            difference between values in two subsequent calls
+        :type callback: Callback
+        :return: An instance of callable filter
+        :rtype: Delta
+        """
+        super().__init__(callback)
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self._value == UNDEFINED or is_close(self._value, new_value):
+            old_value = self._value
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
+            if (
+                self._value != UNDEFINED
+                and (difference := diffence_between(old_value, new_value)) is not None
+            ):
+                return await self._callback(difference)
+
+
+class OnChange(Filter):
+    """Represents a value changed filter.
+
+    Calls a callback only when value is changed from the
+    previous callback call.
+    """
+
+    __slots__ = ()
+
+    def __init__(self, callback: Callback) -> None:
+        """Initialize a new value changed filter.
+
+        A callback function will only be called if value is changed from the
+        previous call.
+
+        :param callback: A callback function to be awaited on value change
+        :type callback: Callback
+        :return: An instance of callable filter
+        :rtype: OnChange
+        """
+        super().__init__(callback)
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self._value == UNDEFINED or is_close(self._value, new_value):
+            self._value = (
+                copy(new_value) if isinstance(new_value, Parameter) else new_value
+            )
+            return await self._callback(new_value)
+
+
+class Throttle(Filter):
+    """Represents a throttle filter.
+
+    Calls a callback only when certain amount of seconds passed
+    since the last call.
+    """
+
+    __slots__ = ("_last_called", "_timeout")
+
+    _last_called: float | None
+    _timeout: float
+
+    def __init__(self, callback: Callback, seconds: float) -> None:
+        """Initialize a new throttle filter.
+
+        A callback function will only be called once a certain amount of
+        seconds passed since the last call.
+
+        :param callback: A callback function that will be awaited once
+            filter conditions are fulfilled
+        :type callback: Callback
+        :param seconds: A callback will be awaited at most once per
+            this amount of seconds
+        :type seconds: float
+        :return: An instance of callable filter
+        :rtype: Throttle
+        """
+        super().__init__(callback)
+        self._last_called = None
+        self._timeout = seconds
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        current_timestamp = time.monotonic()
+        if (
+            self._last_called is None
+            or (current_timestamp - self._last_called) >= self._timeout
+        ):
+            self._last_called = current_timestamp
+            return await self._callback(new_value)
+
+
 __all__ = [
     "Filter",
-    "Clamp",
-    "OnChange",
-    "Debounce",
-    "Throttle",
-    "Delta",
     "Aggregate",
+    "Clamp",
     "Custom",
+    "Debounce",
+    "Delta",
+    "OnChange",
+    "Throttle",
 ]
