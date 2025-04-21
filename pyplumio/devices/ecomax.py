@@ -254,7 +254,7 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return False
 
-    @subscribe(ATTR_SCHEDULES)
+    @subscribe(ATTR_SCHEDULES, on_change)
     async def _update_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> dict[str, Schedule]:
