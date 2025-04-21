@@ -36,7 +36,7 @@ callback to be awaited.
 
 All built-in filters are described below.
 
-.. autofunction:: pyplumio.filters.Aggregate
+.. autofunction:: pyplumio.filters.aggregate
 
 This filter aggregates value for specified amount of seconds and 
 then calls the callback with the sum of values collected.
@@ -46,9 +46,9 @@ then calls the callback with the sum of values collected.
     from pyplumio import filters
 
     # Await the callback with the fuel burned during 30 seconds.
-    ecomax.subscribe("fuel_burned", filters.Aggregate(my_callback, seconds=30))
+    ecomax.subscribe("fuel_burned", filters.aggregate(my_callback, seconds=30))
 
-.. autofunction:: pyplumio.filters.Clamp
+.. autofunction:: pyplumio.filters.clamp
 
 This filter clamps value between specified boundaries.
 It can be used to filter out outliers and corrupted data.
@@ -58,9 +58,9 @@ It can be used to filter out outliers and corrupted data.
     from pyplumio import filters
 
     # Await the callback with value clamped between 0 and 100.
-    ecomax.subscribe("load", filters.Clamp(my_callback, min_value=0, max_value=100))
+    ecomax.subscribe("load", filters.clamp(my_callback, min_value=0, max_value=100))
 
-.. autofunction:: pyplumio.filters.OnChange
+.. autofunction:: pyplumio.filters.on_change
 
 Normally callbacks are awaited each time the PyPlumIO receives data
 from the device, regardless of whether value is changed or not.
@@ -74,9 +74,9 @@ value is changed.
 
     # Await the callback once heating_temp value is changed since
     # last call.
-    ecomax.subscribe("heating_temp", filters.OnChange(my_callback))
+    ecomax.subscribe("heating_temp", filters.on_change(my_callback))
 
-.. autofunction:: pyplumio.filters.Debounce
+.. autofunction:: pyplumio.filters.debounce
 
 This filter will only await the callback once value is settled across
 multiple calls, specified in ``min_calls`` argument.
@@ -87,9 +87,9 @@ multiple calls, specified in ``min_calls`` argument.
 
     # Await the callback once outside_temp stays the same for three
     # consecutive times it's received by PyPlumIO.
-    ecomax.subscribe("outside_temp", filters.Debounce(my_callback, min_calls=3))
+    ecomax.subscribe("outside_temp", filters.debounce(my_callback, min_calls=3))
 
-.. autofunction:: pyplumio.filters.Throttle
+.. autofunction:: pyplumio.filters.throttle
 
 This filter limits how often your callback will be awaited.
 
@@ -99,9 +99,9 @@ This filter limits how often your callback will be awaited.
 
     # Await the callback once per 5 seconds, regardless of 
     # how often outside_temp value is being processed by PyPlumIO.
-    ecomax.subscribe("outside_temp", filters.Throttle(my_callback, seconds=5))
+    ecomax.subscribe("outside_temp", filters.throttle(my_callback, seconds=5))
 
-.. autofunction:: pyplumio.filters.Delta
+.. autofunction:: pyplumio.filters.delta
 
 Instead of raw value, this filter awaits callback with value change.
 
@@ -113,9 +113,9 @@ It can be used with numeric values, dictionaries, tuples or lists.
 
     # Await the callback with difference between values in current
     # and last await.
-    ecomax.subscribe("outside_temp", filters.Delta(my_callback))
+    ecomax.subscribe("outside_temp", filters.delta(my_callback))
 
-.. autofunction:: pyplumio.filters.Custom
+.. autofunction:: pyplumio.filters.custom
 
 This filter allows to specify filter function that will be called
 every time the value is received from the controller.
@@ -128,7 +128,7 @@ A callback is awaited once the filter function returns true.
 
     # Await the callback when temperature is higher that 10 degrees
     # Celsius.
-    ecomax.subscribe("outside_temp", filters.Custom(my_callback, lambda x: x > 10))
+    ecomax.subscribe("outside_temp", filters.custom(my_callback, lambda x: x > 10))
 
 Callbacks Examples
 ------------------
@@ -138,7 +138,7 @@ processing.
 
 .. code-block:: python
 
-    from pyplumio.filters import Throttle, OnChange
+    from pyplumio.filters import throttle, on_change
 
 
     async def my_callback(value) -> None:
@@ -155,7 +155,7 @@ processing.
 
             # Await the callback on value change but no faster than
             # once per 5 seconds.
-            ecomax.subscribe("heating_temp", Throttle(OnChange(my_callback), seconds=5))
+            ecomax.subscribe("heating_temp", throttle(on_change(my_callback), seconds=5))
 
             # Wait until disconnected (forever)
             await conn.wait_until_done()
@@ -204,7 +204,7 @@ when heating temperature will change more the 0.1 degrees Celsius.
     import asyncio
 
     import pyplumio
-    from pyplumio.filters import OnChange
+    from pyplumio.filters import on_change
 
 
     async def my_callback(value) -> None:
@@ -225,7 +225,7 @@ when heating temperature will change more the 0.1 degrees Celsius.
             ecomax.subscribe_once("heating_target_temp", my_callback)
 
             # Subscribe my_callback2 to heating_temp changes.
-            ecomax.subscribe("heating_temp", OnChange(my_callback2))
+            ecomax.subscribe("heating_temp", on_change(my_callback2))
 
             # Wait until disconnected (forever)
             await conn.wait_until_done()

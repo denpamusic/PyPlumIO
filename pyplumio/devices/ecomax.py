@@ -19,7 +19,7 @@ from pyplumio.const import (
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
-from pyplumio.filters import OnChange
+from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import EventListener, subscribe
 from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
@@ -307,7 +307,7 @@ class EcoMAX(PhysicalDevice, EventListener):
         )
         return True
 
-    @subscribe(ATTR_STATE, OnChange)
+    @subscribe(ATTR_STATE, on_change)
     async def _update_ecomax_control_parameter(self, mode: DeviceState) -> None:
         """Update the ecoMAX control parameter."""
         await self.dispatch(

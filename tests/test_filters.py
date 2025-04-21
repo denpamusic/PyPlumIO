@@ -13,7 +13,7 @@ from pyplumio.structures.alerts import Alert
 async def test_clamp() -> None:
     """Test the clamp filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Clamp(test_callback, min_value=10, max_value=15)
+    wrapped_callback = filters.clamp(test_callback, min_value=10, max_value=15)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(10)
     test_callback.reset_mock()
@@ -29,7 +29,7 @@ async def test_clamp() -> None:
 async def test_on_change() -> None:
     """Test the value changed filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.OnChange(test_callback)
+    wrapped_callback = filters.on_change(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -43,7 +43,7 @@ async def test_on_change() -> None:
 
     # Test equality with callback function and different instance.
     assert test_callback == wrapped_callback
-    assert wrapped_callback == filters.OnChange(test_callback)
+    assert wrapped_callback == filters.on_change(test_callback)
     assert wrapped_callback.__eq__("you shall not pass") is NotImplemented
 
 
@@ -53,7 +53,7 @@ async def test_on_change_parameter() -> None:
     test_parameter = AsyncMock(spec=Parameter)
     test_parameter.values = ParameterValues(0, 0, 1)
     test_parameter.pending_update = False
-    wrapped_callback = filters.OnChange(test_callback)
+    wrapped_callback = filters.on_change(test_callback)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -90,7 +90,7 @@ async def test_on_change_parameter() -> None:
 async def test_debounce() -> None:
     """Test the debounce filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Debounce(test_callback, min_calls=3)
+    wrapped_callback = filters.debounce(test_callback, min_calls=3)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -108,7 +108,7 @@ async def test_debounce() -> None:
 async def test_throttle(mock_time) -> None:
     """Test the throttle filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Throttle(test_callback, seconds=5)
+    wrapped_callback = filters.throttle(test_callback, seconds=5)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -130,7 +130,7 @@ async def test_throttle(mock_time) -> None:
 async def test_delta() -> None:
     """Test the delta filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Delta(test_callback)
+    wrapped_callback = filters.delta(test_callback)
 
     await wrapped_callback(5)
     test_callback.assert_not_awaited()
@@ -143,14 +143,14 @@ async def test_delta() -> None:
     alert1 = Alert(code=0, from_dt=datetime.now(), to_dt=None)
     alert2 = Alert(code=1, from_dt=datetime.now(), to_dt=None)
     alert3 = Alert(code=2, from_dt=datetime.now(), to_dt=None)
-    wrapped_callback = filters.Delta(test_callback)
+    wrapped_callback = filters.delta(test_callback)
     await wrapped_callback([alert1, alert2])
     await wrapped_callback([alert3, alert2])
     test_callback.assert_awaited_once_with([alert3])
     test_callback.reset_mock()
 
     # Test with unknown.
-    wrapped_callback = filters.Delta(test_callback)
+    wrapped_callback = filters.delta(test_callback)
     await wrapped_callback("foo")
     await wrapped_callback("bar")
     test_callback.assert_not_awaited()
@@ -160,7 +160,7 @@ async def test_delta() -> None:
 async def test_aggregate(mock_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Aggregate(test_callback, seconds=5)
+    wrapped_callback = filters.aggregate(test_callback, seconds=5)
 
     # Zero seconds passed.
     await wrapped_callback(1)
@@ -187,7 +187,7 @@ async def test_aggregate(mock_time) -> None:
 async def test_custom() -> None:
     """Test the custom filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.Custom(test_callback, lambda x: len(x) == 4)
+    wrapped_callback = filters.custom(test_callback, lambda x: len(x) == 4)
 
     # Test that callback is not called when a list contains 2 items.
     await wrapped_callback([1, 2])
