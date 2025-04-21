@@ -11,7 +11,7 @@ from typing_extensions import TypeAlias
 from pyplumio.helpers.task_manager import TaskManager
 
 Callback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
-CallbackT = TypeVar("CallbackT", bound=Callback)
+_CallbackT = TypeVar("_CallbackT", bound=Callback)
 T = TypeVar("T")
 
 
@@ -91,7 +91,7 @@ class EventManager(TaskManager, Generic[T]):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: CallbackT) -> CallbackT:
+    def subscribe(self, name: str, callback: _CallbackT) -> _CallbackT:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
@@ -191,4 +191,48 @@ class EventManager(TaskManager, Generic[T]):
         return self._events
 
 
-__all__ = ["EventManager", "Callback"]
+_CallableT: TypeAlias = Callable[[_CallbackT], _CallbackT]
+
+
+def _subscribe_decorator(event: str, /, once: bool = False) -> _CallableT:
+    """Return subscribe decorator."""
+
+    def decorator(func: _CallbackT) -> _CallbackT:
+        setattr(func, "_event_subscribe", event)
+        setattr(func, "_event_subscribe_once", once)
+        return func
+
+    return decorator
+
+
+def subscribe(event: str) -> _CallableT:
+    """Mark method as an event listener."""
+    return _subscribe_decorator(event)
+
+
+def subscribe_once(event: str) -> _CallableT:
+    """Mark method as a one-time event listener."""
+    return _subscribe_decorator(event, once=True)
+
+
+class EventListener(EventManager[Any]):
+    """Allows to use event decorators."""
+
+    def __init__(self) -> None:
+        """Initialize new event listener."""
+        super().__init__()
+        self._register_event_listeners()
+
+    def _register_event_listeners(self) -> None:
+        """Register event listeners."""
+        for func in dir(self):
+            if not callable(callback := getattr(self, func, None)):
+                continue
+
+            if event := getattr(callback, "_event_subscribe", None):
+                subscribe_once = getattr(callback, "_event_subscribe_once", False)
+                subscribe_fn = self.subscribe_once if subscribe_once else self.subscribe
+                subscribe_fn(event, callback)
+
+
+__all__ = ["Callback", "EventListener", "EventManager", "subscribe", "subscribe_once"]

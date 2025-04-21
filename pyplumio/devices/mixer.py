@@ -5,9 +5,10 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Coroutine, Generator, Sequence
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from pyplumio.devices import PhysicalDevice, VirtualDevice
+from pyplumio.devices import VirtualDevice
+from pyplumio.helpers.event_manager import EventListener, subscribe
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
@@ -19,26 +20,16 @@ from pyplumio.structures.mixer_parameters import (
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
-if TYPE_CHECKING:
-    from pyplumio.frames import Frame
-
 _LOGGER = logging.getLogger(__name__)
 
 
-class Mixer(VirtualDevice):
+class Mixer(VirtualDevice, EventListener):
     """Represents a mixer."""
 
     __slots__ = ()
 
-    def __init__(
-        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
-    ) -> None:
-        """Initialize a new mixer."""
-        super().__init__(queue, parent, index)
-        self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
-
-    async def _handle_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
+    @subscribe(ATTR_MIXER_SENSORS)
+    async def _update_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle mixer sensors.
 
         For each sensor dispatch an event with the
@@ -49,7 +40,8 @@ class Mixer(VirtualDevice):
         )
         return True
 
-    async def _handle_mixer_parameters(
+    @subscribe(ATTR_MIXER_PARAMETERS)
+    async def _update_mixer_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle mixer parameters.

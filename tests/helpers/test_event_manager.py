@@ -1,11 +1,16 @@
 """Contains tests for the event manager."""
 
 from typing import Any
-from unittest.mock import AsyncMock, call, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
-from pyplumio.helpers.event_manager import EventManager
+from pyplumio.helpers.event_manager import (
+    EventListener,
+    EventManager,
+    subscribe,
+    subscribe_once,
+)
 
 
 @pytest.fixture(name="event_manager")
@@ -130,7 +135,7 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     callback.assert_not_awaited()
 
 
-async def test_create_event(event_manager: EventManager) -> None:
+def test_create_event(event_manager: EventManager) -> None:
     """Test creating an event."""
     event = event_manager.create_event("test")
     assert event == event_manager.create_event("test")
@@ -138,3 +143,50 @@ async def test_create_event(event_manager: EventManager) -> None:
     assert not event_manager.events["test"].is_set()
     event_manager.set_event("test")
     assert event_manager.events["test"].is_set()
+
+
+def test_subscribe_decorator() -> None:
+    """Test subscribe decorator."""
+    mock_func = Mock()
+    decorator = subscribe("test")
+    result = decorator(mock_func)
+    assert getattr(result, "_event_subscribe") == "test"
+    assert not getattr(result, "_event_subscribe_once")
+
+
+def test_subscribe_once_decorator() -> None:
+    """Test subscribe once decorator."""
+    mock_func = Mock()
+    decorator = subscribe_once("test")
+    result = decorator(mock_func)
+    assert getattr(result, "_event_subscribe") == "test"
+    assert getattr(result, "_event_subscribe_once")
+
+
+def test_register_event_listener() -> None:
+    """Test registering event listeners."""
+    with (
+        patch(
+            "pyplumio.helpers.event_manager.EventListener._listener", create=True
+        ) as mock_listener1,
+        patch(
+            "pyplumio.helpers.event_manager.EventListener._listener_once", create=True
+        ) as mock_listener2,
+        patch(
+            "pyplumio.helpers.event_manager.EventManager.subscribe", autospec=True
+        ) as mock_subscribe,
+        patch(
+            "pyplumio.helpers.event_manager.EventManager.subscribe_once", autospec=True
+        ) as mock_subscribe_once,
+    ):
+        # Mark mock_listener as event listener.
+        setattr(mock_listener1, "_event_subscribe", "test")
+        setattr(mock_listener1, "_event_subscribe_once", False)
+
+        # Mark mock_listener as one-time event listener.
+        setattr(mock_listener2, "_event_subscribe", "test2")
+        setattr(mock_listener2, "_event_subscribe_once", True)
+        event_listener = EventListener()
+
+    mock_subscribe.assert_called_once_with(event_listener, "test", mock_listener1)
+    mock_subscribe_once.assert_called_once_with(event_listener, "test2", mock_listener2)

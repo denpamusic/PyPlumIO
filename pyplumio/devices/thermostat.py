@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Coroutine, Generator, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-from pyplumio.devices import PhysicalDevice, VirtualDevice
+from pyplumio.devices import VirtualDevice
+from pyplumio.helpers.event_manager import EventListener, subscribe
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -17,24 +18,14 @@ from pyplumio.structures.thermostat_parameters import (
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
-if TYPE_CHECKING:
-    from pyplumio.frames import Frame
 
-
-class Thermostat(VirtualDevice):
+class Thermostat(VirtualDevice, EventListener):
     """Represents a thermostat."""
 
     __slots__ = ()
 
-    def __init__(
-        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
-    ) -> None:
-        """Initialize a new thermostat."""
-        super().__init__(queue, parent, index)
-        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
-        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
-
-    async def _handle_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
+    @subscribe(ATTR_THERMOSTAT_SENSORS)
+    async def _update_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle thermostat sensors.
 
         For each sensor dispatch an event with the
@@ -45,7 +36,8 @@ class Thermostat(VirtualDevice):
         )
         return True
 
-    async def _handle_thermostat_parameters(
+    @subscribe(ATTR_THERMOSTAT_PARAMETERS)
+    async def _update_thermostat_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle thermostat parameters.

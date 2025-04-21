@@ -19,8 +19,8 @@ from pyplumio.const import (
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
-from pyplumio.filters import OnChange
 from pyplumio.frames import DataFrameDescription, Frame, Request
+from pyplumio.helpers.event_manager import EventListener, subscribe
 from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -100,7 +100,7 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 _LOGGER = logging.getLogger(__name__)
 
 
-class EcoMAX(PhysicalDevice):
+class EcoMAX(PhysicalDevice, EventListener):
     """Represents an ecoMAX controller."""
 
     __slots__ = ("_fuel_burned_time_ns",)
@@ -113,17 +113,6 @@ class EcoMAX(PhysicalDevice):
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
-        self.subscribe(ATTR_ECOMAX_PARAMETERS, self._handle_ecomax_parameters)
-        self.subscribe(ATTR_FUEL_CONSUMPTION, self._add_burned_fuel_meter)
-        self.subscribe(ATTR_MIXER_PARAMETERS, self._handle_mixer_parameters)
-        self.subscribe(ATTR_MIXER_SENSORS, self._handle_mixer_sensors)
-        self.subscribe(ATTR_SCHEDULES, self._add_schedules)
-        self.subscribe(ATTR_SCHEDULE_PARAMETERS, self._add_schedule_parameters)
-        self.subscribe(ATTR_SENSORS, self._handle_ecomax_sensors)
-        self.subscribe(ATTR_STATE, OnChange(self._add_ecomax_control_parameter))
-        self.subscribe(ATTR_THERMOSTAT_PARAMETERS, self._handle_thermostat_parameters)
-        self.subscribe(ATTR_THERMOSTAT_PROFILE, self._add_thermostat_profile_parameter)
-        self.subscribe(ATTR_THERMOSTAT_SENSORS, self._handle_thermostat_sensors)
         self._fuel_burned_time_ns = time.perf_counter_ns()
 
     async def async_setup(self) -> bool:
@@ -167,7 +156,8 @@ class EcoMAX(PhysicalDevice):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
-    async def _handle_ecomax_parameters(
+    @subscribe(ATTR_ECOMAX_PARAMETERS)
+    async def _update_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Handle ecoMAX parameters.
@@ -209,7 +199,8 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_ecomax_parameter_events())
         return True
 
-    async def _add_burned_fuel_meter(self, fuel_consumption: float) -> None:
+    @subscribe(ATTR_FUEL_CONSUMPTION)
+    async def _update_burned_fuel_counter(self, fuel_consumption: float) -> None:
         """Calculate and dispatch the amount of fuel burned.
 
         This method calculates the fuel burned based on the time
@@ -233,7 +224,8 @@ class EcoMAX(PhysicalDevice):
             nanoseconds_passed / NANOSECONDS_IN_SECOND,
         )
 
-    async def _handle_mixer_parameters(
+    @subscribe(ATTR_MIXER_PARAMETERS)
+    async def _update_mixer_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
@@ -254,7 +246,8 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    async def _handle_mixer_sensors(
+    @subscribe(ATTR_MIXER_SENSORS)
+    async def _update_mixer_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Handle mixer sensors.
@@ -274,7 +267,8 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    async def _add_schedules(
+    @subscribe(ATTR_SCHEDULES)
+    async def _update_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> dict[str, Schedule]:
         """Add schedules to the dataset."""
@@ -293,7 +287,8 @@ class EcoMAX(PhysicalDevice):
             for index, schedule in schedules
         }
 
-    async def _add_schedule_parameters(
+    @subscribe(ATTR_SCHEDULE_PARAMETERS)
+    async def _update_schedule_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Add schedule parameters to the dataset."""
@@ -317,7 +312,8 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_schedule_parameter_events())
         return True
 
-    async def _handle_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
+    @subscribe(ATTR_SENSORS)
+    async def _update_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
         """Handle ecoMAX sensors.
 
         For each sensor dispatch an event with the sensor's name and
@@ -328,7 +324,8 @@ class EcoMAX(PhysicalDevice):
         )
         return True
 
-    async def _add_ecomax_control_parameter(self, mode: DeviceState) -> None:
+    @subscribe(ATTR_STATE)
+    async def _update_ecomax_control_parameter(self, mode: DeviceState) -> None:
         """Create ecoMAX control parameter instance and dispatch an event."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
@@ -341,7 +338,8 @@ class EcoMAX(PhysicalDevice):
             ),
         )
 
-    async def _handle_thermostat_parameters(
+    @subscribe(ATTR_THERMOSTAT_PARAMETERS)
+    async def _update_thermostat_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
@@ -364,7 +362,8 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    async def _add_thermostat_profile_parameter(
+    @subscribe(ATTR_THERMOSTAT_PROFILE)
+    async def _update_thermostat_profile_parameter(
         self, values: ParameterValues | None
     ) -> EcomaxNumber | None:
         """Add thermostat profile parameter to the dataset."""
@@ -375,7 +374,8 @@ class EcoMAX(PhysicalDevice):
 
         return None
 
-    async def _handle_thermostat_sensors(
+    @subscribe(ATTR_THERMOSTAT_SENSORS)
+    async def _update_thermostat_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Handle thermostat sensors.
