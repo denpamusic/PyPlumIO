@@ -30,11 +30,7 @@ class Mixer(VirtualDevice, EventListener):
 
     @subscribe(ATTR_MIXER_SENSORS)
     async def _update_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
-        """Handle mixer sensors.
-
-        For each sensor dispatch an event with the
-        sensor's name and value.
-        """
+        """Update mixer sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
@@ -44,11 +40,7 @@ class Mixer(VirtualDevice, EventListener):
     async def _update_mixer_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
-        """Handle mixer parameters.
-
-        For each parameter dispatch an event with the
-        parameter's name and value.
-        """
+        """Update mixer parameters and dispatch the events."""
         product: ProductInfo = await self.parent.get(ATTR_PRODUCT)
 
         def _mixer_parameter_events() -> Generator[Coroutine, Any, None]:

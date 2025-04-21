@@ -160,11 +160,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
-        """Handle ecoMAX parameters.
-
-        For each parameter dispatch an event with the parameter's name
-        and value.
-        """
+        """Update ecoMAX parameters and dispatch the events."""
         product: ProductInfo = await self.get(ATTR_PRODUCT)
 
         def _ecomax_parameter_events() -> Generator[Coroutine, Any, None]:
@@ -201,7 +197,7 @@ class EcoMAX(PhysicalDevice, EventListener):
 
     @subscribe(ATTR_FUEL_CONSUMPTION)
     async def _update_burned_fuel_counter(self, fuel_consumption: float) -> None:
-        """Calculate and dispatch the amount of fuel burned.
+        """Update the amount fuel burned.
 
         This method calculates the fuel burned based on the time
         elapsed since the last sensor message, which contains fuel
@@ -229,12 +225,7 @@ class EcoMAX(PhysicalDevice, EventListener):
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
-        """Handle mixer parameters.
-
-        For each parameter dispatch an event with the
-        parameter's name and value. Events are dispatched for the
-        respective mixer instance.
-        """
+        """Handle mixer parameters and dispatch the events."""
         if parameters:
             await asyncio.gather(
                 *(
@@ -250,12 +241,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_mixer_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
-        """Handle mixer sensors.
-
-        For each sensor dispatch an event with the
-        sensor's name and value. Events are dispatched for the
-        respective mixer instance.
-        """
+        """Update mixer sensors and dispatch the events."""
         if sensors:
             await asyncio.gather(
                 *(
@@ -271,7 +257,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> dict[str, Schedule]:
-        """Add schedules to the dataset."""
+        """Update schedules."""
         return {
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
@@ -291,7 +277,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_schedule_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
-        """Add schedule parameters to the dataset."""
+        """Update schedule parameters and dispatch the events."""
 
         def _schedule_parameter_events() -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for schedule parameter events."""
@@ -314,11 +300,7 @@ class EcoMAX(PhysicalDevice, EventListener):
 
     @subscribe(ATTR_SENSORS)
     async def _update_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
-        """Handle ecoMAX sensors.
-
-        For each sensor dispatch an event with the sensor's name and
-        value.
-        """
+        """Update ecoMAX sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
@@ -326,7 +308,7 @@ class EcoMAX(PhysicalDevice, EventListener):
 
     @subscribe(ATTR_STATE)
     async def _update_ecomax_control_parameter(self, mode: DeviceState) -> None:
-        """Create ecoMAX control parameter instance and dispatch an event."""
+        """Update the ecoMAX control parameter."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
             EcomaxSwitch.create_or_update(
@@ -343,12 +325,7 @@ class EcoMAX(PhysicalDevice, EventListener):
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
-        """Handle thermostat parameters.
-
-        For each parameter dispatch an event with the
-        parameter's name and value. Events are dispatched for the
-        respective thermostat instance.
-        """
+        """Handle thermostat parameters and dispatch the events."""
         if parameters:
             await asyncio.gather(
                 *(
@@ -366,7 +343,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_thermostat_profile_parameter(
         self, values: ParameterValues | None
     ) -> EcomaxNumber | None:
-        """Add thermostat profile parameter to the dataset."""
+        """Update thermostat profile parameter."""
         if values:
             return EcomaxNumber(
                 device=self, description=THERMOSTAT_PROFILE_PARAMETER, values=values
@@ -378,12 +355,7 @@ class EcoMAX(PhysicalDevice, EventListener):
     async def _update_thermostat_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
-        """Handle thermostat sensors.
-
-        For each sensor dispatch an event with the
-        sensor's name and value. Events are dispatched for the
-        respective thermostat instance.
-        """
+        """Update thermostat sensors and dispatch the events."""
         if sensors:
             await asyncio.gather(
                 *(

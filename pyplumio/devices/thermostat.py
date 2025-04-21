@@ -26,11 +26,7 @@ class Thermostat(VirtualDevice, EventListener):
 
     @subscribe(ATTR_THERMOSTAT_SENSORS)
     async def _update_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
-        """Handle thermostat sensors.
-
-        For each sensor dispatch an event with the
-        sensor's name and value.
-        """
+        """Update thermostat sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
@@ -40,11 +36,7 @@ class Thermostat(VirtualDevice, EventListener):
     async def _update_thermostat_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
-        """Handle thermostat parameters.
-
-        For each parameter dispatch an event with the
-        parameter's name and value.
-        """
+        """Update thermostat parameters and dispatch the events."""
 
         def _thermostat_parameter_events() -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for thermostat parameter events."""

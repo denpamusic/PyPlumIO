@@ -216,15 +216,21 @@ def subscribe_once(event: str) -> _CallableT:
 
 
 class EventListener(EventManager[Any]):
-    """Allows to use event decorators."""
+    """Represents an event listener that manages event subscriptions.
+
+    This class allows registering multiple callback methods that are
+    marked with the `@subscribe()` or `@subscribe_once()` decorators.
+    These decorators associate the callback methods with specific
+    events, enabling automatic subscription during initialization.
+    """
 
     def __init__(self) -> None:
         """Initialize new event listener."""
         super().__init__()
-        self._register_event_listeners()
+        self._register_callbacks()
 
-    def _register_event_listeners(self) -> None:
-        """Register event listeners."""
+    def _register_callbacks(self) -> None:
+        """Register the callbacks."""
         for func in dir(self):
             if not callable(callback := getattr(self, func, None)):
                 continue
