@@ -191,28 +191,32 @@ class EventManager(TaskManager, Generic[T]):
         return self._events
 
 
-_CallableT: TypeAlias = Callable[[_CallbackT], _CallbackT]
+_CallableT: TypeAlias = Callable[..., Any]
 
 
-def _subscribe_decorator(event: str, /, once: bool = False) -> _CallableT:
+def _subscribe_decorator(
+    event: str, /, once: bool = False, filter: _CallableT | None = None
+) -> _CallableT:
     """Return subscribe decorator."""
 
     def decorator(func: _CallbackT) -> _CallbackT:
-        setattr(func, "_event_subscribe", event)
-        setattr(func, "_event_subscribe_once", once)
+        # Attach metadata to the function to mark it as a subscriber.
+        setattr(func, "_event_call", event)
+        setattr(func, "_event_call_once", once)
+        setattr(func, "_event_call_filter", filter)
         return func
 
     return decorator
 
 
-def subscribe(event: str) -> _CallableT:
+def subscribe(event: str, filter: _CallableT | None = None) -> _CallableT:
     """Mark method as an event listener."""
-    return _subscribe_decorator(event)
+    return _subscribe_decorator(event, filter=filter)
 
 
-def subscribe_once(event: str) -> _CallableT:
+def subscribe_once(event: str, filter: _CallableT | None = None) -> _CallableT:
     """Mark method as a one-time event listener."""
-    return _subscribe_decorator(event, once=True)
+    return _subscribe_decorator(event, once=True, filter=filter)
 
 
 class EventListener(EventManager[Any]):
@@ -235,9 +239,11 @@ class EventListener(EventManager[Any]):
             if not callable(callback := getattr(self, func, None)):
                 continue
 
-            if event := getattr(callback, "_event_subscribe", None):
-                subscribe_once = getattr(callback, "_event_subscribe_once", False)
-                subscribe_fn = self.subscribe_once if subscribe_once else self.subscribe
+            if event := getattr(callback, "_event_call", None):
+                call_once = getattr(callback, "_event_call_once", False)
+                filter = getattr(callback, "_event_call_filter", None)
+                subscribe_fn = self.subscribe_once if call_once else self.subscribe
+                callback = filter(callback) if filter else callback
                 subscribe_fn(event, callback)
 
 

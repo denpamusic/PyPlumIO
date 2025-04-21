@@ -150,8 +150,15 @@ def test_subscribe_decorator() -> None:
     mock_func = Mock()
     decorator = subscribe("test")
     result = decorator(mock_func)
-    assert getattr(result, "_event_subscribe") == "test"
-    assert not getattr(result, "_event_subscribe_once")
+    assert getattr(result, "_event_call") == "test"
+    assert not getattr(result, "_event_call_once")
+    assert not getattr(result, "_event_call_filter")
+
+    # Check with filter.
+    mock_filter = Mock()
+    decorator = subscribe("test", filter=mock_filter)
+    result = decorator(mock_func)
+    assert getattr(result, "_event_call_filter") == mock_filter
 
 
 def test_subscribe_once_decorator() -> None:
@@ -159,8 +166,14 @@ def test_subscribe_once_decorator() -> None:
     mock_func = Mock()
     decorator = subscribe_once("test")
     result = decorator(mock_func)
-    assert getattr(result, "_event_subscribe") == "test"
-    assert getattr(result, "_event_subscribe_once")
+    assert getattr(result, "_event_call") == "test"
+    assert getattr(result, "_event_call_once")
+
+    # Check with filter.
+    mock_filter = Mock()
+    decorator = subscribe_once("test", filter=mock_filter)
+    result = decorator(mock_func)
+    assert getattr(result, "_event_call_filter") == mock_filter
 
 
 def test_register_event_listener() -> None:
@@ -170,8 +183,11 @@ def test_register_event_listener() -> None:
             "pyplumio.helpers.event_manager.EventListener._listener", create=True
         ) as mock_listener1,
         patch(
-            "pyplumio.helpers.event_manager.EventListener._listener_once", create=True
+            "pyplumio.helpers.event_manager.EventListener._listener_filter", create=True
         ) as mock_listener2,
+        patch(
+            "pyplumio.helpers.event_manager.EventListener._listener_once", create=True
+        ) as mock_listener3,
         patch(
             "pyplumio.helpers.event_manager.EventManager.subscribe", autospec=True
         ) as mock_subscribe,
@@ -180,13 +196,31 @@ def test_register_event_listener() -> None:
         ) as mock_subscribe_once,
     ):
         # Mark mock_listener as event listener.
-        setattr(mock_listener1, "_event_subscribe", "test")
-        setattr(mock_listener1, "_event_subscribe_once", False)
+        setattr(mock_listener1, "_event_call", "test")
+        setattr(mock_listener1, "_event_call_once", False)
+        setattr(mock_listener1, "_event_call_filter", None)
 
-        # Mark mock_listener as one-time event listener.
-        setattr(mock_listener2, "_event_subscribe", "test2")
-        setattr(mock_listener2, "_event_subscribe_once", True)
+        # Mark mock_listener2 as event listener with a filter.
+        mock_filter = Mock()
+        mock_wrapper = Mock(return_value=mock_filter)
+        setattr(mock_listener2, "_event_call", "test2")
+        setattr(mock_listener2, "_event_call_once", False)
+        setattr(mock_listener2, "_event_call_filter", mock_wrapper)
+
+        # Mark mock_listener3 as one-time event listener.
+        setattr(mock_listener3, "_event_call", "test3")
+        setattr(mock_listener3, "_event_call_once", True)
+        setattr(mock_listener3, "_event_call_filter", None)
         event_listener = EventListener()
 
-    mock_subscribe.assert_called_once_with(event_listener, "test", mock_listener1)
-    mock_subscribe_once.assert_called_once_with(event_listener, "test2", mock_listener2)
+    mock_subscribe.assert_has_calls(
+        [
+            call(event_listener, "test", mock_listener1),
+            call(event_listener, "test2", mock_filter),
+        ]
+    )
+    mock_subscribe_once.assert_called_once_with(event_listener, "test3", mock_listener3)
+
+    # Assert that filter function was called with mock_listener2 as
+    # it's argument.
+    mock_wrapper.assert_called_once_with(mock_listener2)
