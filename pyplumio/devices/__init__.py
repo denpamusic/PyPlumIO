@@ -10,8 +10,9 @@ from typing import Any, ClassVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import RequestError, UnknownDeviceError
+from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
-from pyplumio.helpers.event_manager import EventManager
+from pyplumio.helpers.event_manager import EventManager, subscribe
 from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import NumericType, Parameter, State
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
@@ -138,22 +139,19 @@ class PhysicalDevice(Device, ABC):
         self._network = network
         self._frame_versions = {}
 
-        async def update_frame_versions(versions: dict[int, int]) -> None:
-            """Check frame versions and update outdated frames."""
-            for frame_type, version in versions.items():
-                if (
-                    is_known_frame_type(frame_type)
-                    and self.supports_frame_type(frame_type)
-                    and not self.has_frame_version(frame_type, version)
-                ):
-                    _LOGGER.debug(
-                        "Updating frame %s to version %i", frame_type, version
-                    )
-                    request = await Request.create(frame_type, recipient=self.address)
-                    self.queue.put_nowait(request)
-                    self._frame_versions[frame_type] = version
-
-        self.subscribe(ATTR_FRAME_VERSIONS, update_frame_versions)
+    @subscribe(ATTR_FRAME_VERSIONS, on_change)
+    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
+        """Check frame versions and update outdated frames."""
+        for frame_type, version in versions.items():
+            if (
+                is_known_frame_type(frame_type)
+                and self.supports_frame_type(frame_type)
+                and not self.has_frame_version(frame_type, version)
+            ):
+                _LOGGER.debug("Updating frame %s to version %i", frame_type, version)
+                request = await Request.create(frame_type, recipient=self.address)
+                self.queue.put_nowait(request)
+                self._frame_versions[frame_type] = version
 
     def has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
         """Return True if frame data is up to date, False otherwise."""
