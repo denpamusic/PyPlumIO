@@ -11,7 +11,27 @@ from typing_extensions import TypeAlias
 from pyplumio.helpers.task_manager import TaskManager
 
 Callback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
+
+_CallableT: TypeAlias = Callable[..., Any]
 _CallbackT = TypeVar("_CallbackT", bound=Callback)
+
+
+def event_listener(event: str, filter: _CallableT | None = None) -> _CallableT:
+    """Mark a function as an event listener.
+
+    This decorator attaches metadata to the function, identifying it
+    as a subscriber for the specified event.
+    """
+
+    def decorator(func: _CallbackT) -> _CallbackT:
+        # Attach metadata to the function to mark it as a listener.
+        setattr(func, "_on_event", event)
+        setattr(func, "_on_event_filter", filter)
+        return func
+
+    return decorator
+
+
 T = TypeVar("T")
 
 
@@ -30,6 +50,18 @@ class EventManager(TaskManager, Generic[T]):
         self.data = {}
         self._events = {}
         self._callbacks = {}
+        self._register_event_listeners()
+
+    def _register_event_listeners(self) -> None:
+        """Register the event listeners."""
+        for func in dir(self):
+            if not callable(callback := getattr(self, func, None)):
+                continue
+
+            if event := getattr(callback, "_on_event", None):
+                filter = getattr(callback, "_on_event_filter", None)
+                callback = filter(callback) if filter else callback
+                self.subscribe(event, callback)
 
     def __getattr__(self, name: str) -> T:
         """Return attributes from the underlying data dictionary."""
@@ -191,60 +223,4 @@ class EventManager(TaskManager, Generic[T]):
         return self._events
 
 
-_CallableT: TypeAlias = Callable[..., Any]
-
-
-def _subscribe_decorator(
-    event: str, /, once: bool = False, filter: _CallableT | None = None
-) -> _CallableT:
-    """Return subscribe decorator."""
-
-    def decorator(func: _CallbackT) -> _CallbackT:
-        # Attach metadata to the function to mark it as a subscriber.
-        setattr(func, "_event_call", event)
-        setattr(func, "_event_call_once", once)
-        setattr(func, "_event_call_filter", filter)
-        return func
-
-    return decorator
-
-
-def subscribe(event: str, filter: _CallableT | None = None) -> _CallableT:
-    """Mark method as an event listener."""
-    return _subscribe_decorator(event, filter=filter)
-
-
-def subscribe_once(event: str, filter: _CallableT | None = None) -> _CallableT:
-    """Mark method as a one-time event listener."""
-    return _subscribe_decorator(event, once=True, filter=filter)
-
-
-class EventListener(EventManager[Any]):
-    """Represents an event listener that manages event subscriptions.
-
-    This class allows registering multiple callback methods that are
-    marked with the `@subscribe()` or `@subscribe_once()` decorators.
-    These decorators associate the callback methods with specific
-    events, enabling automatic subscription during initialization.
-    """
-
-    def __init__(self) -> None:
-        """Initialize new event listener."""
-        super().__init__()
-        self._register_callbacks()
-
-    def _register_callbacks(self) -> None:
-        """Register the callbacks."""
-        for func in dir(self):
-            if not callable(callback := getattr(self, func, None)):
-                continue
-
-            if event := getattr(callback, "_event_call", None):
-                call_once = getattr(callback, "_event_call_once", False)
-                filter = getattr(callback, "_event_call_filter", None)
-                subscribe_fn = self.subscribe_once if call_once else self.subscribe
-                callback = filter(callback) if filter else callback
-                subscribe_fn(event, callback)
-
-
-__all__ = ["Callback", "EventListener", "EventManager", "subscribe", "subscribe_once"]
+__all__ = ["Callback", "EventManager", "event_listener"]

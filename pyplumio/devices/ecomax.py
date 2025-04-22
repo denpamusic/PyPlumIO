@@ -21,7 +21,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
-from pyplumio.helpers.event_manager import EventListener, subscribe
+from pyplumio.helpers.event_manager import event_listener
 from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
@@ -101,7 +101,7 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 _LOGGER = logging.getLogger(__name__)
 
 
-class EcoMAX(PhysicalDevice, EventListener):
+class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
     __slots__ = ("_fuel_burned_time_ns",)
@@ -157,8 +157,42 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
-    @subscribe(ATTR_ECOMAX_PARAMETERS)
-    async def _update_ecomax_parameters(
+    async def _set_ecomax_state(self, state: State) -> bool:
+        """Try to set the ecoMAX control state."""
+        try:
+            switch: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
+            return await switch.set(state)
+        except KeyError:
+            _LOGGER.error("ecoMAX control is not available. Please try again later.")
+
+        return False
+
+    async def turn_on(self) -> bool:
+        """Turn on the ecoMAX controller."""
+        return await self._set_ecomax_state(STATE_ON)
+
+    async def turn_off(self) -> bool:
+        """Turn off the ecoMAX controller."""
+        return await self._set_ecomax_state(STATE_OFF)
+
+    def turn_on_nowait(self) -> None:
+        """Turn on the ecoMAX controller without waiting."""
+        self.create_task(self.turn_on())
+
+    def turn_off_nowait(self) -> None:
+        """Turn off the ecoMAX controller without waiting."""
+        self.create_task(self.turn_off())
+
+    async def shutdown(self) -> None:
+        """Shutdown tasks for the ecoMAX controller and sub-devices."""
+        mixers: dict[str, Mixer] = self.get_nowait(ATTR_MIXERS, {})
+        thermostats: dict[str, Thermostat] = self.get_nowait(ATTR_THERMOSTATS, {})
+        devices = (mixers | thermostats).values()
+        await asyncio.gather(*(device.shutdown() for device in devices))
+        await super().shutdown()
+
+    @event_listener(ATTR_ECOMAX_PARAMETERS)
+    async def on_event_ecomax_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
@@ -196,9 +230,9 @@ class EcoMAX(PhysicalDevice, EventListener):
         await asyncio.gather(*_ecomax_parameter_events())
         return True
 
-    @subscribe(ATTR_FUEL_CONSUMPTION)
-    async def _update_burned_fuel_counter(self, fuel_consumption: float) -> None:
-        """Update the amount fuel burned.
+    @event_listener(ATTR_FUEL_CONSUMPTION)
+    async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:
+        """Update the amount of burned fuel.
 
         This method calculates the fuel burned based on the time
         elapsed since the last sensor message, which contains fuel
@@ -221,8 +255,8 @@ class EcoMAX(PhysicalDevice, EventListener):
             nanoseconds_passed / NANOSECONDS_IN_SECOND,
         )
 
-    @subscribe(ATTR_MIXER_PARAMETERS)
-    async def _update_mixer_parameters(
+    @event_listener(ATTR_MIXER_PARAMETERS)
+    async def on_event_mixer_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
@@ -238,8 +272,8 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return False
 
-    @subscribe(ATTR_MIXER_SENSORS)
-    async def _update_mixer_sensors(
+    @event_listener(ATTR_MIXER_SENSORS)
+    async def on_event_mixer_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update mixer sensors and dispatch the events."""
@@ -254,28 +288,8 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return False
 
-    @subscribe(ATTR_SCHEDULES, on_change)
-    async def _update_schedules(
-        self, schedules: list[tuple[int, list[list[bool]]]]
-    ) -> dict[str, Schedule]:
-        """Update schedules."""
-        return {
-            SCHEDULES[index]: Schedule(
-                name=SCHEDULES[index],
-                device=self,
-                monday=ScheduleDay.from_iterable(schedule[1]),
-                tuesday=ScheduleDay.from_iterable(schedule[2]),
-                wednesday=ScheduleDay.from_iterable(schedule[3]),
-                thursday=ScheduleDay.from_iterable(schedule[4]),
-                friday=ScheduleDay.from_iterable(schedule[5]),
-                saturday=ScheduleDay.from_iterable(schedule[6]),
-                sunday=ScheduleDay.from_iterable(schedule[0]),
-            )
-            for index, schedule in schedules
-        }
-
-    @subscribe(ATTR_SCHEDULE_PARAMETERS)
-    async def _update_schedule_parameters(
+    @event_listener(ATTR_SCHEDULE_PARAMETERS)
+    async def on_event_schedule_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
@@ -299,30 +313,16 @@ class EcoMAX(PhysicalDevice, EventListener):
         await asyncio.gather(*_schedule_parameter_events())
         return True
 
-    @subscribe(ATTR_SENSORS)
-    async def _update_ecomax_sensors(self, sensors: dict[str, Any]) -> bool:
+    @event_listener(ATTR_SENSORS)
+    async def on_event_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update ecoMAX sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
         return True
 
-    @subscribe(ATTR_STATE, on_change)
-    async def _update_ecomax_control_parameter(self, mode: DeviceState) -> None:
-        """Update the ecoMAX control parameter."""
-        await self.dispatch(
-            ECOMAX_CONTROL_PARAMETER.name,
-            EcomaxSwitch.create_or_update(
-                description=ECOMAX_CONTROL_PARAMETER,
-                device=self,
-                values=ParameterValues(
-                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
-                ),
-            ),
-        )
-
-    @subscribe(ATTR_THERMOSTAT_PARAMETERS)
-    async def _update_thermostat_parameters(
+    @event_listener(ATTR_THERMOSTAT_PARAMETERS)
+    async def on_event_thermostat_parameters(
         self,
         parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
     ) -> bool:
@@ -340,8 +340,8 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return False
 
-    @subscribe(ATTR_THERMOSTAT_PROFILE)
-    async def _update_thermostat_profile_parameter(
+    @event_listener(ATTR_THERMOSTAT_PROFILE)
+    async def on_event_thermostat_profile(
         self, values: ParameterValues | None
     ) -> EcomaxNumber | None:
         """Update thermostat profile parameter."""
@@ -352,8 +352,8 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return None
 
-    @subscribe(ATTR_THERMOSTAT_SENSORS)
-    async def _update_thermostat_sensors(
+    @event_listener(ATTR_THERMOSTAT_SENSORS)
+    async def on_event_thermostat_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update thermostat sensors and dispatch the events."""
@@ -371,39 +371,39 @@ class EcoMAX(PhysicalDevice, EventListener):
 
         return False
 
-    async def _set_ecomax_state(self, state: State) -> bool:
-        """Try to set the ecoMAX control state."""
-        try:
-            switch: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
-            return await switch.set(state)
-        except KeyError:
-            _LOGGER.error("ecoMAX control is not available. Please try again later.")
+    @event_listener(ATTR_SCHEDULES)
+    async def on_event_schedules(
+        self, schedules: list[tuple[int, list[list[bool]]]]
+    ) -> dict[str, Schedule]:
+        """Update schedules."""
+        return {
+            SCHEDULES[index]: Schedule(
+                name=SCHEDULES[index],
+                device=self,
+                monday=ScheduleDay.from_iterable(schedule[1]),
+                tuesday=ScheduleDay.from_iterable(schedule[2]),
+                wednesday=ScheduleDay.from_iterable(schedule[3]),
+                thursday=ScheduleDay.from_iterable(schedule[4]),
+                friday=ScheduleDay.from_iterable(schedule[5]),
+                saturday=ScheduleDay.from_iterable(schedule[6]),
+                sunday=ScheduleDay.from_iterable(schedule[0]),
+            )
+            for index, schedule in schedules
+        }
 
-        return False
-
-    async def turn_on(self) -> bool:
-        """Turn on the ecoMAX controller."""
-        return await self._set_ecomax_state(STATE_ON)
-
-    async def turn_off(self) -> bool:
-        """Turn off the ecoMAX controller."""
-        return await self._set_ecomax_state(STATE_OFF)
-
-    def turn_on_nowait(self) -> None:
-        """Turn on the ecoMAX controller without waiting."""
-        self.create_task(self.turn_on())
-
-    def turn_off_nowait(self) -> None:
-        """Turn off the ecoMAX controller without waiting."""
-        self.create_task(self.turn_off())
-
-    async def shutdown(self) -> None:
-        """Shutdown tasks for the ecoMAX controller and sub-devices."""
-        mixers: dict[str, Mixer] = self.get_nowait(ATTR_MIXERS, {})
-        thermostats: dict[str, Thermostat] = self.get_nowait(ATTR_THERMOSTATS, {})
-        devices = (mixers | thermostats).values()
-        await asyncio.gather(*(device.shutdown() for device in devices))
-        await super().shutdown()
+    @event_listener(ATTR_STATE, on_change)
+    async def on_event_state(self, mode: DeviceState) -> None:
+        """Update the ecoMAX control parameter."""
+        await self.dispatch(
+            ECOMAX_CONTROL_PARAMETER.name,
+            EcomaxSwitch.create_or_update(
+                description=ECOMAX_CONTROL_PARAMETER,
+                device=self,
+                values=ParameterValues(
+                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+                ),
+            ),
+        )
 
 
 __all__ = ["ATTR_MIXERS", "ATTR_THERMOSTATS", "ATTR_FUEL_BURNED", "EcoMAX"]

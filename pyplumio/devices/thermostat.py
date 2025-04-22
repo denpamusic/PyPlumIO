@@ -7,7 +7,7 @@ from collections.abc import Coroutine, Generator, Sequence
 from typing import Any
 
 from pyplumio.devices import VirtualDevice
-from pyplumio.helpers.event_manager import EventListener, subscribe
+from pyplumio.helpers.event_manager import event_listener
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
@@ -19,21 +19,21 @@ from pyplumio.structures.thermostat_parameters import (
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
 
-class Thermostat(VirtualDevice, EventListener):
+class Thermostat(VirtualDevice):
     """Represents a thermostat."""
 
     __slots__ = ()
 
-    @subscribe(ATTR_THERMOSTAT_SENSORS)
-    async def _update_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
+    @event_listener(ATTR_THERMOSTAT_SENSORS)
+    async def on_event_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update thermostat sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
         return True
 
-    @subscribe(ATTR_THERMOSTAT_PARAMETERS)
-    async def _update_thermostat_parameters(
+    @event_listener(ATTR_THERMOSTAT_PARAMETERS)
+    async def on_event_thermostat_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""

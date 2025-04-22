@@ -12,7 +12,7 @@ from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
 from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
-from pyplumio.helpers.event_manager import EventManager, subscribe
+from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.helpers.factory import create_instance
 from pyplumio.helpers.parameter import NumericType, Parameter, State
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
@@ -139,8 +139,8 @@ class PhysicalDevice(Device, ABC):
         self._network = network
         self._frame_versions = {}
 
-    @subscribe(ATTR_FRAME_VERSIONS, on_change)
-    async def _update_frame_versions(self, versions: dict[int, int]) -> None:
+    @event_listener(ATTR_FRAME_VERSIONS, on_change)
+    async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
         for frame_type, version in versions.items():
             if (

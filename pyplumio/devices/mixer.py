@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from pyplumio.devices import VirtualDevice
-from pyplumio.helpers.event_manager import EventListener, subscribe
+from pyplumio.helpers.event_manager import event_listener
 from pyplumio.helpers.parameter import ParameterValues
 from pyplumio.structures.mixer_parameters import (
     ATTR_MIXER_PARAMETERS,
@@ -23,21 +23,21 @@ from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 _LOGGER = logging.getLogger(__name__)
 
 
-class Mixer(VirtualDevice, EventListener):
+class Mixer(VirtualDevice):
     """Represents a mixer."""
 
     __slots__ = ()
 
-    @subscribe(ATTR_MIXER_SENSORS)
-    async def _update_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
+    @event_listener(ATTR_MIXER_SENSORS)
+    async def on_event_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update mixer sensors and dispatch the events."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
         return True
 
-    @subscribe(ATTR_MIXER_PARAMETERS)
-    async def _update_mixer_parameters(
+    @event_listener(ATTR_MIXER_PARAMETERS)
+    async def on_event_mixer_parameters(
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Update mixer parameters and dispatch the events."""
