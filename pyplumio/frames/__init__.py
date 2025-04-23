@@ -121,12 +121,12 @@ class Frame(ABC):
                 self._message,
                 self._data,
             ) == (
-                self.recipient,
-                self.sender,
-                self.econet_type,
-                self.econet_version,
-                self._message,
-                self._data,
+                other.recipient,
+                other.sender,
+                other.econet_type,
+                other.econet_version,
+                other._message,
+                other._data,
             )
 
         return NotImplemented
