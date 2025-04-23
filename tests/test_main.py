@@ -25,7 +25,6 @@ async def test_main(capsys) -> None:
     mock_serial.assert_called_with("/dev/ttyUSB0", 115200)
     mock_connection.__aenter__.assert_awaited_once()
     mock_connection.get.assert_awaited_once_with("ecomax")
-    calls = [call("sensors"), call("parameters")]
-    mock_device.get.assert_has_calls(calls)
+    mock_device.get.assert_has_calls([call("sensors"), call("parameters")])
     captured = capsys.readouterr()
     assert captured.out == "one\ntwo\n"

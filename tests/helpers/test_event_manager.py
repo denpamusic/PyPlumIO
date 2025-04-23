@@ -18,27 +18,30 @@ def fixture_event_manager() -> EventManager:
 
 def test_register_event_listeners() -> None:
     """Test registering event listeners."""
+    # Create event listener.
+    mock_on_event_test = AsyncMock()
+    setattr(mock_on_event_test, "_on_event", "test")
+    setattr(mock_on_event_test, "_on_event_filter", None)
+
+    # Create event listener with filter.
+    mock_on_event_test2 = AsyncMock()
+    setattr(mock_on_event_test2, "_on_event", "test2")
+    mock_filter = Mock()
+    mock_wrapper = Mock(return_value=mock_filter)
+    setattr(mock_on_event_test2, "_on_event_filter", mock_wrapper)
+
     with (
         patch(
-            "pyplumio.helpers.event_manager.EventManager.on_event_test", create=True
-        ) as mock_on_event_test,
-        patch(
-            "pyplumio.helpers.event_manager.EventManager.on_event_test2", create=True
-        ) as mock_on_event_test2,
+            "inspect.getmembers",
+            return_value=(
+                ("on_event_test", mock_on_event_test),
+                ("on_event_test2", mock_on_event_test2),
+            ),
+        ),
         patch(
             "pyplumio.helpers.event_manager.EventManager.subscribe", autospec=True
         ) as mock_subscribe,
     ):
-        # Mark mock_listener as event listener.
-        setattr(mock_on_event_test, "_on_event", "test")
-        setattr(mock_on_event_test, "_on_event_filter", None)
-
-        # Mark mock_listener2 as event listener with a filter.
-        mock_filter = Mock()
-        mock_wrapper = Mock(return_value=mock_filter)
-        setattr(mock_on_event_test2, "_on_event", "test2")
-        setattr(mock_on_event_test2, "_on_event_filter", mock_wrapper)
-
         event_manager = EventManager[Any]()
 
     mock_subscribe.assert_has_calls(

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Coroutine
+from collections.abc import Callable, Coroutine, Generator
+import inspect
 from typing import Any, Generic, TypeVar, overload
 
 from typing_extensions import TypeAlias
@@ -52,15 +53,17 @@ class EventManager(TaskManager, Generic[T]):
         self._callbacks = {}
         self._register_event_listeners()
 
+    def _get_event_listeners(self) -> Generator[tuple[str, Callback]]:
+        """Get the event listeners."""
+        for _, callback in inspect.getmembers(self, predicate=inspect.ismethod):
+            if event := getattr(callback, "_on_event", None):
+                yield (event, callback)
+
     def _register_event_listeners(self) -> None:
         """Register the event listeners."""
-        members = (getattr(self, name) for name in dir(self))
-        for func in members:
-            if not callable(func) or not (event := getattr(func, "_on_event", None)):
-                continue
-
-            filter = getattr(func, "_on_event_filter", None)
-            self.subscribe(event, filter(func) if filter else func)
+        for event, callback in self._get_event_listeners():
+            filter = getattr(callback, "_on_event_filter", None)
+            self.subscribe(event, filter(callback) if filter else callback)
 
     def __getattr__(self, name: str) -> T:
         """Return attributes from the underlying data dictionary."""
