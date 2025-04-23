@@ -53,24 +53,24 @@ class EventManager(TaskManager, Generic[T]):
         self._callbacks = {}
         self._register_event_listeners()
 
-    def _get_event_listeners(self) -> Generator[tuple[str, Callback]]:
-        """Get the event listeners."""
-        for _, callback in inspect.getmembers(self, predicate=inspect.ismethod):
-            if event := getattr(callback, "_on_event", None):
-                yield (event, callback)
-
-    def _register_event_listeners(self) -> None:
-        """Register the event listeners."""
-        for event, callback in self._get_event_listeners():
-            filter = getattr(callback, "_on_event_filter", None)
-            self.subscribe(event, filter(callback) if filter else callback)
-
     def __getattr__(self, name: str) -> T:
         """Return attributes from the underlying data dictionary."""
         try:
             return self.data[name]
         except KeyError as e:
             raise AttributeError from e
+
+    def _register_event_listeners(self) -> None:
+        """Register the event listeners."""
+        for event, callback in self.event_listeners():
+            filter = getattr(callback, "_on_event_filter", None)
+            self.subscribe(event, filter(callback) if filter else callback)
+
+    def event_listeners(self) -> Generator[tuple[str, Callback]]:
+        """Get the event listeners."""
+        for _, callback in inspect.getmembers(self, predicate=inspect.ismethod):
+            if event := getattr(callback, "_on_event", None):
+                yield (event, callback)
 
     async def wait_for(self, name: str, timeout: float | None = None) -> None:
         """Wait for the value to become available.

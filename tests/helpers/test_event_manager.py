@@ -30,19 +30,22 @@ def test_register_event_listeners() -> None:
     mock_wrapper = Mock(return_value=mock_filter)
     setattr(mock_on_event_test2, "_on_event_filter", mock_wrapper)
 
+    mock_event_listeners = [
+        ("on_event_test", mock_on_event_test),
+        ("on_event_test2", mock_on_event_test2),
+    ]
+
     with (
-        patch(
-            "inspect.getmembers",
-            return_value=(
-                ("on_event_test", mock_on_event_test),
-                ("on_event_test2", mock_on_event_test2),
-            ),
-        ),
+        patch("inspect.getmembers", return_value=mock_event_listeners),
         patch(
             "pyplumio.helpers.event_manager.EventManager.subscribe", autospec=True
         ) as mock_subscribe,
     ):
         event_manager = EventManager[Any]()
+        assert list(event_manager.event_listeners()) == [
+            ("test", mock_on_event_test),
+            ("test2", mock_on_event_test2),
+        ]
 
     mock_subscribe.assert_has_calls(
         [
