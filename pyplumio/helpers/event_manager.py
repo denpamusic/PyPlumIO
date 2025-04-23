@@ -63,8 +63,8 @@ class EventManager(TaskManager, Generic[T]):
     def _register_event_listeners(self) -> None:
         """Register the event listeners."""
         for event, callback in self.event_listeners():
-            filter = getattr(callback, "_on_event_filter", None)
-            self.subscribe(event, filter(callback) if filter else callback)
+            filter_func = getattr(callback, "_on_event_filter", None)
+            self.subscribe(event, filter_func(callback) if filter_func else callback)
 
     def event_listeners(self) -> Generator[tuple[str, Callback]]:
         """Get the event listeners."""
