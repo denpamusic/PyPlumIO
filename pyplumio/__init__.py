@@ -13,6 +13,7 @@ from pyplumio.exceptions import (
     ProtocolError,
     PyPlumIOError,
     ReadError,
+    RequestError,
     UnknownDeviceError,
     UnknownFrameError,
 )
@@ -90,6 +91,8 @@ def open_tcp_connection(
 
 
 __all__ = [
+    "__version__",
+    "__version_tuple__",
     "AsyncProtocol",
     "ChecksumError",
     "ConnectionFailedError",
@@ -107,8 +110,6 @@ __all__ = [
     "UnknownDeviceError",
     "UnknownFrameError",
     "WirelessParameters",
-    "__version__",
-    "__version_tuple__",
     "open_serial_connection",
     "open_tcp_connection",
 ]
