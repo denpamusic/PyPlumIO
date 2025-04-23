@@ -7,7 +7,7 @@ import asyncio
 import logging
 from typing import Any, Final
 
-from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
+from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.task_manager import TaskManager
@@ -73,7 +73,7 @@ class Connection(ABC, TaskManager):
         try:
             reader, writer = await self._open_connection()
             self.protocol.connection_established(reader, writer)
-        except (OSError, SerialException, asyncio.TimeoutError) as err:
+        except (OSError, asyncio.TimeoutError) as err:
             raise ConnectionFailedError from err
 
     async def _reconnect(self) -> None:
