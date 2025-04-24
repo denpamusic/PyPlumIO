@@ -1,3 +1,5 @@
+"""Sphinx configuration file for PyPlumIO documentation."""
+
 from importlib.metadata import version as pkg_version
 import os
 import sys
@@ -46,4 +48,4 @@ html_theme_options = {
 
 # Suppress warnings about duplicate label.
 
-suppress_warnings = ['autosectionlabel.*']
+suppress_warnings = ["autosectionlabel.*"]

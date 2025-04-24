@@ -1,4 +1,5 @@
-# PyPlumIO is a native ecoNET library for Plum ecoMAX controllers.
+# PyPlumIO is a native ecoNET library for Plum ecoMAX controllers
+
 [![PyPI version](https://badge.fury.io/py/PyPlumIO.svg)](https://badge.fury.io/py/PyPlumIO)
 [![PyPI Supported Python Versions](https://img.shields.io/pypi/pyversions/pyplumio.svg)](https://pypi.python.org/pypi/pyplumio/)
 [![PyPlumIO CI](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml/badge.svg)](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml)
@@ -8,17 +9,23 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 ## Overview
-This package aims to provide complete and easy to use solution for communicating with climate devices by [Plum Sp. z o.o.](https://www.plum.pl/)
+
+This package aims to provide complete and easy to use solution for
+communicating with climate devices by [Plum Sp. z o.o.](https://www.plum.pl/)
 
 ![ecoMAX controllers](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/ecomax.png)
 
-Currently it supports reading and writing parameters of ecoMAX controllers by Plum Sp. z o.o., getting service password and sending network information to show on controller's display.
+Currently it supports reading and writing parameters of ecoMAX controllers by
+Plum Sp. z o.o., getting service password and sending network information to
+show on controller's display.
 
-Devices can be connected directly via RS-485 to USB adapter or through network by using RS-485 to Ethernet/WiFi converter.
+Devices can be connected directly via RS-485 to USB adapter or
+through network by using RS-485 to Ethernet/WiFi converter.
 
 ![RS-485 converters](https://raw.githubusercontent.com/denpamusic/PyPlumIO/main/images/rs485.png)
 
 ## Table of contents
+
 - [Connecting](https://pyplumio.denpa.pro/connecting.html)
 - [Reading](https://pyplumio.denpa.pro/reading.html)
 - [Writing](https://pyplumio.denpa.pro/writing.html)
@@ -30,7 +37,6 @@ Devices can be connected directly via RS-485 to USB adapter or through network b
   - [Requests and Responses](https://pyplumio.denpa.pro/protocol.html#requests-and-responses)
   - [Communication](https://pyplumio.denpa.pro/protocol.html#communication)
   - [Versioning](https://pyplumio.denpa.pro/protocol.html#versioning)
-
 
 ## Quickstart
 
@@ -49,22 +55,29 @@ $ pip install pyplumio
 ```
 
 3. Print some values:
+
 ```python
 >>> print(await ecomax.get("heating_temp"))
 ```
 
 4. Don’t forget to close the connection:
+
 ```python
 >>> await connection.close()
 ```
 
 ## Home Assistant Integration
-There is companion Home Assistant integration that is being co-developed with this package and depends on it. Click button below to check it out.
+
+There is companion Home Assistant integration that is being co-developed with
+this package and depends on it. Click button below to check it out.
 
 [![Plum ecoMAX for Home Assistant](https://img.shields.io/badge/Plum%20ecoMAX%20for%20Home%20Assistant-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
 
 ## Attribution
-Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze) project by twkrol for initial information about protocol.
+
+Special thanks to [econetanalyze](https://github.com/twkrol/econetanalyze)
+project by twkrol for initial information about protocol.
 
 ## License
+
 This product is distributed under MIT license.

@@ -1,5 +1,4 @@
 ---
-
 name: Bug report
 description: Use this to file a bug report.
 labels: ["bug"]
@@ -33,8 +32,8 @@ body:
           - **OS**: Ubuntu 20.04
           - **Python**: 3.10
       value: |
-          - OS:
-          - Python:
+        - OS:
+        - Python:
       render: markdown
     validations:
       required: false

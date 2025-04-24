@@ -1,5 +1,4 @@
 ---
-
 name: docs
 
 on: [push, pull_request, workflow_dispatch]
@@ -37,8 +36,7 @@ jobs:
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         if: >
-          ${{ github.event_name == 'push' &&
-              github.ref == 'refs/heads/main' }}
+          ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}

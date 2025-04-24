@@ -202,8 +202,10 @@ async def test_context_manager(
     mock_close,
 ) -> None:
     """Test context manager integration."""
-    async with pyplumio.connection.TcpConnection(host=HOST, port=PORT):
-        pass
+    async with pyplumio.connection.TcpConnection(host=HOST, port=PORT) as connection:
+        assert isinstance(connection, pyplumio.connection.TcpConnection)
+        assert connection.host == HOST
+        assert connection.port == PORT
 
     mock_connect.assert_called_once()
     mock_close.assert_called_once()
@@ -240,6 +242,5 @@ async def test_repr(
         == f"TcpConnection(host={HOST}, port={PORT}, kwargs={{'timeout': 10}})"
     )
     assert repr(serial_connection) == (
-        f"SerialConnection(device={DEVICE}, baudrate=115200, "
-        f"kwargs={{'timeout': 10}})"
+        f"SerialConnection(device={DEVICE}, baudrate=115200, kwargs={{'timeout': 10}})"
     )

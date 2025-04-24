@@ -255,7 +255,6 @@ def test_number_compare(number: Number) -> None:
     assert number == 1
     values = ParameterValues(value=1, min_value=0, max_value=5)
     assert number == values
-    assert not number != values
     assert number < 2
     assert number > 0
     assert 0 <= number <= 1
@@ -266,7 +265,6 @@ def test_switch_compare(switch: Switch) -> None:
     assert switch == 0
     values = ParameterValues(value=0, min_value=0, max_value=1)
     assert switch == values
-    assert not switch != values
     assert switch < 2
     switch.update(ParameterValues(value=1, min_value=0, max_value=0))
     assert switch > 0

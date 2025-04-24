@@ -20,7 +20,7 @@ ATTR_PRODUCT: Final = "product"
 @cache
 def format_model_name(model_name: str) -> str:
     """Format a device model name."""
-    if m := re.match(r"^([A-Z]+)\s*([0-9]{3,})(.+)$", model_name, re.IGNORECASE):
+    if m := re.match(r"^([A-Z]+)\s*(\d{3,})(.+)$", model_name, re.IGNORECASE):
         model_device, model_number, model_suffix = m.groups()
         model_device = "ecoMAX" if model_device == "EM" else model_device
         return f"{model_device} {model_number}{model_suffix}"
