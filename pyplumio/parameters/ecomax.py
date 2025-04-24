@@ -801,6 +801,8 @@ THERMOSTAT_PROFILE_PARAMETER = EcomaxNumberDescription(name=ATTR_THERMOSTAT_PROF
 class EcomaxParameterOverride(ParameterOverride):
     """Represents an ecoMAX parameter override."""
 
+    __slots__ = ()
+
     description: EcomaxParameterDescription
 
 
