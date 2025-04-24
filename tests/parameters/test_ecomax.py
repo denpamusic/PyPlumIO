@@ -77,11 +77,10 @@ def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
         image=2,
         model="ecoMAX 860D3-HB",
     )
+    assert parameter_types[119].name == "water_heater_target_temp"
+    assert parameter_types[120].name == "min_water_heater_target_temp"
+    assert parameter_types[121].name == "max_water_heater_target_temp"
     parameter_types_patched = get_ecomax_parameter_types(product_info)
-    assert parameter_types_patched[119] == EcomaxNumberDescription(name="summer_mode")
-    assert parameter_types_patched[120] == EcomaxNumberDescription(
-        name="summer_mode_enable_temp"
-    )
-    assert parameter_types_patched[121] == EcomaxNumberDescription(
-        name="summer_mode_disable_temp"
-    )
+    assert parameter_types_patched[119].name == "summer_mode"
+    assert parameter_types_patched[120].name == "summer_mode_enable_temp"
+    assert parameter_types_patched[121].name == "summer_mode_disable_temp"
