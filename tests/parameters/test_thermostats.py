@@ -16,7 +16,7 @@ from pyplumio.parameters.thermostat import (
 )
 
 
-@pytest.fixture(name="mixer")
+@pytest.fixture(name="thermostat")
 def fixture_thermostat(ecomax: EcoMAX) -> Thermostat:
     """Return an thermostat object."""
     return Thermostat(ecomax.queue, parent=ecomax)
