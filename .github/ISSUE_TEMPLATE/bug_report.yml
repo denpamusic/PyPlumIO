@@ -1,3 +1,5 @@
+---
+
 name: Bug report
 description: Use this to file a bug report.
 labels: ["bug"]
@@ -9,10 +11,12 @@ body:
   - type: checkboxes
     attributes:
       label: "Is there an existing issue for this?"
-      description: Please search to see if an issue already exists for the bug you encountered.
+      description: >
+        Please search to see if an issue already exists for the bug
+        you encountered.
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
     attributes:
       label: "I'm having the following issue:"
@@ -24,13 +28,13 @@ body:
       label: "My environment is:"
       description: |
         Please describe your working environment.
-        
+
         example:
           - **OS**: Ubuntu 20.04
           - **Python**: 3.10
       value: |
-          - OS: 
-          - Python: 
+          - OS:
+          - Python:
       render: markdown
     validations:
       required: false
@@ -63,13 +67,17 @@ body:
       description: |
         Please paste any relevant log output here.
 
-        Tip: You can attach log files by clicking this area to highlight it and then dragging files in.
+        Tip: You can attach log files by clicking this area to highlight it
+        and then dragging files in.
       render: shell
   - type: checkboxes
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/denpamusic/PyPlumIO/blob/main/.github/CODE_OF_CONDUCT.md)
+      description: >
+        By submitting this issue, you agree to follow our
+        [Code of Conduct](>
+        https://github.com/denpamusic/PyPlumIO/blob/main/.github/CODE_OF_CONDUCT.md)
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true

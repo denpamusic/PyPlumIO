@@ -1,4 +1,8 @@
+---
+
 name: deploy
+permissions:
+  contents: read
 
 on:
   release:
