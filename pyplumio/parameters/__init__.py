@@ -478,9 +478,9 @@ class Switch(Parameter):
 
 
 __all__ = [
-    "NumericType",
     "Number",
     "NumberDescription",
+    "NumericType",
     "OffsetNumber",
     "OffsetNumberDescription",
     "Parameter",

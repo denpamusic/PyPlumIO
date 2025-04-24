@@ -12,9 +12,12 @@ from pyplumio.const import (
     ATTR_PASSWORD,
     ATTR_SENSORS,
     ATTR_STATE,
+    STATE_OFF,
+    STATE_ON,
     DeviceState,
     DeviceType,
     FrameType,
+    State,
 )
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
@@ -22,18 +25,20 @@ from pyplumio.devices.thermostat import Thermostat
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import event_listener
-from pyplumio.helpers.parameter import STATE_OFF, STATE_ON, ParameterValues, State
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
-from pyplumio.structures.ecomax_parameters import (
-    ATTR_ECOMAX_CONTROL,
-    ATTR_ECOMAX_PARAMETERS,
+from pyplumio.parameters import ParameterValues
+from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
-    ECOMAX_PARAMETERS,
     THERMOSTAT_PROFILE_PARAMETER,
     EcomaxNumber,
     EcomaxSwitch,
     EcomaxSwitchDescription,
+    get_ecomax_parameter_types,
+)
+from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
+from pyplumio.structures.ecomax_parameters import (
+    ATTR_ECOMAX_CONTROL,
+    ATTR_ECOMAX_PARAMETERS,
 )
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
@@ -196,13 +201,14 @@ class EcoMAX(PhysicalDevice):
         self, parameters: Sequence[tuple[int, ParameterValues]]
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
-        product: ProductInfo = await self.get(ATTR_PRODUCT)
+        product_info: ProductInfo = await self.get(ATTR_PRODUCT)
 
         def _ecomax_parameter_events() -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for ecoMAX parameter events."""
+            parameter_types = get_ecomax_parameter_types(product_info)
             for index, values in parameters:
                 try:
-                    description = ECOMAX_PARAMETERS[product.type][index]
+                    description = parameter_types[index]
                 except IndexError:
                     _LOGGER.warning(
                         "Encountered unknown ecoMAX parameter (%i): %s. "
@@ -211,7 +217,7 @@ class EcoMAX(PhysicalDevice):
                         "and open a feature request to support %s",
                         index,
                         values,
-                        product.model,
+                        product_info.model,
                     )
                     return
 
@@ -392,7 +398,7 @@ class EcoMAX(PhysicalDevice):
         }
 
     @event_listener(ATTR_STATE, on_change)
-    async def on_event_state(self, mode: DeviceState) -> None:
+    async def on_event_state(self, state: DeviceState) -> None:
         """Update the ecoMAX control parameter."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,
@@ -400,7 +406,7 @@ class EcoMAX(PhysicalDevice):
                 description=ECOMAX_CONTROL_PARAMETER,
                 device=self,
                 values=ParameterValues(
-                    value=int(mode != DeviceState.OFF), min_value=0, max_value=1
+                    value=int(state != DeviceState.OFF), min_value=0, max_value=1
                 ),
             ),
         )

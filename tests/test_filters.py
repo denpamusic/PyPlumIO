@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from pyplumio import filters
-from pyplumio.helpers.parameter import Parameter, ParameterValues
+from pyplumio.parameters import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
 
 

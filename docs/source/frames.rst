@@ -59,7 +59,7 @@ Get the ecoMAX controller editable parameters.
 Each parameter is represented by a tuple containing parameter index and parameter
 values represented by the following dataclass:
 
-.. autoclass:: pyplumio.helpers.parameter.ParameterValues
+.. autoclass:: pyplumio.parameters.ParameterValues
 
 Request
 ^^^^^^^

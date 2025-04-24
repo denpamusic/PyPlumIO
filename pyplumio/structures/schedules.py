@@ -19,7 +19,7 @@ from pyplumio.const import (
 from pyplumio.devices import Device, PhysicalDevice
 from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
-from pyplumio.helpers.parameter import (
+from pyplumio.parameters import (
     Number,
     NumberDescription,
     Parameter,

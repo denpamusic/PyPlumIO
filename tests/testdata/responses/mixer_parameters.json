@@ -17,7 +17,7 @@
                 "value": 40,
                 "min_value": 30,
                 "max_value": 60,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],
@@ -30,7 +30,7 @@
                 "value": 20,
                 "min_value": 30,
                 "max_value": 40,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],
@@ -43,7 +43,7 @@
                 "value": 80,
                 "min_value": 70,
                 "max_value": 90,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],
@@ -56,7 +56,7 @@
                 "value": 20,
                 "min_value": 10,
                 "max_value": 30,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],
@@ -69,7 +69,7 @@
                 "value": 1,
                 "min_value": 0,
                 "max_value": 1,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],
@@ -82,7 +82,7 @@
                 "value": 13,
                 "min_value": 10,
                 "max_value": 30,
-                "__module__": "pyplumio.helpers.parameter",
+                "__module__": "pyplumio.parameters",
                 "__class__": "ParameterValues"
               }
             ],

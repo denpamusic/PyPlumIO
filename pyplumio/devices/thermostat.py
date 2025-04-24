@@ -8,14 +8,14 @@ from typing import Any
 
 from pyplumio.devices import VirtualDevice
 from pyplumio.helpers.event_manager import event_listener
-from pyplumio.helpers.parameter import ParameterValues
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PARAMETERS,
-    THERMOSTAT_PARAMETERS,
+from pyplumio.parameters import ParameterValues
+from pyplumio.parameters.thermostat import (
     ThermostatNumber,
     ThermostatSwitch,
     ThermostatSwitchDescription,
+    get_thermostat_parameter_types,
 )
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
 
@@ -40,8 +40,9 @@ class Thermostat(VirtualDevice):
 
         def _thermostat_parameter_events() -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for thermostat parameter events."""
+            parameter_types = get_thermostat_parameter_types()
             for index, values in parameters:
-                description = THERMOSTAT_PARAMETERS[index]
+                description = parameter_types[index]
                 handler = (
                     ThermostatSwitch
                     if isinstance(description, ThermostatSwitchDescription)

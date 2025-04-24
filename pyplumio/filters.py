@@ -20,7 +20,7 @@ from typing import (
 from typing_extensions import TypeAlias
 
 from pyplumio.helpers.event_manager import Callback
-from pyplumio.helpers.parameter import Parameter
+from pyplumio.parameters import Parameter
 
 UNDEFINED: Final = "undefined"
 TOLERANCE: Final = 0.1

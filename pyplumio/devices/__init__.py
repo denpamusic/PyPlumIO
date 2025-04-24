@@ -8,13 +8,13 @@ from functools import cache
 import logging
 from typing import Any, ClassVar
 
-from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType
+from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType, State
 from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.helpers.factory import create_instance
-from pyplumio.helpers.parameter import NumericType, Parameter, State
+from pyplumio.parameters import NumericType, Parameter
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase

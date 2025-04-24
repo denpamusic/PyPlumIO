@@ -1,1 +1,1 @@
-"""Contains tests for the helper classes."""
+"""Contains tests for the helpers module."""

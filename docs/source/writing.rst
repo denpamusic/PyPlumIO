@@ -33,7 +33,7 @@ Parameters
 For the parameters, it's possible to retrieve the ``Parameter`` object
 and then modify it via it's own setter method.
 
-.. autoclass:: pyplumio.helpers.parameter.Parameter
+.. autoclass:: pyplumio.parameters.Parameter
 
 When using the parameter object directly, you don't need to pass the
 parameter name to the setter method.
@@ -45,7 +45,7 @@ Numbers are parameters that have numerical value associated with them.
 
 .. code-block:: python
 
-    from pyplumio.helpers.parameter import Number
+    from pyplumio.parameters import Number
 
     ecomax = await conn.get("ecomax")
     heating_target: Number = ecomax.get("heating_target_temp")
@@ -61,7 +61,7 @@ Please note, that both values are **inclusive**.
 
 .. code-block:: python
 
-    from pyplumio.helpers.parameter import Number
+    from pyplumio.parameters import Number
 
     ecomax = await connection.get("ecomax")
     target_temp: Number = await ecomax.get("heating_target_temp")
@@ -77,10 +77,10 @@ Thus, for switches, you can use Python's boolean keywords `True` or `False`,
 string literals "on" or "off" or special ``turn_on()`` and
 ``turn_off()`` methods.
 
-.. autofunction:: pyplumio.helpers.parameter.Switch.turn_on
-.. autofunction:: pyplumio.helpers.parameter.Switch.turn_on_nowait
-.. autofunction:: pyplumio.helpers.parameter.Switch.turn_off
-.. autofunction:: pyplumio.helpers.parameter.Switch.turn_off_nowait
+.. autofunction:: pyplumio.parameters.Switch.turn_on
+.. autofunction:: pyplumio.parameters.Switch.turn_on_nowait
+.. autofunction:: pyplumio.parameters.Switch.turn_off
+.. autofunction:: pyplumio.parameters.Switch.turn_off_nowait
 
 Good example of a switch is "ecomax_control" that allows you to switch
 the ecoMAX controller on or off.
@@ -95,7 +95,7 @@ object.
 
 .. code-block:: python
 
-    from pyplumio.helpers.parameter import Switch
+    from pyplumio.parameters import Switch
 
     # Get an ecomax_control parameter and turn it on.
     ecomax_control: Switch = await ecomax.get("ecomax_control")

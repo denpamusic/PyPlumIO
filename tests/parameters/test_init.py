@@ -1,4 +1,4 @@
-"""Contains tests for the parameter helper class."""
+"""Contains tests for the parameter descriptors."""
 
 from copy import copy
 from unittest.mock import patch
@@ -7,7 +7,7 @@ import pytest
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.helpers.parameter import (
+from pyplumio.parameters import (
     Number,
     NumberDescription,
     Parameter,
@@ -79,7 +79,7 @@ def test_create_or_update_parameter(
     values: ParameterValues,
 ) -> None:
     """Test creating or updating a parameter."""
-    with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
+    with patch("pyplumio.parameters.Parameter.update") as mock_update:
         parameter = handler.create_or_update(
             device=ecomax, description=description, values=values
         )
@@ -89,7 +89,7 @@ def test_create_or_update_parameter(
 
     # Test updating an existing parameter.
     ecomax.data[description.name] = parameter
-    with patch("pyplumio.helpers.parameter.Parameter.update") as mock_update:
+    with patch("pyplumio.parameters.Parameter.update") as mock_update:
         handler.create_or_update(device=ecomax, description=description, values=values)
 
     mock_update.assert_called_once()
@@ -124,7 +124,7 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
     number.update(ParameterValues(value=5, min_value=0, max_value=5))
     assert number == 5
     assert not number.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
+    with patch("pyplumio.parameters.Parameter.pending_update", False):  # type: ignore [unreachable]
         assert await number.set(3)
         assert number == 3
 
@@ -165,7 +165,7 @@ async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
     switch.update(ParameterValues(value=1, min_value=0, max_value=1))
     assert switch == 1
     assert not switch.pending_update
-    with patch("pyplumio.helpers.parameter.Parameter.pending_update", False):  # type: ignore [unreachable]
+    with patch("pyplumio.parameters.Parameter.pending_update", False):  # type: ignore [unreachable]
         assert await switch.set(STATE_OFF)
 
     assert switch == 0
@@ -339,28 +339,28 @@ async def test_switch_request_with_unchanged_value(
     mock_put.assert_not_awaited()
 
 
-@patch("pyplumio.helpers.parameter.Switch.set")
+@patch("pyplumio.parameters.Switch.set")
 async def test_switch_turn_on(mock_set, switch: Switch) -> None:
     """Test that switch can be turned on."""
     await switch.turn_on()
     mock_set.assert_called_once_with(STATE_ON)
 
 
-@patch("pyplumio.helpers.parameter.Switch.set")
+@patch("pyplumio.parameters.Switch.set")
 async def test_switch_turn_off(mock_set, switch: Switch) -> None:
     """Test that switch can be turned off."""
     await switch.turn_off()
     mock_set.assert_called_once_with(STATE_OFF)
 
 
-@patch("pyplumio.helpers.parameter.Switch.set_nowait")
+@patch("pyplumio.parameters.Switch.set_nowait")
 async def test_binary_parameter_turn_on_nowait(mock_set_nowait, switch: Switch) -> None:
     """Test that a switch can be turned on without waiting."""
     switch.turn_on_nowait()
     mock_set_nowait.assert_called_once_with(STATE_ON)
 
 
-@patch("pyplumio.helpers.parameter.Switch.set_nowait")
+@patch("pyplumio.parameters.Switch.set_nowait")
 async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
     """Test that a switch can be turned off without waiting."""
     switch.turn_off_nowait()

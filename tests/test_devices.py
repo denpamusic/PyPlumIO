@@ -58,19 +58,17 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
 )
 from pyplumio.helpers.schedule import Schedule, ScheduleDay
-from pyplumio.structures.ecomax_parameters import (
-    ATTR_ECOMAX_CONTROL,
-    ECOMAX_PARAMETERS,
+from pyplumio.parameters.ecomax import (
+    PARAMETER_TYPES as ECOMAX_PARAMETER_TYPES,
     EcomaxNumber,
     EcomaxSwitch,
 )
+from pyplumio.parameters.mixer import MixerNumber, MixerSwitch
+from pyplumio.parameters.thermostat import ThermostatNumber
+from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
-from pyplumio.structures.mixer_parameters import (
-    ATTR_MIXER_PARAMETERS,
-    MixerNumber,
-    MixerSwitch,
-)
+from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.regulator_data import ATTR_REGDATA
@@ -84,7 +82,6 @@ from pyplumio.structures.schedules import (
 from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PARAMETERS,
     ATTR_THERMOSTAT_PROFILE,
-    ThermostatNumber,
 )
 from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTAT_SENSORS,
@@ -211,7 +208,7 @@ async def test_ecomax_naming_collisions(ecomax: EcoMAX) -> None:
     test_data = load_json_test_data("messages/sensor_data.json")[0]
     ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
-    for descriptions in ECOMAX_PARAMETERS.values():
+    for descriptions in ECOMAX_PARAMETER_TYPES.values():
         collisions = [
             description.name
             for description in descriptions
@@ -611,7 +608,7 @@ async def test_request_error(ecomax: EcoMAX) -> None:
     assert excinfo.value.frame_type == FrameType.REQUEST_ALERTS
 
 
-@patch("pyplumio.helpers.parameter.Parameter.pending_update", False)
+@patch("pyplumio.parameters.Parameter.pending_update", False)
 async def test_set(ecomax: EcoMAX) -> None:
     """Test setting parameter value via set helper."""
     test_ecomax_data, test_thermostat_data, test_mixer_data = (
