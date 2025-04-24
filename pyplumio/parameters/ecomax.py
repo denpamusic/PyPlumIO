@@ -806,7 +806,7 @@ class EcomaxParameterOverride(ParameterOverride):
     description: EcomaxParameterDescription
 
 
-PARAMETER_OVERRIDES: tuple[ParameterOverride, ...] = (
+PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
     EcomaxParameterOverride(
         target="water_heater_target_temp",
         description=EcomaxNumberDescription(name="summer_mode"),
