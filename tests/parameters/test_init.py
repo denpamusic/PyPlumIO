@@ -371,14 +371,14 @@ async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
 
 def test_patch_parameter_types(ecomax: EcoMAX) -> None:
     """Test parameter types patcher."""
-    types = [ParameterDescription(name="test")]
-    overrides = (
+    parameter_types = [ParameterDescription(name="test")]
+    parameter_overrides = (
         ParameterOverride(
-            target="test",
-            description=ParameterDescription(name="test2"),
+            original="test",
+            replacement=ParameterDescription(name="test2"),
             product_model="ecoMAX 350P2-ZF",
             product_id=90,
         ),
     )
-    result = patch_parameter_types(ecomax.product, types, overrides)
+    result = patch_parameter_types(ecomax.product, parameter_types, parameter_overrides)
     assert result[0].name == "test2"

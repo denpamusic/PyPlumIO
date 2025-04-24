@@ -483,10 +483,10 @@ class Switch(Parameter):
 class ParameterOverride:
     """Represents a parameter override."""
 
-    __slot__ = ("target", "description", "product_model", "product_id")
+    __slot__ = ("original", "replacement", "product_model", "product_id")
 
-    target: str
-    description: ParameterDescription
+    original: str
+    replacement: ParameterDescription
     product_model: str
     product_id: int
 
@@ -497,7 +497,7 @@ _DescriptorT = TypeVar("_DescriptorT", bound=ParameterDescription)
 def patch_parameter_types(
     product_info: ProductInfo,
     parameter_types: list[_DescriptorT],
-    overrides: Sequence[ParameterOverride],
+    parameter_overrides: Sequence[ParameterOverride],
 ) -> list[_DescriptorT]:
     """Patch the parameter types based on the provided overrides.
 
@@ -507,15 +507,15 @@ def patch_parameter_types(
         https://github.com/python/mypy/issues/13596
 
     """
-    patches = {
-        override.target: override.description
-        for override in overrides
+    replacements = {
+        override.original: override.replacement
+        for override in parameter_overrides
         if override.product_model == product_info.model
         and override.product_id == product_info.id
     }
     for index, description in enumerate(parameter_types):
-        if description.name in patches:
-            parameter_types[index] = patches[description.name]  # type: ignore[assignment]
+        if description.name in replacements:
+            parameter_types[index] = replacements[description.name]  # type: ignore[assignment]
 
     return parameter_types
 

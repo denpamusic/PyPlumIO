@@ -803,25 +803,25 @@ class EcomaxParameterOverride(ParameterOverride):
 
     __slots__ = ()
 
-    description: EcomaxParameterDescription
+    replacement: EcomaxParameterDescription
 
 
 PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
     EcomaxParameterOverride(
-        target="water_heater_target_temp",
-        description=EcomaxNumberDescription(name="summer_mode"),
+        original="water_heater_target_temp",
+        replacement=EcomaxNumberDescription(name="summer_mode"),
         product_model="ecoMAX 860D3-HB",
         product_id=48,
     ),
     EcomaxParameterOverride(
-        target="min_water_heater_target_temp",
-        description=EcomaxNumberDescription(name="summer_mode_enable_temp"),
+        original="min_water_heater_target_temp",
+        replacement=EcomaxNumberDescription(name="summer_mode_enable_temp"),
         product_model="ecoMAX 860D3-HB",
         product_id=48,
     ),
     EcomaxParameterOverride(
-        target="max_water_heater_target_temp",
-        description=EcomaxNumberDescription(name="summer_mode_disable_temp"),
+        original="max_water_heater_target_temp",
+        replacement=EcomaxNumberDescription(name="summer_mode_disable_temp"),
         product_model="ecoMAX 860D3-HB",
         product_id=48,
     ),
@@ -836,7 +836,7 @@ def get_ecomax_parameter_types(
     return patch_parameter_types(
         product_info,
         parameter_types=PARAMETER_TYPES[product_info.type],
-        overrides=PARAMETER_OVERRIDES,
+        parameter_overrides=PARAMETER_OVERRIDES,
     )
 
 
