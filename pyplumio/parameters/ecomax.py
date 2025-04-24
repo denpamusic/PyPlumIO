@@ -815,13 +815,19 @@ PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
     ),
     EcomaxParameterOverride(
         original="min_water_heater_target_temp",
-        replacement=EcomaxNumberDescription(name="summer_mode_enable_temp"),
+        replacement=EcomaxNumberDescription(
+            name="summer_mode_enable_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
         product_model="ecoMAX 860D3-HB",
         product_id=48,
     ),
     EcomaxParameterOverride(
         original="max_water_heater_target_temp",
-        replacement=EcomaxNumberDescription(name="summer_mode_disable_temp"),
+        replacement=EcomaxNumberDescription(
+            name="summer_mode_disable_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
         product_model="ecoMAX 860D3-HB",
         product_id=48,
     ),
