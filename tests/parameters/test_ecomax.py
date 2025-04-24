@@ -80,7 +80,9 @@ def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert parameter_types[119].name == "water_heater_target_temp"
     assert parameter_types[120].name == "min_water_heater_target_temp"
     assert parameter_types[121].name == "max_water_heater_target_temp"
+    assert parameter_types[127].name == "summer_mode_disable_temp"
     parameter_types_patched = get_ecomax_parameter_types(product_info)
     assert parameter_types_patched[119].name == "summer_mode"
     assert parameter_types_patched[120].name == "summer_mode_enable_temp"
     assert parameter_types_patched[121].name == "summer_mode_disable_temp"
+    assert parameter_types_patched[127].name == "__unknown_parameter_1"

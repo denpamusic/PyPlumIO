@@ -808,6 +808,12 @@ class EcomaxParameterOverride(ParameterOverride):
 
 PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
     EcomaxParameterOverride(
+        original="summer_mode_disable_temp",
+        replacement=EcomaxNumberDescription(name="__unknown_parameter_1"),
+        product_model="ecoMAX 860D3-HB",
+        product_id=48,
+    ),
+    EcomaxParameterOverride(
         original="water_heater_target_temp",
         replacement=EcomaxNumberDescription(name="summer_mode"),
         product_model="ecoMAX 860D3-HB",
