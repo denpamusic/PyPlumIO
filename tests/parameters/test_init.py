@@ -12,10 +12,12 @@ from pyplumio.parameters import (
     NumberDescription,
     Parameter,
     ParameterDescription,
+    ParameterOverride,
     ParameterValues,
     Switch,
     SwitchDescription,
     is_valid_parameter,
+    patch_parameter_types,
 )
 
 
@@ -365,3 +367,18 @@ async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
     """Test that a switch can be turned off without waiting."""
     switch.turn_off_nowait()
     mock_set_nowait.assert_called_once_with(STATE_OFF)
+
+
+def test_patch_parameter_types(ecomax: EcoMAX) -> None:
+    """Test parameter types patcher."""
+    types = [ParameterDescription(name="test")]
+    overrides = (
+        ParameterOverride(
+            target="test",
+            description=ParameterDescription(name="test2"),
+            product_model="ecoMAX 350P2-ZF",
+            product_id=90,
+        ),
+    )
+    result = patch_parameter_types(ecomax.product, types, overrides)
+    assert result[0].name == "test2"

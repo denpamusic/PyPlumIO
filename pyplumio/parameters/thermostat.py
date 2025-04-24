@@ -105,7 +105,7 @@ class ThermostatSwitch(ThermostatParameter, Switch):
     description: ThermostatSwitchDescription
 
 
-PARAMETER_TYPES: tuple[ThermostatParameterDescription, ...] = (
+PARAMETER_TYPES: list[ThermostatParameterDescription] = [
     ThermostatNumberDescription(
         name="mode",
     ),
@@ -176,11 +176,11 @@ PARAMETER_TYPES: tuple[ThermostatParameterDescription, ...] = (
     ThermostatNumberDescription(
         name="off_timer",
     ),
-)
+]
 
 
 @cache
-def get_thermostat_parameter_types() -> tuple[ThermostatParameterDescription, ...]:
+def get_thermostat_parameter_types() -> list[ThermostatParameterDescription]:
     """Return cached thermostat parameter types for specific product."""
     return PARAMETER_TYPES
 

@@ -88,8 +88,8 @@ class MixerSwitch(MixerParameter, Switch):
     description: MixerSwitchDescription
 
 
-PARAMETER_TYPES: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
-    ProductType.ECOMAX_P: (
+PARAMETER_TYPES: dict[ProductType, list[MixerParameterDescription]] = {
+    ProductType.ECOMAX_P: [
         MixerNumberDescription(
             name="mixer_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
@@ -141,8 +141,8 @@ PARAMETER_TYPES: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
         MixerSwitchDescription(
             name="summer_work",
         ),
-    ),
-    ProductType.ECOMAX_I: (
+    ],
+    ProductType.ECOMAX_I: [
         MixerNumberDescription(
             name="work_mode",
         ),
@@ -221,14 +221,14 @@ PARAMETER_TYPES: dict[ProductType, tuple[MixerParameterDescription, ...]] = {
             name="decreasing_constant_water_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-    ),
+    ],
 }
 
 
 @cache
 def get_mixer_parameter_types(
     product_info: ProductInfo,
-) -> tuple[MixerParameterDescription, ...]:
+) -> list[MixerParameterDescription]:
     """Return cached mixer parameter types for specific product."""
     return PARAMETER_TYPES[product_info.type]
 

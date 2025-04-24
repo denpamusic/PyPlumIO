@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
@@ -13,6 +14,7 @@ from typing_extensions import TypeAlias
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.frames import Request
+from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import is_divisible
 
 if TYPE_CHECKING:
@@ -477,6 +479,47 @@ class Switch(Parameter):
         return STATE_ON
 
 
+@dataclass
+class ParameterOverride:
+    """Represents a parameter override."""
+
+    __slot__ = ("target", "description", "product_model", "product_id")
+
+    target: str
+    description: ParameterDescription
+    product_model: str
+    product_id: int
+
+
+_DescriptorT = TypeVar("_DescriptorT", bound=ParameterDescription)
+
+
+def patch_parameter_types(
+    product_info: ProductInfo,
+    parameter_types: list[_DescriptorT],
+    overrides: Sequence[ParameterOverride],
+) -> list[_DescriptorT]:
+    """Patch the parameter types based on the provided overrides.
+
+    Note:
+        The `# type: ignore[assignment]` comment is used to suppress a type-checking
+        error caused by mypy bug. For more details, see:
+        https://github.com/python/mypy/issues/13596
+
+    """
+    patches = {
+        override.target: override.description
+        for override in overrides
+        if override.product_model == product_info.model
+        and override.product_id == product_info.id
+    }
+    for index, description in enumerate(parameter_types):
+        if description.name in patches:
+            parameter_types[index] = patches[description.name]  # type: ignore[assignment]
+
+    return parameter_types
+
+
 __all__ = [
     "Number",
     "NumberDescription",
@@ -486,6 +529,7 @@ __all__ = [
     "Parameter",
     "ParameterDescription",
     "ParameterValues",
+    "patch_parameter_types",
     "State",
     "Switch",
     "SwitchDescription",

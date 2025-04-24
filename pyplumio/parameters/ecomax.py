@@ -24,8 +24,10 @@ from pyplumio.parameters import (
     OffsetNumberDescription,
     Parameter,
     ParameterDescription,
+    ParameterOverride,
     Switch,
     SwitchDescription,
+    patch_parameter_types,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.product_info import ProductInfo
@@ -105,8 +107,8 @@ class EcomaxSwitch(EcomaxParameter, Switch):
     description: EcomaxSwitchDescription
 
 
-PARAMETER_TYPES: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
-    ProductType.ECOMAX_P: (
+PARAMETER_TYPES: dict[ProductType, list[EcomaxParameterDescription]] = {
+    ProductType.ECOMAX_P: [
         EcomaxNumberDescription(
             name="airflow_power_100",
             unit_of_measurement=PERCENTAGE,
@@ -627,8 +629,8 @@ PARAMETER_TYPES: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             name="buffer_load_stop",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-    ),
-    ProductType.ECOMAX_I: (
+    ],
+    ProductType.ECOMAX_I: [
         EcomaxNumberDescription(
             name="water_heater_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
@@ -785,7 +787,7 @@ PARAMETER_TYPES: dict[ProductType, tuple[EcomaxParameterDescription, ...]] = {
             name="summer_mode_disable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-    ),
+    ],
 }
 
 
@@ -795,12 +797,45 @@ ECOMAX_CONTROL_PARAMETER = EcomaxSwitchDescription(
 THERMOSTAT_PROFILE_PARAMETER = EcomaxNumberDescription(name=ATTR_THERMOSTAT_PROFILE)
 
 
+@dataclass
+class EcomaxParameterOverride(ParameterOverride):
+    """Represents an ecoMAX parameter override."""
+
+    description: EcomaxParameterDescription
+
+
+PARAMETER_OVERRIDES: tuple[ParameterOverride, ...] = (
+    EcomaxParameterOverride(
+        target="water_heater_target_temp",
+        description=EcomaxNumberDescription(name="summer_mode"),
+        product_model="ecoMAX 860D3-HB",
+        product_id=48,
+    ),
+    EcomaxParameterOverride(
+        target="min_water_heater_target_temp",
+        description=EcomaxNumberDescription(name="summer_mode_enable_temp"),
+        product_model="ecoMAX 860D3-HB",
+        product_id=48,
+    ),
+    EcomaxParameterOverride(
+        target="max_water_heater_target_temp",
+        description=EcomaxNumberDescription(name="summer_mode_disable_temp"),
+        product_model="ecoMAX 860D3-HB",
+        product_id=48,
+    ),
+)
+
+
 @cache
 def get_ecomax_parameter_types(
     product_info: ProductInfo,
-) -> tuple[EcomaxParameterDescription, ...]:
+) -> list[EcomaxParameterDescription]:
     """Return ecoMAX parameter types for specific product."""
-    return PARAMETER_TYPES[product_info.type]
+    return patch_parameter_types(
+        product_info,
+        parameter_types=PARAMETER_TYPES[product_info.type],
+        overrides=PARAMETER_OVERRIDES,
+    )
 
 
 __all__ = [
@@ -812,6 +847,7 @@ __all__ = [
     "EcomaxSwitch",
     "EcomaxSwitchDescription",
     "get_ecomax_parameter_types",
+    "PARAMETER_OVERRIDES",
     "PARAMETER_TYPES",
     "THERMOSTAT_PROFILE_PARAMETER",
 ]

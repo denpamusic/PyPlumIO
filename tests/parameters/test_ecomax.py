@@ -17,6 +17,7 @@ from pyplumio.parameters.ecomax import (
     get_ecomax_parameter_types,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
+from pyplumio.structures.product_info import ProductInfo
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
 
@@ -66,3 +67,21 @@ def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert len(parameter_types_all[ProductType.ECOMAX_P]) == 139
     assert len(parameter_types_all[ProductType.ECOMAX_I]) == 43
     assert parameter_types_all[ProductType.ECOMAX_P] == parameter_types
+
+    # Test with patch.
+    product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=48,
+        uid="**REDACTED**",
+        logo=48,
+        image=2,
+        model="ecoMAX 860D3-HB",
+    )
+    parameter_types_patched = get_ecomax_parameter_types(product_info)
+    assert parameter_types_patched[119] == EcomaxNumberDescription(name="summer_mode")
+    assert parameter_types_patched[120] == EcomaxNumberDescription(
+        name="summer_mode_enable_temp"
+    )
+    assert parameter_types_patched[121] == EcomaxNumberDescription(
+        name="summer_mode_disable_temp"
+    )
