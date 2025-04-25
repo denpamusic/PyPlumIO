@@ -10,6 +10,7 @@ from pyplumio.const import (
     STATE_OFF,
     STATE_ON,
     ProductModel,
+    ProductType,
     UnitOfMeasurement,
 )
 from pyplumio.devices.ecomax import EcoMAX
@@ -25,6 +26,7 @@ from pyplumio.parameters import (
     is_valid_parameter,
     patch_parameter_types,
 )
+from pyplumio.structures.product_info import ProductInfo
 
 
 @pytest.fixture(name="number")
@@ -373,16 +375,24 @@ async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
     mock_set_nowait.assert_called_once_with(STATE_OFF)
 
 
-def test_patch_parameter_types(ecomax: EcoMAX) -> None:
+def test_patch_parameter_types() -> None:
     """Test parameter types patcher."""
     parameter_types = [ParameterDescription(name="test")]
     parameter_overrides = (
         ParameterOverride(
             original="test",
             replacement=ParameterDescription(name="test2"),
-            product_model=ProductModel.ECOMAX_350P2_ZF,
-            product_id=90,
+            product_model=ProductModel.ECOMAX_860D3_HB,
+            product_id=48,
         ),
     )
-    result = patch_parameter_types(ecomax.product, parameter_types, parameter_overrides)
+    product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=48,
+        uid="**REDACTED**",
+        logo=48,
+        image=2,
+        model="ecoMAX 860D3-HB",
+    )
+    result = patch_parameter_types(product_info, parameter_types, parameter_overrides)
     assert result[0].name == "test2"
