@@ -43,7 +43,7 @@ through network by using RS-485 to Ethernet/WiFi converter.
 1. To use PyPlumIO, first install it using pip:
 
 ```bash
-$ pip install pyplumio
+pip install pyplumio
 ```
 
 2. Connect to the ecoMAX controller:
