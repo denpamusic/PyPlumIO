@@ -3,17 +3,15 @@
     "python.testing.pytestEnabled": true,
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": "explicit"
+      "source.organizeImports": "explicit"
     },
-    "editor.rulers": [
-        72,
-        88
-    ],
+    "editor.rulers": [72, 88],
     "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.tabSize": 4
+      "editor.defaultFormatter": "charliermarsh.ruff",
+      "editor.tabSize": 4
     },
     "[json]": {
-        "editor.tabSize": 2
+      "editor.tabSize": 2
     }
-}
+  }
+  
