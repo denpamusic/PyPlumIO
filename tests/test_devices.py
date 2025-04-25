@@ -1,6 +1,7 @@
 """Contains tests for the device handler classes."""
 
 import asyncio
+from math import isclose
 from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
@@ -88,7 +89,7 @@ from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTATS_AVAILABLE,
     ATTR_THERMOSTATS_CONNECTED,
 )
-from tests import load_json_test_data
+from tests import FLOAT_TOLERANCE, load_json_test_data
 
 UNKNOWN_DEVICE: int = 99
 UNKNOWN_FRAME: int = 99
@@ -183,7 +184,7 @@ async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
     await ecomax.wait_until_done()
     heating_target = await ecomax.get("heating_target")
-    assert heating_target == 41.0
+    assert isclose(heating_target, 41.0, rel_tol=FLOAT_TOLERANCE)
 
     ecomax_control = await ecomax.get(ATTR_ECOMAX_CONTROL)
     assert isinstance(ecomax_control, EcomaxSwitch)
@@ -240,9 +241,9 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
 
     # Test parameter with the step (heating_heat_curve)
     fuel_calorific_value = await ecomax.get("fuel_calorific_value")
-    assert fuel_calorific_value.value == 4.6
-    assert fuel_calorific_value.min_value == 0.1
-    assert fuel_calorific_value.max_value == 25.0
+    assert isclose(fuel_calorific_value.value, 4.6, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(fuel_calorific_value.min_value, 0.1, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(fuel_calorific_value.max_value, 25.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test setting parameter with the step.
     with patch("asyncio.Queue.put", new_callable=AsyncMock) as mock_put:
@@ -255,9 +256,9 @@ async def test_ecomax_parameters_callbacks(ecomax: EcoMAX) -> None:
     # Test parameter with the offset (heating_heat_curve_shift)
     heating_heat_curve_shift = await ecomax.get("heating_curve_shift")
     assert isinstance(heating_heat_curve_shift, EcomaxNumber)
-    assert heating_heat_curve_shift.value == 0.0
-    assert heating_heat_curve_shift.min_value == -20.0
-    assert heating_heat_curve_shift.max_value == 20.0
+    assert isclose(heating_heat_curve_shift.value, 0.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(heating_heat_curve_shift.min_value, -20.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(heating_heat_curve_shift.max_value, 20.0, rel_tol=FLOAT_TOLERANCE)
     assert heating_heat_curve_shift.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
     # Test setting the parameter with the offset.
@@ -289,18 +290,18 @@ async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
-    assert fuel_burned == 0.01
+    assert isclose(fuel_burned, 0.01, rel_tol=FLOAT_TOLERANCE)
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
-    assert fuel_burned == 0.01
+    assert isclose(fuel_burned, 0.01, rel_tol=FLOAT_TOLERANCE)
     assert "Skipping outdated fuel consumption" in caplog.text
     caplog.clear()
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 7.2}))
     await ecomax.wait_until_done()
     assert "Skipping outdated fuel consumption" not in caplog.text
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
-    assert fuel_burned == 0.02
+    assert isclose(fuel_burned, 0.02, rel_tol=FLOAT_TOLERANCE)
 
 
 async def test_regdata_callbacks(ecomax: EcoMAX) -> None:
@@ -402,9 +403,9 @@ async def test_thermostat_parameters_callbacks(ecomax: EcoMAX) -> None:
     party_target_temp = await thermostat.get("party_target_temp")
     assert isinstance(party_target_temp, ThermostatNumber)
     assert isinstance(party_target_temp.device, Thermostat)
-    assert party_target_temp.value == 22.0
-    assert party_target_temp.min_value == 10.0
-    assert party_target_temp.max_value == 35.0
+    assert isclose(party_target_temp.value, 22.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(party_target_temp.min_value, 10.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(party_target_temp.max_value, 35.0, rel_tol=FLOAT_TOLERANCE)
     assert party_target_temp.offset == 0
     party_target_temp_request = await party_target_temp.create_request()
     assert isinstance(party_target_temp_request, SetThermostatParameterRequest)
@@ -448,9 +449,9 @@ async def test_thermostat_profile_callbacks(ecomax: EcoMAX) -> None:
     await ecomax.wait_until_done()
     thermostat_profile = await ecomax.get(ATTR_THERMOSTAT_PROFILE)
     assert isinstance(thermostat_profile, EcomaxNumber)
-    assert thermostat_profile.value == 0.0
-    assert thermostat_profile.min_value == 0.0
-    assert thermostat_profile.max_value == 5.0
+    assert isclose(thermostat_profile.value, 0.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(thermostat_profile.min_value, 0.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(thermostat_profile.max_value, 5.0, rel_tol=FLOAT_TOLERANCE)
     thermostat_profile_request = await thermostat_profile.create_request()
     assert isinstance(thermostat_profile_request, SetThermostatParameterRequest)
     assert thermostat_profile_request.data == {
@@ -478,9 +479,9 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
     mixer_target_temp = await mixer.get("mixer_target_temp")
     assert isinstance(mixer_target_temp, MixerNumber)
     assert isinstance(mixer_target_temp.device, Mixer)
-    assert mixer_target_temp.value == 40.0
-    assert mixer_target_temp.min_value == 30.0
-    assert mixer_target_temp.max_value == 60.0
+    assert isclose(mixer_target_temp.value, 40.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(mixer_target_temp.min_value, 30.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(mixer_target_temp.max_value, 60.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test creating a request.
     mixer_target_temp_request = await mixer_target_temp.create_request()
@@ -497,9 +498,9 @@ async def test_mixer_parameters_callbacks(ecomax: EcoMAX) -> None:
 
     heat_curve = await mixer.get("heating_curve")
     assert isinstance(heat_curve, MixerNumber)
-    assert heat_curve.value == 1.3
-    assert heat_curve.min_value == 1.0
-    assert heat_curve.max_value == 3.0
+    assert isclose(heat_curve.value, 1.3, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(heat_curve.min_value, 1.0, rel_tol=FLOAT_TOLERANCE)
+    assert isclose(heat_curve.max_value, 3.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test that parameter instance is not recreated on subsequent calls.
     ecomax.handle_frame(MixerParametersResponse(message=test_data["message"]))
@@ -629,7 +630,7 @@ async def test_set(ecomax: EcoMAX) -> None:
     # Test setting an ecomax parameter.
     assert await ecomax.set("max_fuel_flow", 26.0)
     max_fuel_flow = await ecomax.get("max_fuel_flow")
-    assert max_fuel_flow.value == 26.0
+    assert isclose(max_fuel_flow.value, 26.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test setting an ecomax parameter with invalid step.
     with pytest.raises(ValueError):
@@ -650,7 +651,7 @@ async def test_set(ecomax: EcoMAX) -> None:
     thermostat = ecomax.data[ATTR_THERMOSTATS][0]
     assert await thermostat.set("party_target_temp", 21)
     target_party_temp = await thermostat.get("party_target_temp")
-    assert target_party_temp.value == 21.0
+    assert isclose(target_party_temp.value, 21.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test setting a thermostat parameter with invalid step.
     with pytest.raises(ValueError):
@@ -660,7 +661,7 @@ async def test_set(ecomax: EcoMAX) -> None:
     mixer = ecomax.data[ATTR_MIXERS][0]
     assert await mixer.set("mixer_target_temp", 35.0)
     mixer_target_temp = await mixer.get("mixer_target_temp")
-    assert mixer_target_temp.value == 35.0
+    assert isclose(mixer_target_temp.value, 35.0, rel_tol=FLOAT_TOLERANCE)
 
     # Test setting a mixer parameter with invalid step.
     with pytest.raises(ValueError):

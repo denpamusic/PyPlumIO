@@ -72,7 +72,7 @@ def test_schedule_day(schedule_day: ScheduleDay) -> None:
 def test_schedule_day_with_missing_key(schedule_day: ScheduleDay) -> None:
     """Test a schedule day with a missing key."""
     with pytest.raises(KeyError):
-        assert schedule_day["00:20"] == STATE_OFF
+        schedule_day["00:20"]
 
 
 def test_schedule_day_with_incorrect_interval(schedule_day: ScheduleDay) -> None:

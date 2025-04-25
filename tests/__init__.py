@@ -10,6 +10,8 @@ import pytest
 
 TESTDATA_DIR: Final = "testdata"
 
+FLOAT_TOLERANCE: Final = 1e-6
+
 
 def load_and_create_class_instance(module_name: str, class_name: str, **kwargs):
     """Load a class and creates it's instance."""

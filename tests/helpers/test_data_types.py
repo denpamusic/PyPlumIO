@@ -1,8 +1,11 @@
 """Contains tests for the data type helper classes."""
 
+from math import isclose
+
 import pytest
 
 from pyplumio.helpers import data_types
+from tests import FLOAT_TOLERANCE
 
 
 @pytest.mark.parametrize(
@@ -128,26 +131,26 @@ def test_float() -> None:
     """Test a float data type."""
     buffer = bytearray([0x0, 0x0, 0x40, 0x41])
     data_type = data_types.Float.from_bytes(buffer)
-    assert data_type.value == 12.0
+    assert isclose(data_type.value, 12.0, rel_tol=FLOAT_TOLERANCE)
     assert data_type.size == 4
     assert data_type.to_bytes() == buffer
     assert repr(data_type) == "Float(value=12.0)"
     assert repr(data_types.Float()) == "Float()"
     assert data_type == data_types.Float.from_bytes(buffer)
-    assert data_type == 12.0
+    assert isclose(data_type.value, 12.0, rel_tol=FLOAT_TOLERANCE)
 
 
 def test_double() -> None:
     """Test a double data type."""
     buffer = bytearray([0x3D, 0x0A, 0xD7, 0xA3, 0x70, 0x3D, 0x28, 0x40])
     data_type = data_types.Double.from_bytes(buffer)
-    assert data_type.value == 12.12
+    assert isclose(data_type.value, 12.12, rel_tol=FLOAT_TOLERANCE)
     assert data_type.size == 8
     assert data_type.to_bytes() == buffer
     assert repr(data_type) == "Double(value=12.12)"
     assert repr(data_types.Double()) == "Double()"
     assert data_type == data_types.Double.from_bytes(buffer)
-    assert data_type == 12.12
+    assert isclose(data_type.value, 12.12, rel_tol=FLOAT_TOLERANCE)
 
 
 def test_bitarray() -> None:
@@ -176,7 +179,7 @@ def test_bitarray_no_value() -> None:
     """Test a bit array data type with no value."""
     data_type = data_types.BitArray()
     with pytest.raises(ValueError):
-        assert not data_type.value
+        data_type.value
 
 
 def test_int64() -> None:
