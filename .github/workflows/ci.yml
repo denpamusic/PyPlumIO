@@ -39,13 +39,6 @@ jobs:
         run: tox
 
       - if: github.event_name == 'push'
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
-        with:
-          coverageCommand: coverage xml
-
-      - if: github.event_name == 'push'
         name: Generate coverage report
         run: |
           coverage lcov
