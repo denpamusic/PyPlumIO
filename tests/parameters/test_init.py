@@ -5,7 +5,13 @@ from unittest.mock import patch
 
 import pytest
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
+from pyplumio.const import (
+    BYTE_UNDEFINED,
+    STATE_OFF,
+    STATE_ON,
+    ProductModel,
+    UnitOfMeasurement,
+)
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.parameters import (
     Number,
@@ -374,7 +380,7 @@ def test_patch_parameter_types(ecomax: EcoMAX) -> None:
         ParameterOverride(
             original="test",
             replacement=ParameterDescription(name="test2"),
-            product_model="ecoMAX 350P2-ZF",
+            product_model=ProductModel.ECOMAX_350P2_ZF,
             product_id=90,
         ),
     )

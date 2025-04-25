@@ -92,6 +92,14 @@ class ProductType(IntEnum):
 
 
 @unique
+class ProductModel(Enum):
+    """Contains device models."""
+
+    ECOMAX_350P2_ZF = "ecoMAX 350P2-ZF"
+    ECOMAX_860D3_HB = "ecoMAX 860D3-HB"
+
+
+@unique
 class AlertType(IntEnum):
     """Contains alert types."""
 

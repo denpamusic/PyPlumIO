@@ -12,7 +12,14 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
 from dataslots import dataslots
 from typing_extensions import TypeAlias
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
+from pyplumio.const import (
+    BYTE_UNDEFINED,
+    STATE_OFF,
+    STATE_ON,
+    ProductModel,
+    State,
+    UnitOfMeasurement,
+)
 from pyplumio.frames import Request
 from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import is_divisible
@@ -487,7 +494,7 @@ class ParameterOverride:
 
     original: str
     replacement: ParameterDescription
-    product_model: str
+    product_model: ProductModel
     product_id: int
 
 
@@ -510,7 +517,7 @@ def patch_parameter_types(
     replacements = {
         override.original: override.replacement
         for override in parameter_overrides
-        if override.product_model == product_info.model
+        if override.product_model.value == product_info.model
         and override.product_id == product_info.id
     }
     for index, description in enumerate(parameter_types):

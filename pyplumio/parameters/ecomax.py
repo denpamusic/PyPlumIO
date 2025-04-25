@@ -15,6 +15,7 @@ from pyplumio.const import (
     ATTR_VALUE,
     PERCENTAGE,
     FrameType,
+    ProductModel,
     ProductType,
     UnitOfMeasurement,
 )
@@ -810,13 +811,13 @@ PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
     EcomaxParameterOverride(
         original="summer_mode_disable_temp",
         replacement=EcomaxNumberDescription(name="__unknown_parameter_1"),
-        product_model="ecoMAX 860D3-HB",
+        product_model=ProductModel.ECOMAX_860D3_HB,
         product_id=48,
     ),
     EcomaxParameterOverride(
         original="water_heater_target_temp",
         replacement=EcomaxNumberDescription(name="summer_mode"),
-        product_model="ecoMAX 860D3-HB",
+        product_model=ProductModel.ECOMAX_860D3_HB,
         product_id=48,
     ),
     EcomaxParameterOverride(
@@ -825,7 +826,7 @@ PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
             name="summer_mode_enable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        product_model="ecoMAX 860D3-HB",
+        product_model=ProductModel.ECOMAX_860D3_HB,
         product_id=48,
     ),
     EcomaxParameterOverride(
@@ -834,7 +835,7 @@ PARAMETER_OVERRIDES: tuple[EcomaxParameterOverride, ...] = (
             name="summer_mode_disable_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        product_model="ecoMAX 860D3-HB",
+        product_model=ProductModel.ECOMAX_860D3_HB,
         product_id=48,
     ),
 )
