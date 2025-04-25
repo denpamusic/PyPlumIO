@@ -13,47 +13,44 @@
 # Or for a full reference, visit https://qlty.sh/d/qlty-toml
 config_version = "0"
 
-exclude_patterns = [
-  "*_min.*",
-  "*-min.*",
-  "*.min.*",
-  "**/*.d.ts",
-  "**/.yarn/**",
-  "**/bower_components/**",
-  "**/build/**",
-  "**/cache/**",
-  "**/config/**",
-  "**/db/**",
-  "**/deps/**",
-  "**/dist/**",
-  "**/extern/**",
-  "**/external/**",
-  "**/generated/**",
-  "**/Godeps/**",
-  "**/gradlew/**",
-  "**/mvnw/**",
-  "**/node_modules/**",
-  "**/protos/**",
-  "**/seed/**",
-  "**/target/**",
-  "**/testdata/**",
-  "**/vendor/**",
-  "**/assets/**",
-]
-
-test_patterns = [
-  "**/test/**",
-  "**/spec/**",
-  "**/*.test.*",
-  "**/*.spec.*",
-  "**/*_test.*",
-  "**/*_spec.*",
-  "**/test_*.*",
-  "**/spec_*.*",
-]
+exclude_patterns = ["**/testdata/**",]
+test_patterns = ["**/tests/**", "**/*.test_*"]
 
 [smells]
 mode = "comment"
+
+# Allow functions with 8 params (all languages)
+[smells.function_parameters]
+threshold = 10
+
+[smells.duplication]
+threshold = 12
+nodes_threshold = 165
+
+# Lot of false positives due to use of "on:" by GH actions
+[[ignore]]
+rules = ["yamllint:truthy", "yamllint:line-length"]
+file_patterns = [".github/workflows/**"]
+
+# False positive on quick setup steps
+[[ignore]]
+rules = ["markdownlint:MD029"]
+file_patterns = ["README.md"]
+
+# Ignore "Use of assert" rule in tests
+[[ignore]]
+rules = ["bandit:B101"]
+file_patterns = ["tests/**"]
+
+# False positive. 0.0.0.0 is not bind address in this case.
+[[ignore]]
+rules = ["bandit:B104"]
+file_patterns = ["pyplumio/structures/network_info.py"]
+
+# Ignore unused **kwargs argument due to inheritance.
+[[ignore]]
+rules = ["radarlint-python:python.S1172"]
+file_patterns = ["pyplumio/frames/__init__.py"]
 
 [[source]]
 name = "default"
