@@ -375,7 +375,7 @@ async def test_switch_turn_off_nowait(mock_set_nowait, switch: Switch) -> None:
     mock_set_nowait.assert_called_once_with(STATE_OFF)
 
 
-def test_patch_parameter_types() -> None:
+def test_patch_parameter_types(caplog) -> None:
     """Test parameter types patcher."""
     parameter_types = [ParameterDescription(name="test")]
     parameter_overrides = (
@@ -394,5 +394,12 @@ def test_patch_parameter_types() -> None:
         image=2,
         model="ecoMAX 860D3-HB",
     )
-    result = patch_parameter_types(product_info, parameter_types, parameter_overrides)
+    with caplog.at_level("INFO"):
+        result = patch_parameter_types(
+            product_info, parameter_types, parameter_overrides
+        )
     assert result[0].name == "test2"
+    assert (
+        "Replacing parameter description for 'test' with 'ParameterDescription"
+        "(name='test2', optimistic=False)' (ecoMAX 860D3-HB)" in caplog.text
+    )

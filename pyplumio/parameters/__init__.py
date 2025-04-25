@@ -509,8 +509,8 @@ def patch_parameter_types(
     """Patch the parameter types based on the provided overrides.
 
     Note:
-        The `# type: ignore[assignment]` comment is used to suppress a type-checking
-        error caused by mypy bug. For more details, see:
+        The `# type: ignore[assignment]` comment is used to suppress a
+        type-checking error caused by mypy bug. For more details, see:
         https://github.com/python/mypy/issues/13596
 
     """
@@ -522,6 +522,12 @@ def patch_parameter_types(
     }
     for index, description in enumerate(parameter_types):
         if description.name in replacements:
+            _LOGGER.info(
+                "Replacing parameter description for '%s' with '%s' (%s)",
+                description.name,
+                replacements[description.name],
+                product_info.model,
+            )
             parameter_types[index] = replacements[description.name]  # type: ignore[assignment]
 
     return parameter_types
