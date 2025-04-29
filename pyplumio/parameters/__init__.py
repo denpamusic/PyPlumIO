@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
-from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
@@ -12,16 +11,8 @@ from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
 from dataslots import dataslots
 from typing_extensions import TypeAlias
 
-from pyplumio.const import (
-    BYTE_UNDEFINED,
-    STATE_OFF,
-    STATE_ON,
-    ProductModel,
-    State,
-    UnitOfMeasurement,
-)
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.frames import Request
-from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import is_divisible
 
 if TYPE_CHECKING:
@@ -484,53 +475,6 @@ class Switch(Parameter):
     def max_value(self) -> Literal["on"]:
         """Return the maximum allowed value."""
         return STATE_ON
-
-
-@dataclass
-class ParameterOverride:
-    """Represents a parameter override."""
-
-    __slot__ = ("original", "replacement", "product_model", "product_id")
-
-    original: str
-    replacement: ParameterDescription
-    product_model: ProductModel
-    product_id: int
-
-
-_DescriptorT = TypeVar("_DescriptorT", bound=ParameterDescription)
-
-
-def patch_parameter_types(
-    product_info: ProductInfo,
-    parameter_types: list[_DescriptorT],
-    parameter_overrides: Sequence[ParameterOverride],
-) -> list[_DescriptorT]:
-    """Patch the parameter types based on the provided overrides.
-
-    Note:
-        The `# type: ignore[assignment]` comment is used to suppress a
-        type-checking error caused by mypy bug. For more details, see:
-        https://github.com/python/mypy/issues/13596
-
-    """
-    replacements = {
-        override.original: override.replacement
-        for override in parameter_overrides
-        if override.product_model.value == product_info.model
-        and override.product_id == product_info.id
-    }
-    for index, description in enumerate(parameter_types):
-        if description.name in replacements:
-            _LOGGER.info(
-                "Replacing parameter description for '%s' with '%s' (%s)",
-                description.name,
-                replacements[description.name],
-                product_info.model,
-            )
-            parameter_types[index] = replacements[description.name]  # type: ignore[assignment]
-
-    return parameter_types
 
 
 __all__ = [
