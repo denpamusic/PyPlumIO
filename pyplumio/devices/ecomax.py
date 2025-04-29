@@ -65,9 +65,6 @@ ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
-NANOSECONDS_IN_SECOND: Final = 1_000_000_000
-MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * NANOSECONDS_IN_SECOND
-
 SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_UID,
@@ -105,21 +102,56 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
 
 _LOGGER = logging.getLogger(__name__)
 
+MAX_TIME_SINCE_LAST_FUEL_UPDATE: Final = 5 * 60
+
+
+class FuelMeter:
+    """Represents a fuel meter.
+
+    Calculates the fuel burned based on the time
+    elapsed since the last sensor message, which contains fuel
+    consumption data. If the elapsed time is within the acceptable
+    range, it returns the fuel burned data. Otherwise, it logs a
+    warning and returns None.
+    """
+
+    __slots__ = ("_last_update_time",)
+
+    _last_update_time: float
+
+    def __init__(self) -> None:
+        """Initialize a new fuel meter."""
+        self._last_update_time = time.monotonic()
+
+    def calculate(self, fuel_consumption: float) -> float | None:
+        """Calculate the amount of burned fuel since last update."""
+        current_time = time.monotonic()
+        time_since_update = current_time - self._last_update_time
+        self._last_update_time = current_time
+        if time_since_update < MAX_TIME_SINCE_LAST_FUEL_UPDATE:
+            return fuel_consumption * (time_since_update / 3600)
+
+        _LOGGER.warning(
+            "Skipping outdated fuel consumption data (was %f seconds old)",
+            time_since_update,
+        )
+        return None
+
 
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
-    __slots__ = ("_fuel_burned_time_ns",)
+    __slots__ = ("_fuel_meter",)
 
     address = DeviceType.ECOMAX
     _setup_frames = SETUP_FRAME_TYPES
 
-    _fuel_burned_time_ns: int
+    _fuel_meter: FuelMeter
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
-        self._fuel_burned_time_ns = time.perf_counter_ns()
+        self._fuel_meter = FuelMeter()
 
     async def async_setup(self) -> bool:
         """Set up an ecoMAX controller."""
@@ -238,28 +270,10 @@ class EcoMAX(PhysicalDevice):
 
     @event_listener(ATTR_FUEL_CONSUMPTION)
     async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:
-        """Update the amount of burned fuel.
-
-        This method calculates the fuel burned based on the time
-        elapsed since the last sensor message, which contains fuel
-        consumption data. If the elapsed time is within the acceptable
-        range, it dispatches the fuel burned data. Otherwise, it logs a
-        warning and skips the outdated data.
-        """
-        time_ns = time.perf_counter_ns()
-        nanoseconds_passed = time_ns - self._fuel_burned_time_ns
-        self._fuel_burned_time_ns = time_ns
-        if nanoseconds_passed < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
-            return self.dispatch_nowait(
-                ATTR_FUEL_BURNED,
-                fuel_consumption * nanoseconds_passed / (3600 * NANOSECONDS_IN_SECOND),
-            )
-
-        _LOGGER.warning(
-            "Skipping outdated fuel consumption data: %f (was %i seconds old)",
-            fuel_consumption,
-            nanoseconds_passed / NANOSECONDS_IN_SECOND,
-        )
+        """Update the amount of burned fuel."""
+        fuel_burned = self._fuel_meter.calculate(fuel_consumption)
+        if fuel_burned is not None:
+            self.dispatch_nowait(ATTR_FUEL_BURNED, fuel_burned)
 
     @event_listener(ATTR_MIXER_PARAMETERS)
     async def on_event_mixer_parameters(

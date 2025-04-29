@@ -229,6 +229,4 @@ PERCENTAGE: Final = "%"
 
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"
-
-
 State: TypeAlias = Literal["on", "off"]
