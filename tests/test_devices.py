@@ -1,6 +1,7 @@
 """Contains tests for the device handler classes."""
 
 import asyncio
+from datetime import timedelta
 from math import isclose
 from unittest.mock import AsyncMock, Mock, call, patch
 
@@ -280,23 +281,25 @@ async def test_unknown_ecomax_parameter(ecomax: EcoMAX, caplog) -> None:
     assert "ecoMAX 350P2-ZF" in caplog.text
 
 
-@patch(
-    "time.perf_counter_ns",
-    side_effect=(0, 10 * 1000000000, 310 * 1000000000, 320 * 1000000000),
-)
-async def test_fuel_consumption_callbacks(mock_time, caplog) -> None:
+async def test_fuel_consumption_callbacks(frozen_time, caplog) -> None:
     """Test callbacks dispatched on fuel consumption."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
+
+    frozen_time.tick(timedelta(seconds=10))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
     assert isclose(fuel_burned, 0.01, rel_tol=FLOAT_TOLERANCE)
+
+    frozen_time.tick(timedelta(minutes=5, seconds=10))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
     fuel_burned = await ecomax.get(ATTR_FUEL_BURNED)
     assert isclose(fuel_burned, 0.01, rel_tol=FLOAT_TOLERANCE)
     assert "Skipping outdated fuel consumption" in caplog.text
     caplog.clear()
+
+    frozen_time.tick(timedelta(seconds=10))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 7.2}))
     await ecomax.wait_until_done()
     assert "Skipping outdated fuel consumption" not in caplog.text

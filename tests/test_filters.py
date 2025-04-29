@@ -1,7 +1,7 @@
 """Contains tests for the filter classes."""
 
-from datetime import datetime
-from unittest.mock import AsyncMock, patch
+from datetime import datetime, timedelta
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -104,8 +104,7 @@ async def test_debounce() -> None:
     test_callback.assert_awaited_once_with(2)
 
 
-@patch("time.monotonic", side_effect=(0, 1, 5, 6))
-async def test_throttle(mock_time) -> None:
+async def test_throttle(frozen_time) -> None:
     """Test the throttle filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.throttle(test_callback, seconds=5)
@@ -114,15 +113,18 @@ async def test_throttle(mock_time) -> None:
     test_callback.reset_mock()
 
     # One second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(2)
     test_callback.assert_not_awaited()
 
     # Five seconds passed.
+    frozen_time.tick(timedelta(seconds=4))
     await wrapped_callback(3)
     test_callback.assert_awaited_once_with(3)
     test_callback.reset_mock()
 
     # Six seconds passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(4)
     test_callback.assert_not_awaited()
 
@@ -156,26 +158,26 @@ async def test_delta() -> None:
     test_callback.assert_not_awaited()
 
 
-@patch("time.monotonic", side_effect=(0, 0, 1, 5, 6, 7))
-async def test_aggregate(mock_time) -> None:
+async def test_aggregate(frozen_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=5)
-
-    # Zero seconds passed.
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
     # One second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
     # Five seconds passed.
+    frozen_time.tick(timedelta(seconds=4))
     await wrapped_callback(3)
     test_callback.assert_awaited_once_with(5)
     test_callback.reset_mock()
 
-    # Six seconds passed.
+    # Six second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(3)
     test_callback.assert_not_awaited()
 
@@ -184,21 +186,22 @@ async def test_aggregate(mock_time) -> None:
         await wrapped_callback("banana")
 
 
-@patch("time.monotonic", side_effect=(0, 0, 1, 1, 1, 1))
-async def test_aggregate_sample_size(mock_time) -> None:
+async def test_aggregate_sample_size(frozen_time) -> None:
     """Test the aggregate filter with sample size."""
     test_callback = AsyncMock()
     wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=2)
 
-    # Zero seconds passed, sample size 1.
+    # Zero seconds passed, current sample size is 1.
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
-    # One second passed, sample size 2.
+    # One second passed, current sample size is 2.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(2)
 
-    # Two seconds passed, sample size 3.
+    # Two seconds passed, current sample size is 3.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(3)
     test_callback.test_callback.assert_not_awaited()
 

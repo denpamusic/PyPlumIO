@@ -3,6 +3,7 @@
 import asyncio
 from unittest.mock import patch
 
+from freezegun import freeze_time
 import pytest
 
 from pyplumio.const import ProductType
@@ -31,3 +32,10 @@ def bypass_asyncio_sleep():
     """Bypass an asyncio sleep."""
     with patch("asyncio.sleep"):
         yield
+
+
+@pytest.fixture(name="frozen_time")
+def fixture_frozen_time():
+    """Get frozen time."""
+    with freeze_time("2012-12-12 12:00:00") as frozen_time:
+        yield frozen_time
