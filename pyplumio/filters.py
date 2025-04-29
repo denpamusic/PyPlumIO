@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from copy import copy
+from decimal import Decimal
 import math
 import time
 from typing import (
@@ -129,44 +130,45 @@ class _Aggregate(Filter):
     """Represents an aggregate filter.
 
     Calls a callback with a sum of values collected over a specified
-    time period.
+    time period or when sample size limit reached.
     """
 
-    __slots__ = ("_sum", "_last_update", "_timeout")
+    __slots__ = ("_values", "_sample_size", "_timeout", "_last_call_time")
 
-    _sum: complex
-    _last_update: float
+    _values: list[float | int | Decimal]
+    _sample_size: int
     _timeout: float
+    _last_call_time: float
 
-    def __init__(self, callback: Callback, seconds: float) -> None:
+    def __init__(self, callback: Callback, seconds: float, sample_size: int) -> None:
         """Initialize a new aggregate filter."""
         super().__init__(callback)
-        self._last_update = time.monotonic()
+        self._last_call_time = time.monotonic()
         self._timeout = seconds
-        self._sum = 0.0
+        self._values = []
+        self._sample_size = sample_size
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        current_timestamp = time.monotonic()
-        try:
-            self._sum += new_value
-        except TypeError as e:
-            raise ValueError(
-                "Aggregate filter can only be used with numeric values"
-            ) from e
+        if not isinstance(new_value, (float, int, Decimal)):
+            raise TypeError("Aggregate filter can only be used with numeric values")
 
-        if current_timestamp - self._last_update >= self._timeout:
-            result = await self._callback(self._sum)
-            self._last_update = current_timestamp
-            self._sum = 0.0
+        current_time = time.monotonic()
+        self._values.append(new_value)
+        time_since_call = current_time - self._last_call_time
+        if time_since_call >= self._timeout or len(self._values) >= self._sample_size:
+            result = await self._callback(sum(self._values))
+            self._last_call_time = current_time
+            self._values = []
             return result
 
 
-def aggregate(callback: Callback, seconds: float) -> _Aggregate:
+def aggregate(callback: Callback, seconds: float, sample_size: int) -> _Aggregate:
     """Create a new aggregate filter.
 
     A callback function will be called with a sum of values collected
-    over a specified time period. Can only be used with numeric values.
+    over a specified time period or when sample size limit reached.
+    Can only be used with numeric values.
 
     :param callback: A callback function to be awaited once filter
         conditions are fulfilled
@@ -174,10 +176,13 @@ def aggregate(callback: Callback, seconds: float) -> _Aggregate:
     :param seconds: A callback will be awaited with a sum of values
         aggregated over this amount of seconds.
     :type seconds: float
+    :param sample_size: The maximum number of values to aggregate
+        before calling the callback
+    :type sample_size: int
     :return: An instance of callable filter
     :rtype: _Aggregate
     """
-    return _Aggregate(callback, seconds)
+    return _Aggregate(callback, seconds, sample_size)
 
 
 class _Clamp(Filter):

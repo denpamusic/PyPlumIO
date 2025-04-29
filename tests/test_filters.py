@@ -160,7 +160,7 @@ async def test_delta() -> None:
 async def test_aggregate(mock_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.aggregate(test_callback, seconds=5)
+    wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=5)
 
     # Zero seconds passed.
     await wrapped_callback(1)
@@ -180,8 +180,27 @@ async def test_aggregate(mock_time) -> None:
     test_callback.assert_not_awaited()
 
     # Test with non-numeric value.
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         await wrapped_callback("banana")
+
+
+@patch("time.monotonic", side_effect=(0, 0, 1, 1, 1, 1))
+async def test_aggregate_sample_size(mock_time) -> None:
+    """Test the aggregate filter with sample size."""
+    test_callback = AsyncMock()
+    wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=2)
+
+    # Zero seconds passed, sample size 1.
+    await wrapped_callback(1)
+    test_callback.assert_not_awaited()
+
+    # One second passed, sample size 2.
+    await wrapped_callback(1)
+    test_callback.assert_awaited_once_with(2)
+
+    # Two seconds passed, sample size 3.
+    await wrapped_callback(3)
+    test_callback.test_callback.assert_not_awaited()
 
 
 async def test_custom() -> None:

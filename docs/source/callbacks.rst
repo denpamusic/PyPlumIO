@@ -38,15 +38,18 @@ All built-in filters are described below.
 
 .. autofunction:: pyplumio.filters.aggregate
 
-This filter aggregates value for specified amount of seconds and 
-then calls the callback with the sum of values collected.
+This filter aggregates values for specified amount of seconds or until
+certain sample size is reached and then calls the callback with the
+sum of values collected.
 
 .. code-block:: python
 
     from pyplumio import filters
 
     # Await the callback with the fuel burned during 30 seconds.
-    ecomax.subscribe("fuel_burned", filters.aggregate(my_callback, seconds=30))
+    ecomax.subscribe(
+        "fuel_burned", filters.aggregate(my_callback, seconds=30, sample_size=100)
+    )
 
 .. autofunction:: pyplumio.filters.clamp
 
