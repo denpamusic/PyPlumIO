@@ -29,7 +29,11 @@ def fixture_use_fast(request, monkeypatch, caplog):
         reload(pyplumio.connection)
 
     message = "Using pyserial-asyncio-fast in place of pyserial-asyncio"
-    assert (message in caplog.text) if request.param else (message not in caplog.text)
+    if request.param:
+        assert message in caplog.text
+    else:
+        assert message not in caplog.text
+
     return request.param
 
 

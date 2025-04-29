@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from copy import copy
 from decimal import Decimal
+import logging
 import math
 import time
 from typing import (
@@ -22,6 +23,15 @@ from typing_extensions import TypeAlias
 
 from pyplumio.helpers.event_manager import Callback
 from pyplumio.parameters import Parameter
+
+_LOGGER = logging.getLogger(__name__)
+
+try:
+    import numpy as np
+
+    _LOGGER.info("Using numpy for improved float precision")
+except ImportError:
+    np = None
 
 UNDEFINED: Final = "undefined"
 TOLERANCE: Final = 0.1
@@ -145,8 +155,8 @@ class _Aggregate(Filter):
         super().__init__(callback)
         self._last_call_time = time.monotonic()
         self._timeout = seconds
-        self._values = []
         self._sample_size = sample_size
+        self._values = []
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
@@ -157,7 +167,9 @@ class _Aggregate(Filter):
         self._values.append(new_value)
         time_since_call = current_time - self._last_call_time
         if time_since_call >= self._timeout or len(self._values) >= self._sample_size:
-            result = await self._callback(sum(self._values))
+            result = await self._callback(
+                np.sum(self._values) if np else sum(self._values)
+            )
             self._last_call_time = current_time
             self._values = []
             return result

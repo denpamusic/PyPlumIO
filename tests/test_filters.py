@@ -1,13 +1,36 @@
 """Contains tests for the filter classes."""
 
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock
+from importlib import reload
+import logging
+import sys
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
+import pyplumio
 from pyplumio import filters
+import pyplumio.filters
 from pyplumio.parameters import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
+
+
+@pytest.fixture(name="use_numpy", params=(True, False))
+def fixture_use_numpy(request, monkeypatch, caplog):
+    """Try with and without numpy package."""
+    if not request.param:
+        monkeypatch.setitem(sys.modules, "numpy", None)
+
+    with caplog.at_level(logging.INFO):
+        reload(pyplumio.filters)
+
+    message = "Using numpy for improved float precision"
+    if request.param:
+        assert message in caplog.text
+    else:
+        assert message not in caplog.text
+
+    return request.param
 
 
 async def test_clamp() -> None:
@@ -158,7 +181,7 @@ async def test_delta() -> None:
     test_callback.assert_not_awaited()
 
 
-async def test_aggregate(frozen_time) -> None:
+async def test_aggregate(use_numpy, frozen_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=5)
@@ -172,7 +195,14 @@ async def test_aggregate(frozen_time) -> None:
 
     # Five seconds passed.
     frozen_time.tick(timedelta(seconds=4))
-    await wrapped_callback(3)
+    if use_numpy:
+        with patch("numpy.sum", return_value=5) as mock_sum:
+            await wrapped_callback(3)
+
+        mock_sum.assert_called_once_with([1, 1, 3])
+    else:
+        await wrapped_callback(3)
+
     test_callback.assert_awaited_once_with(5)
     test_callback.reset_mock()
 
