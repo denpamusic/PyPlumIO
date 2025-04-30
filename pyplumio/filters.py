@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from contextlib import suppress
 from copy import copy
 from decimal import Decimal
 import logging
@@ -26,12 +27,13 @@ from pyplumio.parameters import Parameter
 
 _LOGGER = logging.getLogger(__name__)
 
-try:
+numpy_installed = False
+with suppress(ImportError):
     import numpy as np
 
     _LOGGER.info("Using numpy for improved float precision")
-except ImportError:
-    np = None
+    numpy_installed = True
+
 
 UNDEFINED: Final = "undefined"
 TOLERANCE: Final = 0.1
@@ -168,7 +170,7 @@ class _Aggregate(Filter):
         time_since_call = current_time - self._last_call_time
         if time_since_call >= self._timeout or len(self._values) >= self._sample_size:
             result = await self._callback(
-                np.sum(self._values) if np else sum(self._values)
+                np.sum(self._values) if numpy_installed else sum(self._values)
             )
             self._last_call_time = current_time
             self._values = []
