@@ -163,7 +163,10 @@ class _Aggregate(Filter):
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if not isinstance(new_value, (float, int, Decimal)):
-            raise TypeError("Aggregate filter can only be used with numeric values")
+            raise TypeError(
+                "Aggregate filter can only be used with numeric values, got "
+                f"{type(new_value).__name__}: {new_value}"
+            )
 
         current_time = time.monotonic()
         self._values.append(new_value)
