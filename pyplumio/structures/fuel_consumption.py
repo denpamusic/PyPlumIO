@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any, Final
 
-from pyplumio.helpers.data_types import Float
+from pyplumio.data_types import Float
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

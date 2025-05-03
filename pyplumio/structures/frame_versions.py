@@ -6,7 +6,7 @@ from contextlib import suppress
 from typing import Any, Final
 
 from pyplumio.const import FrameType
-from pyplumio.helpers.data_types import UnsignedShort
+from pyplumio.data_types import UnsignedShort
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

@@ -4,7 +4,7 @@ from math import isclose
 
 import pytest
 
-from pyplumio.helpers import data_types
+from pyplumio import data_types
 from tests import FLOAT_TOLERANCE
 
 

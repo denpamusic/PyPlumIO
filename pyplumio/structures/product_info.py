@@ -9,7 +9,7 @@ import struct
 from typing import Any, Final
 
 from pyplumio.const import ProductType
-from pyplumio.helpers.data_types import UnsignedShort, VarBytes, VarString
+from pyplumio.data_types import UnsignedShort, VarBytes, VarString
 from pyplumio.helpers.uid import unpack_uid
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict

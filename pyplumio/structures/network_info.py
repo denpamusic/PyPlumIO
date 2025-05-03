@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any, Final
 
 from pyplumio.const import EncryptionType
-from pyplumio.helpers.data_types import IPv4, VarString
+from pyplumio.data_types import IPv4, VarString
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
