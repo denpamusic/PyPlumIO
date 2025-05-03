@@ -228,7 +228,7 @@ class EcoMAX(PhysicalDevice):
         await super().shutdown()
 
     @event_listener(ATTR_SETUP)
-    async def on_event_connected(self, setup: bool) -> None:
+    async def on_event_setup(self, setup: bool) -> None:
         """Request frames required to set up an ecoMAX entry."""
         results = await asyncio.gather(
             *(
