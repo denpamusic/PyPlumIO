@@ -11,10 +11,10 @@ from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_FRAME_ERRORS,
     ATTR_INDEX,
-    ATTR_LOADED,
     ATTR_OFFSET,
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
+    ATTR_SETUP,
     ATTR_SIZE,
     ATTR_STATE,
     ATTR_SWITCH,
@@ -32,7 +32,7 @@ from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
     ATTR_THERMOSTATS,
-    SETUP_FRAME_TYPES,
+    BOOTSTRAP_TYPES,
     EcoMAX,
 )
 from pyplumio.devices.ecoster import EcoSTER
@@ -115,7 +115,7 @@ def test_ecoster(ecoster: EcoSTER) -> None:
     assert isinstance(ecoster, EcoSTER)
 
 
-async def test_async_setup() -> None:
+async def test_setup() -> None:
     """Test requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
 
@@ -126,15 +126,15 @@ async def test_async_setup() -> None:
             side_effect=(True, True, True, True, True, True, True, True),
         ) as mock_request,
     ):
-        await ecomax.async_setup()
+        await ecomax.dispatch(ATTR_SETUP, True)
         await ecomax.wait_until_done()
 
-    assert await ecomax.get(ATTR_LOADED)
+    assert await ecomax.get(ATTR_SETUP)
     assert not ecomax.data[ATTR_FRAME_ERRORS]
-    assert mock_request.await_count == len(SETUP_FRAME_TYPES)
+    assert mock_request.await_count == len(BOOTSTRAP_TYPES)
 
 
-async def test_async_setup_error() -> None:
+async def test_setup_error() -> None:
     """Test with error during requesting initial data frames."""
     ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
 
@@ -154,12 +154,12 @@ async def test_async_setup_error() -> None:
             ),
         ) as mock_request,
     ):
-        await ecomax.async_setup()
+        await ecomax.dispatch(ATTR_SETUP, True)
         await ecomax.wait_until_done()
 
-    assert await ecomax.get(ATTR_LOADED)
+    assert await ecomax.get(ATTR_SETUP)
     assert ecomax.data[ATTR_FRAME_ERRORS][0] == FrameType.REQUEST_ALERTS
-    assert mock_request.await_count == len(SETUP_FRAME_TYPES)
+    assert mock_request.await_count == len(BOOTSTRAP_TYPES)
 
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:

@@ -9,8 +9,10 @@ import time
 from typing import Any, Final
 
 from pyplumio.const import (
+    ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
     ATTR_SENSORS,
+    ATTR_SETUP,
     ATTR_STATE,
     STATE_OFF,
     STATE_ON,
@@ -22,6 +24,7 @@ from pyplumio.const import (
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
+from pyplumio.exceptions import RequestError
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import event_listener
@@ -61,46 +64,12 @@ from pyplumio.structures.thermostat_parameters import (
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
+_LOGGER = logging.getLogger(__name__)
+
+
 ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
-
-SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_UID,
-        provides=ATTR_PRODUCT,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA,
-        provides=ATTR_REGDATA_SCHEMA,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS,
-        provides=ATTR_ECOMAX_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_ALERTS,
-        provides=ATTR_TOTAL_ALERTS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_SCHEDULES,
-        provides=ATTR_SCHEDULES,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_MIXER_PARAMETERS,
-        provides=ATTR_MIXER_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
-        provides=ATTR_THERMOSTAT_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_PASSWORD,
-        provides=ATTR_PASSWORD,
-    ),
-)
-
-_LOGGER = logging.getLogger(__name__)
 
 MAX_TIME_SINCE_LAST_FUEL_UPDATE: Final = 5 * 60
 
@@ -138,25 +107,55 @@ class FuelMeter:
         return None
 
 
+BOOTSTRAP_TYPES: tuple[DataFrameDescription, ...] = (
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_UID,
+        provides=ATTR_PRODUCT,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA,
+        provides=ATTR_REGDATA_SCHEMA,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS,
+        provides=ATTR_ECOMAX_PARAMETERS,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_ALERTS,
+        provides=ATTR_TOTAL_ALERTS,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_SCHEDULES,
+        provides=ATTR_SCHEDULES,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_MIXER_PARAMETERS,
+        provides=ATTR_MIXER_PARAMETERS,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
+        provides=ATTR_THERMOSTAT_PARAMETERS,
+    ),
+    DataFrameDescription(
+        frame_type=FrameType.REQUEST_PASSWORD,
+        provides=ATTR_PASSWORD,
+    ),
+)
+
+
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
     __slots__ = ("_fuel_meter",)
 
-    address = DeviceType.ECOMAX
-    _setup_frames = SETUP_FRAME_TYPES
-
     _fuel_meter: FuelMeter
+
+    address = DeviceType.ECOMAX
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
         self._fuel_meter = FuelMeter()
-
-    async def async_setup(self) -> bool:
-        """Set up an ecoMAX controller."""
-        await self.wait_for(ATTR_SENSORS)
-        return await super().async_setup()
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
@@ -227,6 +226,23 @@ class EcoMAX(PhysicalDevice):
         devices = (mixers | thermostats).values()
         await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
+
+    @event_listener(ATTR_SETUP)
+    async def on_event_connected(self, setup: bool) -> None:
+        """Request frames required to set up an ecoMAX entry."""
+        results = await asyncio.gather(
+            *(
+                self.request(description.provides, description.frame_type)
+                for description in BOOTSTRAP_TYPES
+            ),
+            return_exceptions=True,
+        )
+
+        errors = [
+            result.frame_type for result in results if isinstance(result, RequestError)
+        ]
+
+        self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
 
     @event_listener(ATTR_ECOMAX_PARAMETERS)
     async def on_event_ecomax_parameters(

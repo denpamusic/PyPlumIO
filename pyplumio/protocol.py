@@ -10,7 +10,7 @@ import logging
 
 from typing_extensions import TypeAlias
 
-from pyplumio.const import ATTR_CONNECTED, DeviceType
+from pyplumio.const import ATTR_CONNECTED, ATTR_SETUP, DeviceType
 from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
@@ -231,8 +231,8 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
+            device.dispatch_nowait(ATTR_SETUP, True)
             device.dispatch_nowait(ATTR_CONNECTED, True)
-            self.create_task(device.async_setup(), name=f"device_setup_task ({name})")
             await self.dispatch(name, device)
 
         return self.data[name]
