@@ -242,7 +242,8 @@ class EcoMAX(PhysicalDevice):
             result.frame_type for result in results if isinstance(result, RequestError)
         ]
 
-        self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
+        if errors:
+            self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
 
     @event_listener(ATTR_ECOMAX_PARAMETERS)
     async def on_event_ecomax_parameters(

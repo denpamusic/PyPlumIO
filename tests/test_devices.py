@@ -130,7 +130,7 @@ async def test_setup() -> None:
         await ecomax.wait_until_done()
 
     assert await ecomax.get(ATTR_SETUP)
-    assert not ecomax.data[ATTR_FRAME_ERRORS]
+    assert ATTR_FRAME_ERRORS not in ecomax.data
     assert mock_request.await_count == len(BOOTSTRAP_TYPES)
 
 
