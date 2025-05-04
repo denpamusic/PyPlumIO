@@ -133,6 +133,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     consumers_count: int
     _network: NetworkInfo
     _queues: Queues
+    _entry_lock: asyncio.Lock
 
     def __init__(
         self,
@@ -148,6 +149,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             wlan=wireless_parameters or WirelessParameters(status=False),
         )
         self._queues = Queues(read=asyncio.Queue(), write=asyncio.Queue())
+        self._entry_lock = asyncio.Lock()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -228,17 +230,14 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Set up or return a device entry."""
-        name = device_type.name.lower()
-        if name not in self.data:
+        async with self._entry_lock:
             device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
-
             device.dispatch_nowait(ATTR_CONNECTED, True)
             device.dispatch_nowait(ATTR_SETUP, True)
-            await self.dispatch(name, device)
-
-        return self.data[name]
+            self.dispatch_nowait(device_type.name.lower(), device)
+            return device
 
 
 __all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]

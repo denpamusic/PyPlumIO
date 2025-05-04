@@ -350,10 +350,17 @@ async def test_async_protocol_frame_consumer(
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_read_queue.get = AsyncMock()
 
-    with patch.object(
-        async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
+    with (
+        patch.object(
+            async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
+        ),
+        patch("asyncio.Lock.acquire", return_value=True) as mock_lock_acquire,
+        patch("asyncio.Lock.release") as mock_lock_release,
     ):
         await async_protocol.get_device_entry(DeviceType.ECOMAX)
+
+    mock_lock_acquire.assert_awaited_once()
+    mock_lock_release.assert_called_once()
 
     mock_read_queue.get.side_effect = (
         CheckDeviceRequest(sender=DeviceType.ECOMAX),
