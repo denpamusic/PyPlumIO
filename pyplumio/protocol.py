@@ -229,8 +229,11 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
 
     @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
-        """Set up or return a device entry."""
-        async with self._entry_lock:
+        """Return the device entry."""
+
+        @acache
+        async def _setup_device_entry(device_type: DeviceType) -> PhysicalDevice:
+            """Set up the device entry."""
             device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
@@ -238,6 +241,9 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device.dispatch_nowait(ATTR_SETUP, True)
             self.dispatch_nowait(device_type.name.lower(), device)
             return device
+
+        async with self._entry_lock:
+            return await _setup_device_entry(device_type)
 
 
 __all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]
