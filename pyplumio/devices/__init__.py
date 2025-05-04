@@ -141,13 +141,16 @@ class PhysicalDevice(Device, ABC):
     @event_listener(filter=on_change)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
+        _LOGGER.info("Received version table")
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)
                 and self.supports_frame_type(frame_type)
                 and not self.has_frame_version(frame_type, version)
             ):
-                _LOGGER.debug("Updating frame %s to version %i", frame_type, version)
+                _LOGGER.debug(
+                    "Updating frame %s to version %i", repr(frame_type), version
+                )
                 request = await Request.create(frame_type, recipient=self.address)
                 self.queue.put_nowait(request)
                 self._frame_versions[frame_type] = version
@@ -177,6 +180,7 @@ class PhysicalDevice(Device, ABC):
 
         If value is not available before timeout, retry request.
         """
+        _LOGGER.info("Requesting '%s' with %s", name, repr(frame_type))
         request = await Request.create(frame_type, recipient=self.address)
         while retries > 0:
             try:
