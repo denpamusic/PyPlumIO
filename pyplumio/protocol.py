@@ -231,7 +231,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
-            device.dispatch_nowait(ATTR_SETUP, True)
+            await device.dispatch(ATTR_SETUP, True)
             device.dispatch_nowait(ATTR_CONNECTED, True)
             await self.dispatch(name, device)
 
