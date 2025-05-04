@@ -15,6 +15,7 @@ from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
+from pyplumio.helpers.async_cache import acache
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
@@ -224,6 +225,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device.handle_frame(frame)
             queue.task_done()
 
+    @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Set up or return a device entry."""
         name = device_type.name.lower()
