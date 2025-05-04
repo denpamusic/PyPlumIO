@@ -192,15 +192,22 @@ def test_event_listener_decorator() -> None:
     assert getattr(mock_func, "_on_event") == "test"
     assert not getattr(mock_func, "_on_event_filter")
 
+    # Test without parentheses.
+    mock_func.reset_mock()
+    mock_func.__qualname__ = "on_event_test2"
+    func = event_listener(mock_func)
+    assert getattr(func, "_on_event") == "test2"
+    assert not getattr(func, "_on_event_filter")
+
     # Test with name.
     mock_func.reset_mock()
-    decorator = event_listener("test2")
+    decorator = event_listener("test3")
     assert decorator(mock_func)
-    assert getattr(mock_func, "_on_event") == "test2"
+    assert getattr(mock_func, "_on_event") == "test3"
     assert not getattr(mock_func, "_on_event_filter")
 
     # Test with filter.
-    mock_func = Mock()
+    mock_func.reset_mock()
     mock_filter = Mock()
     decorator = event_listener("test", mock_filter)
     assert decorator(mock_func)
