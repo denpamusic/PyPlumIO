@@ -15,7 +15,6 @@ from pyplumio.frames import Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.helpers.factory import create_instance
 from pyplumio.parameters import NumericType, Parameter
-from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
@@ -139,7 +138,7 @@ class PhysicalDevice(Device, ABC):
         self._network = network
         self._frame_versions = {}
 
-    @event_listener(ATTR_FRAME_VERSIONS, on_change)
+    @event_listener(filter=on_change)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
         for frame_type, version in versions.items():

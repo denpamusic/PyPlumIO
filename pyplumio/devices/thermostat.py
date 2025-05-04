@@ -15,8 +15,6 @@ from pyplumio.parameters.thermostat import (
     ThermostatSwitchDescription,
     get_thermostat_parameter_types,
 )
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
 
 class Thermostat(VirtualDevice):
@@ -24,7 +22,7 @@ class Thermostat(VirtualDevice):
 
     __slots__ = ()
 
-    @event_listener(ATTR_THERMOSTAT_SENSORS)
+    @event_listener()
     async def on_event_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update thermostat sensors and dispatch the events."""
         await asyncio.gather(
@@ -32,7 +30,7 @@ class Thermostat(VirtualDevice):
         )
         return True
 
-    @event_listener(ATTR_THERMOSTAT_PARAMETERS)
+    @event_listener()
     async def on_event_thermostat_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:

@@ -16,8 +16,6 @@ from pyplumio.parameters.mixer import (
     MixerSwitchDescription,
     get_mixer_parameter_types,
 )
-from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,7 +26,7 @@ class Mixer(VirtualDevice):
 
     __slots__ = ()
 
-    @event_listener(ATTR_MIXER_SENSORS)
+    @event_listener()
     async def on_event_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update mixer sensors and dispatch the events."""
         await asyncio.gather(
@@ -36,7 +34,7 @@ class Mixer(VirtualDevice):
         )
         return True
 
-    @event_listener(ATTR_MIXER_PARAMETERS)
+    @event_listener()
     async def on_event_mixer_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:

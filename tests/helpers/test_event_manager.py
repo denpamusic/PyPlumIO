@@ -186,9 +186,17 @@ def test_create_event(event_manager: EventManager) -> None:
 def test_event_listener_decorator() -> None:
     """Test subscribe decorator."""
     mock_func = Mock()
-    decorator = event_listener("test")
+    mock_func.__qualname__ = "on_event_test"
+    decorator = event_listener()
     assert decorator(mock_func)
     assert getattr(mock_func, "_on_event") == "test"
+    assert not getattr(mock_func, "_on_event_filter")
+
+    # Test with name.
+    mock_func.reset_mock()
+    decorator = event_listener("test2")
+    assert decorator(mock_func)
+    assert getattr(mock_func, "_on_event") == "test2"
     assert not getattr(mock_func, "_on_event_filter")
 
     # Test with filter.
