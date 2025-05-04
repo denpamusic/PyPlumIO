@@ -2,7 +2,7 @@
 
 from collections.abc import Awaitable
 from functools import wraps
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, cast
 
 from typing_extensions import ParamSpec, TypeAlias
 
@@ -34,14 +34,14 @@ class AsyncCache:
 async_cache = AsyncCache()
 
 
-def acache(func: Callable[P, Awaitable[T]]) -> _CallableT:
+def acache(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
     """Cache the result of an async function."""
 
     @wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> Any:
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         func_name = f"{func.__module__}.{func.__qualname__}"
         key = f"{func_name}:{args}:{kwargs}"
-        return await async_cache.get(key, lambda: func(*args, **kwargs))
+        return cast(T, await async_cache.get(key, lambda: func(*args, **kwargs)))
 
     return wrapper
 
