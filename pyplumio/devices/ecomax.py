@@ -11,6 +11,7 @@ from typing import Any, Final
 from pyplumio.const import (
     ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
+    ATTR_SENSORS,
     STATE_OFF,
     STATE_ON,
     DeviceState,
@@ -222,6 +223,7 @@ class EcoMAX(PhysicalDevice):
     @event_listener
     async def on_event_setup(self, setup: bool) -> None:
         """Request frames required to set up an ecoMAX entry."""
+        await self.wait_for(ATTR_SENSORS)
         results = await asyncio.gather(
             *(
                 self.request(description.provides, description.frame_type)
