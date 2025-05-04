@@ -52,13 +52,11 @@ class ThermostatParametersStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
-        if (device := self.frame.handler) is not None and (
-            thermostats := device.get_nowait(ATTR_THERMOSTATS_AVAILABLE, 0)
-        ) == 0:
-            return (
-                ensure_dict(data, {ATTR_THERMOSTAT_PARAMETERS: None}),
-                offset,
-            )
+        device = self.frame.handler
+        if not device or not (
+            thermostats := device.get_nowait(ATTR_THERMOSTATS_AVAILABLE, None)
+        ):
+            return ensure_dict(data, {ATTR_THERMOSTAT_PARAMETERS: None}), offset
 
         start = message[offset + 1]
         end = message[offset + 2]
