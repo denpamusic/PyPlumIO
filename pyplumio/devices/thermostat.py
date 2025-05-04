@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine, Generator, Sequence
+from collections.abc import Coroutine, Generator
 from typing import Any
 
 from pyplumio.devices import VirtualDevice
@@ -34,7 +34,7 @@ class Thermostat(VirtualDevice):
 
     @event_listener(ATTR_THERMOSTAT_PARAMETERS)
     async def on_event_thermostat_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""
 

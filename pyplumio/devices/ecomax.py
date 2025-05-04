@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine, Generator, Iterable, Sequence
+from collections.abc import Coroutine, Generator, Iterable
 import logging
 import time
 from typing import Any, Final
@@ -247,7 +247,7 @@ class EcoMAX(PhysicalDevice):
 
     @event_listener(ATTR_ECOMAX_PARAMETERS)
     async def on_event_ecomax_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
         product_info: ProductInfo = await self.get(ATTR_PRODUCT)
@@ -295,7 +295,7 @@ class EcoMAX(PhysicalDevice):
     @event_listener(ATTR_MIXER_PARAMETERS)
     async def on_event_mixer_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
+        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle mixer parameters and dispatch the events."""
         if parameters:
@@ -327,7 +327,7 @@ class EcoMAX(PhysicalDevice):
 
     @event_listener(ATTR_SCHEDULE_PARAMETERS)
     async def on_event_schedule_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
 
@@ -361,7 +361,7 @@ class EcoMAX(PhysicalDevice):
     @event_listener(ATTR_THERMOSTAT_PARAMETERS)
     async def on_event_thermostat_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
+        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle thermostat parameters and dispatch the events."""
         if parameters:

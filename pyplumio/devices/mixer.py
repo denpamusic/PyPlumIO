@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine, Generator, Sequence
+from collections.abc import Coroutine, Generator
 import logging
 from typing import Any
 
@@ -38,7 +38,7 @@ class Mixer(VirtualDevice):
 
     @event_listener(ATTR_MIXER_PARAMETERS)
     async def on_event_mixer_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update mixer parameters and dispatch the events."""
         product_info: ProductInfo = await self.parent.get(ATTR_PRODUCT)
