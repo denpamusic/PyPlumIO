@@ -32,7 +32,7 @@ from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
     ATTR_THERMOSTATS,
-    BOOTSTRAP_TYPES,
+    REQUIREMENTS,
     EcoMAX,
 )
 from pyplumio.devices.ecoster import EcoSTER
@@ -131,7 +131,7 @@ async def test_setup() -> None:
 
     assert await ecomax.get(ATTR_SETUP)
     assert ATTR_FRAME_ERRORS not in ecomax.data
-    assert mock_request.await_count == len(BOOTSTRAP_TYPES)
+    assert mock_request.await_count == len(REQUIREMENTS)
 
 
 async def test_setup_error() -> None:
@@ -159,7 +159,7 @@ async def test_setup_error() -> None:
 
     assert await ecomax.get(ATTR_SETUP)
     assert ecomax.data[ATTR_FRAME_ERRORS][0] == FrameType.REQUEST_ALERTS
-    assert mock_request.await_count == len(BOOTSTRAP_TYPES)
+    assert mock_request.await_count == len(REQUIREMENTS)
 
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:

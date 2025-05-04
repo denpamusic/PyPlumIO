@@ -99,7 +99,7 @@ class FuelMeter:
         return None
 
 
-BOOTSTRAP_TYPES: tuple[DataFrameDescription, ...] = (
+REQUIREMENTS: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_UID,
         provides=ATTR_PRODUCT,
@@ -225,7 +225,7 @@ class EcoMAX(PhysicalDevice):
         results = await asyncio.gather(
             *(
                 self.request(description.provides, description.frame_type)
-                for description in BOOTSTRAP_TYPES
+                for description in REQUIREMENTS
             ),
             return_exceptions=True,
         )
