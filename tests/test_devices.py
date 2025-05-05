@@ -195,6 +195,7 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     test_data = load_json_test_data("messages/sensor_data.json")[0]
     message = SensorDataMessage(message=test_data["message"])
     message.data[ATTR_FRAME_VERSIONS] = {FrameType.REQUEST_REGULATOR_DATA_SCHEMA: 86}
+    ecomax.data[ATTR_SETUP] = True
     with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
         ecomax.handle_frame(message)
         await ecomax.wait_until_done()
