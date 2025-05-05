@@ -181,6 +181,28 @@ async def test_frame_versions_update(ecomax: EcoMAX) -> None:
         ]
     )
 
+    # Test with frame types in required list (handled by setup).
+    mock_put_nowait.reset_mock()
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
+    with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
+        ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
+        await ecomax.wait_until_done()
+
+    mock_put_nowait.assert_not_called()
+
+    # Test with frame types in required list after setup done.
+    mock_put_nowait.reset_mock()
+    test_data = load_json_test_data("messages/sensor_data.json")[0]
+    message = SensorDataMessage(message=test_data["message"])
+    message.data[ATTR_FRAME_VERSIONS] = {FrameType.REQUEST_REGULATOR_DATA_SCHEMA: 86}
+    with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
+        ecomax.handle_frame(message)
+        await ecomax.wait_until_done()
+
+    mock_put_nowait.assert_called_once_with(
+        RegulatorDataSchemaRequest(recipient=DeviceType.ECOMAX)
+    )
+
 
 async def test_ecomax_data_callbacks(ecomax: EcoMAX) -> None:
     """Test callbacks dispatched on data frames."""

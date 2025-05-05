@@ -141,7 +141,7 @@ class PhysicalDevice(Device, ABC):
     @event_listener(filter=on_change)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
-        _LOGGER.info("Received version table")
+        _LOGGER.info("Received frame version table")
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)

@@ -192,7 +192,16 @@ class EcoMAX(PhysicalDevice):
         self, frame_type: FrameType | int, version: int
     ) -> None:
         """Request frame version from the device."""
+        request_frame = False
         if frame_type not in REQUIRED_TYPES:
+            # Frame not in required, so we'll request it right away.
+            request_frame = True
+
+        if frame_type in self._frame_versions:
+            # Frame in required and has been requested once by setup.
+            request_frame = True
+
+        if request_frame:
             await super()._request_frame_version(frame_type, version)
 
     async def _set_ecomax_state(self, state: State) -> bool:
