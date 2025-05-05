@@ -8,11 +8,14 @@ import logging
 from types import ModuleType
 from typing import Any, TypeVar
 
+from pyplumio.helpers.async_cache import acache
+
 _LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
 
+@acache
 async def import_module(name: str) -> ModuleType:
     """Import module by name."""
     loop = asyncio.get_running_loop()
