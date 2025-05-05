@@ -32,7 +32,7 @@ from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
     ATTR_THERMOSTATS,
-    REQUIREMENTS,
+    REQUIRED,
     EcoMAX,
 )
 from pyplumio.devices.ecoster import EcoSTER
@@ -131,7 +131,7 @@ async def test_setup() -> None:
 
     assert await ecomax.get(ATTR_SETUP)
     assert ATTR_FRAME_ERRORS not in ecomax.data
-    assert mock_request.await_count == len(REQUIREMENTS)
+    assert mock_request.await_count == len(REQUIRED)
 
 
 async def test_setup_error() -> None:
@@ -159,13 +159,16 @@ async def test_setup_error() -> None:
 
     assert await ecomax.get(ATTR_SETUP)
     assert ecomax.data[ATTR_FRAME_ERRORS][0] == FrameType.REQUEST_ALERTS
-    assert mock_request.await_count == len(REQUIREMENTS)
+    assert mock_request.await_count == len(REQUIRED)
 
 
 async def test_frame_versions_update(ecomax: EcoMAX) -> None:
     """Test requesting updated frames."""
     test_data = load_json_test_data("messages/sensor_data.json")[0]
-    with patch("asyncio.Queue.put_nowait") as mock_put_nowait:
+    with (
+        patch("asyncio.Queue.put_nowait") as mock_put_nowait,
+        patch("pyplumio.devices.ecomax.REQUIRED_TYPES", []),
+    ):
         ecomax.handle_frame(SensorDataMessage(message=test_data["message"]))
         await ecomax.wait_until_done()
 

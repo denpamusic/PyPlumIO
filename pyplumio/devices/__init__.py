@@ -148,12 +148,16 @@ class PhysicalDevice(Device, ABC):
                 and self.supports_frame_type(frame_type)
                 and not self.has_frame_version(frame_type, version)
             ):
-                _LOGGER.debug(
-                    "Updating frame %s to version %i", repr(frame_type), version
-                )
-                request = await Request.create(frame_type, recipient=self.address)
-                self.queue.put_nowait(request)
+                await self._request_frame_version(frame_type, version)
                 self._frame_versions[frame_type] = version
+
+    async def _request_frame_version(
+        self, frame_type: FrameType | int, version: int
+    ) -> None:
+        """Request frame version from the device."""
+        _LOGGER.info("Updating frame %s to version %i", repr(frame_type), version)
+        request = await Request.create(frame_type, recipient=self.address)
+        self.queue.put_nowait(request)
 
     def has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
         """Return True if frame data is up to date, False otherwise."""

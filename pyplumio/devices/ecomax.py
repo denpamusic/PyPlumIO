@@ -100,7 +100,7 @@ class FuelMeter:
         return None
 
 
-REQUIREMENTS: tuple[DataFrameDescription, ...] = (
+REQUIRED: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_UID,
         provides=ATTR_PRODUCT,
@@ -134,6 +134,8 @@ REQUIREMENTS: tuple[DataFrameDescription, ...] = (
         provides=ATTR_PASSWORD,
     ),
 )
+
+REQUIRED_TYPES = [description.frame_type for description in REQUIRED]
 
 
 class EcoMAX(PhysicalDevice):
@@ -186,6 +188,13 @@ class EcoMAX(PhysicalDevice):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
+    async def _request_frame_version(
+        self, frame_type: FrameType | int, version: int
+    ) -> None:
+        """Request frame version from the device."""
+        if frame_type not in REQUIRED_TYPES:
+            await super()._request_frame_version(frame_type, version)
+
     async def _set_ecomax_state(self, state: State) -> bool:
         """Try to set the ecoMAX control state."""
         try:
@@ -228,7 +237,7 @@ class EcoMAX(PhysicalDevice):
         results = await asyncio.gather(
             *(
                 self.request(description.provides, description.frame_type)
-                for description in REQUIREMENTS
+                for description in REQUIRED
             ),
             return_exceptions=True,
         )
