@@ -39,7 +39,11 @@ def get_device_handler(device_type: int) -> str:
 
     type_name = to_camelcase(
         DeviceType(device_type).name,
-        overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"},
+        overrides={
+            "ecomax": "EcoMAX",
+            "ecoster": "EcoSTER",
+            "econet": "EcoNET",
+        },
     )
     return f"devices.{type_name.lower()}.{type_name}"
 

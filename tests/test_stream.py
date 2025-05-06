@@ -43,7 +43,11 @@ async def test_frame_writer(mock_stream_writer) -> None:
 
 
 @pytest.mark.parametrize(
-    ("method", "exception"), [("close", OSError), ("wait_closed", asyncio.TimeoutError)]
+    ("method", "exception"),
+    [
+        ("close", OSError),
+        ("wait_closed", asyncio.TimeoutError),
+    ],
 )
 @patch("asyncio.StreamWriter", autospec=True)
 async def test_frame_writer_with_close_error(

@@ -33,20 +33,20 @@ def fixture_use_numpy(request, monkeypatch, caplog):
     return request.param
 
 
-async def test_clamp() -> None:
+@pytest.mark.parametrize(
+    ("input_value", "expected"),
+    [
+        (1, 10),
+        (50, 15),
+        (11, 11),
+    ],
+)
+async def test_clamp(input_value, expected) -> None:
     """Test the clamp filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.clamp(test_callback, min_value=10, max_value=15)
-    await wrapped_callback(1)
-    test_callback.assert_awaited_once_with(10)
-    test_callback.reset_mock()
-
-    await wrapped_callback(50)
-    test_callback.assert_awaited_once_with(15)
-    test_callback.reset_mock()
-
-    await wrapped_callback(11)
-    test_callback.assert_awaited_once_with(11)
+    await wrapped_callback(input_value)
+    test_callback.assert_awaited_once_with(expected)
 
 
 async def test_on_change() -> None:
@@ -236,20 +236,21 @@ async def test_aggregate_sample_size(frozen_time) -> None:
     test_callback.test_callback.assert_not_awaited()
 
 
-async def test_custom() -> None:
+@pytest.mark.parametrize(
+    ("filter_func", "input_value", "callback"),
+    [
+        (lambda x: len(x) == 4, [1, 2], False),
+        (lambda x: len(x) == 4, [1, 2, 3, 4], True),
+        (lambda x: len(x) == 4, [], False),
+    ],
+)
+async def test_custom(filter_func, input_value, callback) -> None:
     """Test the custom filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.custom(test_callback, lambda x: len(x) == 4)
+    wrapped_callback = filters.custom(test_callback, filter_func)
+    await wrapped_callback(input_value)
 
-    # Test that callback is not called when a list contains 2 items.
-    await wrapped_callback([1, 2])
-    test_callback.assert_not_awaited()
-
-    # Test that callback is called when a list contains 4 items.
-    await wrapped_callback([1, 2, 3, 4])
-    test_callback.assert_awaited_once_with([1, 2, 3, 4])
-    test_callback.reset_mock()
-
-    # Test that callback is not called when list is empty.
-    await wrapped_callback([])
-    test_callback.assert_not_awaited()
+    if callback:
+        test_callback.assert_awaited_once_with(input_value)
+    else:
+        test_callback.assert_not_awaited()

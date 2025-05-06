@@ -11,6 +11,7 @@ import pytest
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE, SerialException
 
 import pyplumio.connection
+from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import Protocol
 
@@ -124,6 +125,7 @@ async def test_tcp_connect(mock_protocol, asyncio_open_connection) -> None:
         reconnect_on_failure=False,
     )
 
+    asyncio_open_connection.reset_mock()
     asyncio_open_connection.side_effect = OSError
     with pytest.raises(ConnectionFailedError):
         await tcp_connection.connect()
@@ -147,23 +149,21 @@ async def test_serial_connect(
     )
 
     # Raise custom exception on connection failure.
+    serial_asyncio_open_serial_connection.reset_mock()
     serial_asyncio_open_serial_connection.side_effect = SerialException
     with pytest.raises(ConnectionFailedError):
         await serial_connection.connect()
 
 
+@patch(
+    "pyplumio.connection.Connection._connect", side_effect=(ConnectionFailedError, None)
+)
 @pytest.mark.usefixtures("asyncio_open_connection")
 async def test_reconnect(
-    tcp_connection: pyplumio.connection.TcpConnection, caplog
+    mock_connect, tcp_connection: pyplumio.connection.TcpConnection, caplog
 ) -> None:
     """Test a reconnect logic."""
-    with (
-        caplog.at_level(logging.ERROR),
-        patch(
-            "pyplumio.connection.Connection._connect",
-            side_effect=(ConnectionFailedError, None),
-        ) as mock_connect,
-    ):
+    with caplog.at_level(logging.ERROR):
         await tcp_connection.connect()
         await tcp_connection.wait_until_done()
 
@@ -201,10 +201,7 @@ async def test_reconnect_logic_selection() -> None:
 
 @patch("pyplumio.connection.Connection.close")
 @patch("pyplumio.connection.Connection.connect")
-async def test_context_manager(
-    mock_connect,
-    mock_close,
-) -> None:
+async def test_context_manager(mock_connect, mock_close) -> None:
     """Test context manager integration."""
     async with pyplumio.connection.TcpConnection(host=HOST, port=PORT) as connection:
         assert isinstance(connection, pyplumio.connection.TcpConnection)
@@ -220,7 +217,7 @@ async def test_getattr(
     mock_protocol, tcp_connection: pyplumio.connection.TcpConnection
 ) -> None:
     """Test that getattr is getting proxied to the protocol."""
-    mock_protocol.get_device = AsyncMock()
+    mock_protocol.get_device = AsyncMock(spec=PhysicalDevice)
     await tcp_connection.connect()
     await tcp_connection.get_device("test")
     mock_protocol.get_device.assert_called_once()

@@ -127,7 +127,8 @@ async def test_number_validate(number: Number) -> None:
         number.validate(6)
 
 
-async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_number_set(number: Number) -> None:
     """Test setting a number."""
     await number.set(5)
     assert number.pending_update
@@ -139,7 +140,8 @@ async def test_number_set(number: Number, bypass_asyncio_sleep) -> None:
         assert number == 3
 
 
-async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_number_set_with_no_retries(number: Number) -> None:
     """Test setting a number with no retries."""
     with patch("asyncio.Queue.put") as mock_put:
         assert await number.set(5, retries=0)
@@ -149,7 +151,8 @@ async def test_number_set_with_no_retries(number: Number, bypass_asyncio_sleep) 
     assert not number.pending_update
 
 
-async def test_number_set_optimistic(number: Number, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_number_set_optimistic(number: Number) -> None:
     """Test setting a number optimistically."""
     number.description.optimistic = True
     with patch("asyncio.Queue.put") as mock_put:
@@ -168,7 +171,8 @@ async def test_switch_validate(switch: Switch) -> None:
         switch.validate(2)
 
 
-async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_switch_set(switch: Switch) -> None:
     """Test setting a number."""
     await switch.set(STATE_ON)
     assert switch.pending_update
@@ -181,7 +185,8 @@ async def test_switch_set(switch: Switch, bypass_asyncio_sleep) -> None:
     assert switch == 0
 
 
-async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_switch_set_with_no_retries(switch: Switch) -> None:
     """Test setting a switch with no retries."""
     with patch("asyncio.Queue.put") as mock_put:
         assert await switch.set(STATE_ON, retries=0)
@@ -191,7 +196,8 @@ async def test_switch_set_with_no_retries(switch: Switch, bypass_asyncio_sleep) 
     assert not switch.pending_update
 
 
-async def test_switch_set_optimistic(switch: Switch, bypass_asyncio_sleep) -> None:
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
+async def test_switch_set_optimistic(switch: Switch) -> None:
     """Test setting a switch optimistically."""
     switch.description.optimistic = True
     with patch("asyncio.Queue.put") as mock_put:
@@ -312,8 +318,9 @@ def test_switch_repr(switch: Switch) -> None:
 
 
 @patch("asyncio.Queue.put")
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
 async def test_number_request_with_unchanged_value(
-    mock_put, number: Number, bypass_asyncio_sleep, caplog
+    mock_put, number: Number, caplog
 ) -> None:
     """Test that a frame doesn't get dispatched if it's value is unchanged."""
     assert not number.pending_update
@@ -330,8 +337,9 @@ async def test_number_request_with_unchanged_value(
 
 
 @patch("asyncio.Queue.put")
+@pytest.mark.usefixtures("bypass_asyncio_sleep")
 async def test_switch_request_with_unchanged_value(
-    mock_put, switch: Switch, bypass_asyncio_sleep, caplog
+    mock_put, switch: Switch, caplog
 ) -> None:
     """Test that a frame doesn't get dispatched if it's value is unchanged."""
     assert not switch.pending_update

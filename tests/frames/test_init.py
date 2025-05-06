@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import ClassVar
-
 import pytest
+from tests.conftest import RAISES
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
@@ -23,13 +22,13 @@ from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 class RequestFrame(Request):
     """Representation of a request frame."""
 
-    frame_type: ClassVar[FrameType] = FrameType.REQUEST_PROGRAM_VERSION
+    frame_type = FrameType.REQUEST_PROGRAM_VERSION
 
 
 class ResponseFrame(Response):
     """Representation of a response frame."""
 
-    frame_type: ClassVar[FrameType] = FrameType.RESPONSE_PROGRAM_VERSION
+    frame_type = FrameType.RESPONSE_PROGRAM_VERSION
 
 
 @pytest.fixture(name="request_frame")
@@ -65,11 +64,22 @@ def test_decode_create_message(frames: tuple[Request, Response]) -> None:
         assert frame.decode_message(message=bytearray()) == {}
 
 
-def test_get_frame_handler() -> None:
+@pytest.mark.parametrize(
+    ("frame_type", "handler"),
+    [
+        (FrameType.REQUEST_STOP_MASTER, "frames.requests.StopMasterRequest"),
+        (FrameType.RESPONSE_ECOMAX_CONTROL, "frames.responses.EcomaxControlResponse"),
+        (FrameType.MESSAGE_REGULATOR_DATA, "frames.messages.RegulatorDataMessage"),
+        (99, RAISES),
+    ],
+)
+def test_get_frame_handler(frame_type: FrameType | int, handler: str) -> None:
     """Test getting a frame handler."""
-    assert get_frame_handler(0x18) == "frames.requests.StopMasterRequest"
-    with pytest.raises(UnknownFrameError):
-        get_frame_handler(0x0)
+    if handler == RAISES:
+        with pytest.raises(UnknownFrameError):
+            get_frame_handler(frame_type)
+    else:
+        assert get_frame_handler(frame_type) == handler
 
 
 def test_passing_frame_type(

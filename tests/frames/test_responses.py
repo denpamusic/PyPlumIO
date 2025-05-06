@@ -1,9 +1,8 @@
 """Contains tests for the response frame classes."""
 
 import pytest
-from tests import load_json_parameters
+from tests.conftest import load_json_parameters
 
-from pyplumio.const import DeviceType
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import (
     AlertsResponse,
@@ -18,22 +17,6 @@ from pyplumio.frames.responses import (
     UIDResponse,
 )
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
-
-
-def test_responses_type() -> None:
-    """Test if response is an instance of frame class."""
-    for response in (
-        ProgramVersionResponse,
-        DeviceAvailableResponse,
-        UIDResponse,
-        PasswordResponse,
-        EcomaxParametersResponse,
-        MixerParametersResponse,
-        RegulatorDataSchemaResponse,
-        AlertsResponse,
-    ):
-        frame = response(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
-        assert isinstance(frame, response)
 
 
 @pytest.mark.parametrize(
@@ -126,7 +109,6 @@ async def test_thermostat_parameters_response(ecomax: EcoMAX, message, data) -> 
     frame.assign_to(ecomax)
     ecomax.load_nowait({ATTR_THERMOSTATS_AVAILABLE: 3})
     await ecomax.wait_until_done()
-
     assert frame.data == data
 
 
