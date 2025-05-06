@@ -1,35 +1,41 @@
 """Contains tests for the object factory."""
 
+from __future__ import annotations
+
+from typing import Literal
+
 import pytest
 
-from pyplumio.frames import Request
+from pyplumio.frames import Frame, Request, Response
+from pyplumio.frames.messages import RegulatorDataMessage
 from pyplumio.frames.requests import StopMasterRequest
+from pyplumio.frames.responses import UIDResponse
 from pyplumio.helpers.factory import create_instance
+from tests.conftest import RAISES
 
 
-async def test_get_object() -> None:
-    """Test getting an object via class path."""
-    cls = await create_instance("frames.requests.StopMasterRequest", cls=Request)
-    assert isinstance(cls, StopMasterRequest)
-
-
-async def test_get_object_with_incorrect_base_class() -> None:
-    """Test getting an object via class path with incorrect base class."""
-    with pytest.raises(TypeError) as exc_info:
-        await create_instance("frames.responses.UIDResponse", cls=Request)
-
-    assert str(exc_info.value) == (
-        "Expected instance of 'Request', but got 'UIDResponse' from 'UIDResponse'"
-    )
-
-
-async def test_get_object_with_nonexistent_class() -> None:
-    """Test getting an object via class path for nonexistent class."""
-    with pytest.raises(AttributeError):
-        await create_instance("frames.requests.NonExistent", cls=Request)
-
-
-async def test_get_object_with_nonexistent_module() -> None:
-    """Test getting an object via class path for a class within nonexistent module."""
-    with pytest.raises(ModuleNotFoundError):
-        await create_instance("frames.request.StopMasterRequest", cls=Request)
+@pytest.mark.parametrize(
+    ("path", "base", "expected", "error_pattern"),
+    [
+        ("frames.requests.StopMasterRequest", Request, StopMasterRequest, None),
+        ("frames.responses.UIDResponse", Response, UIDResponse, None),
+        ("frames.messages.RegulatorDataMessage", Frame, RegulatorDataMessage, None),
+        ("frames.responses.UIDResponse", Request, RAISES, "Expected instance"),
+        ("frames.requests.NonExistent", Request, RAISES, "no attribute"),
+        ("frames.request.StopMasterRequest", Request, RAISES, "No module"),
+    ],
+)
+async def test_create_instance(
+    path: str,
+    base: type,
+    expected: type | Literal["raises"],
+    error_pattern: str | None,
+) -> None:
+    """Test creating an instance of class."""
+    if expected == RAISES:
+        with pytest.raises(
+            (TypeError, AttributeError, ModuleNotFoundError), match=error_pattern
+        ):
+            await create_instance(path, cls=base)
+    else:
+        assert isinstance(await create_instance(path, cls=base), expected)

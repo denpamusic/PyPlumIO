@@ -55,7 +55,7 @@ async def test_mixer_parameter_create_request(thermostat: Thermostat) -> None:
     }
 
 
-def test_get_thermostat_parameter_types(thermostat: Thermostat) -> None:
+def test_get_thermostat_parameter_types() -> None:
     """Test ecoMAX parameter types getter."""
     parameter_types_all = get_thermostat_parameter_types()
     assert len(parameter_types_all) == 15

@@ -2,13 +2,15 @@
 
 from unittest.mock import AsyncMock, call, patch
 
+from pyplumio.devices import PhysicalDevice
+
 with patch("asyncio.run") as mock_asyncio_run:
     from pyplumio.__main__ import main
 
 
 async def test_main(capsys) -> None:
     """Test main."""
-    mock_device = AsyncMock()
+    mock_device = AsyncMock(spec=PhysicalDevice, autospec=True)
     mock_device.get.side_effect = ("one", "two")
     mock_connection = AsyncMock()
     mock_connection.__aenter__.return_value = mock_connection

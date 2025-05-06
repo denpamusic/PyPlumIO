@@ -12,8 +12,9 @@ from pyplumio.helpers.task_manager import TaskManager
 async def fixture_task_manager() -> TaskManager:
     """Return a task manager object."""
     task_manager = TaskManager()
+    mock_task = Mock(spec=asyncio.Task, autospec=True)
     with patch("asyncio.create_task"):
-        task_manager.create_task(Mock())
+        task_manager.create_task(mock_task)
 
     return task_manager
 
@@ -21,7 +22,7 @@ async def fixture_task_manager() -> TaskManager:
 def test_create_task(task_manager: TaskManager) -> None:
     """Test creating a task."""
     mock_coro = Mock()
-    mock_task = Mock(spec=asyncio.Task)
+    mock_task = Mock(spec=asyncio.Task, autospec=True)
     with patch("asyncio.create_task", return_value=mock_task) as create_task_mock:
         task_manager.create_task(mock_coro, name="test_task")
 
@@ -32,7 +33,7 @@ def test_create_task(task_manager: TaskManager) -> None:
 def test_cancel_task(task_manager: TaskManager) -> None:
     """Test canceling a task."""
     mock_coro = Mock()
-    mock_task = Mock(spec=asyncio.Task)
+    mock_task = Mock(spec=asyncio.Task, autospec=True)
     with patch("asyncio.create_task", return_value=mock_task):
         task_manager.create_task(mock_coro)
 
@@ -40,9 +41,8 @@ def test_cancel_task(task_manager: TaskManager) -> None:
     mock_task.cancel.assert_called_once()
 
 
-async def test_wait_until_done(task_manager: TaskManager) -> None:
+@patch("asyncio.gather", new_callable=AsyncMock)
+async def test_wait_until_done(mock_gather, task_manager: TaskManager) -> None:
     """Test waiting until all tasks are done."""
-    with patch("asyncio.gather", new_callable=AsyncMock) as mock_gather:
-        await task_manager.wait_until_done()
-
+    await task_manager.wait_until_done()
     mock_gather.assert_awaited_once_with(*task_manager.tasks, return_exceptions=True)

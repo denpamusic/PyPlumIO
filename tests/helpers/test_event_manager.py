@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
+from pyplumio.filters import Filter
 from pyplumio.helpers.event_manager import EventManager, event_listener
 
 
@@ -26,7 +27,7 @@ def test_register_event_listeners() -> None:
     # Create event listener with filter.
     mock_on_event_test2 = AsyncMock()
     setattr(mock_on_event_test2, "_on_event", "test2")
-    mock_filter = Mock()
+    mock_filter = Mock(spec=Filter)
     mock_wrapper = Mock(return_value=mock_filter)
     setattr(mock_on_event_test2, "_on_event_filter", mock_wrapper)
 

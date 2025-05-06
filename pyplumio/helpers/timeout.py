@@ -23,6 +23,7 @@ def timeout(
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
 
+        setattr(wrapper, "_has_timeout_seconds", seconds)
         return wrapper
 
     return decorator

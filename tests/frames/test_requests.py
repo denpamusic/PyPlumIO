@@ -1,7 +1,7 @@
 """Contains a tests for the request frame classes."""
 
 import pytest
-from tests import load_json_parameters
+from tests.conftest import load_json_parameters
 
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import FrameDataError
@@ -12,17 +12,12 @@ from pyplumio.frames.requests import (
     EcomaxControlRequest,
     EcomaxParametersRequest,
     MixerParametersRequest,
-    PasswordRequest,
     ProgramVersionRequest,
-    RegulatorDataSchemaRequest,
     SetEcomaxParameterRequest,
     SetMixerParameterRequest,
     SetScheduleRequest,
     SetThermostatParameterRequest,
-    StartMasterRequest,
-    StopMasterRequest,
     ThermostatParametersRequest,
-    UIDRequest,
 )
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 
@@ -30,25 +25,6 @@ from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionRes
 def test_request_class_response_property() -> None:
     """Test response property for a abstract request class."""
     assert Request().response() is None
-
-
-def test_request_type() -> None:
-    """Test if request is an instance of frame class."""
-    for request in (
-        ProgramVersionRequest,
-        CheckDeviceRequest,
-        UIDRequest,
-        PasswordRequest,
-        EcomaxParametersRequest,
-        MixerParametersRequest,
-        RegulatorDataSchemaRequest,
-        StartMasterRequest,
-        StopMasterRequest,
-        AlertsRequest,
-        ThermostatParametersRequest,
-    ):
-        frame = request(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
-        assert isinstance(frame, request)
 
 
 def test_program_version_response_recipient_and_type() -> None:

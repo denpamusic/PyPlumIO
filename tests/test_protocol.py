@@ -169,7 +169,7 @@ async def test_async_protocol_connection_lost() -> None:
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
-    mock_writer = AsyncMock()
+    mock_writer = AsyncMock(spec=FrameWriter)
     async_protocol.writer = mock_writer
     async_protocol.data = {"ecomax": mock_ecomax}
 
@@ -211,13 +211,13 @@ async def test_async_protocol_shutdown(
     mock_read_queue = Mock()
     mock_write_queue = Mock()
 
-    mock_writer = AsyncMock()
+    mock_writer = AsyncMock(spec=FrameWriter)
     mock_writer.close = AsyncMock()
     async_protocol.writer = mock_writer
     async_protocol.data["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
-    mock_frame_consumer_task = Mock()
-    mock_frame_producer_task = Mock()
+    mock_frame_consumer_task = Mock(spec=asyncio.Task)
+    mock_frame_producer_task = Mock(spec=asyncio.Task)
 
     with (
         patch.object(
