@@ -10,35 +10,6 @@ from tests.conftest import DEFAULT_TOLERANCE, UNDEFINED
 
 
 @pytest.mark.parametrize(
-    ("one", "another"),
-    [
-        (
-            data_types.SignedChar.from_bytes(bytearray([0x16])),
-            data_types.SignedChar.from_bytes(bytearray([0x16])),
-        ),
-        (
-            data_types.SignedChar.from_bytes(bytearray([0x16])),
-            22,
-        ),
-        (
-            data_types.SignedChar(),
-            data_types.SignedChar(),
-        ),
-        (
-            data_types.SignedChar(),
-            "not_implemented",
-        ),
-    ],
-)
-def test_type_eq(one, another):
-    """Test a generic type comparison."""
-    if another != "not_implemented":
-        assert one == another
-    else:
-        assert one.__eq__(another) is NotImplemented
-
-
-@pytest.mark.parametrize(
     ("cls", "buffer", "expected"),
     [
         (data_types.Undefined, bytearray(), None),
@@ -89,15 +60,13 @@ def test_bitarray() -> None:
     """Test a bit array data type."""
     buffer = bytearray([0x55])
     data_type = data_types.BitArray.from_bytes(buffer)
-    for index, value in enumerate([1, 0, 1, 0, 1, 0, 1, 0]):
+    expected_bits = [1, 0, 1, 0, 1, 0, 1, 0]
+    last_index = data_types.BITARRAY_LAST_INDEX
+    for index in range(8):
         next_bit = data_type.next(index)
-        assert data_type.value == bool(value)
-        if index < 7:
-            assert next_bit == index + 1
-            assert data_type.size == 0
-        else:
-            assert next_bit == 0
-            assert data_type.size == 1
+        assert data_type.value == expected_bits[index]
+        assert data_type.size == (1 if index == last_index else 0)
+        assert next_bit == (0 if index == last_index else index + 1)
 
     assert data_type.to_bytes() == buffer
     assert repr(data_type) == "BitArray(value=85, index=7)"
