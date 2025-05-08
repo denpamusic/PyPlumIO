@@ -10,7 +10,7 @@ with patch("asyncio.run") as mock_asyncio_run:
 
 async def test_main(capsys) -> None:
     """Test main."""
-    mock_device = AsyncMock(spec=PhysicalDevice)
+    mock_device = AsyncMock(spec=PhysicalDevice, autospec=True)
     mock_device.get.side_effect = ("one", "two")
     mock_connection = AsyncMock()
     mock_connection.__aenter__.return_value = mock_connection
