@@ -33,7 +33,7 @@ def test_device_handler(
 ) -> None:
     """Test getting device handler class by device address."""
     if handler == RAISES:
-        with pytest.raises(UnknownDeviceError):
+        with pytest.raises(UnknownDeviceError, match="Unknown device type"):
             get_device_handler(device_type)
     else:
         assert get_device_handler(device_type) == handler

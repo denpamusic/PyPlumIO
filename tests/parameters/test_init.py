@@ -170,7 +170,7 @@ async def test_switch_validate(switch: Switch) -> None:
     """Test the switch validation."""
     assert switch.validate(STATE_ON)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="must be either 'on', 'off' or boolean"):
         switch.validate(2)
 
 
