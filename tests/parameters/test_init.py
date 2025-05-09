@@ -123,8 +123,11 @@ async def test_number_validate(number: Number) -> None:
     """Test the number validation."""
     assert number.validate(2)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="The value must be between"):
         number.validate(6)
+
+    with pytest.raises(ValueError, match="value must be adjusted in increments"):
+        number.validate(2.1)
 
 
 @pytest.mark.usefixtures("bypass_asyncio_sleep")
