@@ -116,10 +116,10 @@ class TestConnection:
         mock_protocol.shutdown.assert_called_once()
 
     @pytest.mark.parametrize(
-        ("reconnect_on_failure", "expected_awaits", "expected_log"),
+        ("reconnect_on_failure", "expected_log"),
         [
-            (True, 2, "Can't connect to the device"),
-            (False, 1, None),
+            (True, "Can't connect to the device"),
+            (False, None),
         ],
     )
     @patch.object(DummyConnection, "_open_connection", side_effect=(OSError, None))
@@ -128,7 +128,6 @@ class TestConnection:
         mock_open_connection,
         caplog,
         reconnect_on_failure: bool,
-        expected_awaits: int,
         expected_log: str | None,
     ) -> None:
         """Test reconnect logic."""
@@ -142,7 +141,7 @@ class TestConnection:
             with pytest.raises(ConnectionFailedError):
                 await connection.connect()
 
-        mock_open_connection.await_count == expected_awaits
+        mock_open_connection.assert_awaited_once()
 
     @patch.object(DummyConnection, "close")
     @patch.object(DummyConnection, "connect")
