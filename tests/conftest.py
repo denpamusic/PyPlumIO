@@ -125,8 +125,8 @@ def class_from_json(
 
 
 @pytest.fixture(autouse=True)
-def bypass_asyncio_sleep():
-    """Bypass an asyncio sleep."""
+def skip_asyncio_sleep():
+    """Skip an asyncio sleep calls."""
     with patch("asyncio.sleep"):
         yield
 

@@ -42,14 +42,14 @@ def fixture_frame_reader() -> Generator[FrameReader, None, None]:
         yield FrameReader(mock_stream_reader)
 
 
-@pytest.fixture(name="include_frame_start")
-def fixture_include_frame_start():
+@pytest.fixture(name="read_frame_start")
+def fixture_read_frame_start():
     """Mock frame start delimiter.
 
     Patches StreamReader.read to return the frame start byte.
     """
-    with patch("asyncio.StreamReader.read", return_value=b"\x68"):
-        yield
+    with patch("asyncio.StreamReader.read", return_value=b"\x68") as mock_read:
+        yield mock_read
 
 
 class TestFrameWriter:
@@ -167,7 +167,7 @@ class TestFrameReader:
         side_effect=asyncio.IncompleteReadError(bytearray(), expected=7),
     )
     async def test_incomplete_header(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test incomplete header.
 
@@ -176,12 +176,14 @@ class TestFrameReader:
         with pytest.raises(ReadError, match="Incomplete header"):
             await frame_reader.read()
 
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_awaited_once_with(6)
+
     @patch(
-        "asyncio.StreamReader.readexactly",
-        side_effect=(b"\x03\x00\x00\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+        "asyncio.StreamReader.readexactly", side_effect=(b"\x03\x00\x00\x56\x30\x05",)
     )
     async def test_unexpected_frame_length(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test unexpected frame length.
 
@@ -189,6 +191,9 @@ class TestFrameReader:
         """
         with pytest.raises(ReadError, match="Unexpected frame length"):
             await frame_reader.read()
+
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_awaited_once_with(6)
 
     @patch(
         "asyncio.StreamReader.readexactly",
@@ -199,7 +204,7 @@ class TestFrameReader:
         new_callable=AsyncMock,
     )
     async def test_incomplete_frame(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test incomplete frame.
 
@@ -208,12 +213,15 @@ class TestFrameReader:
         with pytest.raises(ReadError, match="Incomplete frame"):
             await frame_reader.read()
 
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_has_calls([call(6), call(5)])
+
     @patch(
         "asyncio.StreamReader.readexactly",
         side_effect=(b"\x0c\x00\x00\x56\x30\x05", b"\x31\xfe\x00\xc9\x16"),
     )
     async def test_incorrect_checksum(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test incorrect checksum.
 
@@ -222,12 +230,14 @@ class TestFrameReader:
         with pytest.raises(ChecksumError, match="Incorrect frame checksum"):
             await frame_reader.read()
 
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_has_calls([call(6), call(5)])
+
     @patch(
-        "asyncio.StreamReader.readexactly",
-        side_effect=(b"\x0c\x00\x10\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+        "asyncio.StreamReader.readexactly", side_effect=(b"\x0c\x00\x10\x56\x30\x05",)
     )
     async def test_unknown_recipient(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test unknown recipient.
 
@@ -236,13 +246,14 @@ class TestFrameReader:
         """
         result = await frame_reader.read()
         assert result is None
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_awaited_once_with(6)
 
     @patch(
-        "asyncio.StreamReader.readexactly",
-        side_effect=(b"\x0c\x00\x00\x10\x30\x05", b"\x31\xff\x00\xc9\x16"),
+        "asyncio.StreamReader.readexactly", side_effect=(b"\x0c\x00\x00\x10\x30\x05",)
     )
     async def test_unknown_sender(
-        self, mock_readexactly, frame_reader: FrameReader, include_frame_start
+        self, mock_readexactly, frame_reader: FrameReader, read_frame_start
     ) -> None:
         """Test unknown sender.
 
@@ -251,3 +262,6 @@ class TestFrameReader:
         """
         with pytest.raises(UnknownDeviceError, match="Unknown sender"):
             await frame_reader.read()
+
+        read_frame_start.assert_awaited_once()
+        mock_readexactly.assert_awaited_once_with(6)

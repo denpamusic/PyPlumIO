@@ -270,7 +270,6 @@ class TestParameter:
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     @patch("asyncio.Queue.put")
-    @pytest.mark.usefixtures("bypass_asyncio_sleep")
     @pytest.mark.parametrize("nowait", [False, True])
     async def test_set(
         self,
@@ -299,7 +298,6 @@ class TestParameter:
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     @patch("asyncio.Queue.put")
-    @pytest.mark.usefixtures("bypass_asyncio_sleep")
     @pytest.mark.parametrize("nowait", [False, True])
     async def test_set_unchanged(
         self,
