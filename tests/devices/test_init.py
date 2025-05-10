@@ -183,6 +183,6 @@ class TestPhysicalDevice:
             FrameType.REQUEST_ALERTS, recipient=DummyPhysicalDevice.address
         )
         mock_put_nowait.assert_called_with(mock_request_create.return_value)
-        mock_put_nowait.call_count == 2
+        assert mock_put_nowait.call_count == 2
         mock_get.assert_awaited_with("alerts", timeout=3.0)
-        mock_get.call_count == 2
+        assert mock_get.call_count == 2

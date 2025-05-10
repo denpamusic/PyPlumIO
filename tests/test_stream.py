@@ -144,9 +144,9 @@ class TestFrameReader:
         assert frame.recipient == DeviceType.ALL
         assert frame.message == b"\xff\x00"
         assert frame.econet_version == ECONET_VERSION
-        mock_read.call_count == 2
+        assert mock_read.call_count == 2
         mock_read.assert_has_calls([call(1), call(1)])
-        mock_readexactly.call_count == 2
+        assert mock_readexactly.call_count == 2
         mock_readexactly.assert_has_calls([call(6), call(5)])
 
     @patch("asyncio.StreamReader.read", return_value=False)
