@@ -120,10 +120,10 @@ class TestPhysicalDevice:
         """Test decorator for the frame version event listener."""
         event = getattr(PhysicalDevice.on_event_frame_versions, "_on_event", None)
         assert event == ATTR_FRAME_VERSIONS
-        filter = getattr(
+        filter_func = getattr(
             PhysicalDevice.on_event_frame_versions, "_on_event_filter", None
         )
-        assert filter is on_change
+        assert filter_func is on_change
 
     async def test_supports_frame_type(self, physical_device: PhysicalDevice) -> None:
         """Test frame support checker."""

@@ -148,7 +148,7 @@ class TestConnection:
     async def test_context_manager(self, mock_connect, mock_close) -> None:
         """Test context manager."""
         async with DummyConnection():
-            pass
+            ...
 
         mock_connect.assert_called_once()
         mock_close.assert_called_once()
