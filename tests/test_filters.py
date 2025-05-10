@@ -212,7 +212,7 @@ async def test_aggregate(use_numpy, frozen_time) -> None:
     test_callback.assert_not_awaited()
 
     # Test with non-numeric value.
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="filter can only be used with numeric values"):
         await wrapped_callback("banana")
 
 

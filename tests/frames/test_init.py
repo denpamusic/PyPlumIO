@@ -76,7 +76,7 @@ def test_decode_create_message(frames: tuple[Request, Response]) -> None:
 def test_get_frame_handler(frame_type: FrameType | int, handler: str) -> None:
     """Test getting a frame handler."""
     if handler == RAISES:
-        with pytest.raises(UnknownFrameError):
+        with pytest.raises(UnknownFrameError, match="Unknown frame type"):
             get_frame_handler(frame_type)
     else:
         assert get_frame_handler(frame_type) == handler

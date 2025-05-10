@@ -29,18 +29,16 @@ from pyplumio.structures.network_info import (
     WirelessParameters,
 )
 
-UNKNOWN_DEVICE: int = 99
 
-
-@pytest.fixture
-def bypass_asyncio_create_task():
+@pytest.fixture(name="skip_asyncio_create_task")
+def fixture_skip_asyncio_create_task():
     """Bypass asyncio create task."""
     with patch("asyncio.create_task"):
         yield
 
 
-@pytest.fixture(name="bypass_asyncio_events")
-def fixture_bypass_asyncio_events():
+@pytest.fixture(name="skip_asyncio_events")
+def fixture_skip_asyncio_events():
     """Bypass asyncio events."""
     with (
         patch("asyncio.Event.wait", new_callable=AsyncMock),
@@ -198,6 +196,7 @@ async def test_async_protocol_connection_lost() -> None:
 @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
 @patch("pyplumio.devices.ecomax.EcoMAX.shutdown", new_callable=Mock)
 @patch("pyplumio.helpers.event_manager.EventManager.dispatch", new_callable=Mock)
+@pytest.mark.usefixtures("skip_asyncio_events")
 async def test_async_protocol_shutdown(
     mock_dispatch,
     mock_shutdown,
@@ -205,7 +204,6 @@ async def test_async_protocol_shutdown(
     mock_gather,
     mock_wait,
     async_protocol: AsyncProtocol,
-    bypass_asyncio_events,
 ) -> None:
     """Test shutting down connection with an async protocol."""
     mock_read_queue = Mock()
@@ -248,9 +246,9 @@ async def test_async_protocol_shutdown(
     assert async_protocol.writer is None
 
 
-@pytest.mark.usefixtures("bypass_asyncio_create_task")
+@pytest.mark.usefixtures("skip_asyncio_events", "skip_asyncio_create_task")
 async def test_async_protocol_frame_producer(
-    async_protocol: AsyncProtocol, bypass_asyncio_events, caplog
+    async_protocol: AsyncProtocol, caplog
 ) -> None:
     """Test a frame producer task within an async protocol."""
     success = Response(sender=DeviceType.ECOMAX)
@@ -338,10 +336,10 @@ async def test_async_protocol_frame_producer(
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
 @patch("pyplumio.frames.requests.ProgramVersionRequest.response")
+@pytest.mark.usefixtures("skip_asyncio_events")
 async def test_async_protocol_frame_consumer(
     mock_program_version_response,
     mock_device_available_response,
-    bypass_asyncio_events,
     async_protocol: AsyncProtocol,
     caplog,
 ) -> None:
