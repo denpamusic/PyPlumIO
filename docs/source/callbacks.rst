@@ -79,6 +79,20 @@ value is changed.
     # last call.
     ecomax.subscribe("heating_temp", filters.on_change(my_callback))
 
+.. autofunction:: pyplumio.filters.deadband
+
+This filter await the callback on signifacant changes only.
+Significance is defined by ``tolerance`` argument (i. e. tolerance=0.1
+will only await callback when value is changed by more that 0.1).
+
+.. code-block:: python
+
+    from pyplumio import filters
+
+    # Await the callback once heating_temp value is changed by more
+    # than 0.1 since last call.
+    ecomax.subscribe("heating_temp", filters.deadband(my_callback, tolerance=0.1))
+
 .. autofunction:: pyplumio.filters.debounce
 
 This filter will only await the callback once value is settled across

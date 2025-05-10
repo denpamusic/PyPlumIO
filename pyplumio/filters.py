@@ -36,7 +36,6 @@ with suppress(ImportError):
 
 
 UNDEFINED: Final = "undefined"
-TOLERANCE: Final = 0.1
 
 
 @runtime_checkable
@@ -63,26 +62,34 @@ class SupportsComparison(Protocol):
 
 Comparable = TypeVar("Comparable", Parameter, SupportsFloat, SupportsComparison)
 
-
-@overload
-def is_close(old: Parameter, new: Parameter) -> bool: ...
+DEFAULT_TOLERANCE: Final = 1e-6
 
 
 @overload
-def is_close(old: SupportsFloat, new: SupportsFloat) -> bool: ...
+def is_close(old: Parameter, new: Parameter, tolerance: None = None) -> bool: ...
 
 
 @overload
-def is_close(old: SupportsComparison, new: SupportsComparison) -> bool: ...
+def is_close(
+    old: SupportsFloat, new: SupportsFloat, tolerance: float = DEFAULT_TOLERANCE
+) -> bool: ...
 
 
-def is_close(old: Comparable, new: Comparable) -> bool:
+@overload
+def is_close(
+    old: SupportsComparison, new: SupportsComparison, tolerance: None = None
+) -> bool: ...
+
+
+def is_close(
+    old: Comparable, new: Comparable, tolerance: float | None = DEFAULT_TOLERANCE
+) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
         return new.pending_update or old.values.__ne__(new.values)
 
-    if isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
-        return not math.isclose(old, new, abs_tol=TOLERANCE)
+    if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
+        return not math.isclose(old, new, abs_tol=tolerance)
 
     return old.__ne__(new)
 
@@ -293,6 +300,53 @@ def custom(callback: Callback, filter_fn: _FilterT) -> _Custom:
     return _Custom(callback, filter_fn)
 
 
+class _Deadband(Filter):
+    """Represents a deadband filter.
+
+    Calls a callback only when value is significantly changed from the
+    previous callback call.
+    """
+
+    __slots__ = ("_tolerance",)
+
+    _tolerance: float
+
+    def __init__(self, callback: Callback, tolerance: float) -> None:
+        """Initialize a new value changed filter."""
+        self._tolerance = tolerance
+        super().__init__(callback)
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if not isinstance(new_value, (float, int, Decimal)):
+            raise TypeError(
+                "Deadband filter can only be used with numeric values, got "
+                f"{type(new_value).__name__}: {new_value}"
+            )
+
+        if self._value == UNDEFINED or is_close(
+            self._value, new_value, tolerance=self._tolerance
+        ):
+            self._value = new_value
+            return await self._callback(new_value)
+
+
+def deadband(callback: Callback, tolerance: float) -> _Deadband:
+    """Create a new deadband filter.
+
+    A callback function will only be called when the value is significantly changed
+    from the previous callback call.
+
+    :param callback: A callback function to be awaited on significant value change
+    :type callback: Callback
+    :param tolerance: The minimum difference required to trigger the callback
+    :type tolerance: float
+    :return: An instance of callable filter
+    :rtype: _Deadband
+    """
+    return _Deadband(callback, tolerance)
+
+
 class _Debounce(Filter):
     """Represents a debounce filter.
 
@@ -468,6 +522,7 @@ __all__ = [
     "aggregate",
     "clamp",
     "custom",
+    "deadband",
     "debounce",
     "delta",
     "on_change",

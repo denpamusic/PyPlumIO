@@ -49,10 +49,10 @@ async def test_clamp(input_value, expected) -> None:
     test_callback.assert_awaited_once_with(expected)
 
 
-async def test_on_change() -> None:
-    """Test the value changed filter."""
+async def test_deadband() -> None:
+    """Test the deadband filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.on_change(test_callback)
+    wrapped_callback = filters.deadband(test_callback, tolerance=0.1)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -60,6 +60,22 @@ async def test_on_change() -> None:
     # Check that callback is not awaited on insignificant change.
     await wrapped_callback(1.01)
     test_callback.assert_not_awaited()
+
+    await wrapped_callback(1.1)
+    test_callback.assert_awaited_once_with(1.1)
+
+    # Test with non-numeric value.
+    with pytest.raises(TypeError, match="filter can only be used with numeric values"):
+        await wrapped_callback("banana")
+
+
+async def test_on_change() -> None:
+    """Test the value changed filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = filters.on_change(test_callback)
+    await wrapped_callback(1)
+    test_callback.assert_awaited_once_with(1)
+    test_callback.reset_mock()
 
     await wrapped_callback(1.1)
     test_callback.assert_awaited_once_with(1.1)
