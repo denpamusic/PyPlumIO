@@ -37,9 +37,9 @@ async def test_acache():
     mock_coro.__qualname__ = "test_coro"
 
     # Call the decorator.
-    decorator = acache(mock_coro)
+    acache_decorator = acache(mock_coro)
     with patch("pyplumio.helpers.async_cache.AsyncCache.get") as mock_get:
-        await decorator()
+        await acache_decorator()
 
     # Check that get function was execute with correct parameters.
     mock_get.assert_awaited_once()

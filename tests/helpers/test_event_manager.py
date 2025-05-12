@@ -188,8 +188,8 @@ def test_event_listener_decorator() -> None:
     """Test subscribe decorator."""
     mock_func = Mock()
     mock_func.__qualname__ = "on_event_test"
-    decorator = event_listener()
-    assert decorator(mock_func)
+    event_listener_decorator = event_listener()
+    assert event_listener_decorator(mock_func)
     assert getattr(mock_func, "_on_event") == "test"
     assert not getattr(mock_func, "_on_event_filter")
 
@@ -202,15 +202,15 @@ def test_event_listener_decorator() -> None:
 
     # Test with name.
     mock_func.reset_mock()
-    decorator = event_listener("test3")
-    assert decorator(mock_func)
+    event_listener_decorator = event_listener("test3")
+    assert event_listener_decorator(mock_func)
     assert getattr(mock_func, "_on_event") == "test3"
     assert not getattr(mock_func, "_on_event_filter")
 
     # Test with filter.
     mock_func.reset_mock()
     mock_filter = Mock()
-    decorator = event_listener("test", mock_filter)
-    assert decorator(mock_func)
+    event_listener_decorator = event_listener("test", mock_filter)
+    assert event_listener_decorator(mock_func)
     assert getattr(mock_func, "_on_event") == "test"
     assert getattr(mock_func, "_on_event_filter") == mock_filter

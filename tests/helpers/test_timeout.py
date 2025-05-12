@@ -12,8 +12,7 @@ from pyplumio.helpers.timeout import timeout
 async def test_timeout(mock_wait_for) -> None:
     """Test a timeout decorator."""
     # Mock function to pass to the decorator.
-    mock_func = Mock()
-    mock_func.return_value = "test"
+    mock_func = Mock(return_value="test")
 
     # Call the decorator.
     timeout_decorator = timeout(10)
@@ -24,9 +23,8 @@ async def test_timeout(mock_wait_for) -> None:
     mock_func.assert_called_once_with("test_arg", kwarg="test_kwarg")
 
     # Test behavior when a timeout occurs.
-    mock_func = Mock()
-    mock_func.return_value = "test"
-    decorator = timeout(10)
-    wrapper = decorator(mock_func)
+    mock_func.reset_mock()
+    timeout_decorator = timeout(10)
+    wrapper = timeout_decorator(mock_func)
     with pytest.raises(asyncio.TimeoutError):
         await wrapper("test_arg", kwarg="test_kwarg")
