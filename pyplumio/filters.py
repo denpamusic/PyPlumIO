@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
+from contextlib import suppress
 from copy import copy
+from decimal import Decimal
+import logging
 import math
 import time
 from typing import (
@@ -22,8 +25,17 @@ from typing_extensions import TypeAlias
 from pyplumio.helpers.event_manager import Callback
 from pyplumio.parameters import Parameter
 
+_LOGGER = logging.getLogger(__name__)
+
+numpy_installed = False
+with suppress(ImportError):
+    import numpy as np
+
+    _LOGGER.info("Using numpy for improved float precision")
+    numpy_installed = True
+
+
 UNDEFINED: Final = "undefined"
-TOLERANCE: Final = 0.1
 
 
 @runtime_checkable
@@ -50,26 +62,34 @@ class SupportsComparison(Protocol):
 
 Comparable = TypeVar("Comparable", Parameter, SupportsFloat, SupportsComparison)
 
-
-@overload
-def is_close(old: Parameter, new: Parameter) -> bool: ...
+DEFAULT_TOLERANCE: Final = 1e-6
 
 
 @overload
-def is_close(old: SupportsFloat, new: SupportsFloat) -> bool: ...
+def is_close(old: Parameter, new: Parameter, tolerance: None = None) -> bool: ...
 
 
 @overload
-def is_close(old: SupportsComparison, new: SupportsComparison) -> bool: ...
+def is_close(
+    old: SupportsFloat, new: SupportsFloat, tolerance: float = DEFAULT_TOLERANCE
+) -> bool: ...
 
 
-def is_close(old: Comparable, new: Comparable) -> bool:
+@overload
+def is_close(
+    old: SupportsComparison, new: SupportsComparison, tolerance: None = None
+) -> bool: ...
+
+
+def is_close(
+    old: Comparable, new: Comparable, tolerance: float | None = DEFAULT_TOLERANCE
+) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
         return new.pending_update or old.values.__ne__(new.values)
 
-    if isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
-        return not math.isclose(old, new, abs_tol=TOLERANCE)
+    if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
+        return not math.isclose(old, new, abs_tol=tolerance)
 
     return old.__ne__(new)
 
@@ -129,44 +149,50 @@ class _Aggregate(Filter):
     """Represents an aggregate filter.
 
     Calls a callback with a sum of values collected over a specified
-    time period.
+    time period or when sample size limit reached.
     """
 
-    __slots__ = ("_sum", "_last_update", "_timeout")
+    __slots__ = ("_values", "_sample_size", "_timeout", "_last_call_time")
 
-    _sum: complex
-    _last_update: float
+    _values: list[float | int | Decimal]
+    _sample_size: int
     _timeout: float
+    _last_call_time: float
 
-    def __init__(self, callback: Callback, seconds: float) -> None:
+    def __init__(self, callback: Callback, seconds: float, sample_size: int) -> None:
         """Initialize a new aggregate filter."""
         super().__init__(callback)
-        self._last_update = time.monotonic()
+        self._last_call_time = time.monotonic()
         self._timeout = seconds
-        self._sum = 0.0
+        self._sample_size = sample_size
+        self._values = []
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        current_timestamp = time.monotonic()
-        try:
-            self._sum += new_value
-        except TypeError as e:
-            raise ValueError(
-                "Aggregate filter can only be used with numeric values"
-            ) from e
+        if not isinstance(new_value, (float, int, Decimal)):
+            raise TypeError(
+                "Aggregate filter can only be used with numeric values, got "
+                f"{type(new_value).__name__}: {new_value}"
+            )
 
-        if current_timestamp - self._last_update >= self._timeout:
-            result = await self._callback(self._sum)
-            self._last_update = current_timestamp
-            self._sum = 0.0
+        current_time = time.monotonic()
+        self._values.append(new_value)
+        time_since_call = current_time - self._last_call_time
+        if time_since_call >= self._timeout or len(self._values) >= self._sample_size:
+            result = await self._callback(
+                np.sum(self._values) if numpy_installed else sum(self._values)
+            )
+            self._last_call_time = current_time
+            self._values = []
             return result
 
 
-def aggregate(callback: Callback, seconds: float) -> _Aggregate:
+def aggregate(callback: Callback, seconds: float, sample_size: int) -> _Aggregate:
     """Create a new aggregate filter.
 
     A callback function will be called with a sum of values collected
-    over a specified time period. Can only be used with numeric values.
+    over a specified time period or when sample size limit reached.
+    Can only be used with numeric values.
 
     :param callback: A callback function to be awaited once filter
         conditions are fulfilled
@@ -174,10 +200,13 @@ def aggregate(callback: Callback, seconds: float) -> _Aggregate:
     :param seconds: A callback will be awaited with a sum of values
         aggregated over this amount of seconds.
     :type seconds: float
+    :param sample_size: The maximum number of values to aggregate
+        before calling the callback
+    :type sample_size: int
     :return: An instance of callable filter
     :rtype: _Aggregate
     """
-    return _Aggregate(callback, seconds)
+    return _Aggregate(callback, seconds, sample_size)
 
 
 class _Clamp(Filter):
@@ -269,6 +298,53 @@ def custom(callback: Callback, filter_fn: _FilterT) -> _Custom:
     :rtype: _Custom
     """
     return _Custom(callback, filter_fn)
+
+
+class _Deadband(Filter):
+    """Represents a deadband filter.
+
+    Calls a callback only when value is significantly changed from the
+    previous callback call.
+    """
+
+    __slots__ = ("_tolerance",)
+
+    _tolerance: float
+
+    def __init__(self, callback: Callback, tolerance: float) -> None:
+        """Initialize a new value changed filter."""
+        self._tolerance = tolerance
+        super().__init__(callback)
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if not isinstance(new_value, (float, int, Decimal)):
+            raise TypeError(
+                "Deadband filter can only be used with numeric values, got "
+                f"{type(new_value).__name__}: {new_value}"
+            )
+
+        if self._value == UNDEFINED or is_close(
+            self._value, new_value, tolerance=self._tolerance
+        ):
+            self._value = new_value
+            return await self._callback(new_value)
+
+
+def deadband(callback: Callback, tolerance: float) -> _Deadband:
+    """Create a new deadband filter.
+
+    A callback function will only be called when the value is significantly changed
+    from the previous callback call.
+
+    :param callback: A callback function to be awaited on significant value change
+    :type callback: Callback
+    :param tolerance: The minimum difference required to trigger the callback
+    :type tolerance: float
+    :return: An instance of callable filter
+    :rtype: _Deadband
+    """
+    return _Deadband(callback, tolerance)
 
 
 class _Debounce(Filter):
@@ -446,6 +522,7 @@ __all__ = [
     "aggregate",
     "clamp",
     "custom",
+    "deadband",
     "debounce",
     "delta",
     "on_change",

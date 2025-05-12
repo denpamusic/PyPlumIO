@@ -38,15 +38,18 @@ All built-in filters are described below.
 
 .. autofunction:: pyplumio.filters.aggregate
 
-This filter aggregates value for specified amount of seconds and 
-then calls the callback with the sum of values collected.
+This filter aggregates values for specified amount of seconds or until
+certain sample size is reached and then calls the callback with the
+sum of values collected.
 
 .. code-block:: python
 
     from pyplumio import filters
 
     # Await the callback with the fuel burned during 30 seconds.
-    ecomax.subscribe("fuel_burned", filters.aggregate(my_callback, seconds=30))
+    ecomax.subscribe(
+        "fuel_burned", filters.aggregate(my_callback, seconds=30, sample_size=100)
+    )
 
 .. autofunction:: pyplumio.filters.clamp
 
@@ -75,6 +78,20 @@ value is changed.
     # Await the callback once heating_temp value is changed since
     # last call.
     ecomax.subscribe("heating_temp", filters.on_change(my_callback))
+
+.. autofunction:: pyplumio.filters.deadband
+
+This filter await the callback on signifacant changes only.
+Significance is defined by ``tolerance`` argument (i. e. tolerance=0.1
+will only await callback when value is changed by more that 0.1).
+
+.. code-block:: python
+
+    from pyplumio import filters
+
+    # Await the callback once heating_temp value is changed by more
+    # than 0.1 since last call.
+    ecomax.subscribe("heating_temp", filters.deadband(my_callback, tolerance=0.1))
 
 .. autofunction:: pyplumio.filters.debounce
 

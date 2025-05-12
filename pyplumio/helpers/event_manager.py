@@ -17,7 +17,17 @@ _CallableT: TypeAlias = Callable[..., Any]
 _CallbackT = TypeVar("_CallbackT", bound=Callback)
 
 
-def event_listener(event: str, filter: _CallableT | None = None) -> _CallableT:
+@overload
+def event_listener(name: _CallableT, filter: None = None) -> Callback: ...
+
+
+@overload
+def event_listener(
+    name: str | None = None, filter: _CallableT | None = None
+) -> _CallableT: ...
+
+
+def event_listener(name: Any = None, filter: _CallableT | None = None) -> Any:
     """Mark a function as an event listener.
 
     This decorator attaches metadata to the function, identifying it
@@ -26,11 +36,19 @@ def event_listener(event: str, filter: _CallableT | None = None) -> _CallableT:
 
     def decorator(func: _CallbackT) -> _CallbackT:
         # Attach metadata to the function to mark it as a listener.
+        event = (
+            name
+            if isinstance(name, str)
+            else func.__qualname__.split("on_event_", 1)[1]
+        )
         setattr(func, "_on_event", event)
         setattr(func, "_on_event_filter", filter)
         return func
 
-    return decorator
+    if callable(name):
+        return decorator(name)
+    else:
+        return decorator
 
 
 T = TypeVar("T")

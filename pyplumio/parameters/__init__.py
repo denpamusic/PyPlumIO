@@ -111,8 +111,8 @@ class Parameter(ABC):
             other = other.values
 
         if isinstance(other, ParameterValues):
-            handler = getattr(self.values, method_to_call)
-            return handler(other)
+            handler = getattr(self.values.value, method_to_call)
+            return handler(other.value)
 
         if isinstance(other, (int, float, bool)) or other in get_args(State):
             handler = getattr(self.values.value, method_to_call)

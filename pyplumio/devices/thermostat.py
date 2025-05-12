@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Coroutine, Generator, Sequence
+from collections.abc import Coroutine, Generator
+import logging
 from typing import Any
 
 from pyplumio.devices import VirtualDevice
@@ -15,8 +16,8 @@ from pyplumio.parameters.thermostat import (
     ThermostatSwitchDescription,
     get_thermostat_parameter_types,
 )
-from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
+
+_LOGGER = logging.getLogger()
 
 
 class Thermostat(VirtualDevice):
@@ -24,19 +25,21 @@ class Thermostat(VirtualDevice):
 
     __slots__ = ()
 
-    @event_listener(ATTR_THERMOSTAT_SENSORS)
+    @event_listener
     async def on_event_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update thermostat sensors and dispatch the events."""
+        _LOGGER.info("Received thermostat %i sensors", self.index)
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
         return True
 
-    @event_listener(ATTR_THERMOSTAT_PARAMETERS)
+    @event_listener
     async def on_event_thermostat_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""
+        _LOGGER.info("Received thermostat %i parameters", self.index)
 
         def _thermostat_parameter_events() -> Generator[Coroutine, Any, None]:
             """Get dispatch calls for thermostat parameter events."""

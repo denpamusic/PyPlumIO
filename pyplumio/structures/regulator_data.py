@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from pyplumio.helpers.data_types import BitArray, DataType
+from pyplumio.data_types import BitArray, DataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA

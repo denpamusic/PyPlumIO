@@ -8,14 +8,13 @@ from functools import cache
 import logging
 from typing import Any, ClassVar
 
-from pyplumio.const import ATTR_FRAME_ERRORS, ATTR_LOADED, DeviceType, FrameType, State
+from pyplumio.const import ATTR_FRAME_ERRORS, DeviceType, FrameType, State
 from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
-from pyplumio.frames import DataFrameDescription, Frame, Request, is_known_frame_type
+from pyplumio.frames import Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.helpers.factory import create_instance
 from pyplumio.parameters import NumericType, Parameter
-from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
@@ -40,7 +39,11 @@ def get_device_handler(device_type: int) -> str:
 
     type_name = to_camelcase(
         DeviceType(device_type).name,
-        overrides={"ecomax": "EcoMAX", "ecoster": "EcoSTER"},
+        overrides={
+            "ecomax": "EcoMAX",
+            "ecoster": "EcoSTER",
+            "econet": "EcoNET",
+        },
     )
     return f"devices.{type_name.lower()}.{type_name}"
 
@@ -126,11 +129,11 @@ class PhysicalDevice(Device, ABC):
     virtual devices associated with them via parent property.
     """
 
-    __slots__ = ("address", "_network", "_setup_frames", "_frame_versions")
+    __slots__ = ("address", "_network", "_frame_versions")
 
     address: ClassVar[int]
+
     _network: NetworkInfo
-    _setup_frames: tuple[DataFrameDescription, ...]
     _frame_versions: dict[int, int]
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
@@ -139,19 +142,26 @@ class PhysicalDevice(Device, ABC):
         self._network = network
         self._frame_versions = {}
 
-    @event_listener(ATTR_FRAME_VERSIONS, on_change)
+    @event_listener(filter=on_change)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
+        _LOGGER.info("Received frame version table")
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)
                 and self.supports_frame_type(frame_type)
                 and not self.has_frame_version(frame_type, version)
             ):
-                _LOGGER.debug("Updating frame %s to version %i", frame_type, version)
-                request = await Request.create(frame_type, recipient=self.address)
-                self.queue.put_nowait(request)
+                await self._request_frame_version(frame_type, version)
                 self._frame_versions[frame_type] = version
+
+    async def _request_frame_version(
+        self, frame_type: FrameType | int, version: int
+    ) -> None:
+        """Request frame version from the device."""
+        _LOGGER.info("Updating frame %s to version %i", repr(frame_type), version)
+        request = await Request.create(frame_type, recipient=self.address)
+        self.queue.put_nowait(request)
 
     def has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
         """Return True if frame data is up to date, False otherwise."""
@@ -171,25 +181,6 @@ class PhysicalDevice(Device, ABC):
             for name, value in frame.data.items():
                 self.dispatch_nowait(name, value)
 
-    async def async_setup(self) -> bool:
-        """Set up addressable device."""
-        results = await asyncio.gather(
-            *(
-                self.request(description.provides, description.frame_type)
-                for description in self._setup_frames
-            ),
-            return_exceptions=True,
-        )
-
-        errors = [
-            result.frame_type for result in results if isinstance(result, RequestError)
-        ]
-
-        await asyncio.gather(
-            self.dispatch(ATTR_FRAME_ERRORS, errors), self.dispatch(ATTR_LOADED, True)
-        )
-        return True
-
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0
     ) -> Any:
@@ -197,6 +188,7 @@ class PhysicalDevice(Device, ABC):
 
         If value is not available before timeout, retry request.
         """
+        _LOGGER.info("Requesting '%s' with %s", name, repr(frame_type))
         request = await Request.create(frame_type, recipient=self.address)
         while retries > 0:
             try:

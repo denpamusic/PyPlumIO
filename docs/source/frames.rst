@@ -436,7 +436,7 @@ Get the regulator data schema, that describes the data type of :ref:`regulatorda
 It's represented by dictionary, that's indexed by regulator data field id and
 a member of the following DataType class, that defines the regulator data field type.
 
-.. autoclass:: pyplumio.helpers.data_types.DataType
+.. autoclass:: pyplumio.data_types.DataType
 
 Request
 ^^^^^^^

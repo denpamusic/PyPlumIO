@@ -1,29 +1,72 @@
 """Contains tests for the filter classes."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
+from importlib import reload
+import logging
+import sys
 from unittest.mock import AsyncMock, patch
 
 import pytest
 
+import pyplumio
 from pyplumio import filters
+import pyplumio.filters
 from pyplumio.parameters import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
 
 
-async def test_clamp() -> None:
+@pytest.fixture(name="use_numpy", params=(True, False))
+def fixture_use_numpy(request, monkeypatch, caplog):
+    """Try with and without numpy package."""
+    if not request.param:
+        monkeypatch.setitem(sys.modules, "numpy", None)
+
+    with caplog.at_level(logging.INFO):
+        reload(pyplumio.filters)
+
+    message = "Using numpy for improved float precision"
+    if request.param:
+        assert message in caplog.text
+    else:
+        assert message not in caplog.text
+
+    return request.param
+
+
+@pytest.mark.parametrize(
+    ("input_value", "expected"),
+    [
+        (1, 10),
+        (50, 15),
+        (11, 11),
+    ],
+)
+async def test_clamp(input_value, expected) -> None:
     """Test the clamp filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.clamp(test_callback, min_value=10, max_value=15)
+    await wrapped_callback(input_value)
+    test_callback.assert_awaited_once_with(expected)
+
+
+async def test_deadband() -> None:
+    """Test the deadband filter."""
+    test_callback = AsyncMock()
+    wrapped_callback = filters.deadband(test_callback, tolerance=0.1)
     await wrapped_callback(1)
-    test_callback.assert_awaited_once_with(10)
+    test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
 
-    await wrapped_callback(50)
-    test_callback.assert_awaited_once_with(15)
-    test_callback.reset_mock()
+    # Check that callback is not awaited on insignificant change.
+    await wrapped_callback(1.01)
+    test_callback.assert_not_awaited()
 
-    await wrapped_callback(11)
-    test_callback.assert_awaited_once_with(11)
+    await wrapped_callback(1.1)
+    test_callback.assert_awaited_once_with(1.1)
+
+    # Test with non-numeric value.
+    with pytest.raises(TypeError, match="filter can only be used with numeric values"):
+        await wrapped_callback("banana")
 
 
 async def test_on_change() -> None:
@@ -33,10 +76,6 @@ async def test_on_change() -> None:
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
-
-    # Check that callback is not awaited on insignificant change.
-    await wrapped_callback(1.01)
-    test_callback.assert_not_awaited()
 
     await wrapped_callback(1.1)
     test_callback.assert_awaited_once_with(1.1)
@@ -104,8 +143,7 @@ async def test_debounce() -> None:
     test_callback.assert_awaited_once_with(2)
 
 
-@patch("time.monotonic", side_effect=(0, 1, 5, 6))
-async def test_throttle(mock_time) -> None:
+async def test_throttle(frozen_time) -> None:
     """Test the throttle filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.throttle(test_callback, seconds=5)
@@ -114,15 +152,18 @@ async def test_throttle(mock_time) -> None:
     test_callback.reset_mock()
 
     # One second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(2)
     test_callback.assert_not_awaited()
 
     # Five seconds passed.
+    frozen_time.tick(timedelta(seconds=4))
     await wrapped_callback(3)
     test_callback.assert_awaited_once_with(3)
     test_callback.reset_mock()
 
     # Six seconds passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(4)
     test_callback.assert_not_awaited()
 
@@ -156,48 +197,76 @@ async def test_delta() -> None:
     test_callback.assert_not_awaited()
 
 
-@patch("time.monotonic", side_effect=(0, 0, 1, 5, 6, 7))
-async def test_aggregate(mock_time) -> None:
+async def test_aggregate(use_numpy, frozen_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.aggregate(test_callback, seconds=5)
-
-    # Zero seconds passed.
+    wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=5)
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
     # One second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
     # Five seconds passed.
-    await wrapped_callback(3)
+    frozen_time.tick(timedelta(seconds=4))
+    if use_numpy:
+        with patch("numpy.sum", return_value=5) as mock_sum:
+            await wrapped_callback(3)
+
+        mock_sum.assert_called_once_with([1, 1, 3])
+    else:
+        await wrapped_callback(3)
+
     test_callback.assert_awaited_once_with(5)
     test_callback.reset_mock()
 
-    # Six seconds passed.
+    # Six second passed.
+    frozen_time.tick(timedelta(seconds=1))
     await wrapped_callback(3)
     test_callback.assert_not_awaited()
 
     # Test with non-numeric value.
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError, match="filter can only be used with numeric values"):
         await wrapped_callback("banana")
 
 
-async def test_custom() -> None:
+async def test_aggregate_sample_size(frozen_time) -> None:
+    """Test the aggregate filter with sample size."""
+    test_callback = AsyncMock()
+    wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=2)
+
+    # Zero seconds passed, current sample size is 1.
+    await wrapped_callback(1)
+    test_callback.assert_not_awaited()
+
+    # One second passed, current sample size is 2.
+    frozen_time.tick(timedelta(seconds=1))
+    await wrapped_callback(1)
+    test_callback.assert_awaited_once_with(2)
+
+    # Two seconds passed, current sample size is 3.
+    frozen_time.tick(timedelta(seconds=1))
+    await wrapped_callback(3)
+    test_callback.test_callback.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    ("filter_func", "input_value", "callback"),
+    [
+        (lambda x: len(x) == 4, [1, 2], False),
+        (lambda x: len(x) == 4, [1, 2, 3, 4], True),
+        (lambda x: len(x) == 4, [], False),
+    ],
+)
+async def test_custom(filter_func, input_value, callback) -> None:
     """Test the custom filter."""
     test_callback = AsyncMock()
-    wrapped_callback = filters.custom(test_callback, lambda x: len(x) == 4)
+    wrapped_callback = filters.custom(test_callback, filter_func)
+    await wrapped_callback(input_value)
 
-    # Test that callback is not called when a list contains 2 items.
-    await wrapped_callback([1, 2])
-    test_callback.assert_not_awaited()
-
-    # Test that callback is called when a list contains 4 items.
-    await wrapped_callback([1, 2, 3, 4])
-    test_callback.assert_awaited_once_with([1, 2, 3, 4])
-    test_callback.reset_mock()
-
-    # Test that callback is not called when list is empty.
-    await wrapped_callback([])
-    test_callback.assert_not_awaited()
+    if callback:
+        test_callback.assert_awaited_once_with(input_value)
+    else:
+        test_callback.assert_not_awaited()

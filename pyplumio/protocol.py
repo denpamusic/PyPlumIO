@@ -10,11 +10,12 @@ import logging
 
 from typing_extensions import TypeAlias
 
-from pyplumio.const import ATTR_CONNECTED, DeviceType
+from pyplumio.const import ATTR_CONNECTED, ATTR_SETUP, DeviceType
 from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
+from pyplumio.helpers.async_cache import acache
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
@@ -132,6 +133,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     consumers_count: int
     _network: NetworkInfo
     _queues: Queues
+    _entry_lock: asyncio.Lock
 
     def __init__(
         self,
@@ -147,6 +149,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             wlan=wireless_parameters or WirelessParameters(status=False),
         )
         self._queues = Queues(read=asyncio.Queue(), write=asyncio.Queue())
+        self._entry_lock = asyncio.Lock()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -224,18 +227,23 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device.handle_frame(frame)
             queue.task_done()
 
+    @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
-        """Set up or return a device entry."""
-        name = device_type.name.lower()
-        if name not in self.data:
+        """Return the device entry."""
+
+        @acache
+        async def _setup_device_entry(device_type: DeviceType) -> PhysicalDevice:
+            """Set up the device entry."""
             device = await PhysicalDevice.create(
                 device_type, queue=self._queues.write, network=self._network
             )
             device.dispatch_nowait(ATTR_CONNECTED, True)
-            self.create_task(device.async_setup(), name=f"device_setup_task ({name})")
-            await self.dispatch(name, device)
+            device.dispatch_nowait(ATTR_SETUP, True)
+            self.dispatch_nowait(device_type.name.lower(), device)
+            return device
 
-        return self.data[name]
+        async with self._entry_lock:
+            return await _setup_device_entry(device_type)
 
 
 __all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]

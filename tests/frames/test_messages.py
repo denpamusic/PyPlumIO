@@ -3,22 +3,13 @@
 from typing import Final
 
 import pytest
-from tests import load_json_parameters, load_json_test_data
+from tests.conftest import json_test_data, load_json_parameters, load_json_test_data
 
-from pyplumio.const import ATTR_SENSORS, ATTR_STATE, DeviceType
+from pyplumio.const import ATTR_SENSORS, ATTR_STATE
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.regulator_data import ATTR_REGDATA
-
-INDEX_STATE: Final = 22
-
-
-def test_messages_type() -> None:
-    """Test if response is an instance of abstract frame class."""
-    for response in (RegulatorDataMessage, SensorDataMessage):
-        frame = response(recipient=DeviceType.ALL, sender=DeviceType.ECONET)
-        assert isinstance(frame, response)
 
 
 @pytest.mark.parametrize(
@@ -57,9 +48,12 @@ def test_sensor_data_message(message, data) -> None:
     assert SensorDataMessage(message=message).data == data
 
 
-def test_sensor_data_message_with_unknown_state() -> None:
+INDEX_STATE: Final = 22
+
+
+@json_test_data("messages/sensor_data.json", selector="message")
+async def test_sensor_data_message_with_unknown_state(sensor_data_message) -> None:
     """Test a sensor data message with an unknown device state."""
-    test_data = load_json_test_data("messages/sensor_data.json")[0]
-    message = test_data["message"]
-    message[INDEX_STATE] = 99
-    assert SensorDataMessage(message=message).data[ATTR_SENSORS][ATTR_STATE] == 99
+    sensor_data_message[INDEX_STATE] = 99
+    sensor_data = SensorDataMessage(message=sensor_data_message)
+    assert sensor_data.data[ATTR_SENSORS][ATTR_STATE] == 99

@@ -13,7 +13,7 @@ from pyplumio.const import (
     ATTR_TARGET_TEMP,
     BYTE_UNDEFINED,
 )
-from pyplumio.helpers.data_types import Float
+from pyplumio.data_types import Float
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

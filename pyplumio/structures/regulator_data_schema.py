@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from pyplumio.helpers.data_types import DATA_TYPES, DataType, UnsignedShort
+from pyplumio.data_types import DATA_TYPES, DataType, UnsignedShort
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

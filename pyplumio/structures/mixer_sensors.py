@@ -7,7 +7,7 @@ import math
 from typing import Any, Final
 
 from pyplumio.const import ATTR_CURRENT_TEMP, ATTR_TARGET_TEMP
-from pyplumio.helpers.data_types import Float
+from pyplumio.data_types import Float
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

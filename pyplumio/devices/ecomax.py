@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncGenerator, Coroutine, Generator, Iterable, Sequence
+from collections.abc import AsyncGenerator, Coroutine, Generator, Iterable
 import logging
 import time
 from typing import Any, Final
 
 from pyplumio.const import (
+    ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
     ATTR_SENSORS,
-    ATTR_STATE,
+    ATTR_SETUP,
     STATE_OFF,
     STATE_ON,
     DeviceState,
@@ -22,6 +23,7 @@ from pyplumio.const import (
 from pyplumio.devices import PhysicalDevice
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
+from pyplumio.exceptions import RequestError
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import event_listener
@@ -40,14 +42,12 @@ from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
 )
-from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
-    ATTR_SCHEDULE_PARAMETERS,
     ATTR_SCHEDULES,
     SCHEDULE_PARAMETERS,
     SCHEDULES,
@@ -55,20 +55,53 @@ from pyplumio.structures.schedules import (
     ScheduleSwitch,
     ScheduleSwitchDescription,
 )
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PROFILE,
-)
+from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
 from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
+
+_LOGGER = logging.getLogger(__name__)
+
 
 ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
-NANOSECONDS_IN_SECOND: Final = 1_000_000_000
-MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS: Final = 300 * NANOSECONDS_IN_SECOND
+MAX_TIME_SINCE_LAST_FUEL_UPDATE: Final = 5 * 60
 
-SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
+
+class FuelMeter:
+    """Represents a fuel meter.
+
+    Calculates the fuel burned based on the time
+    elapsed since the last sensor message, which contains fuel
+    consumption data. If the elapsed time is within the acceptable
+    range, it returns the fuel burned data. Otherwise, it logs a
+    warning and returns None.
+    """
+
+    __slots__ = ("_last_update_time",)
+
+    _last_update_time: float
+
+    def __init__(self) -> None:
+        """Initialize a new fuel meter."""
+        self._last_update_time = time.monotonic()
+
+    def calculate(self, fuel_consumption: float) -> float | None:
+        """Calculate the amount of burned fuel since last update."""
+        current_time = time.monotonic()
+        time_since_update = current_time - self._last_update_time
+        self._last_update_time = current_time
+        if time_since_update < MAX_TIME_SINCE_LAST_FUEL_UPDATE:
+            return fuel_consumption * (time_since_update / 3600)
+
+        _LOGGER.warning(
+            "Skipping outdated fuel consumption data (was %f seconds old)",
+            time_since_update,
+        )
+        return None
+
+
+REQUIRED: tuple[DataFrameDescription, ...] = (
     DataFrameDescription(
         frame_type=FrameType.REQUEST_UID,
         provides=ATTR_PRODUCT,
@@ -103,28 +136,22 @@ SETUP_FRAME_TYPES: tuple[DataFrameDescription, ...] = (
     ),
 )
 
-_LOGGER = logging.getLogger(__name__)
+REQUIRED_TYPES = [description.frame_type for description in REQUIRED]
 
 
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
-    __slots__ = ("_fuel_burned_time_ns",)
+    __slots__ = ("_fuel_meter",)
+
+    _fuel_meter: FuelMeter
 
     address = DeviceType.ECOMAX
-    _setup_frames = SETUP_FRAME_TYPES
-
-    _fuel_burned_time_ns: int
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(queue, network)
-        self._fuel_burned_time_ns = time.perf_counter_ns()
-
-    async def async_setup(self) -> bool:
-        """Set up an ecoMAX controller."""
-        await self.wait_for(ATTR_SENSORS)
-        return await super().async_setup()
+        self._fuel_meter = FuelMeter()
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
@@ -162,6 +189,14 @@ class EcoMAX(PhysicalDevice):
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)
 
+    async def _request_frame_version(
+        self, frame_type: FrameType | int, version: int
+    ) -> None:
+        """Request frame version from the device."""
+        setup_done = self.get_nowait(ATTR_SETUP, False)
+        if setup_done or frame_type not in REQUIRED_TYPES:
+            await super()._request_frame_version(frame_type, version)
+
     async def _set_ecomax_state(self, state: State) -> bool:
         """Try to set the ecoMAX control state."""
         try:
@@ -196,11 +231,34 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
 
-    @event_listener(ATTR_ECOMAX_PARAMETERS)
+    @event_listener
+    async def on_event_setup(self, setup: bool) -> None:
+        """Request frames required to set up an ecoMAX entry."""
+        _LOGGER.info("Setting up device entry")
+        await self.wait_for(ATTR_SENSORS)
+        results = await asyncio.gather(
+            *(
+                self.request(description.provides, description.frame_type)
+                for description in REQUIRED
+            ),
+            return_exceptions=True,
+        )
+
+        errors = [
+            result.frame_type for result in results if isinstance(result, RequestError)
+        ]
+
+        if errors:
+            self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
+
+        _LOGGER.info("Device entry setup done")
+
+    @event_listener
     async def on_event_ecomax_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
+        _LOGGER.info("Received device parameters")
         product_info: ProductInfo = await self.get(ATTR_PRODUCT)
 
         async def _ecomax_parameter_events() -> AsyncGenerator[Coroutine]:
@@ -238,37 +296,20 @@ class EcoMAX(PhysicalDevice):
         )
         return True
 
-    @event_listener(ATTR_FUEL_CONSUMPTION)
+    @event_listener
     async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:
-        """Update the amount of burned fuel.
+        """Update the amount of burned fuel."""
+        fuel_burned = self._fuel_meter.calculate(fuel_consumption)
+        if fuel_burned is not None:
+            self.dispatch_nowait(ATTR_FUEL_BURNED, fuel_burned)
 
-        This method calculates the fuel burned based on the time
-        elapsed since the last sensor message, which contains fuel
-        consumption data. If the elapsed time is within the acceptable
-        range, it dispatches the fuel burned data. Otherwise, it logs a
-        warning and skips the outdated data.
-        """
-        time_ns = time.perf_counter_ns()
-        nanoseconds_passed = time_ns - self._fuel_burned_time_ns
-        self._fuel_burned_time_ns = time_ns
-        if nanoseconds_passed < MAX_TIME_SINCE_LAST_FUEL_UPDATE_NS:
-            return self.dispatch_nowait(
-                ATTR_FUEL_BURNED,
-                fuel_consumption * nanoseconds_passed / (3600 * NANOSECONDS_IN_SECOND),
-            )
-
-        _LOGGER.warning(
-            "Skipping outdated fuel consumption data: %f (was %i seconds old)",
-            fuel_consumption,
-            nanoseconds_passed / NANOSECONDS_IN_SECOND,
-        )
-
-    @event_listener(ATTR_MIXER_PARAMETERS)
+    @event_listener
     async def on_event_mixer_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
+        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle mixer parameters and dispatch the events."""
+        _LOGGER.info("Received mixer parameters")
         if parameters:
             await asyncio.gather(
                 *(
@@ -280,11 +321,12 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener(ATTR_MIXER_SENSORS)
+    @event_listener
     async def on_event_mixer_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update mixer sensors and dispatch the events."""
+        _LOGGER.info("Received mixer sensors")
         if sensors:
             await asyncio.gather(
                 *(
@@ -296,9 +338,9 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener(ATTR_SCHEDULE_PARAMETERS)
+    @event_listener
     async def on_event_schedule_parameters(
-        self, parameters: Sequence[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
 
@@ -321,20 +363,22 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_schedule_parameter_events())
         return True
 
-    @event_listener(ATTR_SENSORS)
+    @event_listener
     async def on_event_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update ecoMAX sensors and dispatch the events."""
+        _LOGGER.info("Received device sensors")
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
         return True
 
-    @event_listener(ATTR_THERMOSTAT_PARAMETERS)
+    @event_listener
     async def on_event_thermostat_parameters(
         self,
-        parameters: dict[int, Sequence[tuple[int, ParameterValues]]] | None,
+        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle thermostat parameters and dispatch the events."""
+        _LOGGER.info("Received thermostat parameters")
         if parameters:
             await asyncio.gather(
                 *(
@@ -348,7 +392,7 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener(ATTR_THERMOSTAT_PROFILE)
+    @event_listener
     async def on_event_thermostat_profile(
         self, values: ParameterValues | None
     ) -> EcomaxNumber | None:
@@ -360,11 +404,12 @@ class EcoMAX(PhysicalDevice):
 
         return None
 
-    @event_listener(ATTR_THERMOSTAT_SENSORS)
+    @event_listener
     async def on_event_thermostat_sensors(
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update thermostat sensors and dispatch the events."""
+        _LOGGER.info("Received thermostat sensors")
         if sensors:
             await asyncio.gather(
                 *(
@@ -379,11 +424,12 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener(ATTR_SCHEDULES)
+    @event_listener
     async def on_event_schedules(
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> dict[str, Schedule]:
         """Update schedules."""
+        _LOGGER.info("Received device schedules")
         return {
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
@@ -399,7 +445,7 @@ class EcoMAX(PhysicalDevice):
             for index, schedule in schedules
         }
 
-    @event_listener(ATTR_STATE, on_change)
+    @event_listener(filter=on_change)
     async def on_event_state(self, state: DeviceState) -> None:
         """Update the ecoMAX control parameter."""
         await self.dispatch(

@@ -10,7 +10,7 @@ from functools import lru_cache
 from typing import Any, Final, Literal, NamedTuple
 
 from pyplumio.const import AlertType
-from pyplumio.helpers.data_types import UnsignedInt
+from pyplumio.data_types import UnsignedInt
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
 

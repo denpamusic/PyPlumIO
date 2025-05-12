@@ -15,12 +15,13 @@ from pyplumio.structures.schedules import collect_schedule_data
 
 TIME_FORMAT: Final = "%H:%M"
 
-MIDNIGHT: Final = "00:00"
+
+Time = Annotated[str, "Time string in %H:%M format"]
+
+MIDNIGHT: Final = Time("00:00")
 MIDNIGHT_DT = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
 
 STEP = dt.timedelta(minutes=30)
-
-Time = Annotated[str, "Time string in %H:%M format"]
 
 
 def get_time(
