@@ -7,14 +7,7 @@ from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
-from pyplumio.const import (
-    BYTE_UNDEFINED,
-    STATE_OFF,
-    STATE_ON,
-    ProductModel,
-    ProductType,
-    UnitOfMeasurement,
-)
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames import Request
 from pyplumio.parameters import (
@@ -22,14 +15,11 @@ from pyplumio.parameters import (
     NumberDescription,
     Parameter,
     ParameterDescription,
-    ParameterOverride,
     ParameterValues,
     Switch,
     SwitchDescription,
     is_valid_parameter,
-    patch_parameter_types,
 )
-from pyplumio.structures.product_info import ProductInfo
 
 
 @pytest.fixture(name="number")
@@ -560,37 +550,3 @@ class TestSwitch:
         """
         switch.update(ParameterValues(1, 0, 1))
         assert switch.__eq__(state) is expected_result
-
-
-def test_patch_parameter_types(caplog) -> None:
-    """Test patch_parameter_types.
-
-    Checks parameter types patcher.
-    """
-    parameter_types = [ParameterDescription(name="test")]
-    parameter_overrides = (
-        ParameterOverride(
-            original="test",
-            replacement=ParameterDescription(name="test2"),
-            product_model=ProductModel.ECOMAX_860D3_HB,
-            product_id=48,
-        ),
-    )
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=48,
-        uid="**REDACTED**",
-        logo=48,
-        image=2,
-        model="ecoMAX 860D3-HB",
-    )
-    with caplog.at_level("INFO"):
-        result = patch_parameter_types(
-            product_info, parameter_types, parameter_overrides
-        )
-
-    assert result[0].name == "test2"
-    assert (
-        "Replacing parameter description for 'test' with 'ParameterDescription"
-        "(name='test2', optimistic=False)' (ecoMAX 860D3-HB)" in caplog.text
-    )

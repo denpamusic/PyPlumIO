@@ -59,11 +59,11 @@ async def test_ecomax_parameter_create_request(ecomax: EcoMAX) -> None:
     assert ecomax_number_request.data == {ATTR_INDEX: 0, ATTR_VALUE: 10}
 
 
-def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
+async def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     """Test ecoMAX parameter types getter."""
     parameter_types_all = ECOMAX_PARAMETER_TYPES
     assert len(parameter_types_all) == 2
-    parameter_types = get_ecomax_parameter_types(ecomax.product)
+    parameter_types = await get_ecomax_parameter_types(ecomax.product)
     assert len(parameter_types_all[ProductType.ECOMAX_P]) == 139
     assert len(parameter_types_all[ProductType.ECOMAX_I]) == 43
     assert parameter_types_all[ProductType.ECOMAX_P] == parameter_types
@@ -81,7 +81,7 @@ def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert parameter_types[120].name == "min_water_heater_target_temp"
     assert parameter_types[121].name == "max_water_heater_target_temp"
     assert parameter_types[127].name == "summer_mode_disable_temp"
-    parameter_types_patched = get_ecomax_parameter_types(product_info)
+    parameter_types_patched = await get_ecomax_parameter_types(product_info)
     assert parameter_types_patched[119].name == "summer_mode"
     assert parameter_types_patched[120].name == "summer_mode_enable_temp"
     assert parameter_types_patched[121].name == "summer_mode_disable_temp"

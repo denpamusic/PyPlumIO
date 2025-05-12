@@ -84,14 +84,7 @@ _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
 async def inject_custom_parameters(
     product_info: ProductInfo, parameter_types: list[_DescriptionT]
 ) -> list[_DescriptionT]:
-    """Patch the parameter types based on the provided overrides.
-
-    Note:
-        The `# type: ignore[assignment]` comment is used to suppress a
-        type-checking error caused by mypy bug. For more details, see:
-        https://github.com/python/mypy/issues/13596
-
-    """
+    """Patch the parameter types based on the provided overrides."""
     if custom_parameters := await _load_custom_parameters(product_info):
         _LOGGER.debug("Custom parameters found for %s", product_info.model)
         return cast(
