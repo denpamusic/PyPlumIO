@@ -486,7 +486,6 @@ __all__ = [
     "Parameter",
     "ParameterDescription",
     "ParameterValues",
-    "patch_parameter_types",
     "State",
     "Switch",
     "SwitchDescription",
