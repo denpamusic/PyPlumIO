@@ -42,10 +42,10 @@ class Mixer(VirtualDevice):
         """Update mixer parameters and dispatch the events."""
         _LOGGER.info("Received mixer %i parameters", self.index)
         product_info: ProductInfo = await self.parent.get(ATTR_PRODUCT)
+        parameter_types = get_mixer_parameter_types(product_info)
 
-        def _mixer_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _mixer_parameter_events() -> Generator[Coroutine]:
             """Get dispatch calls for mixer parameter events."""
-            parameter_types = get_mixer_parameter_types(product_info)
             for index, values in parameters:
                 try:
                     description = parameter_types[index]

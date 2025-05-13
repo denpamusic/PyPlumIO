@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import AsyncGenerator, Coroutine, Generator, Iterable
+from collections.abc import Coroutine, Generator, Iterable
 import logging
 import time
 from typing import Any, Final
@@ -260,10 +260,10 @@ class EcoMAX(PhysicalDevice):
         """Update ecoMAX parameters and dispatch the events."""
         _LOGGER.info("Received device parameters")
         product_info: ProductInfo = await self.get(ATTR_PRODUCT)
+        parameter_types = await get_ecomax_parameter_types(product_info)
 
-        async def _ecomax_parameter_events() -> AsyncGenerator[Coroutine]:
+        def _ecomax_parameter_events() -> Generator[Coroutine]:
             """Get dispatch calls for ecoMAX parameter events."""
-            parameter_types = await get_ecomax_parameter_types(product_info)
             for index, values in parameters:
                 try:
                     description = parameter_types[index]
@@ -291,9 +291,7 @@ class EcoMAX(PhysicalDevice):
                     ),
                 )
 
-        await asyncio.gather(
-            *{event_coro async for event_coro in _ecomax_parameter_events()}
-        )
+        await asyncio.gather(*_ecomax_parameter_events())
         return True
 
     @event_listener

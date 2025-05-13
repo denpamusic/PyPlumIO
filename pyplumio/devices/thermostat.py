@@ -40,10 +40,10 @@ class Thermostat(VirtualDevice):
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""
         _LOGGER.info("Received thermostat %i parameters", self.index)
+        parameter_types = get_thermostat_parameter_types()
 
-        def _thermostat_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _thermostat_parameter_events() -> Generator[Coroutine]:
             """Get dispatch calls for thermostat parameter events."""
-            parameter_types = get_thermostat_parameter_types()
             for index, values in parameters:
                 description = parameter_types[index]
                 handler = (
