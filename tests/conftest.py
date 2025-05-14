@@ -85,9 +85,16 @@ def _bypass_pytest_argument_inspection(
     return wrapper
 
 
-def json_test_data(json_path: str, selector: str | None = None, dataset: int = 0):
+def json_test_data(
+    json_path: str,
+    selector: str | None = None,
+    dataset: int = 0,
+    name: str | None = None,
+):
     """Pytest decorator to inject JSON test data as a test argument."""
-    name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+    if not name:
+        name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+
     if selector:
         name += f"_{selector}"
 
@@ -106,10 +113,17 @@ def json_test_data(json_path: str, selector: str | None = None, dataset: int = 0
 
 
 def class_from_json(
-    cls: type, json_path: str, /, dataset: int = 0, arguments: Sequence | None = None
+    cls: type,
+    json_path: str,
+    /,
+    dataset: int = 0,
+    arguments: Sequence | None = None,
+    name: str | None = None,
 ):
     """Pytest decorator to inject JSON test data as a test argument."""
-    name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+    if not name:
+        name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+
     init_args = arguments if arguments else ()
 
     def decorator(test_func):
