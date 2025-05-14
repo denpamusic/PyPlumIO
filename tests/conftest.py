@@ -8,6 +8,7 @@ import functools
 import importlib
 import inspect
 import json
+from math import isclose
 import os
 import pathlib
 from typing import Any, Final, TypeVar
@@ -16,8 +17,9 @@ from unittest.mock import patch
 from freezegun import freeze_time
 import pytest
 
-from pyplumio.const import ProductType
+from pyplumio.const import ProductType, State
 from pyplumio.devices.ecomax import EcoMAX
+from pyplumio.parameters import NumericType
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
@@ -34,7 +36,7 @@ def _create_class_instance(module_name: str, class_name: str, **kwargs):
     return getattr(importlib.import_module(module_name), class_name)(**kwargs)
 
 
-def try_int(key: Any) -> Any:
+def _try_int(key: Any) -> Any:
     """Try to convert key to integer or return key unchanged on error."""
     try:
         return int(key)
@@ -55,7 +57,7 @@ def _decode_hinted_objects(d: Any) -> Any:
     if "__tuple__" in d:
         return tuple(d["items"])
 
-    return {try_int(k): v for k, v in d.items()}
+    return {_try_int(k): v for k, v in d.items()}
 
 
 def load_json_test_data(path: str) -> Any:
@@ -124,6 +126,16 @@ def class_from_json(
     return decorator
 
 
+def equal_parameter_value(
+    a: NumericType | State | None, b: NumericType | State | None
+) -> bool:
+    """Compare the parameter values."""
+    if isinstance(a, float) and isinstance(b, float):
+        return isclose(a, b, rel_tol=DEFAULT_TOLERANCE)
+    else:
+        return True if a == b else False
+
+
 @pytest.fixture(autouse=True)
 def skip_asyncio_sleep():
     """Skip an asyncio sleep calls."""
@@ -151,3 +163,12 @@ def fixture_frozen_time():
     """Get frozen time."""
     with freeze_time("2012-12-12 12:00:00") as frozen_time:
         yield frozen_time
+
+
+__all__ = [
+    "class_from_json",
+    "equal_parameter_value",
+    "json_test_data",
+    "load_json_parameters",
+    "load_json_test_data",
+]

@@ -2,7 +2,6 @@
 
 from datetime import timedelta
 import logging
-from math import isclose
 from typing import Any, Literal, cast
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -81,7 +80,12 @@ from pyplumio.structures.thermostat_sensors import (
     ATTR_THERMOSTATS_AVAILABLE,
     ATTR_THERMOSTATS_CONNECTED,
 )
-from tests.conftest import DEFAULT_TOLERANCE, UNDEFINED, class_from_json, json_test_data
+from tests.conftest import (
+    UNDEFINED,
+    class_from_json,
+    equal_parameter_value,
+    json_test_data,
+)
 
 
 @patch("asyncio.Queue.put_nowait")
@@ -237,9 +241,9 @@ async def test_ecomax_parameters_event_listener(
     # Test parameter with the step (heating_heat_curve)
     fuel_calorific_value = ecomax.get_nowait("fuel_calorific_value")
     assert isinstance(fuel_calorific_value, EcomaxNumber)
-    assert isclose(fuel_calorific_value.value, 4.6, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(fuel_calorific_value.min_value, 0.1, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(fuel_calorific_value.max_value, 25.0, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(fuel_calorific_value.value, 4.6)
+    assert equal_parameter_value(fuel_calorific_value.min_value, 0.1)
+    assert equal_parameter_value(fuel_calorific_value.max_value, 25.0)
 
     # Test setting parameter with the step.
     await fuel_calorific_value.set(2.5)
@@ -250,9 +254,9 @@ async def test_ecomax_parameters_event_listener(
     # Test parameter with the offset (heating_heat_curve_shift)
     heating_heat_curve_shift = ecomax.get_nowait("heating_curve_shift")
     assert isinstance(heating_heat_curve_shift, EcomaxNumber)
-    assert isclose(heating_heat_curve_shift.value, 0.0, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(heating_heat_curve_shift.min_value, -20.0, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(heating_heat_curve_shift.max_value, 20.0, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(heating_heat_curve_shift.value, 0.0)
+    assert equal_parameter_value(heating_heat_curve_shift.min_value, -20.0)
+    assert equal_parameter_value(heating_heat_curve_shift.max_value, 20.0)
     assert heating_heat_curve_shift.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
     # Test setting the parameter with the offset.
@@ -302,7 +306,7 @@ async def test_fuel_consumption_event_listener(
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
-    assert isclose(fuel_burned, 0.01, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(fuel_burned, 0.01)
 
     # Test with outdated data.
     message = "Skipping outdated fuel consumption"
@@ -310,7 +314,7 @@ async def test_fuel_consumption_event_listener(
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
-    assert isclose(fuel_burned, 0.01, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(fuel_burned, 0.01)
     assert message in caplog.text
     caplog.clear()
 
@@ -319,7 +323,7 @@ async def test_fuel_consumption_event_listener(
     await ecomax.wait_until_done()
     assert message not in caplog.text
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
-    assert isclose(fuel_burned, 0.02, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(fuel_burned, 0.02)
 
 
 @class_from_json(
@@ -376,7 +380,7 @@ async def test_ecomax_sensors_event_listener(
     ecomax.handle_frame(sensor_data)
     await ecomax.wait_until_done()
     heating_target = cast(float, ecomax.get_nowait("heating_target"))
-    assert isclose(heating_target, 41.0, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(heating_target, 41.0)
 
     ecomax_control = ecomax.get_nowait(ATTR_ECOMAX_CONTROL)
     assert isinstance(ecomax_control, EcomaxSwitch)
@@ -447,9 +451,9 @@ async def test_thermostat_profile_event_listener(
     await ecomax.wait_until_done()
     thermostat_profile = ecomax.get_nowait(ATTR_THERMOSTAT_PROFILE)
     assert isinstance(thermostat_profile, EcomaxNumber)
-    assert isclose(thermostat_profile.value, 0.0, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(thermostat_profile.min_value, 0.0, rel_tol=DEFAULT_TOLERANCE)
-    assert isclose(thermostat_profile.max_value, 5.0, rel_tol=DEFAULT_TOLERANCE)
+    assert equal_parameter_value(thermostat_profile.value, 0.0)
+    assert equal_parameter_value(thermostat_profile.min_value, 0.0)
+    assert equal_parameter_value(thermostat_profile.max_value, 5.0)
     thermostat_profile_request = await thermostat_profile.create_request()
     assert isinstance(thermostat_profile_request, SetThermostatParameterRequest)
     assert thermostat_profile_request.data == {

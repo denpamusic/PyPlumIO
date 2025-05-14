@@ -2,30 +2,20 @@
 
 from __future__ import annotations
 
-from math import isclose
+from typing import Final
 
 import pytest
 
-from pyplumio.const import STATE_OFF, STATE_ON, ProductType, State, UnitOfMeasurement
+from pyplumio.const import STATE_OFF, STATE_ON, ProductType, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import EcomaxParametersResponse
 from pyplumio.parameters import NumericType
 from pyplumio.parameters.ecomax import EcomaxNumber, EcomaxParameter, EcomaxSwitch
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
-from tests.conftest import DEFAULT_TOLERANCE, class_from_json
+from tests.conftest import class_from_json, equal_parameter_value
 
-CELSIUS = UnitOfMeasurement.CELSIUS
-
-
-def _compare_parameter_values(
-    a: NumericType | State | None, b: NumericType | State | None
-) -> bool:
-    """Compare the values."""
-    if isinstance(a, float) and isinstance(b, float):
-        return isclose(a, b, rel_tol=DEFAULT_TOLERANCE)
-    else:
-        return True if a == b else False
+CELSIUS: Final = UnitOfMeasurement.CELSIUS
 
 
 @pytest.mark.parametrize(
@@ -75,7 +65,7 @@ async def test_custom_parameters(
         id=48,
         uid="*TEST*",
         logo=48,
-        image=1,
+        image=2,
         model="ecoMAX 860D3-HB",
     )
     ecomax.handle_frame(ecomax_860d3_hb)
@@ -88,9 +78,9 @@ async def test_custom_parameters(
     if value is None:
         return
 
-    assert _compare_parameter_values(parameter.value, value)
-    assert _compare_parameter_values(parameter.min_value, min_value)
-    assert _compare_parameter_values(parameter.max_value, max_value)
+    assert equal_parameter_value(parameter.value, value)
+    assert equal_parameter_value(parameter.min_value, min_value)
+    assert equal_parameter_value(parameter.max_value, max_value)
 
     if unit_of_measurement is not None:
         assert hasattr(parameter, "unit_of_measurement")
