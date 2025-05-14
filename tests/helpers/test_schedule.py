@@ -16,6 +16,7 @@ from pyplumio.const import (
     STATE_OFF,
     STATE_ON,
     FrameType,
+    State,
 )
 from pyplumio.devices import DeviceType, PhysicalDevice
 from pyplumio.helpers.schedule import MIDNIGHT, Schedule, ScheduleDay, Time
@@ -145,9 +146,7 @@ class TestSchedule:
             ("saturday", MIDNIGHT, STATE_OFF),
         ],
     )
-    def test_get(
-        self, day: str, time: Time, state: Literal["on", "off"], schedule: Schedule
-    ) -> None:
+    def test_get(self, day: str, time: Time, state: State, schedule: Schedule) -> None:
         """Test getting a schedule day."""
         schedule_day = cast(ScheduleDay, getattr(schedule, day))
         assert schedule_day[time] == state

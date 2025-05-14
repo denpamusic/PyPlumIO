@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 import logging
-from typing import Any, Literal, cast
+from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -25,6 +25,7 @@ from pyplumio.const import (
     DeviceState,
     DeviceType,
     FrameType,
+    State,
     UnitOfMeasurement,
 )
 from pyplumio.devices.ecomax import (
@@ -132,9 +133,7 @@ async def test_frame_versions_tracker(
 
 
 @pytest.mark.parametrize("state", [STATE_ON, STATE_OFF])
-async def test_ecomax_control(
-    state: Literal["on", "off"], ecomax: EcoMAX, caplog
-) -> None:
+async def test_ecomax_control(state: State, ecomax: EcoMAX, caplog) -> None:
     """Test ecoMAX control."""
     coro = getattr(ecomax, f"turn_{state}")
     await coro()
@@ -147,9 +146,7 @@ async def test_ecomax_control(
 
 @pytest.mark.parametrize("state", [STATE_ON, STATE_OFF])
 @patch("pyplumio.devices.ecomax.EcoMAX.create_task")
-def test_ecomax_control_nowait(
-    mock_create_task, ecomax: EcoMAX, state: Literal["on", "off"]
-) -> None:
+def test_ecomax_control_nowait(mock_create_task, ecomax: EcoMAX, state: State) -> None:
     """Test ecoMAX control without waiting for result."""
     func = getattr(ecomax, f"turn_{state}_nowait")
     with patch(

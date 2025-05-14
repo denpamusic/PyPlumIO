@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any
 from unittest.mock import AsyncMock, PropertyMock, patch
 
 import pytest
 
-from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, UnitOfMeasurement
+from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames import Request
 from pyplumio.parameters import (
@@ -467,9 +467,7 @@ class TestSwitch:
 
     @patch("pyplumio.parameters.Parameter.set")
     @pytest.mark.parametrize("state", [True, False, STATE_ON, STATE_OFF])
-    async def test_set(
-        self, mock_set, switch: Switch, state: bool | Literal["on", "off"]
-    ) -> None:
+    async def test_set(self, mock_set, switch: Switch, state: State | bool) -> None:
         """Test set.
 
         Checks setting a switch.
@@ -480,7 +478,7 @@ class TestSwitch:
     @patch("pyplumio.parameters.Parameter.set_nowait")
     @pytest.mark.parametrize("state", [True, False, STATE_ON, STATE_OFF])
     def test_set_nowait(
-        self, mock_set_nowait, switch: Switch, state: bool | Literal["on", "off"]
+        self, mock_set_nowait, switch: Switch, state: State | bool
     ) -> None:
         """Test set_nowait.
 
@@ -540,7 +538,7 @@ class TestSwitch:
     )
     def test_states(
         self,
-        state: bool | Literal["on", "off"],
+        state: State | bool,
         expected_result: bool,
         switch: Switch,
     ) -> None:

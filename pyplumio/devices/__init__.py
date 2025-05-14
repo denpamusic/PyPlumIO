@@ -72,7 +72,7 @@ class Device(ABC, EventManager):
         :param name: Name of the parameter
         :type name: str
         :param value: New value for the parameter
-        :type value: int | float | bool | Literal["off", "on"]
+        :type value: int | float | bool | Literal["on", "off"]
         :param retries: Try setting parameter for this amount of
             times, defaults to 5
         :type retries: int, optional
@@ -104,7 +104,7 @@ class Device(ABC, EventManager):
         :param name: Name of the parameter
         :type name: str
         :param value: New value for the parameter
-        :type value: int | float | bool | Literal["off", "on"]
+        :type value: int | float | bool | Literal["on", "off"]
         :param retries: Try setting parameter for this amount of
             times, defaults to 5
         :type retries: int, optional
