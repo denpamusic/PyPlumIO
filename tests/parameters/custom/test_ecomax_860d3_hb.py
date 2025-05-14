@@ -21,7 +21,7 @@ CELSIUS: Final = UnitOfMeasurement.CELSIUS
 @pytest.mark.parametrize(
     ("name", "cls", "value", "min_value", "max_value", "unit_of_measurement"),
     [
-        ("__unknown_parameter_1", EcomaxNumber, None, None, None, None),
+        ("__hidden_summer_mode_disable_temp", EcomaxNumber, None, None, None, None),
         ("summer_mode", EcomaxNumber, 1, 0, 2, None),
         ("summer_mode_enable_temp", EcomaxNumber, 16, 5, 30, CELSIUS),
         ("summer_mode_disable_temp", EcomaxNumber, 10, 1, 15, CELSIUS),

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import logging
 from typing import ClassVar, TypeVar, cast
+
+from dataslots import dataslots
 
 from pyplumio.helpers.factory import create_instance
 from pyplumio.parameters import ParameterDescription
@@ -25,14 +27,14 @@ class Signature:
     model: str
 
 
+@dataslots
 @dataclass
 class CustomParameter:
     """Represents a custom parameter."""
 
-    __slot__ = ("original", "replacement")
-
     original: str
     replacement: ParameterDescription
+    hide_if_exists: bool = False
 
 
 class CustomParameters:
@@ -72,10 +74,17 @@ async def _load_custom_parameters(
         _LOGGER.debug("No custom parameters found for %s", product_info.model)
         return None
 
-    return {
-        custom_parameter.original: custom_parameter.replacement
-        for custom_parameter in custom_parameters.replacements
-    }
+    result: dict[str, ParameterDescription] = {}
+    for custom_parameter in custom_parameters.replacements:
+        replacement = custom_parameter.replacement
+        if custom_parameter.hide_if_exists:
+            result[replacement.name] = replace(
+                replacement, name=f"__hidden_{replacement.name}"
+            )
+
+        result[custom_parameter.original] = replacement
+
+    return result
 
 
 _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)

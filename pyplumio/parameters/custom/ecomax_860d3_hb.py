@@ -15,10 +15,6 @@ class EcoMAX860D3HB(CustomParameters):
     replacements = (
         # Summer mode
         CustomParameter(
-            original="summer_mode_disable_temp",
-            replacement=EcomaxNumberDescription(name="__unknown_parameter_1"),
-        ),
-        CustomParameter(
             original="water_heater_target_temp",
             replacement=EcomaxNumberDescription(name="summer_mode"),
         ),
@@ -35,6 +31,7 @@ class EcoMAX860D3HB(CustomParameters):
                 name="summer_mode_disable_temp",
                 unit_of_measurement=UnitOfMeasurement.CELSIUS,
             ),
+            hide_if_exists=True,
         ),
         # Water heater
         CustomParameter(

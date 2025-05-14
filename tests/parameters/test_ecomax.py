@@ -85,4 +85,4 @@ async def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert parameter_types_patched[119].name == "summer_mode"
     assert parameter_types_patched[120].name == "summer_mode_enable_temp"
     assert parameter_types_patched[121].name == "summer_mode_disable_temp"
-    assert parameter_types_patched[127].name == "__unknown_parameter_1"
+    assert parameter_types_patched[127].name == "__hidden_summer_mode_disable_temp"
