@@ -38,7 +38,7 @@ def _compare_parameter_values(
         ("water_heater_target_temp", EcomaxNumber, 38, 30, 60, CELSIUS),
         ("min_water_heater_target_temp", EcomaxNumber, 30, 20, 55, CELSIUS),
         ("max_water_heater_target_temp", EcomaxNumber, 60, 25, 80, CELSIUS),
-        ("__unknown_parameter_2", EcomaxNumber, None, None, None, None),
+        ("water_heater_feeding_extension", EcomaxNumber, 0, 0, 99, None),
         ("water_heater_work_mode", EcomaxNumber, 2, 0, 2, None),
         ("water_heater_hysteresis", EcomaxNumber, 7, 1, 20, CELSIUS),
         (

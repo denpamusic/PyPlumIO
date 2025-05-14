@@ -60,7 +60,7 @@ class EcoMAX860D3HB(CustomParameters):
         ),
         CustomParameter(
             original="water_heater_work_mode",
-            replacement=EcomaxNumberDescription(name="__unknown_parameter_2"),
+            replacement=EcomaxNumberDescription(name="water_heater_feeding_extension"),
         ),
         CustomParameter(
             original="external_boiler_temp",
