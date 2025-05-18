@@ -43,6 +43,7 @@ from pyplumio.frames.messages import SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
     EcomaxControlRequest,
+    EcomaxParametersRequest,
     SetEcomaxParameterRequest,
     SetScheduleRequest,
     SetThermostatParameterRequest,
@@ -104,10 +105,24 @@ async def test_ecomax_handle_frame(
     mock_handle_frame.assert_called_once_with(request)
 
 
+@pytest.mark.parametrize(
+    ("frame_type", "frame_request"),
+    [
+        (FrameType.REQUEST_ALERTS, AlertsRequest(recipient=DeviceType.ECOMAX)),
+        (
+            FrameType.REQUEST_ECOMAX_PARAMETER_CHANGES,
+            EcomaxParametersRequest(recipient=DeviceType.ECOMAX),
+        ),
+    ],
+)
 @patch("asyncio.Queue.put_nowait")
 @class_from_json(SensorDataMessage, "messages/sensor_data.json", arguments=("message",))
 async def test_frame_versions_tracker(
-    mock_put_nowait, ecomax: EcoMAX, sensor_data: SensorDataMessage
+    mock_put_nowait,
+    ecomax: EcoMAX,
+    sensor_data: SensorDataMessage,
+    frame_type: FrameType,
+    frame_request: Request,
 ) -> None:
     """Test frame version tracker."""
 
@@ -116,7 +131,7 @@ async def test_frame_versions_tracker(
         return {ATTR_SENSORS: {ATTR_FRAME_VERSIONS: {frame: version}}}
 
     # Test with frame type that are handled during setup.
-    sensor_data.data = _frame_version_data(FrameType.REQUEST_ALERTS, 1)
+    sensor_data.data = _frame_version_data(frame_type, 1)
     ecomax.data.clear()
     ecomax.handle_frame(sensor_data)
     await ecomax.wait_until_done()
@@ -124,12 +139,12 @@ async def test_frame_versions_tracker(
 
     # Test with same frame type after setup done.
     mock_put_nowait.reset_mock()
-    sensor_data.data = _frame_version_data(FrameType.REQUEST_ALERTS, 2)
+    sensor_data.data = _frame_version_data(frame_type, 2)
     ecomax.data.clear()
     ecomax.data[ATTR_SETUP] = True
     ecomax.handle_frame(sensor_data)
     await ecomax.wait_until_done()
-    mock_put_nowait.assert_called_once_with(AlertsRequest(recipient=DeviceType.ECOMAX))
+    mock_put_nowait.assert_called_once_with(frame_request)
 
 
 @pytest.mark.parametrize("state", [STATE_ON, STATE_OFF])

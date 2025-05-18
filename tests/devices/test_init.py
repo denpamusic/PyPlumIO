@@ -102,19 +102,34 @@ def fixture_physical_device() -> PhysicalDevice:
 class TestPhysicalDevice:
     """Contains tests for PhysicalDevice class."""
 
+    @pytest.mark.parametrize(
+        ("frame_type", "requested_frame_type"),
+        [
+            (FrameType.REQUEST_ALERTS, FrameType.REQUEST_ALERTS),
+            (
+                FrameType.REQUEST_ECOMAX_PARAMETER_CHANGES,
+                FrameType.REQUEST_ECOMAX_PARAMETERS,
+            ),
+        ],
+    )
     @patch("pyplumio.frames.Request.create", autospec=True)
     @patch("asyncio.Queue.put_nowait")
     async def test_frame_versions_event_listener(
-        self, mock_put_nowait, mock_request_create, physical_device: PhysicalDevice
+        self,
+        mock_put_nowait,
+        mock_request_create,
+        physical_device: PhysicalDevice,
+        frame_type: FrameType,
+        requested_frame_type: FrameType,
     ) -> None:
         """Test event listener for frame versions."""
-        assert physical_device.has_frame_version(FrameType.REQUEST_ALERTS, 1) is False
-        await physical_device.on_event_frame_versions({FrameType.REQUEST_ALERTS: 1})
+        assert physical_device.has_frame_version(frame_type, 1) is False
+        await physical_device.on_event_frame_versions({frame_type: 1})
         mock_request_create.assert_awaited_once_with(
-            FrameType.REQUEST_ALERTS, recipient=DummyPhysicalDevice.address
+            requested_frame_type, recipient=DummyPhysicalDevice.address
         )
         mock_put_nowait.assert_called_once_with(mock_request_create.return_value)
-        assert physical_device.has_frame_version(FrameType.REQUEST_ALERTS, 1) is True
+        assert physical_device.has_frame_version(frame_type, 1) is True
 
     def test_frame_versions_event_listener_decorator(self) -> None:
         """Test decorator for the frame version event listener."""

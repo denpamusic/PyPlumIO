@@ -152,7 +152,12 @@ class PhysicalDevice(Device, ABC):
                 and self.supports_frame_type(frame_type)
                 and not self.has_frame_version(frame_type, version)
             ):
-                await self._request_frame_version(frame_type, version)
+                request_frame_type = (
+                    FrameType.REQUEST_ECOMAX_PARAMETERS
+                    if frame_type == FrameType.REQUEST_ECOMAX_PARAMETER_CHANGES
+                    else frame_type
+                )
+                await self._request_frame_version(request_frame_type, version)
                 self._frame_versions[frame_type] = version
 
     async def _request_frame_version(
