@@ -145,7 +145,7 @@ class PhysicalDevice(Device, ABC):
     @event_listener(filter=on_change)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
-        _LOGGER.info("Received frame version table")
+        _LOGGER.debug("Received frame version table")
         for frame_type, version in versions.items():
             if (
                 is_known_frame_type(frame_type)
@@ -164,7 +164,7 @@ class PhysicalDevice(Device, ABC):
         self, frame_type: FrameType | int, version: int
     ) -> None:
         """Request frame version from the device."""
-        _LOGGER.info("Updating frame %s to version %i", repr(frame_type), version)
+        _LOGGER.debug("Updating frame %s to version %i", repr(frame_type), version)
         request = await Request.create(frame_type, recipient=self.address)
         self.queue.put_nowait(request)
 

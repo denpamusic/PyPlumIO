@@ -234,7 +234,7 @@ class EcoMAX(PhysicalDevice):
     @event_listener
     async def on_event_setup(self, setup: bool) -> None:
         """Request frames required to set up an ecoMAX entry."""
-        _LOGGER.info("Setting up device entry")
+        _LOGGER.debug("Setting up device entry")
         await self.wait_for(ATTR_SENSORS)
         results = await asyncio.gather(
             *(
@@ -251,14 +251,14 @@ class EcoMAX(PhysicalDevice):
         if errors:
             self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
 
-        _LOGGER.info("Device entry setup done")
+        _LOGGER.debug("Device entry setup done")
 
     @event_listener
     async def on_event_ecomax_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
-        _LOGGER.info("Received device parameters")
+        _LOGGER.debug("Received device parameters")
         product_info: ProductInfo = await self.get(ATTR_PRODUCT)
         parameter_types = await get_ecomax_parameter_types(product_info)
 
@@ -307,7 +307,7 @@ class EcoMAX(PhysicalDevice):
         parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle mixer parameters and dispatch the events."""
-        _LOGGER.info("Received mixer parameters")
+        _LOGGER.debug("Received mixer parameters")
         if parameters:
             await asyncio.gather(
                 *(
@@ -324,7 +324,7 @@ class EcoMAX(PhysicalDevice):
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update mixer sensors and dispatch the events."""
-        _LOGGER.info("Received mixer sensors")
+        _LOGGER.debug("Received mixer sensors")
         if sensors:
             await asyncio.gather(
                 *(
@@ -364,7 +364,7 @@ class EcoMAX(PhysicalDevice):
     @event_listener
     async def on_event_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update ecoMAX sensors and dispatch the events."""
-        _LOGGER.info("Received device sensors")
+        _LOGGER.debug("Received device sensors")
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in sensors.items())
         )
@@ -376,7 +376,7 @@ class EcoMAX(PhysicalDevice):
         parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
     ) -> bool:
         """Handle thermostat parameters and dispatch the events."""
-        _LOGGER.info("Received thermostat parameters")
+        _LOGGER.debug("Received thermostat parameters")
         if parameters:
             await asyncio.gather(
                 *(
@@ -407,7 +407,7 @@ class EcoMAX(PhysicalDevice):
         self, sensors: dict[int, dict[str, Any]] | None
     ) -> bool:
         """Update thermostat sensors and dispatch the events."""
-        _LOGGER.info("Received thermostat sensors")
+        _LOGGER.debug("Received thermostat sensors")
         if sensors:
             await asyncio.gather(
                 *(
@@ -427,7 +427,7 @@ class EcoMAX(PhysicalDevice):
         self, schedules: list[tuple[int, list[list[bool]]]]
     ) -> dict[str, Schedule]:
         """Update schedules."""
-        _LOGGER.info("Received device schedules")
+        _LOGGER.debug("Received device schedules")
         return {
             SCHEDULES[index]: Schedule(
                 name=SCHEDULES[index],
