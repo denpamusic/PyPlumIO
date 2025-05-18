@@ -238,7 +238,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 )
                 device.dispatch_nowait(ATTR_CONNECTED, True)
                 device.dispatch_nowait(ATTR_SETUP, True)
-                await self.dispatch(device_type.name.lower(), device)
+                await self.dispatch(name, device)
 
         return self.data[name]
 
