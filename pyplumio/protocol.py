@@ -230,20 +230,17 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Return the device entry."""
-
-        @acache
-        async def _setup_device_entry(device_type: DeviceType) -> PhysicalDevice:
-            """Set up the device entry."""
-            device = await PhysicalDevice.create(
-                device_type, queue=self._queues.write, network=self._network
-            )
-            device.dispatch_nowait(ATTR_CONNECTED, True)
-            device.dispatch_nowait(ATTR_SETUP, True)
-            self.dispatch_nowait(device_type.name.lower(), device)
-            return device
-
         async with self._entry_lock:
-            return await _setup_device_entry(device_type)
+            name = device_type.name.lower()
+            if name not in self.data:
+                device = await PhysicalDevice.create(
+                    device_type, queue=self._queues.write, network=self._network
+                )
+                device.dispatch_nowait(ATTR_CONNECTED, True)
+                device.dispatch_nowait(ATTR_SETUP, True)
+                await self.dispatch(device_type.name.lower(), device)
+
+        return self.data[name]
 
 
 __all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]
