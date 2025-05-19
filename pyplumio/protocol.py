@@ -230,8 +230,8 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     @acache
     async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Return the device entry."""
+        name = device_type.name.lower()
         async with self._entry_lock:
-            name = device_type.name.lower()
             if name not in self.data:
                 device = await PhysicalDevice.create(
                     device_type, queue=self._queues.write, network=self._network
