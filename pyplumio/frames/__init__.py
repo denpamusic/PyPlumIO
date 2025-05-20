@@ -15,10 +15,14 @@ from pyplumio.utils import ensure_dict, to_camelcase
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
-HEADER_OFFSET: Final = 0
+
+
+HEADER_INDEX: Final = 0
 FRAME_TYPE_SIZE: Final = 1
-CRC_SIZE: Final = 1
+BCC_SIZE: Final = 1
+BCC_INDEX: Final = -2
 DELIMITER_SIZE: Final = 1
+
 ECONET_TYPE: Final = 48
 ECONET_VERSION: Final = 5
 
@@ -199,7 +203,7 @@ class Frame(ABC):
             struct_header.size
             + FRAME_TYPE_SIZE
             + len(self.message)
-            + CRC_SIZE
+            + BCC_SIZE
             + DELIMITER_SIZE
         )
 
@@ -209,7 +213,7 @@ class Frame(ABC):
         buffer = bytearray(struct_header.size)
         struct_header.pack_into(
             buffer,
-            HEADER_OFFSET,
+            HEADER_INDEX,
             FRAME_START,
             self.length,
             int(self.recipient),
