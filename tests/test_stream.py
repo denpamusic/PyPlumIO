@@ -10,7 +10,7 @@ from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
 from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
-from pyplumio.stream import WRITER_TIMEOUT, FrameReader, FrameWriter
+from pyplumio.stream import READER_CHUNK_SIZE, WRITER_TIMEOUT, FrameReader, FrameWriter
 
 
 @pytest.fixture(name="mock_stream_writer")
@@ -145,7 +145,7 @@ class TestFrameReader:
         assert frame.message == b"\xff\x00"
         assert frame.econet_version == ECONET_VERSION
         assert mock_read.call_count == 2
-        mock_read.assert_has_calls([call(1), call(1)])
+        mock_read.assert_has_calls([call(READER_CHUNK_SIZE), call(READER_CHUNK_SIZE)])
         assert mock_readexactly.call_count == 2
         mock_readexactly.assert_has_calls([call(6), call(5)])
 
@@ -173,7 +173,7 @@ class TestFrameReader:
 
         Ensures ReadError is raised for incomplete frame header.
         """
-        with pytest.raises(ReadError, match="Incomplete header"):
+        with pytest.raises(ReadError, match="Incomplete read"):
             await frame_reader.read()
 
         read_frame_start.assert_awaited_once()
@@ -210,11 +210,35 @@ class TestFrameReader:
 
         Ensures ReadError is raised for incomplete frame data.
         """
-        with pytest.raises(ReadError, match="Incomplete frame"):
+        with pytest.raises(ReadError, match="Incomplete read"):
             await frame_reader.read()
 
         read_frame_start.assert_awaited_once()
         mock_readexactly.assert_has_calls([call(6), call(5)])
+
+    @pytest.mark.parametrize(
+        ("target", "expected_exception", "error_pattern"),
+        [
+            ("asyncio.StreamReader.readexactly", OSError, "Serial connection broken"),
+            ("asyncio.StreamReader.read", OSError, "Serial connection broken"),
+            ("asyncio.StreamReader.readexactly", asyncio.CancelledError, None),
+            ("asyncio.StreamReader.read", asyncio.CancelledError, None),
+        ],
+    )
+    async def test_read_exceptions(
+        self,
+        frame_reader: FrameReader,
+        read_frame_start,
+        target: str,
+        expected_exception: type[Exception],
+        error_pattern: str,
+    ) -> None:
+        """Test read exceptions."""
+        with (
+            patch(target, side_effect=expected_exception()),
+            pytest.raises(expected_exception, match=error_pattern),
+        ):
+            await frame_reader.read()
 
     @patch(
         "asyncio.StreamReader.readexactly",
@@ -234,7 +258,8 @@ class TestFrameReader:
         mock_readexactly.assert_has_calls([call(6), call(5)])
 
     @patch(
-        "asyncio.StreamReader.readexactly", side_effect=(b"\x0c\x00\x10\x56\x30\x05",)
+        "asyncio.StreamReader.readexactly",
+        side_effect=(b"\x0a\x00\x10\x56\x30\x05\x01\01\01",),
     )
     async def test_unknown_recipient(
         self, mock_readexactly, frame_reader: FrameReader, read_frame_start
@@ -250,7 +275,8 @@ class TestFrameReader:
         mock_readexactly.assert_awaited_once_with(6)
 
     @patch(
-        "asyncio.StreamReader.readexactly", side_effect=(b"\x0c\x00\x00\x10\x30\x05",)
+        "asyncio.StreamReader.readexactly",
+        side_effect=(b"\x0a\x00\x00\x10\x30\x05\x01\01\01",),
     )
     async def test_unknown_sender(
         self, mock_readexactly, frame_reader: FrameReader, read_frame_start

@@ -26,6 +26,8 @@ WRITER_TIMEOUT: Final = 10
 MIN_FRAME_LENGTH: Final = 10
 MAX_FRAME_LENGTH: Final = 1000
 
+READER_CHUNK_SIZE: Final = 1000
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -76,34 +78,79 @@ class Header(NamedTuple):
 class FrameReader:
     """Represents a frame reader."""
 
-    __slots__ = ("_reader",)
+    __slots__ = ("_buffer", "_reader")
 
+    _buffer: bytearray
     _reader: StreamReader
 
     def __init__(self, reader: StreamReader) -> None:
         """Initialize a new frame reader."""
+        self._buffer = bytearray()
         self._reader = reader
 
-    async def _read_header(self) -> tuple[Header, bytes]:
+    async def _ensure_buffer(self, size: int) -> None:
+        """Ensure the internal buffer size."""
+        bytes_to_read = size - len(self._buffer)
+        if bytes_to_read > 0:
+            try:
+                data = await self._reader.readexactly(bytes_to_read)
+                self._buffer.extend(data)
+            except IncompleteReadError as e:
+                raise ReadError(
+                    f"Incomplete read. Tried to read {bytes_to_read} additional bytes "
+                    f"to reach a total of {size}, but only {len(e.partial)} bytes were "
+                    "available from stream."
+                ) from e
+            except asyncio.CancelledError:
+                _LOGGER.debug("Read operation cancelled while ensuring buffer")
+                raise
+            except Exception as e:
+                raise OSError(
+                    f"Serial connection broken while trying to ensure {size} bytes: {e}"
+                ) from e
+
+    async def _consume_buffer(self, size: int) -> bytearray:
+        """Ensure and consume the internal buffer."""
+        await self._ensure_buffer(size)
+        try:
+            return self._buffer[:size]
+        finally:
+            self._buffer = self._buffer[size:]
+
+    async def _read_header(self) -> Header:
         """Locate and read a frame header.
 
         Raise pyplumio.ReadError if header size is too small and
         OSError if serial connection is broken.
         """
-        while buffer := await self._reader.read(DELIMITER_SIZE):
-            if FRAME_START not in buffer:
-                continue
+        start_index = -1
+        while True:
+            if self._buffer:
+                start_index = self._buffer.find(FRAME_START)
+
+            if start_index != -1:
+                self._buffer = self._buffer[start_index:]
+                await self._ensure_buffer(HEADER_SIZE)
+                header_bytes = self._buffer[:HEADER_SIZE]
+                return Header(*struct_header.unpack_from(header_bytes)[DELIMITER_SIZE:])
 
             try:
-                buffer += await self._reader.readexactly(HEADER_SIZE - DELIMITER_SIZE)
-            except IncompleteReadError as e:
-                raise ReadError(
-                    f"Incomplete header, expected {e.expected} bytes"
+                chunk = await self._reader.read(READER_CHUNK_SIZE)
+            except asyncio.CancelledError:
+                _LOGGER.debug("Read operation cancelled while searching for header.")
+                raise
+            except Exception as e:
+                raise OSError(
+                    f"Serial connection broken while reading header chunk: {e}"
                 ) from e
 
-            return Header(*struct_header.unpack_from(buffer)[DELIMITER_SIZE:]), buffer
+            if not chunk:
+                _LOGGER.debug("Stream ended while searching for frame header.")
+                raise OSError(
+                    "Serial connection broken: stream ended while searching for header"
+                )
 
-        raise OSError("Serial connection broken")
+            self._buffer.extend(chunk)
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Frame | None:
@@ -114,8 +161,9 @@ class FrameReader:
         length or incomplete frame, raise pyplumio.ChecksumError on
         incorrect frame checksum.
         """
-        header, buffer = await self._read_header()
+        header = await self._read_header()
         frame_length, recipient, sender, econet_type, econet_version = header
+        frame_bytes = await self._consume_buffer(frame_length)
 
         if recipient not in (DeviceType.ECONET, DeviceType.ALL):
             # Not an intended recipient, ignore the frame.
@@ -130,27 +178,24 @@ class FrameReader:
                 f"{MIN_FRAME_LENGTH} and {MAX_FRAME_LENGTH}"
             )
 
-        try:
-            buffer += await self._reader.readexactly(frame_length - HEADER_SIZE)
-        except IncompleteReadError as e:
-            raise ReadError(f"Incomplete frame, expected {e.expected} bytes") from e
-
-        if (checksum := bcc(buffer[:-2])) and checksum != buffer[-2]:
+        if (checksum := bcc(frame_bytes[:-2])) and checksum != frame_bytes[-2]:
             raise ChecksumError(
                 f"Incorrect frame checksum: calculated {checksum}, "
-                f"expected {buffer[-2]}. "
-                f"Frame data: {buffer.hex()}"
+                f"expected {frame_bytes[-2]}. "
+                f"Frame data: {frame_bytes.hex()}"
             )
 
+        payload_bytes = frame_bytes[HEADER_SIZE : frame_length - 2]
+
         frame = await Frame.create(
-            frame_type=buffer[HEADER_SIZE],
+            frame_type=payload_bytes[0],
             recipient=DeviceType(recipient),
             sender=DeviceType(sender),
             econet_type=econet_type,
             econet_version=econet_version,
-            message=buffer[HEADER_SIZE + 1 : -2],
+            message=payload_bytes[1:],
         )
-        _LOGGER.debug("Received frame: %s, bytes: %s", frame, buffer.hex())
+        _LOGGER.debug("Received frame: %s, bytes: %s", frame, frame_bytes.hex())
 
         return frame
 
