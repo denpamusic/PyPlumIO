@@ -37,16 +37,6 @@ def fixture_skip_asyncio_create_task():
         yield
 
 
-@pytest.fixture(name="skip_asyncio_events")
-def fixture_skip_asyncio_events():
-    """Bypass asyncio events."""
-    with (
-        patch("asyncio.Event.wait", new_callable=AsyncMock),
-        patch("asyncio.Event.is_set", return_value=True),
-    ):
-        yield
-
-
 @pytest.fixture(name="async_protocol")
 def fixture_async_protocol() -> AsyncProtocol:
     """Return an async protocol instance."""
