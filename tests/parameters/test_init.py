@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, PropertyMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -109,6 +110,16 @@ def fixture_parameter(ecomax: EcoMAX) -> Parameter:
         values=ParameterValues(value=6, min_value=0, max_value=10),
         description=ParameterDescription(name="test_param"),
     )
+
+
+@pytest.fixture(name="skip_asyncio_events")
+def fixture_skip_asyncio_events():
+    """Bypass asyncio events."""
+    with (
+        patch("asyncio.Event.wait", new_callable=AsyncMock),
+        patch("asyncio.Event.is_set", return_value=True),
+    ):
+        yield
 
 
 class TestParameter:
@@ -253,10 +264,6 @@ class TestParameter:
         parameter_copy = parameter.__copy__()
         assert parameter_copy.values is not parameter.values
 
-    @patch(
-        "pyplumio.parameters.Parameter.pending_update",
-        PropertyMock(side_effect=(True, False, True, False)),
-    )
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     @patch("asyncio.Queue.put")
@@ -277,8 +284,18 @@ class TestParameter:
             parameter.set_nowait(4)
             await parameter.device.wait_until_done()
         else:
-            result = await parameter.set(4)
+            mock_update_pending = AsyncMock(spec=asyncio.Event)
+            mock_update_done = AsyncMock(spec=asyncio.Event)
+
+            with (
+                patch.object(DummyParameter, "update_pending", mock_update_pending),
+                patch.object(DummyParameter, "update_done", mock_update_done),
+            ):
+                result = await parameter.set(4, retries=5)
+
             assert result is True
+            mock_update_done.clear.assert_called_once()
+            mock_update_pending.set.assert_called_once()
 
         assert parameter == 4
         mock_validate.assert_called_once_with(4)
@@ -316,37 +333,47 @@ class TestParameter:
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     @patch("asyncio.Queue.put")
-    @patch("asyncio.sleep")
-    @pytest.mark.parametrize(
-        ("description", "retries"),
-        [
-            (ParameterDescription(name="test_param"), 0),
-            (ParameterDescription(name="test_param", optimistic=True), 3),
-        ],
-    )
+    @pytest.mark.usefixtures("skip_asyncio_events")
     async def test_set_without_retries(
-        self,
-        mock_sleep,
-        mock_put,
-        mock_create_request,
-        mock_validate,
-        parameter: Parameter,
-        description: ParameterDescription,
-        retries: int,
+        self, mock_put, mock_create_request, mock_validate, parameter: Parameter
     ) -> None:
         """Test set without retries.
 
         Checks setting a parameter with and without retries.
         """
-        parameter.description = description
-        result = await parameter.set(5, retries=retries)
+        parameter.description = ParameterDescription(name="test_param")
+        result = await parameter.set(5, retries=0)
         assert result is True
         assert parameter == 5
-        assert parameter.pending_update is False
         mock_validate.assert_called_once_with(5)
         mock_put.assert_awaited_once_with(mock_create_request.return_value)
-        mock_sleep.assert_not_awaited()
 
+    @patch.object(DummyParameter, "validate")
+    @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
+    @patch("asyncio.Queue.put")
+    @patch("asyncio.Event.set")
+    async def test_set_optimistic(
+        self,
+        mock_set,
+        mock_put,
+        mock_create_request,
+        mock_validate,
+        parameter: Parameter,
+    ) -> None:
+        """Test set without retries.
+
+        Checks setting a parameter with and without retries.
+        """
+        parameter.description = ParameterDescription(name="test_param", optimistic=True)
+        result = await parameter.set(5, retries=3)
+        assert result is True
+        assert parameter == 5
+        assert parameter.update_pending.is_set() is False
+        mock_validate.assert_called_once_with(5)
+        mock_put.assert_awaited_once_with(mock_create_request.return_value)
+        mock_set.assert_not_called()
+
+    @pytest.mark.usefixtures("skip_asyncio_events")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     async def test_update(self, mock_create_request, parameter: Parameter) -> None:
         """Test update.
@@ -354,11 +381,9 @@ class TestParameter:
         Checks updating a parameter.
         """
         await parameter.set(5)
-        assert parameter.pending_update is True
         parameter_values = ParameterValues(value=5, min_value=1, max_value=10)
         parameter.update(parameter_values)
-        assert parameter.pending_update is False
-        assert parameter.values == parameter_values  # type: ignore[unreachable]
+        assert parameter.values == parameter_values
         mock_create_request.assert_awaited_once()
 
     def test_create_or_update_parameter(self, ecomax: EcoMAX) -> None:
@@ -421,7 +446,7 @@ class TestNumber:
         Checks setting a number.
         """
         await number.set(5)
-        mock_set.assert_awaited_once_with(5, 5, 5.0)
+        mock_set.assert_awaited_once_with(5, retries=0, timeout=5.0)
 
     @patch("pyplumio.parameters.Parameter.set_nowait")
     def test_set_nowait(self, mock_set_nowait, number: Number) -> None:
@@ -430,7 +455,7 @@ class TestNumber:
         Checks setting a number without waiting.
         """
         number.set_nowait(5)
-        mock_set_nowait.assert_called_once_with(5, 5, 5.0)
+        mock_set_nowait.assert_called_once_with(5, retries=0, timeout=5.0)
 
     async def test_create_request(self, number: Number) -> None:
         """Test create_request.
@@ -473,7 +498,7 @@ class TestSwitch:
         Checks setting a switch.
         """
         await switch.set(state)
-        mock_set.assert_awaited_once_with(state, 5, 5.0)
+        mock_set.assert_awaited_once_with(state, retries=0, timeout=5.0)
 
     @patch("pyplumio.parameters.Parameter.set_nowait")
     @pytest.mark.parametrize("state", [True, False, STATE_ON, STATE_OFF])
@@ -485,7 +510,7 @@ class TestSwitch:
         Checks setting a switch without waiting.
         """
         switch.set_nowait(state)
-        mock_set_nowait.assert_called_once_with(state, 5, 5.0)
+        mock_set_nowait.assert_called_once_with(state, retries=0, timeout=5.0)
 
     async def test_create_request(self, switch: Switch) -> None:
         """Test create_request.

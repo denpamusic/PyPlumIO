@@ -86,7 +86,7 @@ def is_close(
 ) -> bool:
     """Check if value is significantly changed."""
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return new.pending_update or old.values.__ne__(new.values)
+        return new.update_pending.is_set() or old.values.__ne__(new.values)
 
     if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
         return not math.isclose(old, new, abs_tol=tolerance)

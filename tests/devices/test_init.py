@@ -60,7 +60,7 @@ class TestDevice:
         await device.set("foo", "on")
         mock_get.assert_awaited_once_with("foo", None)
         parameter = mock_get.return_value
-        parameter.set.assert_awaited_once_with("on", retries=5)
+        parameter.set.assert_awaited_once_with("on", retries=0)
 
     @patch("pyplumio.devices.Device.get", return_value=Mock)
     async def test_set_incorrect_parameter(self, mock_get, device: Device) -> None:
@@ -73,7 +73,7 @@ class TestDevice:
     def test_set_nowait(self, mock_set, mock_create_task, device: Device) -> None:
         """Test changing a device parameter without waiting."""
         device.set_nowait("foo", "off")
-        mock_set.assert_called_once_with("foo", "off", 5, None)
+        mock_set.assert_called_once_with("foo", "off", 0, None)
         mock_create_task.assert_called_once_with(mock_set.return_value)
 
     @patch("pyplumio.devices.Device.cancel_tasks")

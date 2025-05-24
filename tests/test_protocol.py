@@ -191,7 +191,7 @@ async def test_async_protocol_connection_lost() -> None:
     assert async_protocol.writer is None
 
 
-@patch("asyncio.wait")
+@patch("asyncio.wait_for")
 @patch("asyncio.gather", new_callable=AsyncMock)
 @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
 @patch("pyplumio.devices.ecomax.EcoMAX.shutdown", new_callable=Mock)
@@ -202,7 +202,7 @@ async def test_async_protocol_shutdown(
     mock_shutdown,
     mock_cancel_tasks,
     mock_gather,
-    mock_wait,
+    mock_wait_for,
     async_protocol: AsyncProtocol,
 ) -> None:
     """Test shutting down connection with an async protocol."""

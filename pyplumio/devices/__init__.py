@@ -64,7 +64,7 @@ class Device(ABC, EventManager):
         self,
         name: str,
         value: NumericType | State | bool,
-        retries: int = 5,
+        retries: int = 0,
         timeout: float | None = None,
     ) -> bool:
         """Set a parameter value.
@@ -74,7 +74,7 @@ class Device(ABC, EventManager):
         :param value: New value for the parameter
         :type value: int | float | bool | Literal["on", "off"]
         :param retries: Try setting parameter for this amount of
-            times, defaults to 5
+            times, defaults to 0 (disabled)
         :type retries: int, optional
         :param timeout: Wait this amount of seconds for confirmation,
             defaults to `None`
@@ -96,7 +96,7 @@ class Device(ABC, EventManager):
         self,
         name: str,
         value: NumericType | State | bool,
-        retries: int = 5,
+        retries: int = 0,
         timeout: float | None = None,
     ) -> None:
         """Set a parameter value without waiting for the result.
@@ -106,7 +106,7 @@ class Device(ABC, EventManager):
         :param value: New value for the parameter
         :type value: int | float | bool | Literal["on", "off"]
         :param retries: Try setting parameter for this amount of
-            times, defaults to 5
+            times, defaults to 0 (disabled)
         :type retries: int, optional
         :param timeout: Wait this amount of seconds for confirmation.
             As this method operates in the background without waiting,

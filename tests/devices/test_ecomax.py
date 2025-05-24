@@ -258,7 +258,7 @@ async def test_ecomax_parameters_event_listener(
     assert equal_parameter_value(fuel_calorific_value.max_value, 25.0)
 
     # Test setting parameter with the step.
-    await fuel_calorific_value.set(2.5)
+    await fuel_calorific_value.set(2.5, timeout=0)
     request = mock_put.call_args[0][0]
     assert isinstance(request, SetEcomaxParameterRequest)
     assert request.data[ATTR_VALUE] == 25
@@ -272,7 +272,7 @@ async def test_ecomax_parameters_event_listener(
     assert heating_heat_curve_shift.unit_of_measurement == UnitOfMeasurement.CELSIUS
 
     # Test setting the parameter with the offset.
-    await heating_heat_curve_shift.set(1)
+    await heating_heat_curve_shift.set(1, timeout=0)
     request = mock_put.call_args[0][0]
     assert isinstance(request, SetEcomaxParameterRequest)
     assert request.data[ATTR_VALUE] == 21

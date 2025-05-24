@@ -72,11 +72,19 @@ NumericType: TypeAlias = Union[int, float]
 class Parameter(ABC):
     """Represents a base parameter."""
 
-    __slots__ = ("device", "description", "_pending_update", "_index", "_values")
+    __slots__ = (
+        "device",
+        "description",
+        "_update_done",
+        "_update_pending",
+        "_index",
+        "_values",
+    )
 
     device: Device
     description: ParameterDescription
-    _pending_update: bool
+    _update_done: asyncio.Event
+    _update_pending: asyncio.Event
     _index: int
     _values: ParameterValues
 
@@ -91,8 +99,9 @@ class Parameter(ABC):
         self.device = device
         self.description = description
         self._index = index
-        self._pending_update = False
         self._index = index
+        self._update_done = asyncio.Event()
+        self._update_pending = asyncio.Event()
         self._values = values if values else ParameterValues(0, 0, 0)
 
     def __repr__(self) -> str:
@@ -171,21 +180,19 @@ class Parameter(ABC):
         )
         return type(self)(self.device, self.description, values)
 
-    async def set(self, value: Any, retries: int = 5, timeout: float = 5.0) -> bool:
+    async def set(self, value: Any, retries: int = 0, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
         self.validate(value)
         return await self._attempt_update(self._pack_value(value), retries, timeout)
 
-    def set_nowait(self, value: Any, retries: int = 5, timeout: float = 5.0) -> None:
+    def set_nowait(self, value: Any, retries: int = 0, timeout: float = 5.0) -> None:
         """Set a parameter value without waiting."""
         self.validate(value)
         self.device.create_task(
             self._attempt_update(self._pack_value(value), retries, timeout)
         )
 
-    async def _attempt_update(
-        self, value: int, retries: int = 5, timeout: float = 5.0
-    ) -> bool:
+    async def _attempt_update(self, value: int, retries: int, timeout: float) -> bool:
         """Attempt to update a parameter value on the remote device."""
         _LOGGER.info(
             "Attempting to update '%s' parameter to %d", self.description.name, value
@@ -196,36 +203,58 @@ class Parameter(ABC):
 
         self._values.value = value
         request = await self.create_request()
-        if self.description.optimistic or not (initial_retries := retries):
-            # No retries
+        if self.description.optimistic:
             await self.device.queue.put(request)
             return True
 
-        self._pending_update = True
-        while self.pending_update:
-            if retries <= 0:
-                _LOGGER.warning(
-                    "Unable to confirm update of '%s' parameter after %d retries",
-                    self.description.name,
-                    initial_retries,
-                )
-                return False
+        self.update_done.clear()
+        self.update_pending.set()
+        if retries > 0:
+            return await self._attempt_update_with_retries(
+                request, retries=retries, timeout=timeout
+            )
 
-            await self.device.queue.put(request)
-            await asyncio.sleep(timeout)
-            retries -= 1
+        return await self._send_update_request(request, timeout=timeout)
 
-        return True
+    async def _attempt_update_with_retries(
+        self, request: Request, retries: int, timeout: float
+    ) -> bool:
+        """Send update request and retry until success."""
+        for _ in range(retries):
+            if await self._send_update_request(request, timeout=timeout):
+                return True
+
+        _LOGGER.warning(
+            "Unable to confirm update of '%s' parameter after %d retries",
+            self.description.name,
+            retries,
+        )
+        return False
+
+    async def _send_update_request(self, request: Request, timeout: float) -> bool:
+        """Send update request to the remote and confirm the result."""
+        await self.device.queue.put(request)
+        try:
+            await asyncio.wait_for(self.update_done.wait(), timeout=timeout)
+            return True
+        except asyncio.TimeoutError:
+            return False
 
     def update(self, values: ParameterValues) -> None:
         """Update the parameter values."""
-        self._pending_update = False
+        self.update_done.set()
+        self.update_pending.clear()
         self._values = values
 
     @property
-    def pending_update(self) -> bool:
-        """Check if parameter is pending update on the device."""
-        return self._pending_update
+    def update_done(self) -> asyncio.Event:
+        """Check if parameter is updated on the device."""
+        return self._update_done
+
+    @property
+    def update_pending(self) -> asyncio.Event:
+        """Check if parameter is updated on the device."""
+        return self._update_pending
 
     @property
     def values(self) -> ParameterValues:
@@ -325,16 +354,16 @@ class Number(Parameter):
         return True
 
     async def set(
-        self, value: NumericType, retries: int = 5, timeout: float = 5.0
+        self, value: NumericType, retries: int = 0, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
-        return await super().set(value, retries, timeout)
+        return await super().set(value, retries=retries, timeout=timeout)
 
     def set_nowait(
-        self, value: NumericType, retries: int = 5, timeout: float = 5.0
+        self, value: NumericType, retries: int = 0, timeout: float = 5.0
     ) -> None:
         """Set a parameter value without waiting."""
-        super().set_nowait(value, retries, timeout)
+        super().set_nowait(value, retries=retries, timeout=timeout)
 
     async def create_request(self) -> Request:
         """Create a request to change the number."""
@@ -420,16 +449,16 @@ class Switch(Parameter):
         return True
 
     async def set(
-        self, value: State | bool, retries: int = 5, timeout: float = 5.0
+        self, value: State | bool, retries: int = 0, timeout: float = 5.0
     ) -> bool:
         """Set a parameter value."""
-        return await super().set(value, retries, timeout)
+        return await super().set(value, retries=retries, timeout=timeout)
 
     def set_nowait(
-        self, value: State | bool, retries: int = 5, timeout: float = 5.0
+        self, value: State | bool, retries: int = 0, timeout: float = 5.0
     ) -> None:
         """Set a switch value without waiting."""
-        super().set_nowait(value, retries, timeout)
+        super().set_nowait(value, retries=retries, timeout=timeout)
 
     async def turn_on(self) -> bool:
         """Set a switch value to 'on'.
