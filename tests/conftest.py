@@ -12,7 +12,7 @@ from math import isclose
 import os
 import pathlib
 from typing import Any, Final, TypeVar
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from freezegun import freeze_time
 import pytest
@@ -148,6 +148,16 @@ def equal_parameter_value(
         return isclose(a, b, rel_tol=DEFAULT_TOLERANCE)
     else:
         return True if a == b else False
+
+
+@pytest.fixture(name="skip_asyncio_events")
+def fixture_skip_asyncio_events():
+    """Bypass asyncio events."""
+    with (
+        patch("asyncio.Event.wait", new_callable=AsyncMock),
+        patch("asyncio.Event.is_set", return_value=True),
+    ):
+        yield
 
 
 @pytest.fixture(autouse=True)

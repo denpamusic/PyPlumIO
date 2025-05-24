@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
+from contextlib import suppress
 from dataclasses import dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
@@ -234,11 +235,11 @@ class Parameter(ABC):
     async def _send_update_request(self, request: Request, timeout: float) -> bool:
         """Send update request to the remote and confirm the result."""
         await self.device.queue.put(request)
-        try:
+        with suppress(asyncio.TimeoutError):
+            # Wait for the update to be done
             await asyncio.wait_for(self.update_done.wait(), timeout=timeout)
-            return True
-        except asyncio.TimeoutError:
-            return False
+
+        return self.update_done.is_set()
 
     def update(self, values: ParameterValues) -> None:
         """Update the parameter values."""

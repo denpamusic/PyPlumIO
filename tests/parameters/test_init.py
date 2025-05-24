@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -110,16 +110,6 @@ def fixture_parameter(ecomax: EcoMAX) -> Parameter:
         values=ParameterValues(value=6, min_value=0, max_value=10),
         description=ParameterDescription(name="test_param"),
     )
-
-
-@pytest.fixture(name="skip_asyncio_events")
-def fixture_skip_asyncio_events():
-    """Bypass asyncio events."""
-    with (
-        patch("asyncio.Event.wait", new_callable=AsyncMock),
-        patch("asyncio.Event.is_set", return_value=True),
-    ):
-        yield
 
 
 class TestParameter:
@@ -286,12 +276,12 @@ class TestParameter:
         else:
             mock_update_pending = AsyncMock(spec=asyncio.Event)
             mock_update_done = AsyncMock(spec=asyncio.Event)
-
+            mock_update_done.is_set = Mock(return_value=True)
             with (
                 patch.object(DummyParameter, "update_pending", mock_update_pending),
                 patch.object(DummyParameter, "update_done", mock_update_done),
             ):
-                result = await parameter.set(4, retries=5)
+                result = await parameter.set(4)
 
             assert result is True
             mock_update_done.clear.assert_called_once()
@@ -300,7 +290,7 @@ class TestParameter:
         assert parameter == 4
         mock_validate.assert_called_once_with(4)
         mock_create_request.assert_awaited_once()
-        mock_put.assert_awaited_with(mock_create_request.return_value)
+        mock_put.assert_awaited_once_with(mock_create_request.return_value)
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
@@ -333,20 +323,61 @@ class TestParameter:
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
     @patch("asyncio.Queue.put")
-    @pytest.mark.usefixtures("skip_asyncio_events")
-    async def test_set_without_retries(
-        self, mock_put, mock_create_request, mock_validate, parameter: Parameter
+    @pytest.mark.parametrize(
+        (
+            "event_side_effect",
+            "retries",
+            "expected_result",
+            "expected_call_count",
+            "log_message",
+        ),
+        [
+            ((False, True), 5, True, 2, None),
+            (
+                (False, False),
+                2,
+                False,
+                2,
+                "Unable to confirm update of 'test_param' parameter after 2 retries",
+            ),
+        ],
+    )
+    async def test_set_with_retries(
+        self,
+        mock_put,
+        mock_create_request,
+        mock_validate,
+        parameter: Parameter,
+        caplog,
+        event_side_effect: tuple[bool, ...],
+        retries: int,
+        expected_result: bool,
+        expected_call_count: int,
+        log_message: str | None,
     ) -> None:
         """Test set without retries.
 
         Checks setting a parameter with and without retries.
         """
         parameter.description = ParameterDescription(name="test_param")
-        result = await parameter.set(5, retries=0)
-        assert result is True
+        mock_update_pending = AsyncMock(spec=asyncio.Event)
+        mock_update_done = AsyncMock(spec=asyncio.Event)
+        mock_update_done.is_set = Mock(side_effect=event_side_effect)
+
+        with (
+            patch.object(DummyParameter, "update_pending", mock_update_pending),
+            patch.object(DummyParameter, "update_done", mock_update_done),
+        ):
+            result = await parameter.set(5, retries=retries)
+
+        assert result is expected_result
         assert parameter == 5
+        mock_create_request.assert_awaited_once()
         mock_validate.assert_called_once_with(5)
-        mock_put.assert_awaited_once_with(mock_create_request.return_value)
+        assert mock_put.call_count == expected_call_count
+
+        if log_message:
+            assert log_message in caplog.text
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
