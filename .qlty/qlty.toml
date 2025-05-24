@@ -49,7 +49,7 @@ file_patterns = ["pyplumio/structures/network_info.py"]
 
 # Ignore unused **kwargs argument due to inheritance.
 [[ignore]]
-rules = ["radarlint-python:python.S1172"]
+rules = ["radarlint-python:python:S1172"]
 file_patterns = ["pyplumio/frames/__init__.py"]
 
 [[source]]
