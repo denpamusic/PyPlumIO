@@ -1,8 +1,8 @@
-"""Contains tests for the product info structure."""
+"""Contains tests for the product info structure decoder."""
 
 import pytest
 
-from pyplumio.structures.product_info import unpack_uid
+from pyplumio.structures.product_info import format_model_name, unpack_uid
 
 
 @pytest.mark.parametrize(
@@ -15,3 +15,19 @@ from pyplumio.structures.product_info import unpack_uid
 def test_from_bytes(message: bytearray, uid: str) -> None:
     """Test unpacking an UID from bytes."""
     assert unpack_uid(message) == uid
+
+
+@pytest.mark.parametrize(
+    ("model_name", "formatted_name"),
+    [
+        ("EM360P2-ZF", "ecoMAX 360P2-ZF"),
+        ("ecoMAXX800R3", "ecoMAXX 800R3"),
+        ("ecoMAX850P2-C", "ecoMAX 850P2-C"),
+        ("ecoMAX 850i", "ecoMAX 850i"),
+        ("ecoMAX 860D3-HB", "ecoMAX 860D3-HB"),
+        ("UNKNOWN", "UNKNOWN"),
+    ],
+)
+def test_format_model_name(model_name: str, formatted_name: str) -> None:
+    """Test formatting of model names."""
+    assert format_model_name(model_name) == formatted_name

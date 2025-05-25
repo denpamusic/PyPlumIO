@@ -1,8 +1,9 @@
-"""Contains tests for the schedules structure."""
+"""Contains tests for the schedules structure decoder."""
 
 from __future__ import annotations
 
 import asyncio
+import datetime as dt
 from typing import Literal, cast
 from unittest.mock import Mock, patch
 
@@ -19,16 +20,99 @@ from pyplumio.const import (
     State,
 )
 from pyplumio.devices import DeviceType, PhysicalDevice
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
     ATTR_SCHEDULES,
     MIDNIGHT,
+    MIDNIGHT_DT,
+    STEP,
+    TIME_FORMAT,
     Schedule,
     ScheduleDay,
     Time,
+    collect_schedule_data,
+    get_time,
+    get_time_range,
 )
 from tests.conftest import RAISES
+
+
+def test_collect_schedule_data(ecomax: EcoMAX) -> None:
+    """Test collecting schedule data."""
+    schedule_name = "heating"
+    ecomax.data |= {
+        f"{schedule_name}_{ATTR_SCHEDULE_SWITCH}": 1,
+        f"{schedule_name}_{ATTR_SCHEDULE_PARAMETER}": 2,
+        ATTR_SCHEDULES: {schedule_name: {"test": 1}},
+    }
+    data = collect_schedule_data(schedule_name, ecomax)
+    assert data == {
+        "parameter": 2,
+        "schedule": {"test": 1},
+        "switch": 1,
+        "type": "heating",
+    }
+
+
+@pytest.mark.parametrize(
+    ("index", "start", "step", "expected_time"),
+    [
+        (1, MIDNIGHT_DT, STEP, Time("00:30")),
+        (47, MIDNIGHT_DT, STEP, Time("23:30")),
+        (1, dt.datetime.strptime("01:00", TIME_FORMAT), STEP, Time("01:30")),
+        (47, dt.datetime.strptime("01:00", TIME_FORMAT), STEP, Time("00:30")),
+        (1, MIDNIGHT_DT, dt.timedelta(minutes=15), Time("00:15")),
+    ],
+)
+def test_get_time(
+    index: int, start: dt.datetime, step: dt.timedelta, expected_time: Time
+) -> None:
+    """Test returning time for a specific index."""
+    assert get_time(index, start=start, step=step) == expected_time
+
+
+@pytest.mark.parametrize(
+    ("start", "end", "step", "expected_range"),
+    [
+        (
+            Time("00:00"),
+            Time("01:00"),
+            STEP,
+            [Time("00:00"), Time("00:30"), Time("01:00")],
+        ),
+        (
+            Time("00:00"),
+            Time("00:30"),
+            dt.timedelta(minutes=15),
+            [Time("00:00"), Time("00:15"), Time("00:30")],
+        ),
+        (
+            Time("00:00"),
+            Time("00:30"),
+            dt.timedelta(minutes=20),
+            [Time("00:00"), Time("00:20")],
+        ),
+        (
+            Time("00:00"),
+            Time("00:00"),
+            dt.timedelta(hours=12),
+            [Time("00:00"), Time("12:00")],
+        ),
+    ],
+)
+def test_get_time_range(
+    start: Time, end: Time, step: dt.timedelta, expected_range: list[Time]
+) -> None:
+    """Test getting the time range."""
+    assert get_time_range(start=start, end=end, step=step) == expected_range
+
+
+def test_get_time_invalid() -> None:
+    """Test getting the time range with invalid boundaries."""
+    with pytest.raises(ValueError, match="Invalid time range"):
+        get_time_range(start=Time("01:00"), end=Time("00:30"))
 
 
 @pytest.fixture(name="intervals")
