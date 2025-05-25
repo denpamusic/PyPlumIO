@@ -8,8 +8,6 @@ from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDesc
 class EcoMAX860D3HB(CustomParameters):
     """Replacements for ecoMAX 860D3-HB."""
 
-    __slots__ = ()
-
     signature = Signature(model="ecoMAX 860D3-HB", id=48)
 
     replacements = (
