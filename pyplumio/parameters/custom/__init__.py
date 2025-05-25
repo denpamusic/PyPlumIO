@@ -29,7 +29,7 @@ class Signature:
 class CustomParameter:
     """Represents a custom parameter."""
 
-    __slot__ = ("original", "replacement")
+    __slots__ = ("original", "replacement")
 
     original: str
     replacement: ParameterDescription
