@@ -303,8 +303,7 @@ class EcoMAX(PhysicalDevice):
 
     @event_listener
     async def on_event_mixer_parameters(
-        self,
-        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
+        self, parameters: dict[int, Any] | None
     ) -> bool:
         """Handle mixer parameters and dispatch the events."""
         _LOGGER.debug("Received mixer parameters")
@@ -320,9 +319,7 @@ class EcoMAX(PhysicalDevice):
         return False
 
     @event_listener
-    async def on_event_mixer_sensors(
-        self, sensors: dict[int, dict[str, Any]] | None
-    ) -> bool:
+    async def on_event_mixer_sensors(self, sensors: dict[int, Any] | None) -> bool:
         """Update mixer sensors and dispatch the events."""
         _LOGGER.debug("Received mixer sensors")
         if sensors:
@@ -372,8 +369,7 @@ class EcoMAX(PhysicalDevice):
 
     @event_listener
     async def on_event_thermostat_parameters(
-        self,
-        parameters: dict[int, list[tuple[int, ParameterValues]]] | None,
+        self, parameters: dict[int, Any] | None
     ) -> bool:
         """Handle thermostat parameters and dispatch the events."""
         _LOGGER.debug("Received thermostat parameters")
@@ -403,9 +399,7 @@ class EcoMAX(PhysicalDevice):
         return None
 
     @event_listener
-    async def on_event_thermostat_sensors(
-        self, sensors: dict[int, dict[str, Any]] | None
-    ) -> bool:
+    async def on_event_thermostat_sensors(self, sensors: dict[int, Any] | None) -> bool:
         """Update thermostat sensors and dispatch the events."""
         _LOGGER.debug("Received thermostat sensors")
         if sensors:
