@@ -27,7 +27,6 @@ from pyplumio.exceptions import RequestError
 from pyplumio.filters import on_change
 from pyplumio.frames import DataFrameDescription, Frame, Request
 from pyplumio.helpers.event_manager import event_listener
-from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
@@ -51,6 +50,8 @@ from pyplumio.structures.schedules import (
     ATTR_SCHEDULES,
     SCHEDULE_PARAMETERS,
     SCHEDULES,
+    Schedule,
+    ScheduleDay,
     ScheduleNumber,
     ScheduleSwitch,
     ScheduleSwitchDescription,

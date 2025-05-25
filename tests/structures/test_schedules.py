@@ -1,4 +1,4 @@
-"""Contains tests for the schedule helper classes."""
+"""Contains tests for the schedules structure."""
 
 from __future__ import annotations
 
@@ -19,11 +19,14 @@ from pyplumio.const import (
     State,
 )
 from pyplumio.devices import DeviceType, PhysicalDevice
-from pyplumio.helpers.schedule import MIDNIGHT, Schedule, ScheduleDay, Time
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
     ATTR_SCHEDULES,
+    MIDNIGHT,
+    Schedule,
+    ScheduleDay,
+    Time,
 )
 from tests.conftest import RAISES
 
@@ -165,7 +168,7 @@ class TestSchedule:
         iterated_days = list(iter(schedule))
         assert iterated_days == expected_days
 
-    @patch("pyplumio.helpers.schedule.Request.create")
+    @patch("pyplumio.structures.schedules.Request.create")
     async def test_commit(self, mock_request_create, schedule: Schedule) -> None:
         """Test committing a schedule."""
         mock_device = Mock(spec=PhysicalDevice, autospec=True)

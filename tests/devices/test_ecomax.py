@@ -54,7 +54,6 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
-from pyplumio.helpers.schedule import Schedule, ScheduleDay
 from pyplumio.parameters.ecomax import PARAMETER_TYPES, EcomaxNumber, EcomaxSwitch
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
@@ -70,6 +69,8 @@ from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
     ATTR_SCHEDULES,
+    Schedule,
+    ScheduleDay,
     ScheduleNumber,
     ScheduleSwitch,
 )

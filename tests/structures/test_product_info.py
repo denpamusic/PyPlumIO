@@ -1,4 +1,4 @@
-"""Contains tests for the UID helper class."""
+"""Contains tests for the product info structure."""
 
 import pytest
 

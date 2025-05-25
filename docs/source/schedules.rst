@@ -60,11 +60,11 @@ switches back to daytime mode from 07:00 to 00:00.
     await heating_schedule.commit()
 
 For clarity sake, you might want to use ``STATE_OFF`` and
-``STATE_ON`` constants from ``pyplumio.helpers.schedule`` module.
+``STATE_ON`` constants from ``pyplumio.const`` module.
 
 .. code-block:: python
 
-    from pyplumio.helpers.schedule import STATE_OFF
+    from pyplumio.const import STATE_OFF
 
     heating_schedule.monday["18:00"] = STATE_OFF
     heating_schedule.monday.set_state(STATE_OFF, "00:00", "07:00")
@@ -110,7 +110,7 @@ Schedule Examples
 .. code-block:: python
 
     import pyplumio
-    from pyplumio.helpers.schedule import STATE_ON, STATE_OFF
+    from pyplumio.const import STATE_ON, STATE_OFF
 
 
     async def main():
