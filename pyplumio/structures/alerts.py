@@ -99,7 +99,7 @@ class AlertsStructure(StructureDecoder):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
-        total_alerts = message[offset + 0]
+        total_alerts = message[offset]
         start = message[offset + 1]
         end = message[offset + 2]
         self._offset = offset + 3
