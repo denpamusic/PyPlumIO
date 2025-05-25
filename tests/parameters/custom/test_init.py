@@ -34,7 +34,7 @@ class DummyEcoMAX(CustomParameters):
 
 
 @pytest.mark.parametrize(
-    ("product_info", "expected_result"),
+    ("product_info", "module_name", "expected_result"),
     [
         (
             ProductInfo(
@@ -45,6 +45,7 @@ class DummyEcoMAX(CustomParameters):
                 image=1,
                 model="ecoMAX Dummy",
             ),
+            "ecomax_dummy.EcoMAXDUMMY",
             True,
         ),
         (
@@ -56,6 +57,7 @@ class DummyEcoMAX(CustomParameters):
                 image=1,
                 model="ecoMAX Dummy",
             ),
+            "ecomax_dummy.EcoMAXDUMMY",
             False,
         ),
         (
@@ -67,13 +69,17 @@ class DummyEcoMAX(CustomParameters):
                 image=1,
                 model="ecoMAX Dummy2",
             ),
+            "ecomax_dummy2.EcoMAXDUMMY2",
             False,
         ),
     ],
 )
 @patch("pyplumio.parameters.custom.create_instance", return_value=DummyEcoMAX())
 async def test_inject_custom_parameters(
-    moke_create_instance, product_info, expected_result
+    moke_create_instance,
+    product_info: ProductInfo,
+    expected_result: bool,
+    module_name: str,
 ) -> None:
     """Test custom parameters injection."""
     parameters = await inject_custom_parameters(
@@ -86,4 +92,7 @@ async def test_inject_custom_parameters(
     )
     assert replacement_found is expected_result, (
         f"Replacements {'not' if expected_result else ''} found: {parameters}"
+    )
+    moke_create_instance.assert_called_once_with(
+        f"parameters.custom.{module_name}", cls=CustomParameters
     )
