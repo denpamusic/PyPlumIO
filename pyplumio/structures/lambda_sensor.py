@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from contextlib import suppress
-import math
 from typing import Any, Final
 
 from pyplumio.const import BYTE_UNDEFINED, LambdaState
@@ -43,9 +42,7 @@ class LambdaSensorStructure(StructureDecoder):
                 {
                     ATTR_LAMBDA_STATE: lambda_state,
                     ATTR_LAMBDA_TARGET: lambda_target,
-                    ATTR_LAMBDA_LEVEL: (
-                        None if math.isnan(level.value) else (level.value / 10)
-                    ),
+                    ATTR_LAMBDA_LEVEL: level.value / 10,
                 },
             ),
             offset,
