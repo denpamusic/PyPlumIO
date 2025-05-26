@@ -121,4 +121,4 @@ class AlertsStructure(StructureDecoder):
         )
 
 
-__all__ = ["AlertsStructure", "Alert"]
+__all__ = ["AlertsStructure", "Alert", "ATTR_ALERTS", "ATTR_TOTAL_ALERTS"]
