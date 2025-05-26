@@ -175,7 +175,7 @@ def get_time(
 ) -> Time:
     """Return time for a specific index."""
     time_dt = start + (step * index)
-    return time_dt.strftime(TIME_FORMAT)
+    return f"{time_dt.hour:02d}:{time_dt.minute:02d}"
 
 
 @lru_cache(maxsize=10)
