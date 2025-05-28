@@ -6,7 +6,7 @@
 Welcome to PyPlumIO's documentation!
 ====================================
 
-The `PyPlumIO <https://github.com/denpamusic/PyPlumIO/>`_ projects aims to
+The `PyPlumIO <https://github.com/denpamusic/PyPlumIO/>`_ project aims to
 provide complete and easy to use solution for communicating with
 climate devices manufactured by `Plum Sp. z o.o. <https://www.plum.pl/>`_
 
