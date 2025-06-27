@@ -162,7 +162,11 @@ class TestBufferManager:
         size: int,
         data: bytearray,
     ) -> None:
-        """Test ensuring buffer size."""
+        """Test ensuring buffer size.
+
+        Ensures that the buffer is filled to the requested size and
+        that the buffer is trimmed appropriately.
+        """
         mock_readexactly.return_value = data
         await buffer_manager.ensure_buffer(size)
         if size == 0:
@@ -180,7 +184,10 @@ class TestBufferManager:
     async def test_ensure_buffer_with_incomplete_read(
         self, mock_readexactly, buffer_manager: BufferManager
     ) -> None:
-        """Test ensuring buffer size with incomplete read."""
+        """Test ensuring buffer size with incomplete read.
+
+        Ensures that a ReadError is raised when the read is incomplete.
+        """
         with pytest.raises(
             ReadError, match="Incomplete read. Tried to read 5 additional bytes"
         ):
@@ -192,7 +199,10 @@ class TestBufferManager:
     async def test_ensure_buffer_with_cancelled_error(
         self, mock_readexactly, buffer_manager: BufferManager, caplog
     ) -> None:
-        """Test ensuring buffer size with cancelled error."""
+        """Test ensuring buffer size with cancelled error.
+
+        Ensures that CancelledError is raised and logged when the read is cancelled.
+        """
         with pytest.raises(asyncio.CancelledError), caplog.at_level(logging.DEBUG):
             await buffer_manager.ensure_buffer(5)
 
@@ -203,7 +213,10 @@ class TestBufferManager:
     async def test_ensure_buffer_with_unexpected_error(
         self, mock_readexactly, buffer_manager: BufferManager
     ) -> None:
-        """Test ensuring buffer size with unexpected error."""
+        """Test ensuring buffer size with unexpected error.
+
+        Ensures that OSError is raised when an unexpected error occurs.
+        """
         with pytest.raises(
             OSError, match="Serial connection broken while trying to ensure 5 bytes"
         ):
@@ -212,14 +225,20 @@ class TestBufferManager:
         mock_readexactly.assert_awaited_once_with(5)
 
     async def test_consume(self, buffer_manager: BufferManager) -> None:
-        """Test consuming bytes from the buffer."""
+        """Test consuming bytes from the buffer.
+
+        Ensures that bytes are removed from the buffer as expected.
+        """
         buffer_manager.buffer.extend(bytearray(b"\x00\x01"))
         assert len(buffer_manager.buffer) == 2
         await buffer_manager.consume(2)
         assert len(buffer_manager.buffer) == 0
 
     async def test_peek(self, buffer_manager: BufferManager) -> None:
-        """Test peeking bytes from the buffer."""
+        """Test peeking bytes from the buffer.
+
+        Ensures that peeking returns the correct bytes without consuming them.
+        """
         buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02"))
         peeked_data = await buffer_manager.peek(2)
         assert len(peeked_data) == 2
@@ -231,19 +250,28 @@ class TestBufferManager:
     async def test_read(
         self, mock_consume, mock_peek, buffer_manager: BufferManager
     ) -> None:
-        """Test reading bytes from the buffer."""
+        """Test reading bytes from the buffer.
+
+        Ensures that reading calls peek and consume appropriately.
+        """
         await buffer_manager.read(2)
         mock_peek.assert_awaited_once_with(2)
         mock_consume.assert_awaited_once_with(2)
 
     def test_seek_to(self, buffer_manager: BufferManager) -> None:
-        """Test seeking to a delimiter in the buffer."""
+        """Test seeking to a delimiter in the buffer.
+
+        Ensures that the buffer is trimmed up to the delimiter.
+        """
         buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
         assert buffer_manager.seek_to(2) is True
         assert len(buffer_manager.buffer) == 3
 
     def test_trim_to(self, buffer_manager: BufferManager) -> None:
-        """Test trimming the buffer to a specific size."""
+        """Test trimming the buffer to a specific size.
+
+        Ensures that the buffer is trimmed to the correct length.
+        """
         buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
         buffer_manager.trim_to(3)
         assert len(buffer_manager.buffer) == 3
@@ -254,7 +282,10 @@ class TestBufferManager:
     async def test_fill(
         self, mock_trim_to, mock_read, buffer_manager: BufferManager
     ) -> None:
-        """Test filling the buffer with data."""
+        """Test filling the buffer with data.
+
+        Ensures that the buffer is filled and trimmed as expected.
+        """
         await buffer_manager.fill()
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
         mock_trim_to.assert_called_once_with(DEFAULT_BUFFER_SIZE)
@@ -264,7 +295,10 @@ class TestBufferManager:
     async def test_fill_with_cancelled_error(
         self, mock_read, buffer_manager: BufferManager, caplog
     ) -> None:
-        """Test filling the buffer with cancelled error."""
+        """Test filling the buffer with cancelled error.
+
+        Ensures that CancelledError is raised and logged when the read is cancelled.
+        """
         with caplog.at_level(logging.DEBUG), pytest.raises(asyncio.CancelledError):
             await buffer_manager.fill()
 
@@ -275,7 +309,10 @@ class TestBufferManager:
     async def test_fill_with_unexpected_error(
         self, mock_read, buffer_manager: BufferManager, caplog
     ) -> None:
-        """Test filling the buffer with unexpected error."""
+        """Test filling the buffer with unexpected error.
+
+        Ensures that OSError is raised when an unexpected error occurs.
+        """
         with pytest.raises(
             OSError, match="Serial connection broken while filling read buffer"
         ):
@@ -287,7 +324,10 @@ class TestBufferManager:
     async def test_fill_with_broken_connection(
         self, mock_read, buffer_manager: BufferManager, caplog
     ) -> None:
-        """Test filling the buffer with broken connection."""
+        """Test filling the buffer with broken connection.
+
+        Ensures that OSError is raised and logged when the connection is broken.
+        """
         with (
             pytest.raises(OSError, match="Serial connection broken"),
             caplog.at_level(logging.DEBUG),
