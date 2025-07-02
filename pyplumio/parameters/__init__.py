@@ -5,7 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import logging
 from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
 
@@ -114,6 +114,10 @@ class Parameter(ABC):
             f"values={self.values}, "
             f"index={self._index})"
         )
+
+    def __hash__(self) -> int:
+        """Return a hash of the parameter based on its values."""
+        return hash(frozenset(asdict(self.values).items()))
 
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""

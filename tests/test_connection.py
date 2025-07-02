@@ -6,22 +6,21 @@ from asyncio import StreamReader, StreamWriter
 from importlib import reload
 import logging
 import sys
-from typing import Final
+from typing import Any, Final
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
+import pyplumio.connection
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import Protocol
 
 
 @pytest.fixture(name="use_fast", params=(True, False))
-def fixture_use_fast(request, monkeypatch, caplog):
+def fixture_use_fast(request, monkeypatch, caplog) -> Any:
     """Try with and without serial-asyncio-fast package."""
-    import pyplumio.connection
-
     if not request.param:
         monkeypatch.setitem(sys.modules, "serial_asyncio_fast", None)
 

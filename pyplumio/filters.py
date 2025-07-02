@@ -56,6 +56,9 @@ class SupportsComparison(Protocol):
 
     __slots__ = ()
 
+    def __hash__(self) -> int:
+        """Return a hash of the value."""
+
     def __eq__(self: SupportsComparison, other: SupportsComparison) -> bool:
         """Compare a value."""
 
@@ -129,6 +132,10 @@ class Filter(ABC):
         """Initialize a new filter."""
         self._callback = callback
         self._value = UNDEFINED
+
+    def __hash__(self) -> int:
+        """Return a hash of the filter based on its callback."""
+        return hash(self._callback)
 
     def __eq__(self, other: Any) -> bool:
         """Compare callbacks."""

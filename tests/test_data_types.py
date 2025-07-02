@@ -47,6 +47,7 @@ def test_data_type(
 
     assert data_type.size == len(buffer)
     assert data_type.to_bytes() == buffer
+    assert hash(data_type) == hash(expected)
     assert repr(data_type) == f"{cls.__qualname__}(value={expected})"
 
     if not isinstance(
@@ -54,6 +55,12 @@ def test_data_type(
     ):
         assert repr(cls()) == f"{cls.__qualname__}()"
         assert cls().__eq__(UNDEFINED) is NotImplemented
+
+
+def test_hash_no_value() -> None:
+    """Test data type hash with no value."""
+    undefined = data_types.Undefined()
+    assert hash(undefined) == hash(type(undefined))
 
 
 def test_bitarray() -> None:

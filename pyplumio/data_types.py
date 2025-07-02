@@ -33,6 +33,13 @@ class DataType(ABC, Generic[T]):
 
         return f"{self.__class__.__name__}()"
 
+    def __hash__(self) -> int:
+        """Return a hash of the data type based on its value."""
+        if hasattr(self, "_value"):
+            return hash(self._value)
+
+        return hash(type(self))
+
     def __eq__(self, other: object) -> bool:
         """Compare if this data type is equal to other."""
         if (
