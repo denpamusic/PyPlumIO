@@ -14,10 +14,9 @@ from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
 from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import (
-    DEFAULT_BUFFER_SIZE,
     MAX_FRAME_LENGTH,
     WRITER_TIMEOUT,
-    BufferManager,
+    BufferedReader,
     FrameReader,
     FrameWriter,
 )
@@ -42,14 +41,14 @@ def fixture_frame_writer(mock_stream_writer) -> FrameWriter:
     return FrameWriter(mock_stream_writer)
 
 
-@pytest.fixture(name="buffer_manager")
-def fixture_buffer_manager() -> Generator[BufferManager]:
-    """BufferManager instance.
+@pytest.fixture(name="buffered_reader")
+def fixture_buffered_reader() -> Generator[BufferedReader]:
+    """BufferedReader instance.
 
-    Returns a BufferManager using a patched StreamReader.
+    Returns a BufferedReader using a patched StreamReader.
     """
     with patch("asyncio.StreamReader", autospec=True) as mock_stream_reader:
-        yield BufferManager(mock_stream_reader)
+        yield BufferedReader(mock_stream_reader)
 
 
 @pytest.fixture(name="frame_reader")
@@ -138,13 +137,13 @@ class TestFrameWriter:
         )
 
 
-class TestBufferManager:
-    """Test for BufferManager class.
+class TestBufferedReader:
+    """Test for BufferedReader class.
 
-    Verifies handling of internal buffer.
+    Verifies handling of reader with an internal buffer.
     """
 
-    @patch("pyplumio.stream.BufferManager.trim_to")
+    @patch("pyplumio.stream.BufferedReader.trim_to")
     @patch("asyncio.StreamReader.readexactly")
     @pytest.mark.parametrize(
         ("size", "data"),
@@ -158,7 +157,7 @@ class TestBufferManager:
         self,
         mock_readexactly,
         mock_trim_to,
-        buffer_manager: BufferManager,
+        buffered_reader: BufferedReader,
         size: int,
         data: bytearray,
     ) -> None:
@@ -168,21 +167,21 @@ class TestBufferManager:
         that the buffer is trimmed appropriately.
         """
         mock_readexactly.return_value = data
-        await buffer_manager.ensure_buffer(size)
+        await buffered_reader.ensure_buffer(size)
         if size == 0:
             mock_readexactly.assert_not_awaited()
             mock_trim_to.assert_not_called()
         else:
             mock_readexactly.assert_awaited_once_with(size)
             mock_trim_to.assert_called_once_with(size)
-            assert len(buffer_manager.buffer) == size
+            assert len(buffered_reader.buffer) == size
 
     @patch(
         "asyncio.StreamReader.readexactly",
         side_effect=asyncio.IncompleteReadError(bytearray(), expected=7),
     )
     async def test_ensure_buffer_with_incomplete_read(
-        self, mock_readexactly, buffer_manager: BufferManager
+        self, mock_readexactly, buffered_reader: BufferedReader
     ) -> None:
         """Test ensuring buffer size with incomplete read.
 
@@ -191,27 +190,27 @@ class TestBufferManager:
         with pytest.raises(
             ReadError, match="Incomplete read. Tried to read 5 additional bytes"
         ):
-            await buffer_manager.ensure_buffer(5)
+            await buffered_reader.ensure_buffer(5)
 
         mock_readexactly.assert_awaited_once_with(5)
 
     @patch("asyncio.StreamReader.readexactly", side_effect=asyncio.CancelledError())
     async def test_ensure_buffer_with_cancelled_error(
-        self, mock_readexactly, buffer_manager: BufferManager, caplog
+        self, mock_readexactly, buffered_reader: BufferedReader, caplog
     ) -> None:
         """Test ensuring buffer size with cancelled error.
 
         Ensures that CancelledError is raised and logged when the read is cancelled.
         """
         with pytest.raises(asyncio.CancelledError), caplog.at_level(logging.DEBUG):
-            await buffer_manager.ensure_buffer(5)
+            await buffered_reader.ensure_buffer(5)
 
         assert "Read operation cancelled while ensuring buffer" in caplog.text
         mock_readexactly.assert_awaited_once_with(5)
 
     @patch("asyncio.StreamReader.readexactly", side_effect=OSError())
     async def test_ensure_buffer_with_unexpected_error(
-        self, mock_readexactly, buffer_manager: BufferManager
+        self, mock_readexactly, buffered_reader: BufferedReader
     ) -> None:
         """Test ensuring buffer size with unexpected error.
 
@@ -220,109 +219,96 @@ class TestBufferManager:
         with pytest.raises(
             OSError, match="Serial connection broken while trying to ensure 5 bytes"
         ):
-            await buffer_manager.ensure_buffer(5)
+            await buffered_reader.ensure_buffer(5)
 
         mock_readexactly.assert_awaited_once_with(5)
 
-    async def test_consume(self, buffer_manager: BufferManager) -> None:
+    async def test_consume(self, buffered_reader: BufferedReader) -> None:
         """Test consuming bytes from the buffer.
 
         Ensures that bytes are removed from the buffer as expected.
         """
-        buffer_manager.buffer.extend(bytearray(b"\x00\x01"))
-        assert len(buffer_manager.buffer) == 2
-        await buffer_manager.consume(2)
-        assert len(buffer_manager.buffer) == 0
+        buffered_reader.buffer.extend(bytearray(b"\x00\x01"))
+        assert len(buffered_reader.buffer) == 2
+        await buffered_reader.consume(2)
+        assert len(buffered_reader.buffer) == 0
 
-    async def test_peek(self, buffer_manager: BufferManager) -> None:
+    async def test_peek(self, buffered_reader: BufferedReader) -> None:
         """Test peeking bytes from the buffer.
 
         Ensures that peeking returns the correct bytes without consuming them.
         """
-        buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02"))
-        peeked_data = await buffer_manager.peek(2)
+        buffered_reader.buffer.extend(bytearray(b"\x00\x01\x02"))
+        peeked_data = await buffered_reader.peek(2)
         assert len(peeked_data) == 2
         assert peeked_data == bytearray(b"\x00\x01")
-        assert len(buffer_manager.buffer) == 3
+        assert len(buffered_reader.buffer) == 3
 
-    @patch("pyplumio.stream.BufferManager.peek")
-    @patch("pyplumio.stream.BufferManager.consume")
-    async def test_read(
-        self, mock_consume, mock_peek, buffer_manager: BufferManager
-    ) -> None:
-        """Test reading bytes from the buffer.
-
-        Ensures that reading calls peek and consume appropriately.
-        """
-        await buffer_manager.read(2)
-        mock_peek.assert_awaited_once_with(2)
-        mock_consume.assert_awaited_once_with(2)
-
-    def test_seek_to(self, buffer_manager: BufferManager) -> None:
+    def test_seek_to(self, buffered_reader: BufferedReader) -> None:
         """Test seeking to a delimiter in the buffer.
 
         Ensures that the buffer is trimmed up to the delimiter.
         """
-        buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
-        assert buffer_manager.seek_to(2) is True
-        assert len(buffer_manager.buffer) == 3
+        buffered_reader.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
+        assert buffered_reader.seek_to(2) is True
+        assert len(buffered_reader.buffer) == 3
 
-    def test_trim_to(self, buffer_manager: BufferManager) -> None:
+    def test_trim_to(self, buffered_reader: BufferedReader) -> None:
         """Test trimming the buffer to a specific size.
 
         Ensures that the buffer is trimmed to the correct length.
         """
-        buffer_manager.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
-        buffer_manager.trim_to(3)
-        assert len(buffer_manager.buffer) == 3
-        assert buffer_manager.buffer == bytearray(b"\x02\x03\x04")
+        buffered_reader.buffer.extend(bytearray(b"\x00\x01\x02\x03\x04"))
+        buffered_reader.trim_to(3)
+        assert len(buffered_reader.buffer) == 3
+        assert buffered_reader.buffer == bytearray(b"\x02\x03\x04")
 
     @patch("asyncio.StreamReader.read", return_value=bytearray(b"\x00\x01\x02"))
-    @patch("pyplumio.stream.BufferManager.trim_to")
-    async def test_fill(
-        self, mock_trim_to, mock_read, buffer_manager: BufferManager
+    @patch("pyplumio.stream.BufferedReader.trim_to")
+    async def test_read_into_buffer(
+        self, mock_trim_to, mock_read, buffered_reader: BufferedReader
     ) -> None:
-        """Test filling the buffer with data.
+        """Test filling the internal buffer with data.
 
         Ensures that the buffer is filled and trimmed as expected.
         """
-        await buffer_manager.fill()
+        await buffered_reader.read_into_buffer(MAX_FRAME_LENGTH)
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
-        mock_trim_to.assert_called_once_with(DEFAULT_BUFFER_SIZE)
-        assert len(buffer_manager.buffer) == 3
+        mock_trim_to.assert_called_once_with(MAX_FRAME_LENGTH)
+        assert len(buffered_reader.buffer) == 3
 
     @patch("asyncio.StreamReader.read", side_effect=asyncio.CancelledError())
-    async def test_fill_with_cancelled_error(
-        self, mock_read, buffer_manager: BufferManager, caplog
+    async def test_read_into_buffer_with_cancelled_error(
+        self, mock_read, buffered_reader: BufferedReader, caplog
     ) -> None:
-        """Test filling the buffer with cancelled error.
+        """Test filling the internal buffer with cancelled error.
 
         Ensures that CancelledError is raised and logged when the read is cancelled.
         """
         with caplog.at_level(logging.DEBUG), pytest.raises(asyncio.CancelledError):
-            await buffer_manager.fill()
+            await buffered_reader.read_into_buffer(MAX_FRAME_LENGTH)
 
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
-        assert "Read operation cancelled while filling read buffer." in caplog.text
+        assert "Read operation cancelled while filling internal buffer." in caplog.text
 
     @patch("asyncio.StreamReader.read", side_effect=OSError())
-    async def test_fill_with_unexpected_error(
-        self, mock_read, buffer_manager: BufferManager, caplog
+    async def test_read_into_buffer_with_unexpected_error(
+        self, mock_read, buffered_reader: BufferedReader, caplog
     ) -> None:
-        """Test filling the buffer with unexpected error.
+        """Test filling the internal buffer with unexpected error.
 
         Ensures that OSError is raised when an unexpected error occurs.
         """
         with pytest.raises(
-            OSError, match="Serial connection broken while filling read buffer"
+            OSError, match="Serial connection broken while filling internal buffer"
         ):
-            await buffer_manager.fill()
+            await buffered_reader.read_into_buffer(MAX_FRAME_LENGTH)
 
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
 
     @patch("asyncio.StreamReader.read", return_value=b"")
-    async def test_fill_with_broken_connection(
-        self, mock_read, buffer_manager: BufferManager, caplog
+    async def test_read_into_buffer_with_broken_connection(
+        self, mock_read, buffered_reader: BufferedReader, caplog
     ) -> None:
         """Test filling the buffer with broken connection.
 
@@ -332,9 +318,9 @@ class TestBufferManager:
             pytest.raises(OSError, match="Serial connection broken"),
             caplog.at_level(logging.DEBUG),
         ):
-            await buffer_manager.fill()
+            await buffered_reader.read_into_buffer(MAX_FRAME_LENGTH)
 
-        assert "Stream ended while filling read buffer." in caplog.text
+        assert "Stream ended while filling internal buffer." in caplog.text
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
 
 

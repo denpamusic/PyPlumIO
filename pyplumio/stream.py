@@ -28,8 +28,6 @@ WRITER_TIMEOUT: Final = 10
 MIN_FRAME_LENGTH: Final = 10
 MAX_FRAME_LENGTH: Final = 1000
 
-DEFAULT_BUFFER_SIZE: Final = 5000
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -67,7 +65,7 @@ class FrameWriter:
         await self._writer.wait_closed()
 
 
-class BufferManager:
+class BufferedReader:
     """Represents a buffered reader for reading frames."""
 
     __slots__ = ("_buffer", "_reader")
@@ -104,22 +102,37 @@ class BufferManager:
                 f"Serial connection broken while trying to ensure {size} bytes: {e}"
             ) from e
 
+    async def peek(self, size: int) -> bytes:
+        """Read the specified number of bytes without consuming them."""
+        await self.ensure_buffer(size)
+        data = bytes(memoryview(self._buffer)[:size])
+        return data
+
     async def consume(self, size: int) -> None:
         """Consume the specified number of bytes from the buffer."""
         await self.ensure_buffer(size)
         self._buffer = self._buffer[size:]
 
-    async def peek(self, size: int) -> bytearray:
-        """Read the specified number of bytes without consuming them."""
-        await self.ensure_buffer(size)
-        return self._buffer[:size]
-
-    async def read(self, size: int) -> bytearray:
+    async def read_into_buffer(self, size: int) -> None:
         """Read the bytes from buffer or stream and consume them."""
         try:
-            return await self.peek(size)
-        finally:
-            await self.consume(size)
+            chunk = await self._reader.read(size)
+        except asyncio.CancelledError:
+            _LOGGER.debug("Read operation cancelled while filling internal buffer.")
+            raise
+        except Exception as e:
+            raise OSError(
+                f"Serial connection broken while filling internal buffer: {e}"
+            ) from e
+
+        if not chunk:
+            _LOGGER.debug("Stream ended while filling internal buffer.")
+            raise OSError(
+                "Serial connection broken: stream ended while filling internal buffer"
+            )
+
+        self._buffer.extend(chunk)
+        self.trim_to(size)
 
     def seek_to(self, delimiter: SupportsIndex) -> bool:
         """Trim the buffer to the first occurrence of the delimiter.
@@ -136,27 +149,6 @@ class BufferManager:
         """Trim buffer to size."""
         if len(self._buffer) > size:
             self._buffer = self._buffer[-size:]
-
-    async def fill(self) -> None:
-        """Fill the buffer with data from the stream."""
-        try:
-            chunk = await self._reader.read(MAX_FRAME_LENGTH)
-        except asyncio.CancelledError:
-            _LOGGER.debug("Read operation cancelled while filling read buffer.")
-            raise
-        except Exception as e:
-            raise OSError(
-                f"Serial connection broken while filling read buffer: {e}"
-            ) from e
-
-        if not chunk:
-            _LOGGER.debug("Stream ended while filling read buffer.")
-            raise OSError(
-                "Serial connection broken: stream ended while filling read buffer"
-            )
-
-        self._buffer.extend(chunk)
-        self.trim_to(DEFAULT_BUFFER_SIZE)
 
     @property
     def buffer(self) -> bytearray:
@@ -177,22 +169,22 @@ class Header(NamedTuple):
 class FrameReader:
     """Represents a frame reader."""
 
-    __slots__ = ("_buffer",)
+    __slots__ = ("_reader",)
 
-    _buffer: BufferManager
+    _reader: BufferedReader
 
     def __init__(self, reader: StreamReader) -> None:
         """Initialize a new frame reader."""
-        self._buffer = BufferManager(reader)
+        self._reader = BufferedReader(reader)
 
     async def _read_header(self) -> Header:
         """Locate and read a frame header."""
         while True:
-            if self._buffer.seek_to(FRAME_START):
-                header_bytes = await self._buffer.peek(HEADER_SIZE)
+            if self._reader.seek_to(FRAME_START):
+                header_bytes = await self._reader.peek(HEADER_SIZE)
                 return Header(*struct_header.unpack_from(header_bytes)[DELIMITER_SIZE:])
 
-            await self._buffer.fill()
+            await self._reader.read_into_buffer(MAX_FRAME_LENGTH)
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Frame | None:
@@ -201,22 +193,22 @@ class FrameReader:
         frame_length, recipient, sender, econet_type, econet_version = header
 
         if frame_length > MAX_FRAME_LENGTH or frame_length < MIN_FRAME_LENGTH:
-            await self._buffer.consume(HEADER_SIZE)
+            await self._reader.consume(HEADER_SIZE)
             raise ReadError(
                 f"Unexpected frame length ({frame_length}), expected between "
                 f"{MIN_FRAME_LENGTH} and {MAX_FRAME_LENGTH}"
             )
 
-        frame_bytes = await self._buffer.peek(frame_length)
+        frame_bytes = await self._reader.peek(frame_length)
         checksum = bcc(frame_bytes[:BCC_INDEX])
         if checksum != frame_bytes[BCC_INDEX]:
-            await self._buffer.consume(HEADER_SIZE)
+            await self._reader.consume(HEADER_SIZE)
             raise ChecksumError(
                 f"Incorrect frame checksum: calculated {checksum}, "
                 f"expected {frame_bytes[BCC_INDEX]}. Frame data: {frame_bytes.hex()}"
             )
 
-        await self._buffer.consume(frame_length)
+        await self._reader.consume(frame_length)
         if recipient not in (DeviceType.ECONET, DeviceType.ALL):
             _LOGGER.debug(
                 "Skipping frame intended for different recipient (%s)", recipient
