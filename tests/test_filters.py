@@ -45,6 +45,7 @@ async def test_clamp(input_value, expected) -> None:
     """Test the clamp filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.clamp(test_callback, min_value=10, max_value=15)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(input_value)
     test_callback.assert_awaited_once_with(expected)
 
@@ -53,6 +54,7 @@ async def test_deadband() -> None:
     """Test the deadband filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.deadband(test_callback, tolerance=0.1)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -73,6 +75,7 @@ async def test_on_change() -> None:
     """Test the value changed filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.on_change(test_callback)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -93,6 +96,7 @@ async def test_on_change_parameter() -> None:
     test_parameter.values = ParameterValues(0, 0, 1)
     test_parameter.update_pending.is_set = Mock(return_value=False)
     wrapped_callback = filters.on_change(test_callback)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
@@ -130,6 +134,7 @@ async def test_debounce() -> None:
     """Test the debounce filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.debounce(test_callback, min_calls=3)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -147,6 +152,7 @@ async def test_throttle(frozen_time) -> None:
     """Test the throttle filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.throttle(test_callback, seconds=5)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(1)
     test_callback.assert_awaited_once_with(1)
     test_callback.reset_mock()
@@ -172,6 +178,7 @@ async def test_delta() -> None:
     """Test the delta filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.delta(test_callback)
+    assert hash(wrapped_callback) == hash(test_callback)
 
     await wrapped_callback(5)
     test_callback.assert_not_awaited()
@@ -201,6 +208,7 @@ async def test_aggregate(use_numpy, frozen_time) -> None:
     """Test the aggregate filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=5)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(1)
     test_callback.assert_not_awaited()
 
@@ -236,6 +244,7 @@ async def test_aggregate_sample_size(frozen_time) -> None:
     """Test the aggregate filter with sample size."""
     test_callback = AsyncMock()
     wrapped_callback = filters.aggregate(test_callback, seconds=5, sample_size=2)
+    assert hash(wrapped_callback) == hash(test_callback)
 
     # Zero seconds passed, current sample size is 1.
     await wrapped_callback(1)
@@ -264,6 +273,7 @@ async def test_custom(filter_func, input_value, callback) -> None:
     """Test the custom filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.custom(test_callback, filter_func)
+    assert hash(wrapped_callback) == hash(test_callback)
     await wrapped_callback(input_value)
 
     if callback:
