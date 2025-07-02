@@ -11,8 +11,8 @@ from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.task_manager import TaskManager
-from pyplumio.helpers.timeout import timeout
 from pyplumio.protocol import AsyncProtocol, Protocol
+from pyplumio.utils import timeout
 
 _LOGGER = logging.getLogger(__name__)
 

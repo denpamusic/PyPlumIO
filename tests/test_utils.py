@@ -1,5 +1,8 @@
 """Contains tests for the utility functions."""
 
+import asyncio
+from unittest.mock import Mock, patch
+
 import pytest
 
 from pyplumio import utils
@@ -56,3 +59,27 @@ def test_is_divisible(input_value, divisor, expected) -> None:
             utils.is_divisible(input_value, divisor)
     else:
         assert utils.is_divisible(input_value, divisor) == expected
+
+
+@patch("asyncio.wait_for", side_effect=("test", asyncio.TimeoutError))
+async def test_timeout(mock_wait_for) -> None:
+    """Test a timeout decorator."""
+    # Mock function to pass to the decorator.
+    mock_func = Mock()
+    mock_func.return_value = "test"
+
+    # Call the decorator.
+    timeout_decorator = utils.timeout(10)
+    wrapper = timeout_decorator(mock_func)
+    result = await wrapper("test_arg", kwarg="test_kwarg")
+    assert result == "test"
+    mock_wait_for.assert_awaited_once_with(mock_func.return_value, timeout=10)
+    mock_func.assert_called_once_with("test_arg", kwarg="test_kwarg")
+
+    # Test behavior when a timeout occurs.
+    mock_func = Mock()
+    mock_func.return_value = "test"
+    decorator = utils.timeout(10)
+    wrapper = decorator(mock_func)
+    with pytest.raises(asyncio.TimeoutError):
+        await wrapper("test_arg", kwarg="test_kwarg")

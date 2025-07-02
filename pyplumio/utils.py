@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+import asyncio
+from collections.abc import Awaitable, Callable, Mapping
+from functools import wraps
 from typing import TypeVar
+
+from typing_extensions import ParamSpec
 
 KT = TypeVar("KT")  # Key type.
 VT = TypeVar("VT")  # Value type.
@@ -40,4 +44,24 @@ def is_divisible(a: float, b: float, precision: int = 6) -> bool:
     return a_scaled % b_scaled == 0
 
 
-__all__ = ["ensure_dict", "is_divisible", "to_camelcase"]
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def timeout(
+    seconds: float,
+) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
+    """Decorate a timeout for the awaitable."""
+
+    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+        @wraps(func)
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
+
+        setattr(wrapper, "_has_timeout_seconds", seconds)
+        return wrapper
+
+    return decorator
+
+
+__all__ = ["ensure_dict", "is_divisible", "to_camelcase", "timeout"]

@@ -20,7 +20,7 @@ from pyplumio.frames import (
     bcc,
     struct_header,
 )
-from pyplumio.helpers.timeout import timeout
+from pyplumio.utils import timeout
 
 READER_TIMEOUT: Final = 10
 WRITER_TIMEOUT: Final = 10
