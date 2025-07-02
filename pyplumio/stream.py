@@ -28,6 +28,8 @@ WRITER_TIMEOUT: Final = 10
 MIN_FRAME_LENGTH: Final = 10
 MAX_FRAME_LENGTH: Final = 1000
 
+DEFAULT_BUFFER_SIZE: Final = 5000
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -87,7 +89,7 @@ class BufferedReader:
         try:
             data = await self._reader.readexactly(bytes_to_read)
             self._buffer.extend(data)
-            self.trim_to(size)
+            self.trim_to(DEFAULT_BUFFER_SIZE)
         except IncompleteReadError as e:
             raise ReadError(
                 f"Incomplete read. Tried to read {bytes_to_read} additional bytes "
@@ -132,7 +134,7 @@ class BufferedReader:
             )
 
         self._buffer.extend(chunk)
-        self.trim_to(size)
+        self.trim_to(DEFAULT_BUFFER_SIZE)
 
     def seek_to(self, delimiter: SupportsIndex) -> bool:
         """Trim the buffer to the first occurrence of the delimiter.

@@ -14,6 +14,7 @@ from pyplumio.exceptions import ChecksumError, ReadError, UnknownDeviceError
 from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import (
+    DEFAULT_BUFFER_SIZE,
     MAX_FRAME_LENGTH,
     WRITER_TIMEOUT,
     BufferedReader,
@@ -173,7 +174,7 @@ class TestBufferedReader:
             mock_trim_to.assert_not_called()
         else:
             mock_readexactly.assert_awaited_once_with(size)
-            mock_trim_to.assert_called_once_with(size)
+            mock_trim_to.assert_called_once_with(DEFAULT_BUFFER_SIZE)
             assert len(buffered_reader.buffer) == size
 
     @patch(
@@ -274,7 +275,7 @@ class TestBufferedReader:
         """
         await buffered_reader.read_into_buffer(MAX_FRAME_LENGTH)
         mock_read.assert_awaited_once_with(MAX_FRAME_LENGTH)
-        mock_trim_to.assert_called_once_with(MAX_FRAME_LENGTH)
+        mock_trim_to.assert_called_once_with(DEFAULT_BUFFER_SIZE)
         assert len(buffered_reader.buffer) == 3
 
     @patch("asyncio.StreamReader.read", side_effect=asyncio.CancelledError())
