@@ -179,19 +179,20 @@ class FrameReader:
         """Initialize a new frame reader."""
         self._reader = BufferedReader(reader)
 
-    async def _read_header(self) -> Header:
+    async def _find_header(self) -> Header:
         """Locate and read a frame header."""
         while True:
             if self._reader.seek_to(FRAME_START):
                 header_bytes = await self._reader.peek(HEADER_SIZE)
-                return Header(*struct_header.unpack_from(header_bytes)[DELIMITER_SIZE:])
+                header_fields = struct_header.unpack_from(header_bytes)
+                return Header(*header_fields[DELIMITER_SIZE:])
 
             await self._reader.read_into_buffer(MAX_FRAME_LENGTH)
 
     @timeout(READER_TIMEOUT)
     async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object."""
-        header = await self._read_header()
+        header = await self._find_header()
         frame_length, recipient, sender, econet_type, econet_version = header
 
         if frame_length > MAX_FRAME_LENGTH or frame_length < MIN_FRAME_LENGTH:
