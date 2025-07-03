@@ -116,7 +116,7 @@ class BufferedReader:
         self._buffer = self._buffer[size:]
 
     async def read_into_buffer(self, size: int) -> None:
-        """Read the bytes from buffer or stream and consume them."""
+        """Read the specified number of bytes from the stream."""
         try:
             chunk = await self._reader.read(size)
         except asyncio.CancelledError:
