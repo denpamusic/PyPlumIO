@@ -107,8 +107,7 @@ class BufferedReader:
     async def peek(self, size: int) -> bytes:
         """Read the specified number of bytes without consuming them."""
         await self.ensure_buffer(size)
-        data = bytes(memoryview(self._buffer)[:size])
-        return data
+        return memoryview(self._buffer)[:size].tobytes()
 
     async def consume(self, size: int) -> None:
         """Consume the specified number of bytes from the buffer."""
