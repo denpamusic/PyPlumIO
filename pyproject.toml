@@ -39,7 +39,7 @@ dynamic = ["version"]
 test = [
     "codespell==2.4.1",
     "coverage==7.9.1",
-    "freezegun==1.5.2",
+    "freezegun==1.5.3",
     "mypy==1.16.1",
     "numpy<3.0.0,>=2.0.0",
     "pyserial-asyncio-fast==0.16",
