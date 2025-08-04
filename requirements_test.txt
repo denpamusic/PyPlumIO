@@ -1,5 +1,5 @@
 codespell==2.4.1
-coverage==7.10.1
+coverage==7.10.2
 freezegun==1.5.3
 mypy==1.16.1
 numpy<3.0.0,>=2.0.0
