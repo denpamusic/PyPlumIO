@@ -195,6 +195,7 @@ class PhysicalDevice(Device, ABC):
         """
         _LOGGER.info("Requesting '%s' with %s", name, repr(frame_type))
         request = await Request.create(frame_type, recipient=self.address)
+        initial_retries = retries
         while retries > 0:
             try:
                 self.queue.put_nowait(request)
@@ -204,7 +205,7 @@ class PhysicalDevice(Device, ABC):
 
         raise RequestError(
             f"Failed to request '{name}' with frame type '{frame_type}' after "
-            f"{retries} retries.",
+            f"{initial_retries} retries.",
             frame_type=frame_type,
         )
 
