@@ -206,7 +206,7 @@ async def test_ecomax_setup(mock_wait_for, mock_request, ecomax: EcoMAX) -> None
     await ecomax.wait_until_done()
     assert ATTR_FRAME_ERRORS not in ecomax.data
     assert mock_request.await_count == len(REQUIRED)
-    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS)
+    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=30.0)
 
 
 @patch(
@@ -220,7 +220,7 @@ async def test_ecomax_setup_errors(mock_wait_for, mock_request, ecomax: EcoMAX) 
     await ecomax.wait_until_done()
     assert FrameType.REQUEST_ALERTS in ecomax.get_nowait(ATTR_FRAME_ERRORS, [])
     assert mock_request.await_count == len(REQUIRED)
-    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS)
+    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=30.0)
 
 
 @patch("asyncio.Queue.put")

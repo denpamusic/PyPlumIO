@@ -236,7 +236,7 @@ class EcoMAX(PhysicalDevice):
     async def on_event_setup(self, setup: bool) -> None:
         """Request frames required to set up an ecoMAX entry."""
         _LOGGER.debug("Setting up device entry")
-        await self.wait_for(ATTR_SENSORS)
+        await self.wait_for(ATTR_SENSORS, timeout=30.0)
         results = await asyncio.gather(
             *(
                 self.request(description.provides, description.frame_type)
