@@ -139,6 +139,8 @@ REQUIRED: tuple[DataFrameDescription, ...] = (
 
 REQUIRED_TYPES = [description.frame_type for description in REQUIRED]
 
+SETUP_TIMEOUT: Final = 60.0
+
 
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
@@ -233,10 +235,19 @@ class EcoMAX(PhysicalDevice):
         await super().shutdown()
 
     @event_listener
-    async def on_event_setup(self, setup: bool) -> None:
+    async def on_event_setup(self, setup: bool) -> bool:
         """Request frames required to set up an ecoMAX entry."""
         _LOGGER.debug("Setting up device entry")
-        await self.wait_for(ATTR_SENSORS, timeout=30.0)
+
+        try:
+            await self.wait_for(ATTR_SENSORS, timeout=SETUP_TIMEOUT)
+        except asyncio.TimeoutError:
+            _LOGGER.error(
+                "Could not setup device entry; no response from device for %u seconds",
+                SETUP_TIMEOUT,
+            )
+            return False
+
         results = await asyncio.gather(
             *(
                 self.request(description.provides, description.frame_type)
@@ -253,6 +264,7 @@ class EcoMAX(PhysicalDevice):
             self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)
 
         _LOGGER.debug("Device entry setup done")
+        return True
 
     @event_listener
     async def on_event_ecomax_parameters(

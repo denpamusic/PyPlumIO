@@ -1,5 +1,6 @@
 """Contains tests for the ecoMAX device."""
 
+import asyncio
 from datetime import timedelta
 import logging
 from typing import Any, cast
@@ -206,7 +207,20 @@ async def test_ecomax_setup(mock_wait_for, mock_request, ecomax: EcoMAX) -> None
     await ecomax.wait_until_done()
     assert ATTR_FRAME_ERRORS not in ecomax.data
     assert mock_request.await_count == len(REQUIRED)
-    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=30.0)
+    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=60.0)
+
+
+@patch("pyplumio.devices.ecomax.EcoMAX.request")
+@patch("pyplumio.devices.ecomax.EcoMAX.wait_for", side_effect=(asyncio.TimeoutError,))
+async def test_ecomax_setup_failed(
+    mock_wait_for, mock_request, ecomax: EcoMAX, caplog
+) -> None:
+    """Test setting up an ecoMAX entry with failure due to timeout."""
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    assert ecomax.get_nowait(ATTR_SETUP) is False
+    assert "Could not setup device entry" in caplog.text
+    assert "no response from device for 60 seconds" in caplog.text
 
 
 @patch(
@@ -220,7 +234,7 @@ async def test_ecomax_setup_errors(mock_wait_for, mock_request, ecomax: EcoMAX) 
     await ecomax.wait_until_done()
     assert FrameType.REQUEST_ALERTS in ecomax.get_nowait(ATTR_FRAME_ERRORS, [])
     assert mock_request.await_count == len(REQUIRED)
-    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=30.0)
+    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=60.0)
 
 
 @patch("asyncio.Queue.put")
