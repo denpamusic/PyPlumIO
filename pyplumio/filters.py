@@ -186,9 +186,10 @@ class _Aggregate(Filter):
         self._values.append(new_value)
         time_since_call = current_time - self._last_call_time
         if time_since_call >= self._timeout or len(self._values) >= self._sample_size:
-            result = await self._callback(
+            sum_of_values = (
                 np.sum(self._values) if numpy_installed else sum(self._values)
             )
+            result = await self._callback(float(sum_of_values))
             self._last_call_time = current_time
             self._values = []
             return result
