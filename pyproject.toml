@@ -38,7 +38,7 @@ dynamic = ["version"]
 [project.optional-dependencies]
 test = [
     "codespell==2.4.1",
-    "coverage==7.10.2",
+    "coverage==7.10.5",
     "freezegun==1.5.4",
     "mypy==1.17.1",
     "numpy<3.0.0,>=2.0.0",
