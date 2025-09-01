@@ -5,9 +5,12 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 import logging
+from typing import Any, Final, Literal
 
+from dataslots import dataslots
 from typing_extensions import TypeAlias
 
 from pyplumio.const import ATTR_CONNECTED, ATTR_SETUP, DeviceType
@@ -23,6 +26,7 @@ from pyplumio.structures.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
+from pyplumio.structures.regulator_data import ATTR_REGDATA
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,6 +118,51 @@ class Queues:
         await asyncio.gather(self.read.join(), self.write.join())
 
 
+NEVER: Final = "never"
+
+
+@dataslots
+@dataclass
+class Statistics:
+    """Represents ca onnection statistics."""
+
+    received_bytes: int = 0
+    received_frames: int = 0
+    sent_bytes: int = 0
+    sent_frames: int = 0
+    failed_frames: int = 0
+    connected_since: datetime | Literal["never"] = NEVER
+    connection_loss_at: datetime | Literal["never"] = NEVER
+    connection_losses: int = 0
+    devices: list[DeviceStatistics] = field(default_factory=list)
+
+    def update_transfer_statistics(
+        self, sent: Frame | None = None, received: Frame | None = None
+    ) -> None:
+        """Update transfer statistics."""
+        if sent:
+            self.sent_bytes += sent.length
+            self.sent_frames += 1
+
+        if received:
+            self.received_bytes += received.length
+            self.received_frames += 1
+
+
+@dataslots
+@dataclass
+class DeviceStatistics:
+    """Represents a device statistics."""
+
+    name: str
+    connected_since: datetime | Literal["never"] = NEVER
+    last_seen: datetime | Literal["never"] = NEVER
+
+    async def update_last_seen(self, data: Any) -> None:
+        """Update last seen property."""
+        self.last_seen = datetime.now()
+
+
 class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     """Represents an async protocol.
 
@@ -134,6 +183,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     _network: NetworkInfo
     _queues: Queues
     _entry_lock: asyncio.Lock
+    _statistics: Statistics
 
     def __init__(
         self,
@@ -150,6 +200,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         )
         self._queues = Queues(read=asyncio.Queue(), write=asyncio.Queue())
         self._entry_lock = asyncio.Lock()
+        self._statistics = Statistics()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -172,6 +223,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device.dispatch_nowait(ATTR_CONNECTED, True)
 
         self.connected.set()
+        self.statistics.connected_since = datetime.now()
 
     async def _connection_close(self) -> None:
         """Close the connection if it is established."""
@@ -200,19 +252,27 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         self, queues: Queues, reader: FrameReader, writer: FrameWriter
     ) -> None:
         """Handle frame reads and writes."""
+        statistics = self.statistics
         await self.connected.wait()
         while self.connected.is_set():
             try:
+                request = None
                 if not queues.write.empty():
-                    await writer.write(await queues.write.get())
+                    request = await queues.write.get()
+                    await writer.write(request)
                     queues.write.task_done()
 
                 if response := await reader.read():
                     queues.read.put_nowait(response)
 
+                statistics.update_transfer_statistics(request, response)
+
             except ProtocolError as e:
+                statistics.failed_frames += 1
                 _LOGGER.debug("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
+                statistics.connection_losses += 1
+                statistics.connection_loss_at = datetime.now()
                 self.create_task(self.connection_lost())
                 break
             except Exception:
@@ -239,8 +299,21 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 device.dispatch_nowait(ATTR_CONNECTED, True)
                 device.dispatch_nowait(ATTR_SETUP, True)
                 await self.dispatch(name, device)
+                self.statistics.devices.append(
+                    device_statistics := DeviceStatistics(
+                        name=name,
+                        connected_since=datetime.now(),
+                        last_seen=datetime.now(),
+                    )
+                )
+                device.subscribe(ATTR_REGDATA, device_statistics.update_last_seen)
 
         return self.data[name]
 
+    @property
+    def statistics(self) -> Statistics:
+        """Return the statistics."""
+        return self._statistics
 
-__all__ = ["Protocol", "DummyProtocol", "AsyncProtocol"]
+
+__all__ = ["Protocol", "DummyProtocol", "AsyncProtocol", "Statistics"]

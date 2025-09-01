@@ -1,7 +1,10 @@
 """Contains tests for the protocol classes."""
 
 import asyncio
+from dataclasses import asdict
+from datetime import datetime, timedelta
 import logging
+from typing import cast
 from unittest.mock import AsyncMock, Mock, PropertyMock, call, patch
 
 import pytest
@@ -15,7 +18,7 @@ from pyplumio.exceptions import (
     UnknownDeviceError,
     UnknownFrameError,
 )
-from pyplumio.frames import Response
+from pyplumio.frames import Request, Response
 from pyplumio.frames.requests import (
     CheckDeviceRequest,
     ProgramVersionRequest,
@@ -28,6 +31,7 @@ from pyplumio.structures.network_info import (
     NetworkInfo,
     WirelessParameters,
 )
+from pyplumio.structures.regulator_data import ATTR_REGDATA
 
 
 @pytest.fixture(name="skip_asyncio_create_task")
@@ -105,6 +109,7 @@ async def test_dummy_protocol() -> None:
 @patch("pyplumio.protocol.AsyncProtocol.create_task")
 @patch("pyplumio.protocol.AsyncProtocol.frame_consumer", new_callable=Mock)
 @patch("pyplumio.protocol.AsyncProtocol.frame_producer", new_callable=Mock)
+@pytest.mark.usefixtures("frozen_time")
 def test_async_protocol_connection_established(
     mock_frame_producer, mock_frame_consumer, mock_create_task
 ) -> None:
@@ -143,6 +148,9 @@ def test_async_protocol_connection_established(
 
     # Check that devices were notified.
     mock_ecomax.dispatch_nowait.assert_called_once_with(ATTR_CONNECTED, True)
+
+    # Check statistics.
+    assert async_protocol.statistics.connected_since == datetime.now()
 
 
 async def test_async_protocol_connection_lost() -> None:
@@ -236,7 +244,9 @@ async def test_async_protocol_shutdown(
     assert async_protocol.writer is None
 
 
-@pytest.mark.usefixtures("skip_asyncio_events", "skip_asyncio_create_task")
+@pytest.mark.usefixtures(
+    "skip_asyncio_events", "skip_asyncio_create_task", "frozen_time"
+)
 async def test_async_protocol_frame_producer(
     async_protocol: AsyncProtocol, caplog
 ) -> None:
@@ -267,7 +277,8 @@ async def test_async_protocol_frame_producer(
             *(True for _ in range(len(responses) - 1)),
         )
     )
-    mock_write_queue.get = AsyncMock(return_value="test_request")
+    request = Request()
+    mock_write_queue.get = AsyncMock(return_value=request)
 
     with (
         patch("pyplumio.devices.ecomax.EcoMAX"),
@@ -315,13 +326,26 @@ async def test_async_protocol_frame_producer(
         ),
     ]
 
-    mock_writer.write.assert_awaited_once_with("test_request")
+    mock_writer.write.assert_awaited_once_with(request)
     mock_write_queue.task_done.assert_called_once()
     mock_read_queue.put_nowait.assert_called_once_with(success)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
     assert mock_write_queue.empty.call_count == 8
     assert mock_reader.read.await_count == 8
+
+    # Check statistics.
+    assert asdict(async_protocol.statistics) == {
+        "connected_since": "never",
+        "received_bytes": 10,
+        "received_frames": 1,
+        "sent_bytes": 10,
+        "sent_frames": 1,
+        "failed_frames": 5,
+        "connection_losses": 1,
+        "connection_loss_at": datetime.now(),
+        "devices": [],
+    }
 
 
 @patch("pyplumio.frames.requests.CheckDeviceRequest.response")
@@ -332,6 +356,7 @@ async def test_async_protocol_frame_consumer(
     mock_device_available_response,
     async_protocol: AsyncProtocol,
     caplog,
+    frozen_time,
 ) -> None:
     """Test a frame consumer task within an async protocol."""
     mock_read_queue = Mock(spec=asyncio.Queue)
@@ -394,3 +419,14 @@ async def test_async_protocol_frame_consumer(
         ]
     )
     assert mock_read_queue.task_done.call_count == 2
+
+    # Test statistics.
+    connected_since = datetime.now()
+    frozen_time.tick(timedelta(seconds=10))
+    ecomax = cast(EcoMAX, async_protocol.get_nowait("ecomax"))
+    await ecomax.dispatch(ATTR_REGDATA, True)
+    assert asdict(async_protocol.statistics.devices[0]) == {
+        "name": "ecomax",
+        "connected_since": connected_since,
+        "last_seen": datetime.now(),
+    }
