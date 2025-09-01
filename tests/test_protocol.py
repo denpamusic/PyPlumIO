@@ -24,7 +24,7 @@ from pyplumio.frames.requests import (
     ProgramVersionRequest,
     StartMasterRequest,
 )
-from pyplumio.protocol import AsyncProtocol, DummyProtocol, Queues
+from pyplumio.protocol import AsyncProtocol, DummyProtocol, Queues, Statistics
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
     EthernetParameters,
@@ -106,6 +106,22 @@ async def test_dummy_protocol() -> None:
     assert not dummy_protocol.connected.is_set()
 
 
+def test_statistics() -> None:
+    """Test statistics dataclass."""
+    statistics = Statistics()
+    statistics.update_transfer_statistics(Request(), Response())
+    assert statistics.connected_since == "never"
+    assert statistics.sent_bytes == 10
+    assert statistics.sent_frames == 1
+    assert statistics.received_bytes == 10
+    assert statistics.received_frames == 1
+    statistics.reset_transfer_statistics()
+    assert statistics.sent_bytes == 0
+    assert statistics.sent_frames == 0
+    assert statistics.received_bytes == 0
+    assert statistics.received_frames == 0
+
+
 @patch("pyplumio.protocol.AsyncProtocol.create_task")
 @patch("pyplumio.protocol.AsyncProtocol.frame_consumer", new_callable=Mock)
 @patch("pyplumio.protocol.AsyncProtocol.frame_producer", new_callable=Mock)
@@ -129,8 +145,13 @@ def test_async_protocol_connection_established(
     async_protocol.data = {"ecomax": mock_ecomax}
 
     # Test connection established.
-    with patch.object(
-        async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
+    with (
+        patch.object(
+            async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
+        ),
+        patch(
+            "pyplumio.protocol.Statistics.reset_transfer_statistics"
+        ) as mock_reset_transfer_statistics,
     ):
         async_protocol.connection_established(mock_stream_reader, mock_stream_writer)
 
@@ -150,6 +171,7 @@ def test_async_protocol_connection_established(
     mock_ecomax.dispatch_nowait.assert_called_once_with(ATTR_CONNECTED, True)
 
     # Check statistics.
+    mock_reset_transfer_statistics.assert_called_once()
     assert async_protocol.statistics.connected_since == datetime.now()
 
 

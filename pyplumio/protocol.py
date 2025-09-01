@@ -148,6 +148,13 @@ class Statistics:
             self.received_bytes += received.length
             self.received_frames += 1
 
+    def reset_transfer_statistics(self) -> None:
+        """Reset transfer statistics."""
+        self.sent_bytes = 0
+        self.sent_frames = 0
+        self.received_bytes = 0
+        self.received_frames = 0
+
 
 @dataslots
 @dataclass
@@ -223,6 +230,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             device.dispatch_nowait(ATTR_CONNECTED, True)
 
         self.connected.set()
+        self.statistics.reset_transfer_statistics()
         self.statistics.connected_since = datetime.now()
 
     async def _connection_close(self) -> None:
