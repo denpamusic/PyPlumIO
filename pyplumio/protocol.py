@@ -124,7 +124,7 @@ NEVER: Final = "never"
 @dataslots
 @dataclass
 class Statistics:
-    """Represents ca onnection statistics."""
+    """Represents a connection statistics."""
 
     received_bytes: int = 0
     received_frames: int = 0
