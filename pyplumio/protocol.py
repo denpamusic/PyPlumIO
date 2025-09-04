@@ -154,6 +154,7 @@ class Statistics:
         self.sent_frames = 0
         self.received_bytes = 0
         self.received_frames = 0
+        self.failed_frames = 0
 
 
 @dataslots

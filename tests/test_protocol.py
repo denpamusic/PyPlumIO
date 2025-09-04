@@ -109,17 +109,21 @@ async def test_dummy_protocol() -> None:
 def test_statistics() -> None:
     """Test statistics dataclass."""
     statistics = Statistics()
-    statistics.update_transfer_statistics(Request(), Response())
+    statistics.update_transfer_statistics(sent=Request())
+    statistics.update_transfer_statistics(received=Response())
+    statistics.failed_frames = 1
     assert statistics.connected_since == "never"
     assert statistics.sent_bytes == 10
     assert statistics.sent_frames == 1
     assert statistics.received_bytes == 10
     assert statistics.received_frames == 1
+    assert statistics.failed_frames == 1
     statistics.reset_transfer_statistics()
     assert statistics.sent_bytes == 0
     assert statistics.sent_frames == 0
     assert statistics.received_bytes == 0
     assert statistics.received_frames == 0
+    assert statistics.failed_frames == 0
 
 
 @patch("pyplumio.protocol.AsyncProtocol.create_task")
