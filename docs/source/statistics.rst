@@ -15,7 +15,9 @@ number of connection loss event.
 .. autoclass:: pyplumio.protocol.Statistics
 
 The `devices` property of statistics class of also contains a list of
-device statistics objects.
+device statistics objects. Those statistics include time the device was initially
+connected as well as time, when device was last seen (sent an :ref:`RegulatorData`
+message).
 
 .. autoclass:: pyplumio.protocol.DeviceStatistics
 
@@ -34,7 +36,7 @@ as in example below.
     async def main():
         """Read the current heating temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
-            print(conn.statistic)
+            print(conn.statistics)
 
 
     asyncio.run(main())
