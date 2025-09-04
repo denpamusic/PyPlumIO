@@ -51,6 +51,7 @@ Documentation
    callbacks
    mixers_thermostats
    schedules
+   statistics
    protocol
    frames
 
