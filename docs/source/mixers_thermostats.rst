@@ -10,9 +10,9 @@ respective properties.
 
 .. code-block:: python
 
-    ecomax = await conn.get("ecomax")
-    thermostats = await ecomax.get("thermostats")
-    mixers = await ecomax.get("mixers")
+    async with conn.device("ecomax") as ecomax:
+        thermostats = await ecomax.get("thermostats")
+        mixers = await ecomax.get("mixers")
 
 Result of this call will be a dictionary of ``Mixer`` or ``Thermostat``
 object keyed by the device indexes.
@@ -34,20 +34,18 @@ get it's current_temp property and set it's target temperature to
 
     from pyplumio.devices import Mixer
 
-    # Get the ecoMAX device.
-    ecomax = await conn.get("ecomax")
+    async with conn.device("ecomax") as ecomax:
+        # Get connected mixers.
+        mixers = await ecomax.get("mixers")
 
-    # Get connected mixers.
-    mixers = await ecomax.get("mixers")
+        # Get a single mixer.
+        mixer: Mixer = mixers[1]
 
-    # Get single mixer.
-    mixer: Mixer = mixers[1]
+        # Get current mixer temperature.
+        mixer_current_temp = await mixer.get("current_temp")
 
-    # Get current mixer temperature.
-    mixer_current_temp = await mixer.get("current_temp")
-
-    # Set mixer target temperature to 50 degrees Celsius.
-    await mixer.set("mixer_target_temp", 50)
+        # Set mixer target temperature to 50 degrees Celsius.
+        await mixer.set("mixer_target_temp", 50)
 
 Thermostat Examples
 -------------------
@@ -60,17 +58,15 @@ degrees Celsius.
 
     from pyplumio.device import Thermostat
 
-    # Get the ecoMAX device.
-    ecomax = await conn.get("ecomax")
+    async with conn.device("ecomax") as ecomax:
+        # Get connected thermostats.
+        thermostats = await ecomax.get("thermostats")
 
-    # Get connected thermostats.
-    thermostats = await ecomax.get("thermostats")
+        # Get single thermostat.
+        thermostat: Thermostat = thermostats[1]
 
-    # Get single thermostat.
-    thermostat: Thermostat = thermostats[1]
+        # Get current room temperature.
+        thermostat_current_temp = await thermostat.get("current_temp")
 
-    # Get current room temperature.
-    thermostat_current_temp = await thermostat.get("current_temp")
-
-    # Set day target temperature to 20 degrees Celsius.
-    await thermostat.set("day_target_temp", 20)
+        # Set day target temperature to 20 degrees Celsius.
+        await thermostat.set("day_target_temp", 20)

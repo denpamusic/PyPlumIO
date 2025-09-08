@@ -10,8 +10,8 @@ You can use this property get a full device dataset.
 
 .. code-block:: python
 
-    ecomax = await conn.get("ecomax")
-    print(ecomax.data)
+    async with conn.device("ecomax") as ecomax:
+        print(ecomax.data)
 
 In a pinch, you can also use this attribute to directly access the data,
 but this is not recommended, please use getters instead.
@@ -36,12 +36,11 @@ and close the connection.
         """Read the current heating temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
             # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
-
-            # Get the heating temperature.
-            heating_temp = await ecomax.get("heating_temp")
-            print(heating_temp)
-            ...
+            async with conn.device("ecomax") as ecomax:
+                # Get the heating temperature.
+                heating_temp = await ecomax.get("heating_temp")
+                print(heating_temp)
+                ...
             
 
     asyncio.run(main())
@@ -92,11 +91,14 @@ keys, and can be accessed via the **regdata** property.
 
 .. code-block:: python
 
-    ecomax = await conn.get("ecomax")
-    regdata = await ecomax.get("regdata")
+    from typing import Any
 
-    # Get regulator data with the 1280 key.
-    heating_target = regdata[1280]
+    async with conn.device("ecomax") as ecomax:
+        # Get regulator data.
+        regdata: dict[int, Any] = await ecomax.get("regdata")
+
+        # Get regulator data with the 1280 key.
+        heating_target = regdata[1280]
 
 
 Reading Examples
@@ -119,18 +121,17 @@ to the terminal.
         """
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
             # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
+            async with conn.device("ecomax") as ecomax:
+                # Get heating temperature, if it's available otherwise
+                # return the default value (65).
+                heating_temp = ecomax.get_nowait("heating_temp", default=65)
 
-            # Get heating temperature, if it's available otherwise
-            # return the default value (65).
-            heating_temp = ecomax.get_nowait("heating_temp", default=65)
+                # Wait for heating temperature and get it's value.
+                heating_target_temp = await ecomax.get("heating_target_temp")
 
-            # Wait for heating temperature and get it's value.
-            heating_target_temp = await ecomax.get("heating_target_temp")
-
-            # Wait until regulator data is available then grab key 1792.
-            await ecomax.wait_for("regdata")
-            status = ecomax.regdata[1792]
+                # Wait until regulator data is available then grab key 1792.
+                await ecomax.wait_for("regdata")
+                status = ecomax.regdata[1792]
 
             print(
                 f"Current temp: {heating_temp}, "

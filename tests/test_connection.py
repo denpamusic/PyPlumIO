@@ -14,8 +14,9 @@ from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 import pyplumio.connection
 from pyplumio.connection import Connection, SerialConnection, TcpConnection
+from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import ConnectionFailedError
-from pyplumio.protocol import Protocol
+from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
 
 
 @pytest.fixture(name="use_fast", params=(True, False))
@@ -89,7 +90,7 @@ def fixture_tcp_connection(mock_protocol) -> TcpConnection:
 @pytest.fixture(name="serial_connection")
 def fixture_serial_connection(mock_protocol) -> SerialConnection:
     """Return a serial connection object."""
-    return SerialConnection(device="/dev/ttyUSB0", timeout=10, protocol=mock_protocol)
+    return SerialConnection(url="/dev/ttyUSB0", timeout=10, protocol=mock_protocol)
 
 
 class DummyConnection(Connection):
@@ -152,6 +153,25 @@ class TestConnection:
         mock_connect.assert_called_once()
         mock_close.assert_called_once()
 
+    async def test_device_context_manager(self, ecomax: EcoMAX) -> None:
+        """Test device context manager."""
+        mock_protocol = AsyncMock(spec=AsyncProtocol)
+        mock_protocol.get = AsyncMock(return_value=ecomax)
+        connection = DummyConnection(protocol=mock_protocol)
+
+        async with connection.device("ecomax") as device:
+            assert isinstance(device, EcoMAX)
+
+        mock_protocol.get.assert_awaited_once_with("ecomax", timeout=None)
+
+    async def test_device_context_manager_with_unsupported_protocol(self) -> None:
+        """Test device context with unsupported protocol."""
+        mock_protocol = AsyncMock(spec=DummyProtocol)
+        connection = DummyConnection(protocol=mock_protocol)
+        with pytest.raises(NotImplementedError):
+            async with connection.device("ecomax"):
+                ...
+
     @patch.object(DummyConnection, "_connect")
     async def test_connection_lost(self, mock_connect, mock_protocol) -> None:
         """Test that connection lost callback calls reconnect."""
@@ -168,6 +188,21 @@ class TestConnection:
         assert connection.some_attr == "value"
         mock_protocol.some_method = Mock(return_value="called")
         assert connection.some_method() == "called"
+
+    @pytest.mark.parametrize("func", ("get", "get_nowait", "wait_for"))
+    async def test_protocol_proxy_calls(self, func: str) -> None:
+        """Test calls proxied to protocol instance."""
+        mock_protocol = AsyncMock(spec=AsyncProtocol, autospec=True)
+        connection = DummyConnection(protocol=mock_protocol)
+        connection_func = getattr(connection, func)
+        protocol_func = getattr(mock_protocol, func)
+        assert connection_func is protocol_func
+
+        # Test with error.
+        mock_protocol = AsyncMock(spec=DummyProtocol, autospec=True)
+        connection = DummyConnection(protocol=mock_protocol)
+        with pytest.raises(NotImplementedError):
+            getattr(connection, func)
 
 
 HOST: Final = "localhost"
@@ -194,7 +229,7 @@ class TestTcpConnection:
         )
 
 
-DEVICE: Final = "/dev/ttyUSB0"
+URL: Final = "/dev/ttyUSB0"
 
 
 class TestSerialConnection:
@@ -206,7 +241,7 @@ class TestSerialConnection:
         """Test serial connect."""
         await serial_connection.connect()
         serial_asyncio_open_serial_connection.assert_called_once_with(
-            url=DEVICE,
+            url=URL,
             baudrate=115200,
             bytesize=EIGHTBITS,
             parity=PARITY_NONE,
@@ -217,6 +252,5 @@ class TestSerialConnection:
     async def test_repr(self, serial_connection: SerialConnection) -> None:
         """Test serializable representation."""
         assert repr(serial_connection) == (
-            "SerialConnection("
-            f"device={DEVICE}, baudrate=115200, kwargs={{'timeout': 10}})"
+            f"SerialConnection(url={URL}, baudrate=115200, kwargs={{'timeout': 10}})"
         )

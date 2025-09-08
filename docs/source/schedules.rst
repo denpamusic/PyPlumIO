@@ -115,27 +115,27 @@ Schedule Examples
 
     async def main():
         """Set a device schedule."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as connection:
-            ecomax = await connection.get("ecomax")
-            schedules = await ecomax.get("schedules")
-            heating_schedule = schedules["heating"]
+        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+            async with conn.device("ecomax") as ecomax:
+                schedules = await ecomax.get("schedules")
+                heating_schedule = schedules["heating"]
 
-            # Turn the heating schedule on.
-            await ecomax.set("schedule_heating_switch", "on")
+                # Turn the heating schedule on.
+                await ecomax.set("schedule_heating_switch", "on")
 
-            # Drop the heating temperature by 10 degrees in the nighttime mode.
-            await ecomax.set("schedule_heating_parameter", 10)
+                # Drop the heating temperature by 10 degrees in the nighttime mode.
+                await ecomax.set("schedule_heating_parameter", 10)
 
-            for weekday in heating_schedule:
-                weekday.set_state(STATE_ON, "00:00", "00:30")
-                weekday.set_state(STATE_OFF, "00:30", "09:00")
-                weekday.set_state(STATE_ON, "09:00", "00:00")
-                weekday["19:00"] = STATE_OFF
+                for weekday in heating_schedule:
+                    weekday.set_state(STATE_ON, "00:00", "00:30")
+                    weekday.set_state(STATE_OFF, "00:30", "09:00")
+                    weekday.set_state(STATE_ON, "09:00", "00:00")
+                    weekday["19:00"] = STATE_OFF
 
-            # There will be no nighttime mode on sunday.
-            heating_schedule.sunday.set_state(STATE_ON)
-            
-            await heating_schedule.commit()
+                # There will be no nighttime mode on sunday.
+                heating_schedule.sunday.set_state(STATE_ON)
+                
+                await heating_schedule.commit()
 
 
     asyncio.run(main())

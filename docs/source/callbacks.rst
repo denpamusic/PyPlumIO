@@ -166,16 +166,13 @@ processing.
     async def main():
         """Subscribes callback to the current heating temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+            async with conn.device("ecomax") as ecomax:
+                # Await the callback on value change but no faster than
+                # once per 5 seconds.
+                ecomax.subscribe("heating_temp", throttle(on_change(my_callback), seconds=5))
 
-            # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
-
-            # Await the callback on value change but no faster than
-            # once per 5 seconds.
-            ecomax.subscribe("heating_temp", throttle(on_change(my_callback), seconds=5))
-
-            # Wait until disconnected (forever)
-            await conn.wait_until_done()
+                # Wait until disconnected (forever)
+                await conn.wait_until_done()
 
 
     asyncio.run(main())
@@ -199,15 +196,12 @@ current heating temperature on every SensorDataMessage.
     async def main():
         """Subscribes callback to the current heating temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+            async with conn.device("ecomax") as ecomax:
+                # Subscribe my_callback to heating_temp event.
+                ecomax.subscribe("heating_temp", my_callback)
 
-            # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
-
-            # Subscribe my_callback to heating_temp event.
-            ecomax.subscribe("heating_temp", my_callback)
-
-            # Wait until disconnected (forever)
-            await conn.wait_until_done()
+                # Wait until disconnected (forever)
+                await conn.wait_until_done()
 
 
     asyncio.run(main())
@@ -235,17 +229,15 @@ when heating temperature will change more the 0.1 degrees Celsius.
     async def main():
         """Subscribes callback to the current heating temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
-            # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
+            async with conn.device("ecomax") as ecomax:
+                # Subscribe my_callback to heating_target_temp event.
+                ecomax.subscribe_once("heating_target_temp", my_callback)
 
-            # Subscribe my_callback to heating_target_temp event.
-            ecomax.subscribe_once("heating_target_temp", my_callback)
+                # Subscribe my_callback2 to heating_temp changes.
+                ecomax.subscribe("heating_temp", on_change(my_callback2))
 
-            # Subscribe my_callback2 to heating_temp changes.
-            ecomax.subscribe("heating_temp", on_change(my_callback2))
-
-            # Wait until disconnected (forever)
-            await conn.wait_until_done()
+                # Wait until disconnected (forever)
+                await conn.wait_until_done()
 
 
     asyncio.run(main())

@@ -70,15 +70,15 @@ working with device classes and queues.
         """Open a connection and request alerts."""
         async with pyplumio.open_tcp_connection(
             host="localhost", port=8899, protocol=pyplumio.DummyProtocol()
-        ) as connection:
-            await connection.writer.write(
+        ) as conn:
+            await conn.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
             )
 
-            while connection.connected:
+            while conn.connected:
                 try:
                     if isinstance(
-                        (frame := await connection.reader.read()), responses.AlertsResponse
+                        (frame := await conn.reader.read()), responses.AlertsResponse
                     ):
                         print(frame.data)
                         break
@@ -139,7 +139,7 @@ In the example below, we'll set both ethernet and wireless parameters.
                     signal_quality=100,
                 ),
             ),
-        ) as connection:
+        ) as conn:
             ...
 
 
@@ -165,7 +165,8 @@ context manager.
         async with pyplumio.open_tcp_connection("localhost", port=8899) as conn:
             try:
                 # Get the ecoMAX device within 10 seconds or timeout.
-                ecomax = await conn.get("ecomax", timeout=10)
+                async with conn.device("ecomax", timeout=10) as ecomax:
+                    ...
             except asyncio.TimeoutError:
                 # If device times out, log the error.
                 _LOGGER.error("Failed to get the device within 10 seconds")
@@ -197,11 +198,12 @@ using Python's context manager.
         
         try:
             # Get the ecoMAX device within 10 seconds or timeout.
-            ecomax = await connection.get("ecomax", timeout=10)
+            async with conn.device("ecomax", timeout=10) as ecomax:
+                ...
         except asyncio.TimeoutError:
             # If device times out, log the error.
             _LOGGER.error("Failed to get the device within 10 seconds")
-        
+
         # Close the connection.
         await connection.close()
         

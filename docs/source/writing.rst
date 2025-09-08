@@ -47,9 +47,9 @@ Numbers are parameters that have numerical value associated with them.
 
     from pyplumio.parameters import Number
 
-    ecomax = await conn.get("ecomax")
-    heating_target: Number = ecomax.get("heating_target_temp")
-    result = heating_target.set(65)
+    async with conn.device("ecomax") as ecomax:
+        heating_target: Number = ecomax.get("heating_target_temp")
+        result = heating_target.set(65)
 
 Each number has an unique range of allowed values.
 PyPlumIO will raise ``ValueError`` if value isn't within acceptable
@@ -63,10 +63,10 @@ Please note, that both values are **inclusive**.
 
     from pyplumio.parameters import Number
 
-    ecomax = await connection.get("ecomax")
-    target_temp: Number = await ecomax.get("heating_target_temp")
-    print(target_temp.min_value)  # Minimum allowed target temperature.
-    print(target_temp.max_value)  # Maximum allowed target temperature.
+    async with conn.device("ecomax") as ecomax:
+        target_temp: Number = await ecomax.get("heating_target_temp")
+        print(target_temp.min_value)  # Minimum allowed target temperature.
+        print(target_temp.max_value)  # Maximum allowed target temperature.
 
 Switches
 ^^^^^^^^
@@ -129,18 +129,16 @@ outputting the result to the terminal.
         """Turn on the controller and set target temperature."""
         async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
             # Get the ecoMAX device.
-            ecomax = await conn.get("ecomax")
+            async with conn.device("ecomax") as ecomax:
+                # Turn on controller without waiting for the result.
+                ecomax.turn_on_nowait()
 
-            # Turn on controller without waiting for the result.
-            ecomax.turn_on_nowait()
-
-            # Set heating temperature to 65 degrees.
-            result = await ecomax.set("heating_target_temp", 65)
-            if result:
-                print("Heating temperature is set to 65.")
-            else:
-                print("Couldn't set heating temperature.")
+                # Set heating temperature to 65 degrees.
+                result = await ecomax.set("heating_target_temp", 65)
+                if result:
+                    print("Heating temperature is set to 65.")
+                else:
+                    print("Couldn't set heating temperature.")
             
-        
 
     asyncio.run(main())

@@ -23,7 +23,7 @@ from pyplumio.structures.network_info import EthernetParameters, WirelessParamet
 
 
 def open_serial_connection(
-    device: str,
+    url: str,
     baudrate: int = 115200,
     *,
     protocol: Protocol | None = None,
@@ -32,8 +32,8 @@ def open_serial_connection(
 ) -> SerialConnection:
     r"""Create a serial connection.
 
-    :param device: Serial port device name. e. g. /dev/ttyUSB0
-    :type device: str
+    :param url: Serial port device url. e. g. /dev/ttyUSB0
+    :type url: str
     :param baudrate: Serial port baud rate, defaults to 115200
     :type baudrate: int, optional
     :param protocol: Protocol that will be used for communication with
@@ -48,7 +48,7 @@ def open_serial_connection(
     :rtype: SerialConnection
     """
     return SerialConnection(
-        device,
+        url,
         baudrate,
         protocol=protocol,
         reconnect_on_failure=reconnect_on_failure,

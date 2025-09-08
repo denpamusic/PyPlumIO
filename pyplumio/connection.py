@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 import asyncio
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 import logging
 from typing import Any, Final
 
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
+from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.protocol import AsyncProtocol, Protocol
@@ -103,6 +106,40 @@ class Connection(ABC, TaskManager):
         self.cancel_tasks()
         await self.protocol.shutdown()
 
+    @asynccontextmanager
+    async def device(
+        self, name: str, timeout: float | None = None
+    ) -> AsyncGenerator[PhysicalDevice]:
+        """Get the device in context manager."""
+        if not isinstance(self.protocol, AsyncProtocol):
+            raise NotImplementedError
+
+        yield await self.protocol.get(name, timeout=timeout)
+
+    @property
+    def get(self):  # type: ignore[no-untyped-def]
+        """Access the remote device."""
+        if isinstance(self.protocol, AsyncProtocol):
+            return self.protocol.get
+
+        raise NotImplementedError
+
+    @property
+    def get_nowait(self):  # type: ignore[no-untyped-def]
+        """Access the remote device without waiting."""
+        if isinstance(self.protocol, AsyncProtocol):
+            return self.protocol.get_nowait
+
+        raise NotImplementedError
+
+    @property
+    def wait_for(self):  # type: ignore[no-untyped-def]
+        """Wait for the remote device to become available."""
+        if isinstance(self.protocol, AsyncProtocol):
+            return self.protocol.wait_for
+
+        raise NotImplementedError
+
     @property
     def protocol(self) -> Protocol:
         """Return the protocol object."""
@@ -157,14 +194,14 @@ class TcpConnection(Connection):
 class SerialConnection(Connection):
     """Represents a serial connection."""
 
-    __slots__ = ("device", "baudrate")
+    __slots__ = ("url", "baudrate")
 
-    device: str
+    url: str
     baudrate: int
 
     def __init__(
         self,
-        device: str,
+        url: str,
         baudrate: int = 115200,
         *,
         protocol: Protocol | None = None,
@@ -173,14 +210,14 @@ class SerialConnection(Connection):
     ) -> None:
         """Initialize a new serial connection."""
         super().__init__(protocol, reconnect_on_failure, **kwargs)
-        self.device = device
+        self.url = url
         self.baudrate = baudrate
 
     def __repr__(self) -> str:
         """Return a serializable string representation."""
         return (
             "SerialConnection("
-            f"device={self.device}, "
+            f"url={self.url}, "
             f"baudrate={self.baudrate}, "
             f"kwargs={self._kwargs})"
         )
@@ -191,7 +228,7 @@ class SerialConnection(Connection):
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
         return await pyserial_asyncio.open_serial_connection(
-            url=self.device,
+            url=self.url,
             baudrate=self.baudrate,
             bytesize=EIGHTBITS,
             parity=PARITY_NONE,
