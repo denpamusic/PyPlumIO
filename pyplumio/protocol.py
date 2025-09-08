@@ -194,7 +194,7 @@ class DeviceStatistics:
     connected_since: datetime | Literal["never"] = NEVER
     last_seen: datetime | Literal["never"] = NEVER
 
-    async def update_last_seen(self, data: Any) -> None:
+    async def update_last_seen(self, _: Any) -> None:
         """Update last seen property."""
         self.last_seen = datetime.now()
 
