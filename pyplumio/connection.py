@@ -36,17 +36,17 @@ class Connection(ABC, TaskManager):
     All specific connection classes MUST be inherited from this class.
     """
 
-    __slots__ = ("_protocol", "_reconnect_on_failure", "_kwargs")
+    __slots__ = ("_protocol", "_reconnect_on_failure", "_options")
 
     _protocol: Protocol
     _reconnect_on_failure: bool
-    _kwargs: dict[str, Any]
+    _options: dict[str, Any]
 
     def __init__(
         self,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs: Any,
+        **options: Any,
     ) -> None:
         """Initialize a new connection."""
         super().__init__()
@@ -58,7 +58,7 @@ class Connection(ABC, TaskManager):
 
         self._reconnect_on_failure = reconnect_on_failure
         self._protocol = protocol
-        self._kwargs = kwargs
+        self._options = options
 
     async def __aenter__(self) -> Connection:
         """Provide an entry point for the context manager."""
@@ -145,6 +145,11 @@ class Connection(ABC, TaskManager):
         """Return the protocol object."""
         return self._protocol
 
+    @property
+    def options(self) -> dict[str, Any]:
+        """Return connection options."""
+        return self._options
+
     @timeout(CONNECT_TIMEOUT)
     @abstractmethod
     async def _open_connection(
@@ -168,17 +173,17 @@ class TcpConnection(Connection):
         *,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs: Any,
+        **options: Any,
     ) -> None:
         """Initialize a new TCP connection."""
-        super().__init__(protocol, reconnect_on_failure, **kwargs)
+        super().__init__(protocol, reconnect_on_failure, **options)
         self.host = host
         self.port = port
 
     def __repr__(self) -> str:
         """Return a serializable string representation."""
         return (
-            f"TcpConnection(host={self.host}, port={self.port}, kwargs={self._kwargs})"
+            f"TcpConnection(host={self.host}, port={self.port}, options={self.options})"
         )
 
     @timeout(CONNECT_TIMEOUT)
@@ -187,7 +192,7 @@ class TcpConnection(Connection):
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
         return await asyncio.open_connection(
-            host=self.host, port=self.port, **self._kwargs
+            host=self.host, port=self.port, **self.options
         )
 
 
@@ -206,10 +211,10 @@ class SerialConnection(Connection):
         *,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
-        **kwargs: Any,
+        **options: Any,
     ) -> None:
         """Initialize a new serial connection."""
-        super().__init__(protocol, reconnect_on_failure, **kwargs)
+        super().__init__(protocol, reconnect_on_failure, **options)
         self.url = url
         self.baudrate = baudrate
 
@@ -219,7 +224,7 @@ class SerialConnection(Connection):
             "SerialConnection("
             f"url={self.url}, "
             f"baudrate={self.baudrate}, "
-            f"kwargs={self._kwargs})"
+            f"options={self.options})"
         )
 
     @timeout(CONNECT_TIMEOUT)
@@ -233,7 +238,7 @@ class SerialConnection(Connection):
             bytesize=EIGHTBITS,
             parity=PARITY_NONE,
             stopbits=STOPBITS_ONE,
-            **self._kwargs,
+            **self.options,
         )
 
 

@@ -28,7 +28,7 @@ def open_serial_connection(
     *,
     protocol: Protocol | None = None,
     reconnect_on_failure: bool = True,
-    **kwargs: Any,
+    **options: Any,
 ) -> SerialConnection:
     r"""Create a serial connection.
 
@@ -42,7 +42,7 @@ def open_serial_connection(
     :param reconnect_on_failure: `True` if PyPlumIO should try
         reconnecting on failure, otherwise `False`, default to `True`
     :type reconnect_on_failure: bool, optional
-    :param \**kwargs: Additional keyword arguments to be passed to
+    :param \**options: Additional arguments to be passed to
         serial_asyncio.open_serial_connection()
     :return: An instance of serial connection
     :rtype: SerialConnection
@@ -52,7 +52,7 @@ def open_serial_connection(
         baudrate,
         protocol=protocol,
         reconnect_on_failure=reconnect_on_failure,
-        **kwargs,
+        **options,
     )
 
 
@@ -62,7 +62,7 @@ def open_tcp_connection(
     *,
     protocol: Protocol | None = None,
     reconnect_on_failure: bool = True,
-    **kwargs: Any,
+    **options: Any,
 ) -> TcpConnection:
     r"""Create a TCP connection.
 
@@ -76,7 +76,7 @@ def open_tcp_connection(
     :param reconnect_on_failure: `True` if PyPlumIO should try
         reconnecting on failure, otherwise `False`, default to `True`
     :type reconnect_on_failure: bool, optional
-    :param \**kwargs: Additional keyword arguments to be passed to
+    :param \**options: Additional arguments to be passed to
         asyncio.open_connection()
     :return: An instance of TCP connection
     :rtype: TcpConnection
@@ -86,7 +86,7 @@ def open_tcp_connection(
         port,
         protocol=protocol,
         reconnect_on_failure=reconnect_on_failure,
-        **kwargs,
+        **options,
     )
 
 

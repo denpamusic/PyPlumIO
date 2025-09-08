@@ -225,7 +225,7 @@ class TestTcpConnection:
         """Test serializable representation."""
         assert (
             repr(tcp_connection)
-            == f"TcpConnection(host={HOST}, port={PORT}, kwargs={{'timeout': 10}})"
+            == f"TcpConnection(host={HOST}, port={PORT}, options={{'timeout': 10}})"
         )
 
 
@@ -252,5 +252,5 @@ class TestSerialConnection:
     async def test_repr(self, serial_connection: SerialConnection) -> None:
         """Test serializable representation."""
         assert repr(serial_connection) == (
-            f"SerialConnection(url={URL}, baudrate=115200, kwargs={{'timeout': 10}})"
+            f"SerialConnection(url={URL}, baudrate=115200, options={{'timeout': 10}})"
         )
