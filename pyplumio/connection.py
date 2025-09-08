@@ -33,6 +33,8 @@ class Connection(ABC, TaskManager):
     All specific connection classes MUST be inherited from this class.
     """
 
+    __slots__ = ("_protocol", "_reconnect_on_failure", "_kwargs")
+
     _protocol: Protocol
     _reconnect_on_failure: bool
     _kwargs: dict[str, Any]
@@ -117,6 +119,8 @@ class Connection(ABC, TaskManager):
 class TcpConnection(Connection):
     """Represents a TCP connection."""
 
+    __slots__ = ("host", "port")
+
     host: str
     port: int
 
@@ -152,6 +156,8 @@ class TcpConnection(Connection):
 
 class SerialConnection(Connection):
     """Represents a serial connection."""
+
+    __slots__ = ("device", "baudrate")
 
     device: str
     baudrate: int
