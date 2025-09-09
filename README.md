@@ -3,8 +3,8 @@
 [![PyPI version](https://badge.fury.io/py/PyPlumIO.svg)](https://badge.fury.io/py/PyPlumIO)
 [![PyPI Supported Python Versions](https://img.shields.io/pypi/pyversions/pyplumio.svg)](https://pypi.python.org/pypi/pyplumio/)
 [![PyPlumIO CI](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml/badge.svg)](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml)
-[![Maintainability](https://qlty.sh/badges/2455933c-6c18-45bc-a205-da5cc0b49d0b/maintainability.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
-[![Code Coverage](https://qlty.sh/badges/2455933c-6c18-45bc-a205-da5cc0b49d0b/test_coverage.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
+[![Maintainability](https://qlty.sh/gh/denpamusic/projects/PyPlumIO/maintainability.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
+[![Code Coverage](https://qlty.sh/gh/denpamusic/projects/PyPlumIO/coverage.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
 [![stability-release-candidate](https://img.shields.io/badge/stability-pre--release-48c9b0.svg)](https://guidelines.denpa.pro/stability#release-candidate)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
