@@ -1,6 +1,5 @@
 """Contains tests for fuel level structure decoder."""
 
-
 import pytest
 
 from pyplumio.const import BYTE_UNDEFINED
