@@ -118,36 +118,33 @@ NEVER: Final = "never"
 
 @dataclass(slots=True, kw_only=True)
 class Statistics:
-    """Represents a connection statistics.
+    """Represents a connection statistics."""
 
-    :param received_bytes: Number of received bytes. Resets on reconnect.
-    :type received_bytes: int
-    :param received_frames: Number of received frames. Resets on reconnect.
-    :type received_frames: int
-    :param sent_bytes: Number of sent bytes.  Resets on reconnect.
-    :type sent_bytes: int
-    :param sent_frames: Number of sent frames. Resets on reconnect.
-    :type sent_frames: int
-    :param failed_frames: Number of failed frames. Resets on reconnect.
-    :type failed_frames: int
-    :param connected_since: Datetime object representing connection time.
-    :type connected_since: datetime.datetime | Literal["never"]
-    :param connection_loss_at: Datetime object representing last connection loss event.
-    :type connection_loss_at: datetime.datetime | Literal["never"]
-    :param connection_losses: Number of connection lost event.
-    :type connection_losses: int
-    :param devices: Contains list of statistics for connected devices.
-    :type devices: list[DeviceStatistics]
-    """
-
+    #: Number of received bytes. Resets on reconnect.
     received_bytes: int = 0
+
+    #: Number of received frames. Resets on reconnect.
     received_frames: int = 0
+
+    #: Number of sent bytes. Resets on reconnect.
     sent_bytes: int = 0
+
+    #: Number of sent frames. Resets on reconnect.
     sent_frames: int = 0
+
+    #: Number of failed frames. Resets on reconnect.
     failed_frames: int = 0
+
+    #: Datetime object representing connection time
     connected_since: datetime | Literal["never"] = NEVER
+
+    #: Datetime object representing last connection loss event
     connection_loss_at: datetime | Literal["never"] = NEVER
+
+    #: Number of connection lost event
     connection_losses: int = 0
+
+    #: List of statistics for connected devices
     devices: list[DeviceStatistics] = field(default_factory=list)
 
     def update_transfer_statistics(
@@ -173,18 +170,15 @@ class Statistics:
 
 @dataclass(slots=True)
 class DeviceStatistics:
-    """Represents a device statistics.
+    """Represents a device statistics."""
 
-    :param name: Device name.
-    :type name: str
-    :param connected_since: Datetime object representing connection time.
-    :type connected_since: datetime.datetime | Literal["never"]
-    :param last_seen: Datetime object representing time when device was last seen.
-    :type last_seen: datetime.datetime | Literal["never"]
-    """
-
+    #: Device name
     name: str
+
+    #: Datetime object representing connection time
     connected_since: datetime | Literal["never"] = NEVER
+
+    #: Datetime object representing time when device was last seen
     last_seen: datetime | Literal["never"] = NEVER
 
     async def update_last_seen(self, _: Any) -> None:
