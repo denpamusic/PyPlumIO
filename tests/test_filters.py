@@ -220,10 +220,14 @@ async def test_aggregate(use_numpy, frozen_time) -> None:
     # Five seconds passed.
     frozen_time.tick(timedelta(seconds=4))
     if use_numpy:
-        with patch("numpy.sum", return_value=5) as mock_sum:
+        with (
+            patch("numpy.sum", return_value=5) as mock_sum,
+            patch("numpy.array") as mock_array,
+        ):
             await wrapped_callback(3)
 
-        mock_sum.assert_called_once_with([1, 1, 3])
+        mock_array.assert_called_once_with([1, 1, 3])
+        mock_sum.assert_called_once_with(mock_array.return_value)
     else:
         await wrapped_callback(3)
 
