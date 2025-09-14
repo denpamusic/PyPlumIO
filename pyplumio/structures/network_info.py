@@ -18,7 +18,7 @@ DEFAULT_NETMASK: Final = "255.255.255.0"
 NETWORK_INFO_SIZE: Final = 25
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class EthernetParameters:
     """Represents an ethernet parameters."""
 
@@ -35,7 +35,7 @@ class EthernetParameters:
     status: bool = True
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class WirelessParameters(EthernetParameters):
     """Represents a wireless network parameters."""
 
@@ -50,7 +50,7 @@ class WirelessParameters(EthernetParameters):
     signal_quality: int = 100
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class NetworkInfo:
     """Represents a network parameters."""
 

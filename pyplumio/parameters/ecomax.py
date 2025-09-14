@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from functools import partial
 from typing import TYPE_CHECKING
 
-from dataslots import dataslots
-
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -78,11 +76,9 @@ class EcomaxParameter(Parameter):
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class EcomaxNumberDescription(EcomaxParameterDescription, OffsetNumberDescription):
     """Represents an ecoMAX number description."""
-
-    __slots__ = ()
 
 
 class EcomaxNumber(EcomaxParameter, OffsetNumber):
@@ -93,8 +89,7 @@ class EcomaxNumber(EcomaxParameter, OffsetNumber):
     description: EcomaxNumberDescription
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class EcomaxSwitchDescription(EcomaxParameterDescription, SwitchDescription):
     """Represents an ecoMAX switch description."""
 

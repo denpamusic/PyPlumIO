@@ -1,10 +1,8 @@
 """Contains a simple async cache for caching results of async functions."""
 
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Callable, TypeVar, cast
-
-from typing_extensions import ParamSpec, TypeAlias
+from typing import Any, ParamSpec, TypeAlias, TypeVar, cast
 
 T = TypeVar("T")
 P = ParamSpec("P")

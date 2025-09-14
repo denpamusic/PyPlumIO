@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
 import inspect
-from typing import Any, Generic, TypeVar, overload
-
-from typing_extensions import TypeAlias
+from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 

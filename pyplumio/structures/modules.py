@@ -6,8 +6,6 @@ from dataclasses import dataclass
 import struct
 from typing import Any, Final
 
-from dataslots import dataslots
-
 from pyplumio.const import BYTE_UNDEFINED
 from pyplumio.structures import StructureDecoder
 from pyplumio.utils import ensure_dict
@@ -32,8 +30,7 @@ struct_version = struct.Struct("<BBB")
 struct_vendor = struct.Struct("<BB")
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ConnectedModules:
     """Represents a firmware version info for connected module."""
 

@@ -60,11 +60,9 @@ def get_frame_handler(frame_type: int) -> str:
     return f"frames.{module.lower()}s.{type_name}{module.capitalize()}"
 
 
-@dataclass
+@dataclass(slots=True)
 class DataFrameDescription:
     """Describes what data is provided by the frame."""
-
-    __slots__ = ("frame_type", "provides")
 
     frame_type: FrameType
     provides: str

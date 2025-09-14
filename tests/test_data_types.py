@@ -51,7 +51,7 @@ def test_data_type(
     assert repr(data_type) == f"{cls.__qualname__}(value={expected})"
 
     if not isinstance(
-        data_type, (data_types.String, data_types.VarBytes, data_types.VarString)
+        data_type, data_types.String | data_types.VarBytes | data_types.VarString
     ):
         assert repr(cls()) == f"{cls.__qualname__}()"
         assert cls().__eq__(UNDEFINED) is NotImplemented

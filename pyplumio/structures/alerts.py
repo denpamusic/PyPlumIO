@@ -56,11 +56,9 @@ def seconds_to_datetime(timestamp: int) -> datetime:
     return datetime(**dict(datetime_kwargs(timestamp)))
 
 
-@dataclass
+@dataclass(slots=True)
 class Alert:
     """Represents a device alert."""
-
-    __slots__ = ("code", "from_dt", "to_dt")
 
     code: int
     from_dt: datetime

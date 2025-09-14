@@ -8,10 +8,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
-from typing import Any, Final, Literal
-
-from dataslots import dataslots
-from typing_extensions import TypeAlias
+from typing import Any, Final, Literal, TypeAlias
 
 from pyplumio.const import ATTR_CONNECTED, ATTR_SETUP, DeviceType
 from pyplumio.devices import PhysicalDevice
@@ -104,11 +101,9 @@ class DummyProtocol(Protocol):
             await self.close_writer()
 
 
-@dataclass
+@dataclass(slots=True)
 class Queues:
     """Represents asyncio queues."""
-
-    __slots__ = ("read", "write")
 
     read: asyncio.Queue[Frame]
     write: asyncio.Queue[Frame]
@@ -121,8 +116,7 @@ class Queues:
 NEVER: Final = "never"
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Statistics:
     """Represents a connection statistics.
 
@@ -177,8 +171,7 @@ class Statistics:
         self.failed_frames = 0
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class DeviceStatistics:
     """Represents a device statistics.
 

@@ -15,21 +15,17 @@ from pyplumio.utils import to_camelcase
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Signature:
     """Represents a product signature."""
-
-    __slots__ = ("id", "model")
 
     id: int
     model: str
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class CustomParameter:
     """Represents a custom parameter."""
-
-    __slots__ = ("original", "replacement")
 
     original: str
     replacement: ParameterDescription

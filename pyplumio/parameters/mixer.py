@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from functools import cache
 from typing import TYPE_CHECKING
 
-from dataslots import dataslots
-
 from pyplumio.const import (
     ATTR_DEVICE_INDEX,
     ATTR_INDEX,
@@ -59,11 +57,9 @@ class MixerParameter(Parameter):
         )
 
 
-@dataclass
+@dataclass(slots=True)
 class MixerNumberDescription(MixerParameterDescription, OffsetNumberDescription):
     """Represent a mixer number description."""
-
-    __slots__ = ()
 
 
 class MixerNumber(MixerParameter, OffsetNumber):
@@ -74,8 +70,7 @@ class MixerNumber(MixerParameter, OffsetNumber):
     description: MixerNumberDescription
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class MixerSwitchDescription(MixerParameterDescription, SwitchDescription):
     """Represents a mixer switch description."""
 

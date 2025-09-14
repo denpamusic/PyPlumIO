@@ -7,10 +7,7 @@ import asyncio
 from contextlib import suppress
 from dataclasses import asdict, dataclass
 import logging
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, Union, get_args
-
-from dataslots import dataslots
-from typing_extensions import TypeAlias
+from typing import TYPE_CHECKING, Any, Literal, TypeAlias, TypeVar, get_args
 
 from pyplumio.const import BYTE_UNDEFINED, STATE_OFF, STATE_ON, State, UnitOfMeasurement
 from pyplumio.frames import Request
@@ -47,19 +44,16 @@ def is_valid_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-@dataclass
+@dataclass(slots=True)
 class ParameterValues:
     """Represents a parameter values."""
-
-    __slots__ = ("value", "min_value", "max_value")
 
     value: int
     min_value: int
     max_value: int
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ParameterDescription:
     """Represents a parameter description."""
 
@@ -67,7 +61,7 @@ class ParameterDescription:
     optimistic: bool = False
 
 
-NumericType: TypeAlias = Union[int, float]
+NumericType: TypeAlias = int | float
 
 
 class Parameter(ABC):
@@ -128,7 +122,7 @@ class Parameter(ABC):
             handler = getattr(self.values.value, method_to_call)
             return handler(other.value)
 
-        if isinstance(other, (int, float, bool)) or other in get_args(State):
+        if isinstance(other, int | float | bool) or other in get_args(State):
             handler = getattr(self.values.value, method_to_call)
             return handler(self._pack_value(other))
         else:
@@ -317,8 +311,7 @@ class Parameter(ABC):
         """Create a request to change the parameter."""
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class NumberDescription(ParameterDescription):
     """Represents a parameter description."""
 
@@ -395,8 +388,7 @@ class Number(Parameter):
         return self.description.unit_of_measurement
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class OffsetNumberDescription(NumberDescription):
     """Represents a parameter description."""
 
@@ -419,8 +411,7 @@ class OffsetNumber(Number):
         return super()._unpack_value(value - self.description.offset)
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class SwitchDescription(ParameterDescription):
     """Represents a switch description."""
 

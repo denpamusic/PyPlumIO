@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntEnum, unique
-from typing import Any, Final, Literal
-
-from typing_extensions import TypeAlias
+from typing import Any, Final, Literal, TypeAlias
 
 # General attributes.
 ATTR_CONNECTED: Final = "connected"

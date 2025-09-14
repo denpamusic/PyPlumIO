@@ -8,8 +8,6 @@ import datetime as dt
 from functools import lru_cache, reduce
 from typing import Annotated, Any, Final, get_args
 
-from dataslots import dataslots
-
 from pyplumio.const import (
     ATTR_PARAMETER,
     ATTR_SCHEDULE,
@@ -91,8 +89,6 @@ SCHEDULES: tuple[str, ...] = (
 class ScheduleParameterDescription(ParameterDescription):
     """Represent a schedule parameter description."""
 
-    __slots__ = ()
-
 
 class ScheduleParameter(Parameter):
     """Represents a schedule parameter."""
@@ -112,8 +108,7 @@ class ScheduleParameter(Parameter):
         )
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ScheduleNumberDescription(ScheduleParameterDescription, NumberDescription):
     """Represents a schedule number description."""
 
@@ -126,8 +121,7 @@ class ScheduleNumber(ScheduleParameter, Number):
     description: ScheduleNumberDescription
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ScheduleSwitchDescription(ScheduleParameterDescription, SwitchDescription):
     """Represents a schedule switch description."""
 
@@ -273,21 +267,9 @@ class ScheduleDay(MutableMapping):
         return cls({get_time(index): state for index, state in enumerate(intervals)})
 
 
-@dataclass
+@dataclass(slots=True)
 class Schedule(Iterable):
     """Represents a weekly schedule."""
-
-    __slots__ = (
-        "name",
-        "device",
-        "sunday",
-        "monday",
-        "tuesday",
-        "wednesday",
-        "thursday",
-        "friday",
-        "saturday",
-    )
 
     name: str
     device: PhysicalDevice

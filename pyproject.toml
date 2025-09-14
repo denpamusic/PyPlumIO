@@ -7,7 +7,7 @@ authors = [
 ]
 description = "PyPlumIO is a native ecoNET library for Plum ecoMAX controllers."
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 keywords = ["home", "automation", "heating"]
 license = {text = "MIT License"}
 classifiers = [
@@ -15,18 +15,16 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries",
     "Topic :: Home Automation",
 ]
 dependencies = [
-    "dataslots==1.2.0",
-    "pyserial-asyncio==0.6",
-    "typing-extensions>=4.14.0,<5.0"
+    "pyserial-asyncio==0.6"
 ]
 dynamic = ["version"]
 
@@ -79,7 +77,7 @@ write_to = "pyplumio/_version.py"
 skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.tox,.vscode,build,docs"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 show_error_codes = true
 follow_imports = "silent"
 local_partial_types = true
@@ -137,7 +135,7 @@ exclude = [
 ]
 line-length = 88
 indent-width = 4
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -244,14 +242,13 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = lint, type, py{39,310,311,312,313}
+    envlist = lint, type, py{310,311,312,313}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
 
     [gh-actions]
     python =
-        3.9: py39
         3.10: py310
         3.11: py311
         3.12: py312

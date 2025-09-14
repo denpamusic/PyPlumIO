@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from functools import cache
 from typing import TYPE_CHECKING
 
-from dataslots import dataslots
-
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -77,8 +75,7 @@ class ThermostatParameter(Parameter):
         )
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ThermostatNumberDescription(ThermostatParameterDescription, NumberDescription):
     """Represent a thermostat number description."""
 
@@ -91,8 +88,7 @@ class ThermostatNumber(ThermostatParameter, Number):
     description: ThermostatNumberDescription
 
 
-@dataslots
-@dataclass
+@dataclass(slots=True)
 class ThermostatSwitchDescription(ThermostatParameterDescription, SwitchDescription):
     """Represents a thermostat switch description."""
 

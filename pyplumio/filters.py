@@ -15,12 +15,11 @@ from typing import (
     Final,
     Protocol,
     SupportsFloat,
+    TypeAlias,
     TypeVar,
     overload,
     runtime_checkable,
 )
-
-from typing_extensions import TypeAlias
 
 from pyplumio.helpers.event_manager import Callback
 from pyplumio.parameters import Parameter
@@ -176,7 +175,7 @@ class _Aggregate(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, (float, int, Decimal)):
+        if not isinstance(new_value, float | int | Decimal):
             raise TypeError(
                 "Aggregate filter can only be used with numeric values, got "
                 f"{type(new_value).__name__}: {new_value}"
@@ -326,7 +325,7 @@ class _Deadband(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, (float, int, Decimal)):
+        if not isinstance(new_value, float | int | Decimal):
             raise TypeError(
                 "Deadband filter can only be used with numeric values, got "
                 f"{type(new_value).__name__}: {new_value}"

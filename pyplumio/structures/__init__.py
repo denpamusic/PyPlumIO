@@ -9,11 +9,9 @@ from typing import Any
 from pyplumio.frames import Frame
 
 
-@dataclass
+@dataclass(slots=True)
 class StructureDataClass:
     """Represents a structure dataclass mixin."""
-
-    __slots__ = ("frame",)
 
     frame: Frame
 

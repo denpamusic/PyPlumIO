@@ -5,9 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping
 from functools import wraps
-from typing import TypeVar
-
-from typing_extensions import ParamSpec
+from typing import ParamSpec, TypeVar
 
 KT = TypeVar("KT")  # Key type.
 VT = TypeVar("VT")  # Value type.
