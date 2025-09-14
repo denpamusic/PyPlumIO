@@ -118,7 +118,11 @@ class Connection(ABC, TaskManager):
 
     @property
     def get(self):  # type: ignore[no-untyped-def]
-        """Access the remote device."""
+        """Access the remote device.
+
+        Raise NotImplementedError when using protocol
+        different from AsyncProtocol.
+        """
         if isinstance(self.protocol, AsyncProtocol):
             return self.protocol.get
 
@@ -126,7 +130,11 @@ class Connection(ABC, TaskManager):
 
     @property
     def get_nowait(self):  # type: ignore[no-untyped-def]
-        """Access the remote device without waiting."""
+        """Access the remote device without waiting.
+
+        Raise NotImplementedError when using protocol
+        different from AsyncProtocol.
+        """
         if isinstance(self.protocol, AsyncProtocol):
             return self.protocol.get_nowait
 
@@ -134,7 +142,11 @@ class Connection(ABC, TaskManager):
 
     @property
     def wait_for(self):  # type: ignore[no-untyped-def]
-        """Wait for the remote device to become available."""
+        """Wait for the remote device to become available.
+
+        Raise NotImplementedError when using protocol
+        different from AsyncProtocol.
+        """
         if isinstance(self.protocol, AsyncProtocol):
             return self.protocol.wait_for
 
