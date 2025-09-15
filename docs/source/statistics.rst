@@ -13,6 +13,8 @@ as well as datetime of when connection was established, when connection was lost
 number of connection loss event.
 
 .. autoclass:: pyplumio.protocol.Statistics
+    :members:
+    :exclude-members: update_transfer_statistics
 
 The `devices` property of statistics class of also contains a list of
 device statistics objects. Those statistics include time the device was initially
@@ -20,6 +22,8 @@ connected as well as time, when device was last seen (sent an :ref:`RegulatorDat
 message).
 
 .. autoclass:: pyplumio.protocol.DeviceStatistics
+    :members:
+    :exclude-members: update_last_seen
 
 Statistics Examples
 -------------------
