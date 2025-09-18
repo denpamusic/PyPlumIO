@@ -6,7 +6,7 @@ numpy<3.0.0,>=2.0.0
 pre-commit==4.3.0
 pyserial-asyncio-fast==0.16
 pytest-asyncio==1.1.0
-pytest==8.4.1
+pytest==8.4.2
 ruff==0.13.0
 tomli==2.2.1
 tox==4.28.4

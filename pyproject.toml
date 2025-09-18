@@ -40,7 +40,7 @@ test = [
     "mypy==1.18.1",
     "numpy<3.0.0,>=2.0.0",
     "pyserial-asyncio-fast==0.16",
-    "pytest==8.4.1",
+    "pytest==8.4.2",
     "pytest-asyncio==1.1.0",
     "ruff==0.13.0",
     "tox==4.28.4",
