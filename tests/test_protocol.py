@@ -109,25 +109,28 @@ async def test_dummy_protocol() -> None:
 @pytest.mark.usefixtures("frozen_time")
 def test_statistics() -> None:
     """Test statistics dataclass."""
-    statistics = Statistics()
-    statistics.update_transfer_statistics(sent=Request())
-    statistics.update_transfer_statistics(received=Response())
-    statistics.failed_frames = 1
+    statistics = Statistics(failed_frames=1)
     assert statistics.connected_since == "never"
-    assert statistics.sent_bytes == 10
-    assert statistics.sent_frames == 1
-    assert statistics.received_bytes == 10
-    assert statistics.received_frames == 1
     assert statistics.failed_frames == 1
     assert statistics.connection_losses == 0
     assert statistics.connection_loss_at == "never"
+    assert statistics.sent_bytes == 0
+    assert statistics.sent_frames == 0
+    assert statistics.received_bytes == 0
+    assert statistics.received_frames == 0
+    statistics.update_sent(Request())
+    assert statistics.sent_bytes == 10
+    assert statistics.sent_frames == 1
+    statistics.update_received(Response())
+    assert statistics.received_bytes == 10
+    assert statistics.received_frames == 1
     statistics.reset_transfer_statistics()
     assert statistics.sent_bytes == 0
     assert statistics.sent_frames == 0
     assert statistics.received_bytes == 0
     assert statistics.received_frames == 0
     assert statistics.failed_frames == 0
-    statistics.track_connection_loss()
+    statistics.update_connection_lost()
     assert statistics.connection_losses == 1
     assert statistics.connection_loss_at == datetime.now()
 

@@ -147,20 +147,18 @@ class Statistics:
     #: List of statistics for connected devices
     devices: list[DeviceStatistics] = field(default_factory=list)
 
-    def update_transfer_statistics(
-        self, sent: Frame | None = None, received: Frame | None = None
-    ) -> None:
-        """Update transfer statistics."""
-        if sent:
-            self.sent_bytes += sent.length
-            self.sent_frames += 1
+    def update_sent(self, frame: Frame) -> None:
+        """Update sent frames statistics."""
+        self.sent_bytes += frame.length
+        self.sent_frames += 1
 
-        if received:
-            self.received_bytes += received.length
-            self.received_frames += 1
+    def update_received(self, frame: Frame) -> None:
+        """Update received frames statistics."""
+        self.received_bytes += frame.length
+        self.received_frames += 1
 
-    def track_connection_loss(self) -> None:
-        """Increase connection loss counter and store the datetime."""
+    def update_connection_lost(self) -> None:
+        """Update connection lost counter."""
         self.connection_losses += 1
         self.connection_loss_at = datetime.now()
 
@@ -277,30 +275,39 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             await self._connection_close()
             await asyncio.gather(*(device.shutdown() for device in self.data.values()))
 
+    async def _write_from_queue(
+        self, writer: FrameWriter, queue: asyncio.Queue[Frame]
+    ) -> None:
+        """Send frame from the queue to the remote device."""
+        frame = await queue.get()
+        await writer.write(frame)
+        queue.task_done()
+        self.statistics.update_sent(frame)
+
+    async def _read_into_queue(
+        self, reader: FrameReader, queue: asyncio.Queue[Frame]
+    ) -> None:
+        """Read frame from the remote device into the queue."""
+        if frame := await reader.read():
+            queue.put_nowait(frame)
+            self.statistics.update_received(frame)
+
     async def frame_producer(
         self, queues: Queues, reader: FrameReader, writer: FrameWriter
     ) -> None:
         """Handle frame reads and writes."""
-        statistics = self.statistics
         await self.connected.wait()
         while self.connected.is_set():
             try:
-                request = None
                 if not queues.write.empty():
-                    request = await queues.write.get()
-                    await writer.write(request)
-                    queues.write.task_done()
+                    await self._write_from_queue(writer, queues.write)
 
-                if response := await reader.read():
-                    queues.read.put_nowait(response)
-
-                statistics.update_transfer_statistics(request, response)
-
+                await self._read_into_queue(reader, queues.read)
             except ProtocolError as e:
-                statistics.failed_frames += 1
+                self.statistics.failed_frames += 1
                 _LOGGER.debug("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
-                statistics.track_connection_loss()
+                self.statistics.update_connection_lost()
                 self.create_task(self.connection_lost())
                 break
             except Exception:
