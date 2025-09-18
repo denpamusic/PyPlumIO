@@ -241,10 +241,10 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             self.frame_producer(self._queues, reader=self.reader, writer=self.writer),
             name="frame_producer_task",
         )
-        for consumer in range(self.consumers_count):
+        for consumer_id in range(self.consumers_count):
             self.create_task(
                 self.frame_consumer(self._queues.read),
-                name=f"frame_consumer_task ({consumer})",
+                name=f"frame_consumer_task ({consumer_id})",
             )
 
         for device in self.data.values():
