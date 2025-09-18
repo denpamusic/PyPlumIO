@@ -379,7 +379,7 @@ async def test_async_protocol_frame_producer(
         "failed_frames": 5,
         "connection_losses": 1,
         "connection_loss_at": datetime.now(),
-        "devices": [],
+        "devices": set(),
     }
 
 
@@ -460,8 +460,8 @@ async def test_async_protocol_frame_consumer(
     frozen_time.tick(timedelta(seconds=10))
     ecomax = cast(EcoMAX, async_protocol.get_nowait("ecomax"))
     await ecomax.dispatch(ATTR_REGDATA, True)
-    assert asdict(async_protocol.statistics.devices[0]) == {
-        "name": "ecomax",
+    assert asdict(async_protocol.statistics.devices.pop()) == {
+        "address": DeviceType.ECOMAX,
         "connected_since": connected_since,
         "last_seen": datetime.now(),
     }

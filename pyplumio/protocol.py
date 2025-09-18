@@ -145,7 +145,7 @@ class Statistics:
     connection_losses: int = 0
 
     #: List of statistics for connected devices
-    devices: list[DeviceStatistics] = field(default_factory=list)
+    devices: set[DeviceStatistics] = field(default_factory=set)
 
     def update_sent(self, frame: Frame) -> None:
         """Update sent frames statistics."""
@@ -162,6 +162,15 @@ class Statistics:
         self.connection_losses += 1
         self.connection_loss_at = datetime.now()
 
+    def update_devices(self, device: PhysicalDevice) -> None:
+        """Update connected devices."""
+        now_dt = datetime.now()
+        device_statistics = DeviceStatistics(
+            address=device.address, connected_since=now_dt, last_seen=now_dt
+        )
+        device.subscribe(ATTR_REGDATA, device_statistics.update_last_seen)
+        self.devices.add(device_statistics)
+
     def reset_transfer_statistics(self) -> None:
         """Reset transfer statistics."""
         self.sent_bytes = 0
@@ -175,14 +184,18 @@ class Statistics:
 class DeviceStatistics:
     """Represents a device statistics."""
 
-    #: Device name
-    name: str
+    #: Device address
+    address: int
 
     #: Datetime object representing connection time
     connected_since: datetime | Literal["never"] = NEVER
 
     #: Datetime object representing time when device was last seen
     last_seen: datetime | Literal["never"] = NEVER
+
+    def __hash__(self) -> int:
+        """Return a hash of the statistics based on unique address."""
+        return self.address
 
     async def update_last_seen(self, _: Any) -> None:
         """Update last seen property."""
@@ -334,14 +347,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 device.dispatch_nowait(ATTR_CONNECTED, True)
                 device.dispatch_nowait(ATTR_SETUP, True)
                 await self.dispatch(name, device)
-                self.statistics.devices.append(
-                    device_statistics := DeviceStatistics(
-                        name=name,
-                        connected_since=datetime.now(),
-                        last_seen=datetime.now(),
-                    )
-                )
-                device.subscribe(ATTR_REGDATA, device_statistics.update_last_seen)
+                self.statistics.update_devices(device)
 
         return self.data[name]
 
