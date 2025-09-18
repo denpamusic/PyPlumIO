@@ -117,42 +117,6 @@ class Connection(ABC, TaskManager):
         yield await self.protocol.get(name, timeout=timeout)
 
     @property
-    def get(self):  # type: ignore[no-untyped-def]
-        """Access the remote device.
-
-        Raise NotImplementedError when using protocol
-        different from AsyncProtocol.
-        """
-        if isinstance(self.protocol, AsyncProtocol):
-            return self.protocol.get
-
-        raise NotImplementedError
-
-    @property
-    def get_nowait(self):  # type: ignore[no-untyped-def]
-        """Access the remote device without waiting.
-
-        Raise NotImplementedError when using protocol
-        different from AsyncProtocol.
-        """
-        if isinstance(self.protocol, AsyncProtocol):
-            return self.protocol.get_nowait
-
-        raise NotImplementedError
-
-    @property
-    def wait_for(self):  # type: ignore[no-untyped-def]
-        """Wait for the remote device to become available.
-
-        Raise NotImplementedError when using protocol
-        different from AsyncProtocol.
-        """
-        if isinstance(self.protocol, AsyncProtocol):
-            return self.protocol.wait_for
-
-        raise NotImplementedError
-
-    @property
     def protocol(self) -> Protocol:
         """Return the protocol object."""
         return self._protocol

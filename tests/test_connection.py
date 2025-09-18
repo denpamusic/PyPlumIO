@@ -189,21 +189,6 @@ class TestConnection:
         mock_protocol.some_method = Mock(return_value="called")
         assert connection.some_method() == "called"
 
-    @pytest.mark.parametrize("func", ("get", "get_nowait", "wait_for"))
-    async def test_protocol_proxy_calls(self, func: str) -> None:
-        """Test calls proxied to protocol instance."""
-        mock_protocol = AsyncMock(spec=AsyncProtocol, autospec=True)
-        connection = DummyConnection(protocol=mock_protocol)
-        connection_func = getattr(connection, func)
-        protocol_func = getattr(mock_protocol, func)
-        assert connection_func is protocol_func
-
-        # Test with error.
-        mock_protocol = AsyncMock(spec=DummyProtocol, autospec=True)
-        connection = DummyConnection(protocol=mock_protocol)
-        with pytest.raises(NotImplementedError):
-            getattr(connection, func)
-
 
 HOST: Final = "localhost"
 PORT: Final = 8899
