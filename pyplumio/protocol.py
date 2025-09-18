@@ -159,6 +159,11 @@ class Statistics:
             self.received_bytes += received.length
             self.received_frames += 1
 
+    def track_connection_loss(self) -> None:
+        """Increase connection loss counter and store the datetime."""
+        self.connection_losses += 1
+        self.connection_loss_at = datetime.now()
+
     def reset_transfer_statistics(self) -> None:
         """Reset transfer statistics."""
         self.sent_bytes = 0
@@ -295,8 +300,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 statistics.failed_frames += 1
                 _LOGGER.debug("Can't process received frame: %s", e)
             except (OSError, asyncio.TimeoutError):
-                statistics.connection_losses += 1
-                statistics.connection_loss_at = datetime.now()
+                statistics.track_connection_loss()
                 self.create_task(self.connection_lost())
                 break
             except Exception:
