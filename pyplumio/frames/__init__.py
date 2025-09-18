@@ -93,6 +93,8 @@ class Frame(ABC):
     _message: bytearray | None
     _data: dict[str, Any] | None
 
+    __hash__ = object.__hash__
+
     def __init__(
         self,
         recipient: DeviceType = DeviceType.ALL,
@@ -111,19 +113,6 @@ class Frame(ABC):
         self._handler = None
         self._data = data if not kwargs else ensure_dict(data, kwargs)
         self._message = message
-
-    def __hash__(self) -> int:
-        """Return a hash of the frame based on its values."""
-        return hash(
-            (
-                self.recipient,
-                self.sender,
-                self.econet_type,
-                self.econet_version,
-                self._message,
-                frozenset(self._data.items()) if self._data else None,
-            )
-        )
 
     def __eq__(self, other: object) -> bool:
         """Compare if this frame is equal to other."""

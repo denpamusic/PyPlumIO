@@ -170,7 +170,7 @@ class TestConnection:
         connection = DummyConnection(protocol=mock_protocol)
         with pytest.raises(NotImplementedError):
             async with connection.device("ecomax"):
-                ...
+                pytest.fail("Entered context manager without AsyncProtocol")
 
     @patch.object(DummyConnection, "_connect")
     async def test_connection_lost(self, mock_connect, mock_protocol) -> None:
