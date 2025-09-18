@@ -280,7 +280,7 @@ class TestParameter:
         Checks setting a parameter with and without waiting.
         """
         if nowait:
-            parameter.set_nowait(4)
+            parameter.set_nowait(4, timeout=0)
             await parameter.device.wait_until_done()
         else:
             mock_update_pending = AsyncMock(spec=asyncio.Event)
@@ -290,7 +290,7 @@ class TestParameter:
                 patch.object(DummyParameter, "update_pending", mock_update_pending),
                 patch.object(DummyParameter, "update_done", mock_update_done),
             ):
-                result = await parameter.set(4)
+                result = await parameter.set(4, timeout=0)
 
             assert result is True
             mock_update_done.clear.assert_called_once()
