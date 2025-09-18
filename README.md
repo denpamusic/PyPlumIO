@@ -32,7 +32,6 @@ through network by using RS-485 to Ethernet/WiFi converter.
 - [Callbacks](https://pyplumio.denpa.pro/callbacks.html)
 - [Mixers/Thermostats](https://pyplumio.denpa.pro/mixers_thermostats.html)
 - [Schedules](https://pyplumio.denpa.pro/schedules.html)
-- [Statistics](https://pyplumio.denpa.pro/statistics.html)
 - [Protocol](https://pyplumio.denpa.pro/protocol.html)
   - [Frame Structure](https://pyplumio.denpa.pro/protocol.html#frame-structure)
   - [Requests and Responses](https://pyplumio.denpa.pro/protocol.html#requests-and-responses)
