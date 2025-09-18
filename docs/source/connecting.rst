@@ -155,7 +155,7 @@ number of connection loss event.
 
 .. autoclass:: pyplumio.protocol.Statistics
     :members:
-    :exclude-members: update_transfer_statistics, track_connection_loss, reset_transfer_statistics
+    :exclude-members: update_sent, update_received, update_connection_lost, update_devices, reset_transfer_statistics
 
 The `devices` property of statistics class of also contains a list of
 device statistics objects. Those statistics include time the device was initially
@@ -164,7 +164,7 @@ message).
 
 .. autoclass:: pyplumio.protocol.DeviceStatistics
     :members:
-    :exclude-members: update_last_seen
+    :exclude-members: __hash__, update_last_seen
 
 In the following example we'll print connection statistics after establishing a
 connection.
