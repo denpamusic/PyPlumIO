@@ -164,10 +164,7 @@ class Statistics:
 
     def update_devices(self, device: PhysicalDevice) -> None:
         """Update connected devices."""
-        now_dt = datetime.now()
-        device_statistics = DeviceStatistics(
-            address=device.address, connected_since=now_dt, last_seen=now_dt
-        )
+        device_statistics = DeviceStatistics(address=device.address)
         device.subscribe(ATTR_REGDATA, device_statistics.update_last_seen)
         self.devices.add(device_statistics)
 
@@ -188,10 +185,10 @@ class DeviceStatistics:
     address: int
 
     #: Datetime object representing connection time
-    connected_since: datetime | Literal["never"] = NEVER
+    connected_since: datetime = field(default_factory=datetime.now)
 
     #: Datetime object representing time when device was last seen
-    last_seen: datetime | Literal["never"] = NEVER
+    last_seen: datetime = field(default_factory=datetime.now)
 
     def __hash__(self) -> int:
         """Return a hash of the statistics based on unique address."""
