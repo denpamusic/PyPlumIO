@@ -173,7 +173,7 @@ class Statistics:
         self.failed_frames = 0
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class DeviceStatistics:
     """Represents a device statistics."""
 
