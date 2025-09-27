@@ -105,8 +105,8 @@ class DummyProtocol(Protocol):
 class Queues:
     """Represents asyncio queues."""
 
-    read: asyncio.Queue[Frame]
-    write: asyncio.Queue[Frame]
+    read: asyncio.Queue[Frame] = field(default_factory=asyncio.Queue)
+    write: asyncio.Queue[Frame] = field(default_factory=asyncio.Queue)
 
     async def join(self) -> None:
         """Wait for queues to finish."""
@@ -234,9 +234,9 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             eth=ethernet_parameters or EthernetParameters(status=False),
             wlan=wireless_parameters or WirelessParameters(status=False),
         )
-        self._queues = Queues(read=asyncio.Queue(), write=asyncio.Queue())
         self._entry_lock = asyncio.Lock()
         self._statistics = Statistics()
+        self._queues = Queues()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
