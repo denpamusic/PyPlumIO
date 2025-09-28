@@ -456,8 +456,10 @@ async def test_async_protocol_frame_consumer(
     assert mock_read_queue.task_done.call_count == 2
 
     # Test statistics.
-    frozen_time.tick(timedelta(seconds=10))
+    device_statistics = async_protocol.statistics.devices.pop()
     ecomax = cast(EcoMAX, async_protocol.get_nowait("ecomax"))
     await ecomax.dispatch(ATTR_REGDATA, True)
-    device_statistics = async_protocol.statistics.devices.pop()
-    assert device_statistics.address == DeviceType.ECOMAX
+    assert device_statistics.last_seen == datetime.now()
+    frozen_time.tick(timedelta(seconds=10))
+    await ecomax.dispatch(ATTR_REGDATA, True)
+    assert device_statistics.last_seen == datetime.now()
