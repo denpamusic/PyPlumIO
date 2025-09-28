@@ -185,7 +185,7 @@ class DeviceStatistics:
     address: int
 
     #: Datetime object representing connection time
-    connected_since: datetime = field(default_factory=datetime.now)
+    first_seen: datetime = field(default_factory=datetime.now)
 
     #: Datetime object representing time when device was last seen
     last_seen: datetime = field(default_factory=datetime.now)
