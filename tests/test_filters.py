@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from importlib import reload
 import logging
 import sys
+from typing import Literal
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -13,6 +14,7 @@ from pyplumio import filters
 import pyplumio.filters
 from pyplumio.parameters import Parameter, ParameterValues
 from pyplumio.structures.alerts import Alert
+from tests.conftest import RAISES
 
 
 @pytest.fixture(name="use_numpy", params=(True, False))
@@ -39,15 +41,40 @@ def fixture_use_numpy(request, monkeypatch, caplog):
         (1, 10),
         (50, 15),
         (11, 11),
+        ("banana", RAISES),
     ],
 )
-async def test_clamp(input_value, expected) -> None:
+async def test_clamp(input_value: int, expected: int | Literal["raises"]) -> None:
     """Test the clamp filter."""
     test_callback = AsyncMock()
     wrapped_callback = filters.clamp(test_callback, min_value=10, max_value=15)
     assert hash(wrapped_callback) == hash(test_callback)
-    await wrapped_callback(input_value)
-    test_callback.assert_awaited_once_with(expected)
+
+    if expected != RAISES:
+        await wrapped_callback(input_value)
+        test_callback.assert_awaited_once_with(expected)
+    else:
+        # Test with non-numeric value.
+        with pytest.raises(
+            TypeError, match="filter can only be used with numeric values"
+        ):
+            await wrapped_callback(input_value)
+
+
+async def test_clamp_ignore_out_of_range() -> None:
+    """Test the clamp filter with ignore_out_of_range."""
+    test_callback = AsyncMock()
+    wrapped_callback = filters.clamp(
+        test_callback, min_value=10, max_value=15, ignore_out_of_range=True
+    )
+    await wrapped_callback(1)
+    test_callback.assert_not_awaited()
+
+    await wrapped_callback(50)
+    test_callback.assert_not_awaited()
+
+    await wrapped_callback(11)
+    test_callback.assert_awaited_once_with(11)
 
 
 async def test_deadband() -> None:

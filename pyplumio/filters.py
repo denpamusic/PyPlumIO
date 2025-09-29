@@ -151,6 +151,9 @@ class Filter(ABC):
         """Set a new value for the callback."""
 
 
+Numeric: TypeAlias = float | int | Decimal
+
+
 class _Aggregate(Filter):
     """Represents an aggregate filter.
 
@@ -160,7 +163,7 @@ class _Aggregate(Filter):
 
     __slots__ = ("_values", "_sample_size", "_timeout", "_last_call_time")
 
-    _values: list[float | int | Decimal]
+    _values: list[Numeric]
     _sample_size: int
     _timeout: float
     _last_call_time: float
@@ -175,7 +178,7 @@ class _Aggregate(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, float | int | Decimal):
+        if not isinstance(new_value, Numeric):
             raise TypeError(
                 "Aggregate filter can only be used with numeric values, got "
                 f"{type(new_value).__name__}: {new_value}"
@@ -222,19 +225,39 @@ class _Clamp(Filter):
     Calls callback with a value clamped between specified boundaries.
     """
 
-    __slots__ = ("_min_value", "_max_value")
+    __slots__ = ("_min_value", "_max_value", "_ignore_out_of_range")
 
     _min_value: float
     _max_value: float
+    _ignore_out_of_range: bool
 
-    def __init__(self, callback: Callback, min_value: float, max_value: float) -> None:
+    def __init__(
+        self,
+        callback: Callback,
+        /,
+        min_value: float,
+        max_value: float,
+        ignore_out_of_range: bool = False,
+    ) -> None:
         """Initialize a new Clamp filter."""
         super().__init__(callback)
         self._min_value = min_value
         self._max_value = max_value
+        self._ignore_out_of_range = ignore_out_of_range
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
+        if not isinstance(new_value, Numeric):
+            raise TypeError(
+                "Clamp filter can only be used with numeric values, got "
+                f"{type(new_value).__name__}: {new_value}"
+            )
+
+        if self._ignore_out_of_range and (
+            new_value < self._min_value or new_value > self._max_value
+        ):
+            return
+
         if new_value < self._min_value:
             return await self._callback(self._min_value)
 
@@ -244,7 +267,13 @@ class _Clamp(Filter):
         return await self._callback(new_value)
 
 
-def clamp(callback: Callback, min_value: float, max_value: float) -> _Clamp:
+def clamp(
+    callback: Callback,
+    min_value: float,
+    max_value: float,
+    *,
+    ignore_out_of_range: bool = False,
+) -> _Clamp:
     """Create a new clamp filter.
 
     A callback function will be called and passed value clamped
@@ -256,10 +285,15 @@ def clamp(callback: Callback, min_value: float, max_value: float) -> _Clamp:
     :type min_value: float
     :param max_value: An upper boundary
     :type max_value: float
+    :param ignore_out_of_range: If `True`, values outside of
+        specified boundaries will be ignored, defaults to `False`
+    :type ignore_out_of_range: bool, optional
     :return: An instance of callable filter
     :rtype: _Clamp
     """
-    return _Clamp(callback, min_value, max_value)
+    return _Clamp(
+        callback, min_value, max_value, ignore_out_of_range=ignore_out_of_range
+    )
 
 
 _FilterT: TypeAlias = Callable[[Any], bool]
@@ -325,7 +359,7 @@ class _Deadband(Filter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, float | int | Decimal):
+        if not isinstance(new_value, Numeric):
             raise TypeError(
                 "Deadband filter can only be used with numeric values, got "
                 f"{type(new_value).__name__}: {new_value}"

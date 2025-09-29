@@ -63,6 +63,18 @@ It can be used to filter out outliers and corrupted data.
     # Await the callback with value clamped between 0 and 100.
     ecomax.subscribe("load", filters.clamp(my_callback, min_value=0, max_value=100))
 
+    # Await the callback with value clamped between 0 and 100 and
+    # do not call the callback if value is out of range.
+    ecomax.subscribe(
+        "load",
+        filters.clamp(
+            my_callback2,
+            min_value=0,
+            max_value=100,
+            ignore_out_of_range=False
+        )
+    )
+
 .. autofunction:: pyplumio.filters.on_change
 
 Normally callbacks are awaited each time the PyPlumIO receives data
