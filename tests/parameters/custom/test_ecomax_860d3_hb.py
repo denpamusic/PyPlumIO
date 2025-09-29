@@ -60,13 +60,16 @@ async def test_custom_parameters(
 
     Thanks @KryspianClash for testdata.
     """
-    ecomax.data[ATTR_PRODUCT] = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=48,
-        uid="*TEST*",
-        logo=48,
-        image=2,
-        model="ecoMAX 860D3-HB",
+    await ecomax.dispatch(
+        ATTR_PRODUCT,
+        ProductInfo(
+            type=ProductType.ECOMAX_P,
+            id=48,
+            uid="*TEST*",
+            logo=48,
+            image=2,
+            model="ecoMAX 860D3-HB",
+        ),
     )
     ecomax.handle_frame(ecomax_860d3_hb)
     await ecomax.wait_until_done()

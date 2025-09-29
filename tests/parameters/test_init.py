@@ -426,7 +426,7 @@ class TestParameter:
         assert parameter.values == parameter_values
         mock_create_request.assert_awaited_once()
 
-    def test_create_or_update_parameter(self, ecomax: EcoMAX) -> None:
+    async def test_create_or_update_parameter(self, ecomax: EcoMAX) -> None:
         """Test create_or_update.
 
         Checks creating or updating a parameter.
@@ -442,7 +442,7 @@ class TestParameter:
         assert isinstance(parameter, DummyParameter)
 
         # Test updating an existing parameter.
-        ecomax.data[description.name] = parameter
+        await ecomax.dispatch(description.name, parameter)
         with patch("pyplumio.parameters.Parameter.update") as mock_update:
             DummyParameter.create_or_update(
                 device=ecomax, description=description, values=values

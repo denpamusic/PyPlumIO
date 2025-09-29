@@ -134,7 +134,6 @@ async def test_frame_versions_tracker(
 
     # Test with frame type that are handled during setup.
     sensor_data.data = _frame_version_data(frame_type, 1)
-    ecomax.data.clear()
     ecomax.handle_frame(sensor_data)
     await ecomax.wait_until_done()
     mock_put_nowait.assert_not_called()
@@ -142,10 +141,10 @@ async def test_frame_versions_tracker(
     # Test with same frame type after setup done.
     mock_put_nowait.reset_mock()
     sensor_data.data = _frame_version_data(frame_type, 2)
-    ecomax.data.clear()
-    ecomax.data[ATTR_SETUP] = True
-    ecomax.handle_frame(sensor_data)
-    await ecomax.wait_until_done()
+    with patch.object(EcoMAX, "data", {ATTR_SETUP: True}):
+        ecomax.handle_frame(sensor_data)
+        await ecomax.wait_until_done()
+
     mock_put_nowait.assert_called_once_with(frame_request)
 
 
@@ -156,9 +155,9 @@ async def test_ecomax_control(state: State, ecomax: EcoMAX, caplog) -> None:
     await coro()
     assert "control is not available" in caplog.text
     switch = AsyncMock(spec=EcomaxSwitch)
-    ecomax.data[ATTR_ECOMAX_CONTROL] = switch
+    await ecomax.dispatch(ATTR_ECOMAX_CONTROL, switch)
     await coro()
-    switch.set.assert_awaited_once_with(state)
+    switch.set.assert_awaited_once_with(state, retries=0)
 
 
 @pytest.mark.parametrize("state", [STATE_ON, STATE_OFF])
@@ -438,7 +437,7 @@ async def test_thermostat_parameters_event_listener(
     ecomax: EcoMAX, thermostat_parameters: ThermostatParametersResponse
 ) -> None:
     """Test event listener for thermostat parameters."""
-    ecomax.data[ATTR_THERMOSTATS_AVAILABLE] = 3
+    await ecomax.dispatch(ATTR_THERMOSTATS_AVAILABLE, 3)
     ecomax.handle_frame(thermostat_parameters)
     await ecomax.wait_until_done()
     thermostats = cast(dict[int, Thermostat], ecomax.get_nowait(ATTR_THERMOSTATS))
@@ -458,7 +457,7 @@ async def test_thermostat_parameters_event_listener_without_thermostats(
     ecomax: EcoMAX, thermostat_parameters: ThermostatParametersResponse
 ) -> None:
     """Test event listener for thermostat parameters without any thermostats."""
-    ecomax.data[ATTR_THERMOSTATS_AVAILABLE] = 0
+    await ecomax.dispatch(ATTR_THERMOSTATS_AVAILABLE, 0)
     ecomax.handle_frame(thermostat_parameters)
     await ecomax.wait_until_done()
     assert ecomax.get_nowait(ATTR_THERMOSTAT_PARAMETERS, UNDEFINED) is False
@@ -473,7 +472,7 @@ async def test_thermostat_profile_event_listener(
     ecomax: EcoMAX, thermostat_parameters: ThermostatParametersResponse
 ) -> None:
     """Test event listener for thermostat profile."""
-    ecomax.data[ATTR_THERMOSTATS_AVAILABLE] = 3
+    await ecomax.dispatch(ATTR_THERMOSTATS_AVAILABLE, 3)
     ecomax.handle_frame(thermostat_parameters)
     await ecomax.wait_until_done()
     thermostat_profile = ecomax.get_nowait(ATTR_THERMOSTAT_PROFILE)

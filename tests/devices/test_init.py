@@ -143,7 +143,7 @@ class TestPhysicalDevice:
     async def test_supports_frame_type(self, physical_device: PhysicalDevice) -> None:
         """Test frame support checker."""
         assert physical_device.supports_frame_type(FrameType.REQUEST_ALERTS) is True
-        physical_device.data = {ATTR_FRAME_ERRORS: [FrameType.REQUEST_ALERTS]}
+        await physical_device.dispatch(ATTR_FRAME_ERRORS, [FrameType.REQUEST_ALERTS])
         assert physical_device.supports_frame_type(FrameType.REQUEST_ALERTS) is False
 
     @patch("pyplumio.frames.Frame.assign_to")

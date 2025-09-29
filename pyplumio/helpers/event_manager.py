@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
 import inspect
+from types import MappingProxyType
 from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
@@ -55,16 +56,16 @@ T = TypeVar("T")
 class EventManager(TaskManager, Generic[T]):
     """Represents an event manager."""
 
-    __slots__ = ("data", "_events", "_callbacks")
+    __slots__ = ("_data", "_events", "_callbacks")
 
-    data: dict[str, T]
+    _data: dict[str, T]
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[Callback]]
 
     def __init__(self) -> None:
         """Initialize a new event manager."""
         super().__init__()
-        self.data = {}
+        self._data = {}
         self._events = {}
         self._callbacks = {}
         self._register_event_listeners()
@@ -204,7 +205,7 @@ class EventManager(TaskManager, Generic[T]):
                 if (result := await callback(value)) is not None:
                     value = result
 
-        self.data[name] = value
+        self._data[name] = value
         self.set_event(name)
 
     def dispatch_nowait(self, name: str, value: T) -> None:
@@ -239,6 +240,11 @@ class EventManager(TaskManager, Generic[T]):
     def events(self) -> dict[str, asyncio.Event]:
         """Return the events."""
         return self._events
+
+    @property
+    def data(self) -> MappingProxyType[str, T]:
+        """Return the event data."""
+        return MappingProxyType(self._data)
 
 
 __all__ = ["Callback", "EventManager", "event_listener"]

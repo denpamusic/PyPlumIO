@@ -10,10 +10,10 @@ from pyplumio.helpers.event_manager import EventManager, event_listener
 
 
 @pytest.fixture(name="event_manager")
-def fixture_event_manager() -> EventManager:
+async def fixture_event_manager() -> EventManager:
     """Return an event manager object."""
     event_manager = EventManager[Any]()
-    event_manager.data = {"test_key": "test_value"}
+    await event_manager.dispatch("test_key", "test_value")
     return event_manager
 
 

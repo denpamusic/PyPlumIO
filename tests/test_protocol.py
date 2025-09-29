@@ -139,7 +139,7 @@ def test_statistics() -> None:
 @patch("pyplumio.protocol.AsyncProtocol.frame_consumer", new_callable=Mock)
 @patch("pyplumio.protocol.AsyncProtocol.frame_producer", new_callable=Mock)
 @pytest.mark.usefixtures("frozen_time")
-def test_async_protocol_connection_established(
+async def test_async_protocol_connection_established(
     mock_frame_producer, mock_frame_consumer, mock_create_task
 ) -> None:
     """Test establishing connection with an async protocol."""
@@ -155,7 +155,7 @@ def test_async_protocol_connection_established(
 
     # Create ecoMAX device mock and add it to the protocol.
     mock_ecomax = Mock(spec=EcoMAX, new_callable=Mock)
-    async_protocol.data = {"ecomax": mock_ecomax}
+    await async_protocol.dispatch("ecomax", mock_ecomax)
 
     # Test connection established.
     with (
@@ -202,7 +202,7 @@ async def test_async_protocol_connection_lost() -> None:
     mock_ecomax = Mock(spec=EcoMAX, new_callable=AsyncMock)
     mock_writer = AsyncMock(spec=FrameWriter)
     async_protocol.writer = mock_writer
-    async_protocol.data = {"ecomax": mock_ecomax}
+    await async_protocol.dispatch("ecomax", mock_ecomax)
 
     # Ensure that on connection lost callback not awaited, when
     # connection is not established.
@@ -229,6 +229,11 @@ async def test_async_protocol_connection_lost() -> None:
 @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
 @patch("pyplumio.devices.ecomax.EcoMAX.shutdown", new_callable=Mock)
 @patch("pyplumio.helpers.event_manager.EventManager.dispatch", new_callable=Mock)
+@patch.object(
+    AsyncProtocol,
+    "data",
+    {"ecomax": EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())},
+)
 @pytest.mark.usefixtures("skip_asyncio_events")
 async def test_async_protocol_shutdown(
     mock_dispatch,
@@ -245,7 +250,6 @@ async def test_async_protocol_shutdown(
     mock_writer = AsyncMock(spec=FrameWriter)
     mock_writer.close = AsyncMock()
     async_protocol.writer = mock_writer
-    async_protocol.data["ecomax"] = EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())
 
     mock_frame_consumer_task = Mock(spec=asyncio.Task)
     mock_frame_producer_task = Mock(spec=asyncio.Task)

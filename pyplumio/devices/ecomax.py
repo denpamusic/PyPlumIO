@@ -171,7 +171,7 @@ class EcoMAX(PhysicalDevice):
         For each index, return or create an instance of the mixer class.
         Once done, dispatch the 'mixers' event without waiting.
         """
-        mixers: dict[int, Mixer] = self.data.setdefault(ATTR_MIXERS, {})
+        mixers: dict[int, Mixer] = self._data.setdefault(ATTR_MIXERS, {})
         for index in indexes:
             yield mixers.setdefault(index, Mixer(self.queue, parent=self, index=index))
 
@@ -184,7 +184,7 @@ class EcoMAX(PhysicalDevice):
         class. Once done, dispatch the 'thermostats' event without
         waiting.
         """
-        thermostats: dict[int, Thermostat] = self.data.setdefault(ATTR_THERMOSTATS, {})
+        thermostats: dict[int, Thermostat] = self._data.setdefault(ATTR_THERMOSTATS, {})
         for index in indexes:
             yield thermostats.setdefault(
                 index, Thermostat(self.queue, parent=self, index=index)
@@ -203,9 +203,8 @@ class EcoMAX(PhysicalDevice):
     async def _set_ecomax_state(self, state: State) -> bool:
         """Try to set the ecoMAX control state."""
         try:
-            switch: EcomaxSwitch = self.data[ATTR_ECOMAX_CONTROL]
-            return await switch.set(state)
-        except KeyError:
+            return await self.set(ATTR_ECOMAX_CONTROL, state, timeout=0.0)
+        except asyncio.TimeoutError:
             _LOGGER.error("ecoMAX control is not available. Please try again later.")
 
         return False

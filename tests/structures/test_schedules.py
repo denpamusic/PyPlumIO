@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 import datetime as dt
 from typing import Literal, cast
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -19,7 +18,6 @@ from pyplumio.const import (
     FrameType,
     State,
 )
-from pyplumio.devices import DeviceType, PhysicalDevice
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
@@ -37,23 +35,6 @@ from pyplumio.structures.schedules import (
     get_time_range,
 )
 from tests.conftest import RAISES
-
-
-def test_collect_schedule_data(ecomax: EcoMAX) -> None:
-    """Test collecting schedule data."""
-    schedule_name = "heating"
-    ecomax.data |= {
-        f"{schedule_name}_{ATTR_SCHEDULE_SWITCH}": 1,
-        f"{schedule_name}_{ATTR_SCHEDULE_PARAMETER}": 2,
-        ATTR_SCHEDULES: {schedule_name: {"test": 1}},
-    }
-    data = collect_schedule_data(schedule_name, ecomax)
-    assert data == {
-        "parameter": 2,
-        "schedule": {"test": 1},
-        "switch": 1,
-        "type": "heating",
-    }
 
 
 @pytest.mark.parametrize(
@@ -203,11 +184,11 @@ class TestScheduleDay:
 
 
 @pytest.fixture(name="schedule")
-def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
+def fixture_schedule(schedule_day: ScheduleDay, ecomax: EcoMAX) -> Schedule:
     """Return a schedule object."""
     return Schedule(
-        name="test",
-        device=Mock(spec=PhysicalDevice, autospec=True),
+        name="heating",
+        device=ecomax,
         monday=ScheduleDay.from_iterable([True for _ in range(48)]),
         tuesday=schedule_day,
         wednesday=schedule_day,
@@ -216,6 +197,30 @@ def fixture_schedule(schedule_day: ScheduleDay) -> Schedule:
         saturday=schedule_day,
         sunday=schedule_day,
     )
+
+
+@pytest.fixture(name="ecomax_with_schedule")
+async def fixture_ecomax_with_schedule(ecomax: EcoMAX, schedule: Schedule) -> EcoMAX:
+    """Return an ecoMAX object with a schedule."""
+    schedule_values = [schedule_day.schedule.values() for schedule_day in schedule]
+    ecomax.dispatch_nowait(f"{schedule.name}_{ATTR_SCHEDULE_SWITCH}", 1)
+    ecomax.dispatch_nowait(f"{schedule.name}_{ATTR_SCHEDULE_PARAMETER}", 2)
+    ecomax.dispatch_nowait(ATTR_SCHEDULES, ((0, schedule_values),))
+    await ecomax.wait_until_done()
+    return ecomax
+
+
+async def test_collect_schedule_data(
+    ecomax_with_schedule: EcoMAX, schedule: Schedule
+) -> None:
+    """Test collecting schedule data."""
+    data = collect_schedule_data("heating", ecomax_with_schedule)
+    assert data == {
+        "type": "heating",
+        "switch": 1,
+        "parameter": 2,
+        "schedule": schedule,
+    }
 
 
 class TestSchedule:
@@ -253,23 +258,16 @@ class TestSchedule:
         assert iterated_days == expected_days
 
     @patch("pyplumio.structures.schedules.Request.create")
-    async def test_commit(self, mock_request_create, schedule: Schedule) -> None:
+    async def test_commit(
+        self, mock_request_create, ecomax_with_schedule: EcoMAX, schedule: Schedule
+    ) -> None:
         """Test committing a schedule."""
-        mock_device = Mock(spec=PhysicalDevice, autospec=True)
-        mock_device.address = DeviceType.ECOMAX
-        mock_device.data = {
-            f"test_{ATTR_SCHEDULE_SWITCH}": 1,
-            f"test_{ATTR_SCHEDULE_PARAMETER}": 2,
-            ATTR_SCHEDULES: {"test": schedule},
-        }
-        mock_device.queue = Mock(spec=asyncio.Queue, autospec=True)
-        schedule.device = mock_device
         await schedule.commit()
         mock_request_create.assert_awaited_once_with(
             FrameType.REQUEST_SET_SCHEDULE,
-            recipient=mock_device.address,
+            recipient=ecomax_with_schedule.address,
             data={
-                ATTR_TYPE: "test",
+                ATTR_TYPE: "heating",
                 ATTR_SWITCH: 1,
                 ATTR_PARAMETER: 2,
                 ATTR_SCHEDULE: schedule,
