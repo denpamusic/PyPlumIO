@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from pyplumio._version import __version__, __version_tuple__
+from pyplumio._version import __version__, __version_tuple__, version, version_tuple
 from pyplumio.connection import SerialConnection, TcpConnection
 from pyplumio.exceptions import (
     ChecksumError,
@@ -93,6 +93,8 @@ def open_tcp_connection(
 __all__ = [
     "__version__",
     "__version_tuple__",
+    "version",
+    "version_tuple",
     "AsyncProtocol",
     "ChecksumError",
     "ConnectionFailedError",
