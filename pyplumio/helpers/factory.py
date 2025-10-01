@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-import logging
 from types import ModuleType
 from typing import Any, TypeVar
 
 from pyplumio.helpers.async_cache import acache
-
-_LOGGER = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
