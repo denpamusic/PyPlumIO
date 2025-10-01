@@ -19,7 +19,7 @@ import pytest
 
 from pyplumio.const import ProductType, State
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.parameters import NumericType
+from pyplumio.parameters import Numeric
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 
@@ -140,9 +140,7 @@ def class_from_json(
     return decorator
 
 
-def equal_parameter_value(
-    a: NumericType | State | None, b: NumericType | State | None
-) -> bool:
+def equal_parameter_value(a: Numeric | State | None, b: Numeric | State | None) -> bool:
     """Compare the parameter values."""
     if isinstance(a, float) and isinstance(b, float):
         return isclose(a, b, rel_tol=DEFAULT_TOLERANCE)

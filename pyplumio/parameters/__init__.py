@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-ParameterT = TypeVar("ParameterT", bound="Parameter")
+_ParameterT = TypeVar("_ParameterT", bound="Parameter")
 
 
 def unpack_parameter(
@@ -61,7 +61,7 @@ class ParameterDescription:
     optimistic: bool = False
 
 
-NumericType: TypeAlias = int | float
+Numeric: TypeAlias = int | float
 
 
 class Parameter(ABC):
@@ -262,14 +262,14 @@ class Parameter(ABC):
 
     @classmethod
     def create_or_update(
-        cls: type[ParameterT],
+        cls: type[_ParameterT],
         device: Device,
         description: ParameterDescription,
         values: ParameterValues,
         **kwargs: Any,
-    ) -> ParameterT:
+    ) -> _ParameterT:
         """Create new parameter or update parameter values."""
-        parameter: ParameterT | None = device.get_nowait(description.name, None)
+        parameter: _ParameterT | None = device.get_nowait(description.name, None)
         if parameter and isinstance(parameter, cls):
             parameter.update(values)
         else:
@@ -293,17 +293,17 @@ class Parameter(ABC):
 
     @property
     @abstractmethod
-    def value(self) -> NumericType | State | bool:
+    def value(self) -> Numeric | State | bool:
         """Return the value."""
 
     @property
     @abstractmethod
-    def min_value(self) -> NumericType | State | bool:
+    def min_value(self) -> Numeric | State | bool:
         """Return the minimum allowed value."""
 
     @property
     @abstractmethod
-    def max_value(self) -> NumericType | State | bool:
+    def max_value(self) -> Numeric | State | bool:
         """Return the maximum allowed value."""
 
     @abstractmethod
@@ -327,11 +327,11 @@ class Number(Parameter):
 
     description: NumberDescription
 
-    def _pack_value(self, value: NumericType) -> int:
+    def _pack_value(self, value: Numeric) -> int:
         """Pack the parameter value."""
         return int(round(value / self.description.step))
 
-    def _unpack_value(self, value: int) -> NumericType:
+    def _unpack_value(self, value: int) -> Numeric:
         """Unpack the parameter value."""
         return round(value * self.description.step, self.description.precision)
 
@@ -351,14 +351,12 @@ class Number(Parameter):
 
         return True
 
-    async def set(
-        self, value: NumericType, retries: int = 0, timeout: float = 5.0
-    ) -> bool:
+    async def set(self, value: Numeric, retries: int = 0, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
         return await super().set(value, retries=retries, timeout=timeout)
 
     def set_nowait(
-        self, value: NumericType, retries: int = 0, timeout: float = 5.0
+        self, value: Numeric, retries: int = 0, timeout: float = 5.0
     ) -> None:
         """Set a parameter value without waiting."""
         super().set_nowait(value, retries=retries, timeout=timeout)
@@ -368,17 +366,17 @@ class Number(Parameter):
         return Request()
 
     @property
-    def value(self) -> NumericType:
+    def value(self) -> Numeric:
         """Return the value."""
         return self._unpack_value(self.values.value)
 
     @property
-    def min_value(self) -> NumericType:
+    def min_value(self) -> Numeric:
         """Return the minimum allowed value."""
         return self._unpack_value(self.values.min_value)
 
     @property
-    def max_value(self) -> NumericType:
+    def max_value(self) -> Numeric:
         """Return the maximum allowed value."""
         return self._unpack_value(self.values.max_value)
 
@@ -402,11 +400,11 @@ class OffsetNumber(Number):
 
     description: OffsetNumberDescription
 
-    def _pack_value(self, value: NumericType) -> int:
+    def _pack_value(self, value: Numeric) -> int:
         """Pack the parameter value."""
         return super()._pack_value(value + self.description.offset)
 
-    def _unpack_value(self, value: int) -> NumericType:
+    def _unpack_value(self, value: int) -> Numeric:
         """Unpack the parameter value."""
         return super()._unpack_value(value - self.description.offset)
 
@@ -505,7 +503,7 @@ class Switch(Parameter):
 __all__ = [
     "Number",
     "NumberDescription",
-    "NumericType",
+    "Numeric",
     "OffsetNumber",
     "OffsetNumberDescription",
     "Parameter",

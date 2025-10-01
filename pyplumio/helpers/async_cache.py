@@ -7,7 +7,7 @@ from typing import Any, ParamSpec, TypeAlias, TypeVar, cast
 
 T = TypeVar("T")
 P = ParamSpec("P")
-_CallableT: TypeAlias = Callable[..., Awaitable[Any]]
+_Callable: TypeAlias = Callable[..., Awaitable[Any]]
 
 
 class AsyncCache:
@@ -21,7 +21,7 @@ class AsyncCache:
         """Initialize the cache."""
         self._cache = {}
 
-    async def get(self, key: str, coro: _CallableT) -> Any:
+    async def get(self, key: str, coro: _Callable) -> Any:
         """Get a value from the cache or compute and store it."""
         if key not in self.cache:
             self._cache[key] = await coro()

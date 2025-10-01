@@ -10,30 +10,30 @@ from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 
-Callback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
+EventCallback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
+_Callable: TypeAlias = Callable[..., Any]
 
-_CallableT: TypeAlias = Callable[..., Any]
-_CallbackT = TypeVar("_CallbackT", bound=Callback)
+_EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
 
 
 @overload
-def event_listener(name: _CallableT, filter: None = None) -> Callback: ...
+def event_listener(name: _Callable, filter: None = None) -> EventCallback: ...
 
 
 @overload
 def event_listener(
-    name: str | None = None, filter: _CallableT | None = None
-) -> _CallableT: ...
+    name: str | None = None, filter: _Callable | None = None
+) -> _Callable: ...
 
 
-def event_listener(name: Any = None, filter: _CallableT | None = None) -> Any:
+def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
     """Mark a function as an event listener.
 
     This decorator attaches metadata to the function, identifying it
     as a subscriber for the specified event.
     """
 
-    def decorator(func: _CallbackT) -> _CallbackT:
+    def decorator(func: _EventCallbackT) -> _EventCallbackT:
         # Attach metadata to the function to mark it as a listener.
         event = (
             name
@@ -60,7 +60,7 @@ class EventManager(TaskManager, Generic[T]):
 
     _data: dict[str, T]
     _events: dict[str, asyncio.Event]
-    _callbacks: dict[str, list[Callback]]
+    _callbacks: dict[str, list[EventCallback]]
 
     def __init__(self) -> None:
         """Initialize a new event manager."""
@@ -83,7 +83,7 @@ class EventManager(TaskManager, Generic[T]):
             filter_func = getattr(callback, "_on_event_filter", None)
             self.subscribe(event, filter_func(callback) if filter_func else callback)
 
-    def event_listeners(self) -> Generator[tuple[str, Callback]]:
+    def event_listeners(self) -> Generator[tuple[str, EventCallback]]:
         """Get the event listeners."""
         for _, callback in inspect.getmembers(self, predicate=inspect.ismethod):
             if event := getattr(callback, "_on_event", None):
@@ -142,7 +142,7 @@ class EventManager(TaskManager, Generic[T]):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: _CallbackT) -> _CallbackT:
+    def subscribe(self, name: str, callback: _EventCallbackT) -> _EventCallbackT:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
@@ -158,7 +158,7 @@ class EventManager(TaskManager, Generic[T]):
         callbacks.append(callback)
         return callback
 
-    def subscribe_once(self, name: str, callback: Callback) -> Callback:
+    def subscribe_once(self, name: str, callback: EventCallback) -> EventCallback:
         """Subscribe a callback to the event once.
 
         Callback will be unsubscribed after single event.
@@ -180,7 +180,7 @@ class EventManager(TaskManager, Generic[T]):
 
         return self.subscribe(name, _call_once)
 
-    def unsubscribe(self, name: str, callback: Callback) -> bool:
+    def unsubscribe(self, name: str, callback: EventCallback) -> bool:
         """Usubscribe a callback from the event.
 
         :param name: Event name or ID
@@ -247,4 +247,4 @@ class EventManager(TaskManager, Generic[T]):
         return MappingProxyType(self._data)
 
 
-__all__ = ["Callback", "EventManager", "event_listener"]
+__all__ = ["EventCallback", "EventManager", "event_listener"]

@@ -9,7 +9,7 @@ import pytest
 from pyplumio.const import STATE_OFF, STATE_ON, ProductType, UnitOfMeasurement
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import EcomaxParametersResponse
-from pyplumio.parameters import NumericType
+from pyplumio.parameters import Numeric
 from pyplumio.parameters.ecomax import EcomaxNumber, EcomaxParameter, EcomaxSwitch
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_PARAMETERS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
@@ -51,9 +51,9 @@ async def test_custom_parameters(
     ecomax: EcoMAX,
     name: str,
     cls: type[EcomaxParameter],
-    value: NumericType | None,
-    min_value: NumericType | None,
-    max_value: NumericType | None,
+    value: Numeric | None,
+    min_value: Numeric | None,
+    max_value: Numeric | None,
     unit_of_measurement: UnitOfMeasurement | None,
 ) -> None:
     """Test custom parameters for ecoMAX 860D3-HB.

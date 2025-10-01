@@ -8,7 +8,7 @@ import struct
 from typing import ClassVar, Final, Generic, TypeVar
 
 T = TypeVar("T")
-DataTypeT = TypeVar("DataTypeT", bound="DataType")
+_DataTypeT = TypeVar("_DataTypeT", bound="DataType")
 
 
 class DataType(ABC, Generic[T]):
@@ -66,7 +66,7 @@ class DataType(ABC, Generic[T]):
         return buffer if self.size == 0 else buffer[: self.size]
 
     @classmethod
-    def from_bytes(cls: type[DataTypeT], buffer: bytes, offset: int = 0) -> DataTypeT:
+    def from_bytes(cls: type[_DataTypeT], buffer: bytes, offset: int = 0) -> _DataTypeT:
         """Initialize a new data type from bytes."""
         data_type = cls()
         data_type.unpack(buffer[offset:])

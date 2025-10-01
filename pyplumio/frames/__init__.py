@@ -68,7 +68,7 @@ class DataFrameDescription:
     provides: str
 
 
-FrameT = TypeVar("FrameT", bound="Frame")
+_FrameT = TypeVar("_FrameT", bound="Frame")
 
 
 class Frame(ABC):
@@ -235,7 +235,7 @@ class Frame(ABC):
         return bytes(data)
 
     @classmethod
-    async def create(cls: type[FrameT], frame_type: int, **kwargs: Any) -> FrameT:
+    async def create(cls: type[_FrameT], frame_type: int, **kwargs: Any) -> _FrameT:
         """Create a frame handler object from frame type."""
         return await create_instance(get_frame_handler(frame_type), cls=cls, **kwargs)
 

@@ -14,7 +14,7 @@ from pyplumio.filters import on_change
 from pyplumio.frames import Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.helpers.factory import create_instance
-from pyplumio.parameters import NumericType, Parameter
+from pyplumio.parameters import Numeric, Parameter
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import to_camelcase
 
@@ -63,7 +63,7 @@ class Device(ABC, EventManager):
     async def set(
         self,
         name: str,
-        value: NumericType | State | bool,
+        value: Numeric | State | bool,
         retries: int = 0,
         timeout: float | None = None,
     ) -> bool:
@@ -95,7 +95,7 @@ class Device(ABC, EventManager):
     def set_nowait(
         self,
         name: str,
-        value: NumericType | State | bool,
+        value: Numeric | State | bool,
         retries: int = 0,
         timeout: float | None = None,
     ) -> None:
