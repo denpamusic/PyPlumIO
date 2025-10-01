@@ -14,7 +14,7 @@ from pyplumio.frames.responses import MixerParametersResponse
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.mixer import MixerNumber, MixerParameter, MixerSwitch
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
+from pyplumio.structures.sensor_data import ATTR_MIXER_SENSORS
 from tests.conftest import class_from_json
 
 MIXER_INDEX: Final = 4

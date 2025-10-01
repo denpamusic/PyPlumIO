@@ -68,7 +68,7 @@
           "ecolambda": null,
           "ecoster": null,
           "panel": "18.10.72",
-          "__module__": "pyplumio.structures.modules",
+          "__module__": "pyplumio.structures.sensor_data",
           "__class__": "ConnectedModules"
         },
         "lambda_level": 4.0,
@@ -170,7 +170,7 @@
           "ecolambda": null,
           "ecoster": null,
           "panel": "18.10.72",
-          "__module__": "pyplumio.structures.modules",
+          "__module__": "pyplumio.structures.sensor_data",
           "__class__": "ConnectedModules"
         },
         "lambda_level": 4.0,
@@ -262,7 +262,7 @@
           "ecolambda": null,
           "ecoster": null,
           "panel": "18.10.72",
-          "__module__": "pyplumio.structures.modules",
+          "__module__": "pyplumio.structures.sensor_data",
           "__class__": "ConnectedModules"
         },
         "mixer_sensors": {

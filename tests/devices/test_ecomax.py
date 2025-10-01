@@ -17,7 +17,6 @@ from pyplumio.const import (
     ATTR_SENSORS,
     ATTR_SETUP,
     ATTR_SIZE,
-    ATTR_STATE,
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
@@ -58,13 +57,7 @@ from pyplumio.frames.responses import (
 from pyplumio.parameters.ecomax import PARAMETER_TYPES, EcomaxNumber, EcomaxSwitch
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
-from pyplumio.structures.fuel_consumption import ATTR_FUEL_CONSUMPTION
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.mixer_sensors import (
-    ATTR_MIXER_SENSORS,
-    ATTR_MIXERS_AVAILABLE,
-    ATTR_MIXERS_CONNECTED,
-)
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
@@ -75,14 +68,19 @@ from pyplumio.structures.schedules import (
     ScheduleNumber,
     ScheduleSwitch,
 )
-from pyplumio.structures.thermostat_parameters import (
-    ATTR_THERMOSTAT_PARAMETERS,
-    ATTR_THERMOSTAT_PROFILE,
-)
-from pyplumio.structures.thermostat_sensors import (
+from pyplumio.structures.sensor_data import (
+    ATTR_FUEL_CONSUMPTION,
+    ATTR_MIXER_SENSORS,
+    ATTR_MIXERS_AVAILABLE,
+    ATTR_MIXERS_CONNECTED,
+    ATTR_STATE,
     ATTR_THERMOSTAT_SENSORS,
     ATTR_THERMOSTATS_AVAILABLE,
     ATTR_THERMOSTATS_CONNECTED,
+)
+from pyplumio.structures.thermostat_parameters import (
+    ATTR_THERMOSTAT_PARAMETERS,
+    ATTR_THERMOSTAT_PROFILE,
 )
 from tests.conftest import (
     UNDEFINED,
