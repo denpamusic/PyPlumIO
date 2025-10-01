@@ -12,8 +12,8 @@ from pyplumio.frames.messages import SensorDataMessage
 from pyplumio.frames.responses import ThermostatParametersResponse
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.thermostat import ThermostatNumber, ThermostatParameter
+from pyplumio.structures.sensor_data import ATTR_THERMOSTAT_SENSORS
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 from tests.conftest import class_from_json
 
 THERMOSTAT_INDEX: Final = 0

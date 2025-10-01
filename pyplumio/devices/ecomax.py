@@ -42,7 +42,6 @@ from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_PARAMETERS,
 )
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.mixer_sensors import ATTR_MIXER_SENSORS
 from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
@@ -56,8 +55,8 @@ from pyplumio.structures.schedules import (
     ScheduleSwitch,
     ScheduleSwitchDescription,
 )
+from pyplumio.structures.sensor_data import ATTR_MIXER_SENSORS, ATTR_THERMOSTAT_SENSORS
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTAT_SENSORS
 
 _LOGGER = logging.getLogger(__name__)
 
