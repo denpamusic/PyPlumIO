@@ -143,7 +143,7 @@ MODULES: tuple[str, ...] = (
 FUEL_LEVEL_OFFSET: Final = 101
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, kw_only=True)
 class ConnectedModules:
     """Represents a firmware version info for connected module."""
 
@@ -162,7 +162,7 @@ _DataT = TypeVar("_DataT", bound=MutableMapping)
 
 
 class SensorDataStructure(StructureDecoder):
-    """Represents a schedule data structure."""
+    """Represents a sensor data structure."""
 
     __slots__ = ("_offset",)
 
@@ -258,7 +258,7 @@ class SensorDataStructure(StructureDecoder):
         """Decode modules from message."""
         offset = self._offset
 
-        def _unpack_module_version() -> Generator[tuple[str, str | None]]:
+        def _module_versions() -> Generator[tuple[str, str | None]]:
             """Unpack a module version."""
             nonlocal offset
             for module in MODULES:
@@ -278,7 +278,7 @@ class SensorDataStructure(StructureDecoder):
 
                 yield module, version
 
-        data[ATTR_MODULES] = ConnectedModules(**dict(_unpack_module_version()))
+        data[ATTR_MODULES] = ConnectedModules(**dict(_module_versions()))
         self._offset = offset
         return data
 

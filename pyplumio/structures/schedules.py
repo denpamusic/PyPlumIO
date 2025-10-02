@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, MutableMapping, Sequence
+from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 import datetime as dt
-from functools import lru_cache, reduce
-from typing import Annotated, Any, Final, get_args
+from functools import lru_cache
+from typing import Annotated, Any, Final, TypeAlias, get_args
 
 from pyplumio.const import (
     ATTR_PARAMETER,
@@ -19,7 +19,6 @@ from pyplumio.const import (
     State,
 )
 from pyplumio.devices import Device, PhysicalDevice
-from pyplumio.exceptions import FrameDataError
 from pyplumio.frames import Request
 from pyplumio.parameters import (
     Number,
@@ -31,8 +30,8 @@ from pyplumio.parameters import (
     SwitchDescription,
     unpack_parameter,
 )
-from pyplumio.structures import Structure
-from pyplumio.utils import ensure_dict
+from pyplumio.structures import StructureDecoder
+from pyplumio.utils import ensure_dict, split_byte
 
 ATTR_SCHEDULES: Final = "schedules"
 ATTR_SCHEDULE_PARAMETERS: Final = "schedule_parameters"
@@ -156,7 +155,7 @@ def collect_schedule_data(name: str, device: Device) -> dict[str, Any]:
 
 TIME_FORMAT: Final = "%H:%M"
 
-Time = Annotated[str, "Time string in %H:%M format"]
+Time: TypeAlias = Annotated[str, "Time string in %H:%M format"]
 
 MIDNIGHT: Final = Time("00:00")
 MIDNIGHT_DT = dt.datetime.strptime(MIDNIGHT, TIME_FORMAT)
@@ -305,43 +304,12 @@ class Schedule(Iterable):
         )
 
 
-def _split_byte(byte: int) -> list[bool]:
-    """Split single byte into an eight bits."""
-    return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
-
-
-def _join_bits(bits: Sequence[int | bool]) -> int:
-    """Join eight bits into a single byte."""
-    return reduce(lambda bit, byte: (bit << 1) | byte, bits)
-
-
-class SchedulesStructure(Structure):
+class SchedulesStructure(StructureDecoder):
     """Represents a schedule data structure."""
 
     __slots__ = ("_offset",)
 
     _offset: int
-
-    def encode(self, data: dict[str, Any]) -> bytearray:
-        """Encode data to the bytearray message."""
-        try:
-            header = bytearray(
-                b"\1"
-                + SCHEDULES.index(data[ATTR_TYPE]).to_bytes(
-                    length=1, byteorder="little"
-                )
-                + int(data[ATTR_SWITCH]).to_bytes(length=1, byteorder="little")
-                + int(data[ATTR_PARAMETER]).to_bytes(length=1, byteorder="little")
-            )
-            schedule = data[ATTR_SCHEDULE]
-        except (KeyError, ValueError) as e:
-            raise FrameDataError from e
-
-        return header + bytearray(
-            _join_bits(day[i : i + 8])
-            for day in schedule
-            for i in range(0, len(day), 8)
-        )
 
     def _unpack_schedule(self, message: bytearray) -> list[list[bool]]:
         """Unpack a schedule."""
@@ -349,7 +317,7 @@ class SchedulesStructure(Structure):
         schedule = [
             bit
             for i in range(offset, offset + SCHEDULE_SIZE)
-            for bit in _split_byte(message[i])
+            for bit in split_byte(message[i])
         ]
         self._offset = offset + SCHEDULE_SIZE
         # Split the schedule. Each day consists of 48 half-hour intervals.

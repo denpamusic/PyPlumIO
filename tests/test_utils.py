@@ -61,6 +61,41 @@ def test_is_divisible(input_value, divisor, expected) -> None:
         assert utils.is_divisible(input_value, divisor) == expected
 
 
+@pytest.mark.parametrize(
+    ("input_value", "expected"),
+    [
+        ("10110101", 181),
+        ("11111111", 255),
+        ("00000000", 0),
+        ("1000", 8),
+        ("10000", 16),
+    ],
+)
+def test_join_bits(input_value: str, expected: int) -> None:
+    """Test joining bits into a single byte."""
+    bits = list(map(int, input_value))
+    assert utils.join_bits(bits) == expected
+
+
+def test_join_bits_with_bool() -> None:
+    """Test joining bits into a single byte with bools."""
+    bits = (True, False, False, True)
+    assert utils.join_bits(bits) == 9
+
+
+@pytest.mark.parametrize(
+    ("input_value", "expected"),
+    [
+        (4, [False, False, False, False, False, True, False, False]),
+        (255, [True, True, True, True, True, True, True, True]),
+        (0, [False, False, False, False, False, False, False, False]),
+    ],
+)
+def test_split_byte(input_value: int, expected: list[bool]) -> None:
+    """Test splitting a byte into list of bits."""
+    assert utils.split_byte(input_value) == expected
+
+
 @patch("asyncio.wait_for", side_effect=("test", asyncio.TimeoutError))
 async def test_timeout(mock_wait_for) -> None:
     """Test a timeout decorator."""

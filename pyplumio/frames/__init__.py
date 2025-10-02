@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import cache, reduce
 import struct
@@ -12,6 +13,9 @@ from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
 from pyplumio.helpers.factory import create_instance
 from pyplumio.utils import ensure_dict, to_camelcase
+
+if TYPE_CHECKING:
+    from pyplumio.structures import Structure
 
 FRAME_START: Final = 0x68
 FRAME_END: Final = 0x16
@@ -241,11 +245,11 @@ class Frame(ABC):
 
     @abstractmethod
     def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create frame message."""
+        """Create a frame message."""
 
     @abstractmethod
     def decode_message(self, message: bytearray) -> dict[str, Any]:
-        """Decode frame message."""
+        """Decode a frame message."""
 
 
 class Request(Frame):
@@ -286,13 +290,97 @@ class Message(Response):
     __slots__ = ()
 
 
+def frame_type(frame_type: FrameType) -> Callable[..., _FrameT]:
+    """Specify frame type for the frame class."""
+
+    def wrapper(frame: _FrameT) -> _FrameT:
+        """Wrap the frame class."""
+        setattr(frame, "frame_type", frame_type)
+        return frame
+
+    return wrapper
+
+
+def contains(
+    *structures: type[Structure], container: str | None = None
+) -> Callable[..., _FrameT]:
+    """Decorate frame class with structure.
+
+    Indicate which structures need to be used for encoding/decoding
+    the frame as well as provide a way to wrap output data under
+    a single key.
+    """
+
+    def wrapper(frame: _FrameT) -> _FrameT:
+        """Wrap the frame class."""
+        setattr(frame, "structures", structures)
+        if container:
+            setattr(frame, "container", container)
+
+        return frame
+
+    return wrapper
+
+
+class Structured(Frame):
+    """Represents a frame that has known structure."""
+
+    __slots__ = ("_structures",)
+
+    container: ClassVar[str]
+    structures: ClassVar[list[type[Structure]]]
+
+    _structures: list[Structure]
+
+    def __init__(
+        self,
+        recipient: DeviceType = DeviceType.ALL,
+        sender: DeviceType = DeviceType.ECONET,
+        econet_type: int = ECONET_TYPE,
+        econet_version: int = ECONET_VERSION,
+        message: bytearray | None = None,
+        data: dict[str, Any] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize a new structured frame."""
+        if hasattr(self, "structures"):
+            self._structures = [structure(self) for structure in self.structures]
+
+        super().__init__(
+            recipient, sender, econet_type, econet_version, message, data, **kwargs
+        )
+
+    def create_message(self, data: dict[str, Any]) -> bytearray:
+        """Create frame message."""
+        message = bytearray()
+        for structure in self._structures:
+            message += structure.encode(data)
+
+        return message
+
+    def decode_message(self, message: bytearray) -> dict[str, Any]:
+        """Decode frame message."""
+        data: dict[str, Any] = {}
+        offset = 0
+        for structure in self._structures:
+            data, offset = structure.decode(message, offset, data)
+
+        if hasattr(self, "container"):
+            return {self.container: data}
+
+        return data
+
+
 __all__ = [
     "Frame",
     "Request",
     "Response",
     "Message",
     "DataFrameDescription",
+    "Structured",
     "bcc",
-    "is_known_frame_type",
+    "contains",
+    "frame_type",
     "get_frame_handler",
+    "is_known_frame_type",
 ]
