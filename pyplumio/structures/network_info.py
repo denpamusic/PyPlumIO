@@ -88,6 +88,7 @@ class NetworkInfoStructure(Structure):
         self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
     ) -> tuple[dict[str, Any], int]:
         """Decode bytes and return message data and offset."""
+        offset += 1
         return (
             ensure_dict(
                 data,
