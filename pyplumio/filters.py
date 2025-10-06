@@ -486,10 +486,6 @@ class _OnChange(Filter):
 
     __slots__ = ()
 
-    def __init__(self, callback: EventCallback) -> None:
-        """Initialize a new value changed filter."""
-        super().__init__(callback)
-
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
         if self._value == UNDEFINED or is_close(self._value, new_value):
