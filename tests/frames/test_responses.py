@@ -16,7 +16,7 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
     UIDResponse,
 )
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
+from pyplumio.structures.sensor_data import ATTR_THERMOSTATS_AVAILABLE
 
 
 @pytest.mark.parametrize(

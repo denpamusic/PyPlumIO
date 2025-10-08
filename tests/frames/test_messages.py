@@ -5,11 +5,12 @@ from typing import Final
 import pytest
 from tests.conftest import json_test_data, load_json_parameters, load_json_test_data
 
-from pyplumio.const import ATTR_SENSORS, ATTR_STATE
+from pyplumio.const import ATTR_SENSORS
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.regulator_data import ATTR_REGDATA
+from pyplumio.structures.sensor_data import ATTR_STATE
 
 
 @pytest.mark.parametrize(

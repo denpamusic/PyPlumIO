@@ -8,7 +8,7 @@ from typing import Any, Final
 from pyplumio.parameters import ParameterValues, unpack_parameter
 from pyplumio.parameters.thermostat import get_thermostat_parameter_types
 from pyplumio.structures import StructureDecoder
-from pyplumio.structures.thermostat_sensors import ATTR_THERMOSTATS_AVAILABLE
+from pyplumio.structures.sensor_data import ATTR_THERMOSTATS_AVAILABLE
 from pyplumio.utils import ensure_dict
 
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"

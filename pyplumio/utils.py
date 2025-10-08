@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping
-from functools import wraps
+from collections.abc import Awaitable, Callable, Mapping, Sequence
+from functools import reduce, wraps
 from typing import ParamSpec, TypeVar
 
 KT = TypeVar("KT")  # Key type.
@@ -40,6 +40,16 @@ def is_divisible(a: float, b: float, precision: int = 6) -> bool:
 
     a_scaled = round(a * scale)
     return a_scaled % b_scaled == 0
+
+
+def join_bits(bits: Sequence[int | bool]) -> int:
+    """Join eight bits into a single byte."""
+    return reduce(lambda bit, byte: (bit << 1) | byte, bits)
+
+
+def split_byte(byte: int) -> list[bool]:
+    """Split single byte into an eight bits."""
+    return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
 
 
 T = TypeVar("T")
