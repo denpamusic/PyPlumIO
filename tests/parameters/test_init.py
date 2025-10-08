@@ -156,6 +156,10 @@ class TestParameter:
             ("__add__", 10, 16, int),
             ("__add__", 2.1, 8, int),
             ("__add__", "mango", NotImplemented, None),
+            ("__radd__", ParameterValues(2, 0, 10), 8, int),
+            ("__radd__", 10, 16, int),
+            ("__radd__", 4.6, 10, int),
+            ("__radd__", "grape", NotImplemented, None),
             ("__sub__", "Parameter", 0, int),
             ("__sub__", ParameterValues(3, 0, 10), 3, int),
             ("__sub__", 4, 2, int),
@@ -465,18 +469,6 @@ class TestNumber:
         assert number.value == 1
         assert number.min_value == 0
         assert number.max_value == 5
-
-    def test_math(self, number: Number) -> None:
-        """Test math operations.
-
-        Checks float and reverse addition.
-        """
-        assert float(number) == 1
-        assert isinstance(float(number), float)
-        assert (0 + number) == 1.0
-        assert (1.0 + number) == 2.0
-        assert (2 + number) == 3.0
-        assert number.__radd__("banana") is NotImplemented
 
     def test_validate(self, number: Number) -> None:
         """Test validate.

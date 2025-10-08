@@ -115,26 +115,29 @@ class Parameter(ABC):
 
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""
+        handler = getattr(self.values.value, method_to_call)
         if isinstance(other, Parameter):
-            other = other.values
+            return handler(other.values.value)
 
         if isinstance(other, ParameterValues):
-            handler = getattr(self.values.value, method_to_call)
             return handler(other.value)
 
-        if isinstance(other, int | float | bool) or other in get_args(State):
-            handler = getattr(self.values.value, method_to_call)
+        if isinstance(other, Numeric | bool) or other in get_args(State):
             return handler(self._pack_value(other))
-        else:
-            return NotImplemented
+
+        return NotImplemented
 
     def __int__(self) -> int:
         """Return an integer representation of parameter's value."""
         return self.values.value
 
     def __add__(self, other: Any) -> Any:
-        """Return result of addition."""
+        """Add a number to this parameter."""
         return self._call_relational_method("__add__", other)
+
+    def __radd__(self, other: Any) -> Any:
+        """Add this parameter to another number."""
+        return self._call_relational_method("__radd__", other)
 
     def __sub__(self, other: Any) -> Any:
         """Return result of the subtraction."""
@@ -330,19 +333,6 @@ class Number(Parameter):
     def __float__(self) -> float:
         """Return number value as float."""
         return float(self.value)
-
-    def __radd__(self, other: Any) -> float:
-        """Add this number to another number.
-
-        Required for compatibility with sum().
-        """
-        if other == 0:
-            return float(self)
-
-        if isinstance(other, Numeric):
-            return other + float(self)
-
-        return NotImplemented
 
     def _pack_value(self, value: Numeric) -> int:
         """Pack the parameter value."""
