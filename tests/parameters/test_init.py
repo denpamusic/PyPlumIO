@@ -144,9 +144,7 @@ class TestParameter:
 
         Checks parameter hashing.
         """
-        assert hash(parameter) == hash(
-            frozenset({("value", 6), ("min_value", 0), ("max_value", 10)})
-        )
+        assert hash(parameter) == hash(parameter.values)
 
     @pytest.mark.parametrize(
         ("func_name", "other", "expected_result", "expected_type"),

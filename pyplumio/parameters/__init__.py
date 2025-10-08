@@ -5,7 +5,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from contextlib import suppress
-from dataclasses import asdict, dataclass
+from copy import copy
+from dataclasses import dataclass, replace
 import logging
 from typing import TYPE_CHECKING, Any, Literal, TypeAlias, TypeVar, get_args
 
@@ -44,7 +45,7 @@ def is_valid_parameter(data: bytearray) -> bool:
     return any(x for x in data if x != BYTE_UNDEFINED)
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class ParameterValues:
     """Represents a parameter values."""
 
@@ -111,7 +112,7 @@ class Parameter(ABC):
 
     def __hash__(self) -> int:
         """Return a hash of the parameter based on its values."""
-        return hash(frozenset(asdict(self.values).items()))
+        return hash(self.values)
 
     def _call_relational_method(self, method_to_call: str, other: Any) -> Any:
         """Call a specified relational method."""
@@ -177,10 +178,7 @@ class Parameter(ABC):
 
     def __copy__(self) -> Parameter:
         """Create a copy of parameter."""
-        values = type(self.values)(
-            self.values.value, self.values.min_value, self.values.max_value
-        )
-        return type(self)(self.device, self.description, values)
+        return type(self)(self.device, self.description, values=copy(self.values))
 
     async def set(self, value: Any, retries: int = 0, timeout: float = 5.0) -> bool:
         """Set a parameter value."""
@@ -203,7 +201,7 @@ class Parameter(ABC):
             # Value is unchanged
             return True
 
-        self._values.value = value
+        self._values = replace(self._values, value=value)
         request = await self.create_request()
         if self.description.optimistic:
             await self.device.queue.put(request)
