@@ -88,13 +88,16 @@ def is_close(
     old: _ComparableT, new: _ComparableT, *, tolerance: float | None = DEFAULT_TOLERANCE
 ) -> bool:
     """Check if value is significantly changed."""
+    if isinstance(new, Parameter) and new.update_pending.is_set():
+        return False
+
     if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
-        return not math.isclose(old, new, abs_tol=tolerance)
+        return math.isclose(old, new, abs_tol=tolerance)
 
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return new.update_pending.is_set() or old.values.__ne__(new.values)
+        return old.values.__eq__(new.values)
 
-    return old.__ne__(new)
+    return old.__eq__(new)
 
 
 @overload
@@ -449,7 +452,7 @@ class _Deadband(ComparisonFilter):
     @numeric_only
     async def __call__(self, new_value: _Numeric) -> Any:
         """Set a new value for the callback."""
-        if self.is_undefined() or is_close(
+        if self.is_undefined() or not is_close(
             self.value, new_value, tolerance=self._tolerance
         ):
             self.value = new_value
@@ -492,7 +495,7 @@ class _Debounce(ComparisonFilter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self.is_undefined() or is_close(self.value, new_value):
+        if self.is_undefined() or not is_close(self.value, new_value):
             self._calls += 1
         else:
             self._calls = 0
@@ -530,7 +533,7 @@ class _Delta(ComparisonFilter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self.is_undefined() or is_close(self.value, new_value):
+        if self.is_undefined() or not is_close(self.value, new_value):
             old_value = self.value
             self.value = new_value
             if (difference := diffence_between(old_value, new_value)) is not None:
@@ -563,7 +566,7 @@ class _OnChange(ComparisonFilter):
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self.is_undefined() or is_close(self.value, new_value):
+        if self.is_undefined() or not is_close(self.value, new_value):
             self.value = new_value
             return await self._callback(new_value)
 
