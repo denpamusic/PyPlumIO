@@ -473,6 +473,7 @@ class TestNumber:
         """
         assert float(number) == 1
         assert isinstance(float(number), float)
+        assert (0 + number) == 1.0
         assert (1.0 + number) == 2.0
         assert (2 + number) == 3.0
         assert number.__radd__("banana") is NotImplemented
