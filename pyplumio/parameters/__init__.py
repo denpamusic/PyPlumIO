@@ -327,6 +327,23 @@ class Number(Parameter):
 
     description: NumberDescription
 
+    def __float__(self) -> float:
+        """Return number value as float."""
+        return float(self.value)
+
+    def __radd__(self, other: Any) -> float:
+        """Add this number to another number.
+
+        Required for compatibility with sum().
+        """
+        if other == 0:
+            return float(self)
+
+        if isinstance(other, Numeric):
+            return other + float(self)
+
+        return NotImplemented
+
     def _pack_value(self, value: Numeric) -> int:
         """Pack the parameter value."""
         return int(round(value / self.description.step))

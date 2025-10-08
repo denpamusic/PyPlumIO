@@ -82,16 +82,22 @@ async def test_deadband() -> None:
     test_callback = AsyncMock()
     wrapped_callback = filters.deadband(test_callback, tolerance=0.1)
     assert hash(wrapped_callback) == hash(test_callback)
-    await wrapped_callback(1)
-    test_callback.assert_awaited_once_with(1)
+    input_value = 1.0
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    test_callback.assert_awaited_once_with(input_value)
     test_callback.reset_mock()
 
-    # Check that callback is not awaited on insignificant change.
+    # Check that callback is not awaite and it's value is not changed
+    # on insignificant input change.
     await wrapped_callback(1.01)
+    assert wrapped_callback.value == input_value
     test_callback.assert_not_awaited()
 
-    await wrapped_callback(1.1)
-    test_callback.assert_awaited_once_with(1.1)
+    input_value = 1.1
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    test_callback.assert_awaited_once_with(input_value)
 
     # Test with non-numeric value.
     with pytest.raises(TypeError, match="filter can only be used with numeric values"):
@@ -103,12 +109,16 @@ async def test_on_change() -> None:
     test_callback = AsyncMock()
     wrapped_callback = filters.on_change(test_callback)
     assert hash(wrapped_callback) == hash(test_callback)
-    await wrapped_callback(1)
-    test_callback.assert_awaited_once_with(1)
+    input_value = 1.0
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    test_callback.assert_awaited_once_with(input_value)
     test_callback.reset_mock()
 
-    await wrapped_callback(1.1)
-    test_callback.assert_awaited_once_with(1.1)
+    input_value = 1.1
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    test_callback.assert_awaited_once_with(input_value)
 
     # Test equality with callback function and different instance.
     assert test_callback == wrapped_callback
@@ -127,6 +137,10 @@ async def test_on_change_parameter() -> None:
     await wrapped_callback(test_parameter)
     test_callback.assert_awaited_once_with(test_parameter)
     test_callback.reset_mock()
+
+    # Check that we're storing a copy instead of an actual parameter.
+    assert wrapped_callback.value == test_parameter
+    assert wrapped_callback.value is not test_parameter
 
     # Check that callback is not awaited with no change.
     await wrapped_callback(test_parameter)
@@ -162,17 +176,26 @@ async def test_debounce() -> None:
     test_callback = AsyncMock()
     wrapped_callback = filters.debounce(test_callback, min_calls=3)
     assert hash(wrapped_callback) == hash(test_callback)
-    await wrapped_callback(1)
-    test_callback.assert_awaited_once_with(1)
+
+    input_value = 1
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    test_callback.assert_awaited_once_with(input_value)
     test_callback.reset_mock()
 
     # Ignore stray "1" and only await callback on a "2".
-    await wrapped_callback(2)
-    await wrapped_callback(1)
-    await wrapped_callback(2)
-    await wrapped_callback(2)
-    await wrapped_callback(2)
-    test_callback.assert_awaited_once_with(2)
+    input_value2 = 2
+    await wrapped_callback(input_value2)
+    assert wrapped_callback.value == input_value
+    await wrapped_callback(input_value)
+    assert wrapped_callback.value == input_value
+    await wrapped_callback(input_value2)
+    assert wrapped_callback.value == input_value
+    await wrapped_callback(input_value2)
+    assert wrapped_callback.value == input_value
+    await wrapped_callback(input_value2)
+    assert wrapped_callback.value == input_value2
+    test_callback.assert_awaited_once_with(input_value2)
 
 
 async def test_throttle(frozen_time) -> None:

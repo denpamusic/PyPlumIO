@@ -7,6 +7,7 @@ from collections.abc import Callable
 from contextlib import suppress
 from copy import copy
 from decimal import Decimal
+from functools import wraps
 import logging
 import math
 import time
@@ -22,7 +23,7 @@ from typing import (
 )
 
 from pyplumio.helpers.event_manager import EventCallback
-from pyplumio.parameters import Parameter
+from pyplumio.parameters import Number, Parameter
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,30 +69,30 @@ DEFAULT_TOLERANCE: Final = 1e-6
 
 
 @overload
-def is_close(old: Parameter, new: Parameter, tolerance: None = None) -> bool: ...
+def is_close(old: Parameter, new: Parameter, *, tolerance: None = None) -> bool: ...
 
 
 @overload
 def is_close(
-    old: SupportsFloat, new: SupportsFloat, tolerance: float = DEFAULT_TOLERANCE
+    old: SupportsFloat, new: SupportsFloat, *, tolerance: float = DEFAULT_TOLERANCE
 ) -> bool: ...
 
 
 @overload
 def is_close(
-    old: SupportsComparison, new: SupportsComparison, tolerance: None = None
+    old: SupportsComparison, new: SupportsComparison, *, tolerance: None = None
 ) -> bool: ...
 
 
 def is_close(
-    old: _ComparableT, new: _ComparableT, tolerance: float | None = DEFAULT_TOLERANCE
+    old: _ComparableT, new: _ComparableT, *, tolerance: float | None = DEFAULT_TOLERANCE
 ) -> bool:
     """Check if value is significantly changed."""
-    if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return new.update_pending.is_set() or old.values.__ne__(new.values)
-
     if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
         return not math.isclose(old, new, abs_tol=tolerance)
+
+    if isinstance(old, Parameter) and isinstance(new, Parameter):
+        return new.update_pending.is_set() or old.values.__ne__(new.values)
 
     return old.__ne__(new)
 
@@ -119,18 +120,40 @@ def diffence_between(
     return None
 
 
+_Numeric: TypeAlias = float | int | Decimal | Number
+
+
+def numeric_only(func: Callable) -> Callable:
+    """Mark filter as numeric only.
+
+    Ensure that value passed to filter when used as callable is numeric
+    otherwise raise TypeError.
+    """
+
+    @wraps(func)
+    def wrapper(instance: Filter, new_value: _Numeric) -> Any:
+        """Wrap __call__ method and add numeric check to it."""
+        if not isinstance(new_value, _Numeric):
+            raise TypeError(
+                f"{instance.__class__.__name__.capitalize()} filter can only be used "
+                f"with numeric values, got {type(new_value).__name__}: {new_value}"
+            )
+
+        return func(instance, new_value)
+
+    return wrapper
+
+
 class Filter(ABC):
     """Represents a filter."""
 
-    __slots__ = ("_callback", "_value")
+    __slots__ = ("_callback",)
 
     _callback: EventCallback
-    _value: Any
 
     def __init__(self, callback: EventCallback) -> None:
         """Initialize a new filter."""
         self._callback = callback
-        self._value = UNDEFINED
 
     def __hash__(self) -> int:
         """Return a hash of the filter based on its callback."""
@@ -149,9 +172,6 @@ class Filter(ABC):
     @abstractmethod
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-
-
-_Numeric: TypeAlias = float | int | Decimal
 
 
 class _Aggregate(Filter):
@@ -178,14 +198,9 @@ class _Aggregate(Filter):
         self._sample_size = sample_size
         self._values = []
 
-    async def __call__(self, new_value: Any) -> Any:
+    @numeric_only
+    async def __call__(self, new_value: _Numeric) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, _Numeric):
-            raise TypeError(
-                "Aggregate filter can only be used with numeric values, got "
-                f"{type(new_value).__name__}: {new_value}"
-            )
-
         current_time = time.monotonic()
         self._values.append(new_value)
         time_since_call = current_time - self._last_call_time
@@ -236,9 +251,9 @@ class _Clamp(Filter):
     def __init__(
         self,
         callback: EventCallback,
-        /,
         min_value: float,
         max_value: float,
+        *,
         ignore_out_of_range: bool = False,
     ) -> None:
         """Initialize a new Clamp filter."""
@@ -247,14 +262,9 @@ class _Clamp(Filter):
         self._max_value = max_value
         self._ignore_out_of_range = ignore_out_of_range
 
-    async def __call__(self, new_value: Any) -> Any:
+    @numeric_only
+    async def __call__(self, new_value: _Numeric) -> Any:
         """Set a new value for the callback."""
-        if not isinstance(new_value, _Numeric):
-            raise TypeError(
-                "Clamp filter can only be used with numeric values, got "
-                f"{type(new_value).__name__}: {new_value}"
-            )
-
         if self._ignore_out_of_range and (
             new_value < self._min_value or new_value > self._max_value
         ):
@@ -298,7 +308,7 @@ def clamp(
     )
 
 
-_Filter: TypeAlias = Callable[[Any], bool]
+_FilterFunc: TypeAlias = Callable[[Any], bool]
 
 
 class _Custom(Filter):
@@ -309,22 +319,22 @@ class _Custom(Filter):
     returns true.
     """
 
-    __slots__ = ("_filter_fn",)
+    __slots__ = ("_filter_func",)
 
-    _filter_fn: _Filter
+    _filter_func: _FilterFunc
 
-    def __init__(self, callback: EventCallback, filter_fn: _Filter) -> None:
+    def __init__(self, callback: EventCallback, filter_func: _FilterFunc) -> None:
         """Initialize a new custom filter."""
         super().__init__(callback)
-        self._filter_fn = filter_fn
+        self._filter_func = filter_func
 
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""
-        if self._filter_fn(new_value):
+        if self._filter_func(new_value):
             await self._callback(new_value)
 
 
-def custom(callback: EventCallback, filter_fn: _Filter) -> _Custom:
+def custom(callback: EventCallback, filter_func: _FilterFunc) -> _Custom:
     """Create a new custom filter.
 
     A callback function will be called when a user-defined filter
@@ -334,179 +344,13 @@ def custom(callback: EventCallback, filter_fn: _Filter) -> _Custom:
     :param callback: A callback function to be awaited when
         filter function return true
     :type callback: Callback
-    :param filter_fn: Filter function, that will be called with a
+    :param filter_func: Filter function, that will be called with a
         value and should return `True` to await filter's callback
-    :type filter_fn: Callable[[Any], bool]
+    :type filter_func: Callable[[Any], bool]
     :return: An instance of callable filter
     :rtype: _Custom
     """
-    return _Custom(callback, filter_fn)
-
-
-class _Deadband(Filter):
-    """Represents a deadband filter.
-
-    Calls a callback only when value is significantly changed from the
-    previous callback call.
-    """
-
-    __slots__ = ("_tolerance",)
-
-    _tolerance: float
-
-    def __init__(self, callback: EventCallback, tolerance: float) -> None:
-        """Initialize a new value changed filter."""
-        self._tolerance = tolerance
-        super().__init__(callback)
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if not isinstance(new_value, _Numeric):
-            raise TypeError(
-                "Deadband filter can only be used with numeric values, got "
-                f"{type(new_value).__name__}: {new_value}"
-            )
-
-        if self._value == UNDEFINED or is_close(
-            self._value, new_value, tolerance=self._tolerance
-        ):
-            self._value = new_value
-            return await self._callback(new_value)
-
-
-def deadband(callback: EventCallback, tolerance: float) -> _Deadband:
-    """Create a new deadband filter.
-
-    A callback function will only be called when the value is significantly changed
-    from the previous callback call.
-
-    :param callback: A callback function to be awaited on significant value change
-    :type callback: EventCallback
-    :param tolerance: The minimum difference required to trigger the callback
-    :type tolerance: float
-    :return: An instance of callable filter
-    :rtype: _Deadband
-    """
-    return _Deadband(callback, tolerance)
-
-
-class _Debounce(Filter):
-    """Represents a debounce filter.
-
-    Calls a callback only when value is stabilized across multiple
-    filter calls.
-    """
-
-    __slots__ = ("_calls", "_min_calls")
-
-    _calls: int
-    _min_calls: int
-
-    def __init__(self, callback: EventCallback, min_calls: int) -> None:
-        """Initialize a new debounce filter."""
-        super().__init__(callback)
-        self._calls = 0
-        self._min_calls = min_calls
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            self._calls += 1
-        else:
-            self._calls = 0
-
-        if self._value == UNDEFINED or self._calls >= self._min_calls:
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            self._calls = 0
-            return await self._callback(new_value)
-
-
-def debounce(callback: EventCallback, min_calls: int) -> _Debounce:
-    """Create a new debounce filter.
-
-    A callback function will only be called once the value is stabilized
-    across multiple filter calls.
-
-    :param callback: A callback function to be awaited on value change
-    :type callback: EventCallback
-    :param min_calls: Value shouldn't change for this amount of
-        filter calls
-    :type min_calls: int
-    :return: An instance of callable filter
-    :rtype: _Debounce
-    """
-    return _Debounce(callback, min_calls)
-
-
-class _Delta(Filter):
-    """Represents a difference filter.
-
-    Calls a callback with a difference between two subsequent values.
-    """
-
-    __slots__ = ()
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            old_value = self._value
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            if (
-                self._value != UNDEFINED
-                and (difference := diffence_between(old_value, new_value)) is not None
-            ):
-                return await self._callback(difference)
-
-
-def delta(callback: EventCallback) -> _Delta:
-    """Create a new difference filter.
-
-    A callback function will be called with a difference between two
-    subsequent values.
-
-    :param callback: A callback function that will be awaited with
-        difference between values in two subsequent calls
-    :type callback: EventCallback
-    :return: An instance of callable filter
-    :rtype: _Delta
-    """
-    return _Delta(callback)
-
-
-class _OnChange(Filter):
-    """Represents a value changed filter.
-
-    Calls a callback only when value is changed from the
-    previous callback call.
-    """
-
-    __slots__ = ()
-
-    async def __call__(self, new_value: Any) -> Any:
-        """Set a new value for the callback."""
-        if self._value == UNDEFINED or is_close(self._value, new_value):
-            self._value = (
-                copy(new_value) if isinstance(new_value, Parameter) else new_value
-            )
-            return await self._callback(new_value)
-
-
-def on_change(callback: EventCallback) -> _OnChange:
-    """Create a new value changed filter.
-
-    A callback function will only be called if the value is changed from the
-    previous call.
-
-    :param callback: A callback function to be awaited on value change
-    :type callback: Callback
-    :return: An instance of callable filter
-    :rtype: _OnChange
-    """
-    return _OnChange(callback)
+    return _Custom(callback, filter_func)
 
 
 class _Throttle(Filter):
@@ -556,8 +400,192 @@ def throttle(callback: EventCallback, seconds: float) -> _Throttle:
     return _Throttle(callback, seconds)
 
 
+class ComparisonFilter(Filter):
+    """Represents a filter that compares current and previous values."""
+
+    __slots__ = ("_value",)
+
+    _value: Any
+
+    def __init__(self, callback: EventCallback) -> None:
+        """Initialize a new comparison filter."""
+        self._value = UNDEFINED
+        super().__init__(callback)
+
+    def is_undefined(self) -> bool:
+        """Check if current value is undefined."""
+        return True if self._value == UNDEFINED else False
+
+    @property
+    def value(self) -> Any:
+        """Return filter value."""
+        return self._value
+
+    @value.setter
+    def value(self, value: Any) -> None:
+        """Set filter value."""
+        if isinstance(value, Parameter):
+            self._value = copy(value)
+        else:
+            self._value = value
+
+
+class _Deadband(ComparisonFilter):
+    """Represents a deadband filter.
+
+    Calls a callback only when value is significantly changed from the
+    previous callback call.
+    """
+
+    __slots__ = ("_tolerance",)
+
+    _tolerance: float
+
+    def __init__(self, callback: EventCallback, tolerance: float) -> None:
+        """Initialize a new value changed filter."""
+        self._tolerance = tolerance
+        super().__init__(callback)
+
+    @numeric_only
+    async def __call__(self, new_value: _Numeric) -> Any:
+        """Set a new value for the callback."""
+        if self.is_undefined() or is_close(
+            self.value, new_value, tolerance=self._tolerance
+        ):
+            self.value = new_value
+            return await self._callback(new_value)
+
+
+def deadband(callback: EventCallback, tolerance: float) -> _Deadband:
+    """Create a new deadband filter.
+
+    A callback function will only be called when the value is significantly changed
+    from the previous callback call.
+
+    :param callback: A callback function to be awaited on significant value change
+    :type callback: EventCallback
+    :param tolerance: The minimum difference required to trigger the callback
+    :type tolerance: float
+    :return: An instance of callable filter
+    :rtype: _Deadband
+    """
+    return _Deadband(callback, tolerance)
+
+
+class _Debounce(ComparisonFilter):
+    """Represents a debounce filter.
+
+    Calls a callback only when value is stabilized across multiple
+    filter calls.
+    """
+
+    __slots__ = ("_calls", "_min_calls")
+
+    _calls: int
+    _min_calls: int
+
+    def __init__(self, callback: EventCallback, min_calls: int) -> None:
+        """Initialize a new debounce filter."""
+        super().__init__(callback)
+        self._calls = 0
+        self._min_calls = min_calls
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self.is_undefined() or is_close(self.value, new_value):
+            self._calls += 1
+        else:
+            self._calls = 0
+
+        if self.is_undefined() or self._calls >= self._min_calls:
+            self.value = new_value
+            self._calls = 0
+            return await self._callback(new_value)
+
+
+def debounce(callback: EventCallback, min_calls: int) -> _Debounce:
+    """Create a new debounce filter.
+
+    A callback function will only be called once the value is stabilized
+    across multiple filter calls.
+
+    :param callback: A callback function to be awaited on value change
+    :type callback: EventCallback
+    :param min_calls: Value shouldn't change for this amount of
+        filter calls
+    :type min_calls: int
+    :return: An instance of callable filter
+    :rtype: _Debounce
+    """
+    return _Debounce(callback, min_calls)
+
+
+class _Delta(ComparisonFilter):
+    """Represents a difference filter.
+
+    Calls a callback with a difference between two subsequent values.
+    """
+
+    __slots__ = ()
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self.is_undefined() or is_close(self.value, new_value):
+            old_value = self.value
+            self.value = new_value
+            if (difference := diffence_between(old_value, new_value)) is not None:
+                return await self._callback(difference)
+
+
+def delta(callback: EventCallback) -> _Delta:
+    """Create a new difference filter.
+
+    A callback function will be called with a difference between two
+    subsequent values.
+
+    :param callback: A callback function that will be awaited with
+        difference between values in two subsequent calls
+    :type callback: EventCallback
+    :return: An instance of callable filter
+    :rtype: _Delta
+    """
+    return _Delta(callback)
+
+
+class _OnChange(ComparisonFilter):
+    """Represents a value changed filter.
+
+    Calls a callback only when value is changed from the
+    previous callback call.
+    """
+
+    __slots__ = ()
+
+    async def __call__(self, new_value: Any) -> Any:
+        """Set a new value for the callback."""
+        if self.is_undefined() or is_close(self.value, new_value):
+            self.value = new_value
+            return await self._callback(new_value)
+
+
+def on_change(callback: EventCallback) -> _OnChange:
+    """Create a new value changed filter.
+
+    A callback function will only be called if the value is changed from the
+    previous call.
+
+    :param callback: A callback function to be awaited on value change
+    :type callback: Callback
+    :return: An instance of callable filter
+    :rtype: _OnChange
+    """
+    return _OnChange(callback)
+
+
 __all__ = [
     "Filter",
+    "ComparisonFilter",
+    "numeric_only",
     "aggregate",
     "clamp",
     "custom",

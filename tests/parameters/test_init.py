@@ -466,6 +466,17 @@ class TestNumber:
         assert number.min_value == 0
         assert number.max_value == 5
 
+    def test_math(self, number: Number) -> None:
+        """Test math operations.
+
+        Checks float and reverse addition.
+        """
+        assert float(number) == 1
+        assert isinstance(float(number), float)
+        assert (1.0 + number) == 2.0
+        assert (2 + number) == 3.0
+        assert number.__radd__("banana") is NotImplemented
+
     def test_validate(self, number: Number) -> None:
         """Test validate.
 
