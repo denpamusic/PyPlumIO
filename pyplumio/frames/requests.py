@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from pyplumio.const import (
     ATTR_COUNT,
@@ -180,7 +180,7 @@ class SetScheduleRequest(Request):
             message += schedule_type.to_bytes(length=1, byteorder="little")
             message += int(data[ATTR_SWITCH]).to_bytes(length=1, byteorder="little")
             message += int(data[ATTR_PARAMETER]).to_bytes(length=1, byteorder="little")
-            schedule = data[ATTR_SCHEDULE]
+            schedule = cast(list[list[bool]], data[ATTR_SCHEDULE])
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 

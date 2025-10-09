@@ -42,9 +42,9 @@ def is_divisible(a: float, b: float, precision: int = 6) -> bool:
     return a_scaled % b_scaled == 0
 
 
-BITS_PER_BYTE: Final = 8
+SingleByte: TypeAlias = Annotated[int, "Single byte integer between 0 and 255"]
 
-SingleByte: TypeAlias = Annotated[int, "single byte represented by a integer"]
+BITS_PER_BYTE: Final = 8
 
 
 def join_bits(bits: Sequence[bool]) -> SingleByte:
@@ -58,7 +58,7 @@ def join_bits(bits: Sequence[bool]) -> SingleByte:
 MAX_BYTE: Final = 255
 
 
-def split_byte(byte: int) -> list[bool]:
+def split_byte(byte: SingleByte) -> list[bool]:
     """Split single byte into an eight bits."""
     if byte < 0 or byte > MAX_BYTE:
         raise ValueError("Byte value must be between 0 and 255.")
