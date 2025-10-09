@@ -92,4 +92,11 @@ def timeout(
     return decorator
 
 
-__all__ = ["ensure_dict", "is_divisible", "to_camelcase", "timeout"]
+__all__ = [
+    "ensure_dict",
+    "is_divisible",
+    "to_camelcase",
+    "join_bits",
+    "split_byte",
+    "timeout",
+]
