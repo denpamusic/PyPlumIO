@@ -4,13 +4,26 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
+from dataclasses import dataclass, field
+from datetime import datetime
 import inspect
 from types import MappingProxyType
 from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 
-EventCallback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
+
+@dataclass(slots=True, frozen=True)
+class Event:
+    """Represent an event."""
+
+    name: str
+    originator: EventManager
+    initial_value: Any
+    fired_at: datetime = field(default_factory=datetime.now)
+
+
+EventCallback: TypeAlias = Callable[[Any, Event], Coroutine[Any, Any, Any]]
 _Callable: TypeAlias = Callable[..., Any]
 
 _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
@@ -173,10 +186,10 @@ class EventManager(TaskManager, Generic[T]):
         :rtype: Callback
         """
 
-        async def _call_once(value: Any) -> Any:
+        async def _call_once(value: Any, event: Event) -> Any:
             """Unsubscribe callback from the event and calls it."""
             self.unsubscribe(name, _call_once)
-            return await callback(value)
+            return await callback(value, event)
 
         return self.subscribe(name, _call_once)
 
@@ -200,9 +213,10 @@ class EventManager(TaskManager, Generic[T]):
 
     async def dispatch(self, name: str, value: T) -> None:
         """Call registered callbacks and dispatch the event."""
+        event = Event(name, originator=self, initial_value=value)
         if callbacks := self._callbacks.get(name, None):
             for callback in list(callbacks):
-                if (result := await callback(value)) is not None:
+                if (result := await callback(value, event)) is not None:
                     value = result
 
         self._data[name] = value
@@ -247,4 +261,4 @@ class EventManager(TaskManager, Generic[T]):
         return MappingProxyType(self._data)
 
 
-__all__ = ["EventCallback", "EventManager", "event_listener"]
+__all__ = ["EventCallback", "Event", "EventManager", "event_listener"]
