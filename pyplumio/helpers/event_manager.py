@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
 from dataclasses import dataclass, field
+from datetime import datetime
 import inspect
 import logging
 from types import MappingProxyType
@@ -15,6 +16,29 @@ from pyplumio.helpers.task_manager import TaskManager
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass(slots=True)
+class EventContext:
+    """Represents an event context."""
+
+    value: Any
+    thansformations: list[tuple[str, Any]] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class Event:
+    """Represents an event."""
+
+    name: str
+    originator: EventManager
+    context: EventContext
+    fired_at: datetime = field(default_factory=datetime.now)
+    propagate: bool = True
+
+    def stop_propagation(self) -> None:
+        """Stop further propagation of the event."""
+        self.propagate = False
+
+
 @dataclass(slots=True, frozen=True)
 class EventListener:
     """Represents an event listener."""
@@ -23,7 +47,7 @@ class EventListener:
     priority: int = field(default=1, compare=False)
 
 
-EventCallback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
+EventCallback: TypeAlias = Callable[[Any, Event], Coroutine[Any, Any, Any]]
 _Callable: TypeAlias = Callable[..., Any]
 
 _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
@@ -204,10 +228,10 @@ class EventManager(TaskManager, Generic[T]):
         :rtype: EventCallback
         """
 
-        async def _call_once(value: Any) -> Any:
+        async def _call_once(value: Any, event: Event) -> Any:
             """Unsubscribe callback from the event and calls it."""
             self.unsubscribe(name, _call_once)
-            return await callback(value)
+            return await callback(value, event)
 
         return self.subscribe(name, _call_once, priority=priority)
 
@@ -232,6 +256,8 @@ class EventManager(TaskManager, Generic[T]):
 
     async def dispatch(self, name: str, value: T) -> None:
         """Call registered listeners and dispatch the event."""
+        context = EventContext(value)
+        event = Event(name, originator=self, context=context)
         listeners = self._listeners.get(name, set())
         sorted_listeners = sorted(listeners, key=lambda listener: listener.priority)
         _LOGGER.debug("Dispatching event '%s' with %d listeners", name, len(listeners))
@@ -243,12 +269,16 @@ class EventManager(TaskManager, Generic[T]):
                 listener.priority,
             )
             try:
-                if (result := await callback(value)) is not None:
-                    value = result
+                if (result := await callback(context.value, event)) is not None:
+                    context.thansformations.append((callback.__name__, result))
+                    context.value = result
             except Exception as e:
                 _LOGGER.exception(
                     "Error in event listener %s: %s", callback.__name__, e
                 )
+
+            if event.propagate is False:
+                break
 
         self._data[name] = value
         self.set_event(name)
@@ -292,4 +322,4 @@ class EventManager(TaskManager, Generic[T]):
         return MappingProxyType(self._data)
 
 
-__all__ = ["EventCallback", "EventManager", "event_listener"]
+__all__ = ["EventCallback", "Event", "EventManager", "event_listener"]

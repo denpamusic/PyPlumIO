@@ -16,7 +16,7 @@ from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
 from pyplumio.helpers.async_cache import acache
-from pyplumio.helpers.event_manager import EventManager
+from pyplumio.helpers.event_manager import Event, EventManager
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
     EthernetParameters,
@@ -182,7 +182,9 @@ class DeviceStatistics:
         """Return a hash of the statistics based on unique address."""
         return self.address
 
-    async def update_last_seen(self, _: Any | None = None) -> None:
+    async def update_last_seen(
+        self, data: Any = None, event: Event | None = None
+    ) -> None:
         """Update last seen property."""
         self.last_seen = datetime.now()
 
