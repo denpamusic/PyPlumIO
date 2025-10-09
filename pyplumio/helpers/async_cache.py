@@ -3,11 +3,10 @@
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from types import MappingProxyType
-from typing import Any, ParamSpec, TypeAlias, TypeVar, cast
+from typing import Any, ParamSpec, TypeVar, cast
 
 T = TypeVar("T")
 P = ParamSpec("P")
-_Callable: TypeAlias = Callable[..., Awaitable[Any]]
 
 
 class AsyncCache:
@@ -21,7 +20,7 @@ class AsyncCache:
         """Initialize the cache."""
         self._cache = {}
 
-    async def get(self, key: str, coro: _Callable) -> Any:
+    async def get(self, key: str, coro: Callable[..., Awaitable[Any]]) -> Any:
         """Get a value from the cache or compute and store it."""
         if key not in self.cache:
             self._cache[key] = await coro()
