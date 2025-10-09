@@ -26,7 +26,7 @@ from pyplumio.devices.thermostat import Thermostat
 from pyplumio.exceptions import RequestError
 from pyplumio.filters import on_change
 from pyplumio.frames import Frame, Request
-from pyplumio.helpers.event_manager import event_listener
+from pyplumio.helpers.event_manager import Event, event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
@@ -214,8 +214,8 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
 
-    @event_listener
-    async def on_event_setup(self, setup: bool) -> bool:
+    @event_listener(priority=0)
+    async def on_event_setup(self, setup: bool, event: Event | None = None) -> bool:
         """Request frames required to set up an ecoMAX entry."""
         _LOGGER.debug("Setting up device entry")
 
@@ -243,9 +243,9 @@ class EcoMAX(PhysicalDevice):
         _LOGGER.debug("Device entry setup done")
         return True
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_ecomax_parameters(
-        self, parameters: list[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]], event: Event | None = None
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
         _LOGGER.debug("Received device parameters")
@@ -284,16 +284,18 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_ecomax_parameter_events())
         return True
 
-    @event_listener
-    async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:
+    @event_listener(priority=0)
+    async def on_event_fuel_consumption(
+        self, fuel_consumption: float, event: Event | None = None
+    ) -> None:
         """Update the amount of burned fuel."""
         fuel_burned = self._fuel_meter.calculate(fuel_consumption)
         if fuel_burned is not None:
             self.dispatch_nowait(ATTR_FUEL_BURNED, fuel_burned)
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_mixer_parameters(
-        self, parameters: dict[int, Any] | None
+        self, parameters: dict[int, Any] | None, event: Event | None = None
     ) -> bool:
         """Handle mixer parameters and dispatch the events."""
         _LOGGER.debug("Received mixer parameters")
@@ -308,8 +310,10 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener
-    async def on_event_mixer_sensors(self, sensors: dict[int, Any] | None) -> bool:
+    @event_listener(priority=0)
+    async def on_event_mixer_sensors(
+        self, sensors: dict[int, Any] | None, event: Event | None = None
+    ) -> bool:
         """Update mixer sensors and dispatch the events."""
         _LOGGER.debug("Received mixer sensors")
         if sensors:
@@ -323,9 +327,9 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_schedule_parameters(
-        self, parameters: list[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]], event: Event | None = None
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
 
@@ -348,8 +352,10 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*_schedule_parameter_events())
         return True
 
-    @event_listener
-    async def on_event_sensors(self, sensors: dict[str, Any]) -> bool:
+    @event_listener(priority=0)
+    async def on_event_sensors(
+        self, sensors: dict[str, Any], event: Event | None = None
+    ) -> bool:
         """Update ecoMAX sensors and dispatch the events."""
         _LOGGER.debug("Received device sensors")
         await asyncio.gather(
@@ -357,9 +363,9 @@ class EcoMAX(PhysicalDevice):
         )
         return True
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_thermostat_parameters(
-        self, parameters: dict[int, Any] | None
+        self, parameters: dict[int, Any] | None, event: Event | None = None
     ) -> bool:
         """Handle thermostat parameters and dispatch the events."""
         _LOGGER.debug("Received thermostat parameters")
@@ -376,9 +382,9 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_thermostat_profile(
-        self, values: ParameterValues | None
+        self, values: ParameterValues | None, event: Event | None = None
     ) -> EcomaxNumber | None:
         """Update thermostat profile parameter."""
         if values:
@@ -388,8 +394,10 @@ class EcoMAX(PhysicalDevice):
 
         return None
 
-    @event_listener
-    async def on_event_thermostat_sensors(self, sensors: dict[int, Any] | None) -> bool:
+    @event_listener(priority=0)
+    async def on_event_thermostat_sensors(
+        self, sensors: dict[int, Any] | None, event: Event | None = None
+    ) -> bool:
         """Update thermostat sensors and dispatch the events."""
         _LOGGER.debug("Received thermostat sensors")
         if sensors:
@@ -406,9 +414,9 @@ class EcoMAX(PhysicalDevice):
 
         return False
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_schedules(
-        self, schedules: list[tuple[int, list[list[bool]]]]
+        self, schedules: list[tuple[int, list[list[bool]]]], event: Event | None = None
     ) -> dict[str, Schedule]:
         """Update schedules."""
         _LOGGER.debug("Received device schedules")
@@ -427,8 +435,10 @@ class EcoMAX(PhysicalDevice):
             for index, schedule in schedules
         }
 
-    @event_listener(filter=on_change)
-    async def on_event_state(self, state: DeviceState) -> None:
+    @event_listener(filter=on_change, priority=0)
+    async def on_event_state(
+        self, state: DeviceState, event: Event | None = None
+    ) -> None:
         """Update the ecoMAX control parameter."""
         await self.dispatch(
             ECOMAX_CONTROL_PARAMETER.name,

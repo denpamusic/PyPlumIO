@@ -96,7 +96,8 @@ def test_get_nowait(event_manager: EventManager) -> None:
     assert event_manager.get_nowait("test_key2") is None
 
 
-async def test_load(event_manager: EventManager) -> None:
+@patch("pyplumio.helpers.event_manager.Event", autospec=True)
+async def test_load(mock_event, event_manager: EventManager) -> None:
     """Test loading event data."""
     callback = AsyncMock(return_value=True)
     callback2 = AsyncMock(return_value=True)
@@ -105,10 +106,11 @@ async def test_load(event_manager: EventManager) -> None:
     event_manager.load_nowait({"test_key2": "test_value2"})
     await event_manager.wait_until_done()
     callback.assert_not_awaited()
-    callback2.assert_awaited_once_with("test_value2")
+    callback2.assert_awaited_once_with("test_value2", mock_event.return_value)
 
 
-async def test_load_nowait(event_manager: EventManager) -> None:
+@patch("pyplumio.helpers.event_manager.Event", autospec=True)
+async def test_load_nowait(mock_event, event_manager: EventManager) -> None:
     """Test loading event data without waiting."""
     callback = AsyncMock(return_value=True)
     callback2 = AsyncMock(return_value=True)
@@ -116,27 +118,34 @@ async def test_load_nowait(event_manager: EventManager) -> None:
     event_manager.subscribe("test_key2", callback2)
     await event_manager.load({"test_key2": "test_value2"})
     callback.assert_not_awaited()
-    callback2.assert_awaited_once_with("test_value2")
+    callback2.assert_awaited_once_with("test_value2", mock_event.return_value)
 
 
-async def test_subscribe(event_manager: EventManager) -> None:
+@patch("pyplumio.helpers.event_manager.Event", autospec=True)
+async def test_subscribe(mock_event, event_manager: EventManager) -> None:
     """Test subscribing to an event."""
     callback = AsyncMock(return_value=True)
     assert event_manager.subscribe("test_key2", callback) is callback
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
-    callback.assert_has_awaits([call("test_value2"), call("test_value3")])
+    callback.assert_has_awaits(
+        [
+            call("test_value2", mock_event.return_value),
+            call("test_value3", mock_event.return_value),
+        ]
+    )
 
 
-async def test_subscribe_once(event_manager: EventManager) -> None:
+@patch("pyplumio.helpers.event_manager.Event", autospec=True)
+async def test_subscribe_once(mock_event, event_manager: EventManager) -> None:
     """Test subscribing to an event once."""
     callback = AsyncMock(return_value=True)
     event_manager.subscribe_once("test_key2", callback)
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
-    callback.assert_awaited_once_with("test_value2")
+    callback.assert_awaited_once_with("test_value2", mock_event.return_value)
     callback.reset_mock()
 
     # Test getting the reference and unsubscribing.
@@ -151,7 +160,10 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     callback.assert_not_awaited()
 
 
-async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
+@patch("pyplumio.helpers.event_manager.Event", autospec=True)
+async def test_subscribe_once_interrupt(
+    mock_event, event_manager: EventManager
+) -> None:
     """Test subscribing once doesn't affect other callbacks."""
     callback1 = AsyncMock(return_value=None)
     callback2 = AsyncMock(return_value=None)
@@ -160,7 +172,12 @@ async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
     event_manager.dispatch_nowait("test_key1", "test_value1")
     event_manager.dispatch_nowait("test_key1", "test_value2")
     await event_manager.wait_until_done()
-    callback2.assert_has_awaits([call("test_value1"), call("test_value2")])
+    callback2.assert_has_awaits(
+        [
+            call("test_value1", mock_event.return_value),
+            call("test_value2", mock_event.return_value),
+        ]
+    )
 
 
 async def test_unsubscribe(event_manager: EventManager) -> None:

@@ -8,7 +8,7 @@ import logging
 from typing import Any
 
 from pyplumio.devices import VirtualDevice
-from pyplumio.helpers.event_manager import event_listener
+from pyplumio.helpers.event_manager import Event, event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.thermostat import (
     ThermostatNumber,
@@ -25,8 +25,10 @@ class Thermostat(VirtualDevice):
 
     __slots__ = ()
 
-    @event_listener
-    async def on_event_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
+    @event_listener(priority=0)
+    async def on_event_thermostat_sensors(
+        self, sensors: dict[str, Any], event: Event | None = None
+    ) -> bool:
         """Update thermostat sensors and dispatch the events."""
         _LOGGER.debug("Received thermostat %i sensors", self.index)
         await asyncio.gather(
@@ -34,9 +36,9 @@ class Thermostat(VirtualDevice):
         )
         return True
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_thermostat_parameters(
-        self, parameters: list[tuple[int, ParameterValues]]
+        self, parameters: list[tuple[int, ParameterValues]], event: Event | None = None
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""
         _LOGGER.debug("Received thermostat %i parameters", self.index)

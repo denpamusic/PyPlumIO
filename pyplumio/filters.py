@@ -22,7 +22,7 @@ from typing import (
     runtime_checkable,
 )
 
-from pyplumio.helpers.event_manager import EventCallback
+from pyplumio.helpers.event_manager import Event, EventCallback
 from pyplumio.parameters import Number, Parameter
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,7 +134,7 @@ def numeric_only(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def wrapper(instance: Filter, new_value: _Numeric) -> Any:
+    def wrapper(instance: Filter, new_value: _Numeric, event: Event) -> Any:
         """Wrap __call__ method and add numeric check to it."""
         if not isinstance(new_value, _Numeric):
             raise TypeError(
@@ -142,7 +142,7 @@ def numeric_only(func: Callable) -> Callable:
                 f"with numeric values, got {type(new_value).__name__}: {new_value}"
             )
 
-        return func(instance, new_value)
+        return func(instance, new_value, event)
 
     return wrapper
 
@@ -172,8 +172,13 @@ class Filter(ABC):
 
         return NotImplemented
 
+    @property
+    def __name__(self) -> str:
+        """Return event callback name."""
+        return self._callback.__name__
+
     @abstractmethod
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
 
 
@@ -202,7 +207,7 @@ class _Aggregate(Filter):
         self._values = []
 
     @numeric_only
-    async def __call__(self, new_value: _Numeric) -> Any:
+    async def __call__(self, new_value: _Numeric, event: Event) -> Any:
         """Set a new value for the callback."""
         current_time = time.monotonic()
         self._values.append(new_value)
@@ -211,7 +216,7 @@ class _Aggregate(Filter):
             sum_of_values = (
                 np.sum(np.array(self._values)) if numpy_installed else sum(self._values)
             )
-            result = await self._callback(float(sum_of_values))
+            result = await self._callback(float(sum_of_values), event)
             self._last_call_time = current_time
             self._values = []
             return result
@@ -266,7 +271,7 @@ class _Clamp(Filter):
         self._ignore_out_of_range = ignore_out_of_range
 
     @numeric_only
-    async def __call__(self, new_value: _Numeric) -> Any:
+    async def __call__(self, new_value: _Numeric, event: Event) -> Any:
         """Set a new value for the callback."""
         if self._ignore_out_of_range and (
             new_value < self._min_value or new_value > self._max_value
@@ -274,12 +279,12 @@ class _Clamp(Filter):
             return
 
         if new_value < self._min_value:
-            return await self._callback(self._min_value)
+            return await self._callback(self._min_value, event)
 
         if new_value > self._max_value:
-            return await self._callback(self._max_value)
+            return await self._callback(self._max_value, event)
 
-        return await self._callback(new_value)
+        return await self._callback(new_value, event)
 
 
 def clamp(
@@ -331,10 +336,10 @@ class _Custom(Filter):
         super().__init__(callback)
         self._filter_func = filter_func
 
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
         if self._filter_func(new_value):
-            await self._callback(new_value)
+            await self._callback(new_value, event)
 
 
 def custom(callback: EventCallback, filter_func: _FilterFunc) -> _Custom:
@@ -374,7 +379,7 @@ class _Throttle(Filter):
         self._last_called = None
         self._timeout = seconds
 
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
         current_timestamp = time.monotonic()
         if (
@@ -382,7 +387,7 @@ class _Throttle(Filter):
             or (current_timestamp - self._last_called) >= self._timeout
         ):
             self._last_called = current_timestamp
-            return await self._callback(new_value)
+            return await self._callback(new_value, event)
 
 
 def throttle(callback: EventCallback, seconds: float) -> _Throttle:
@@ -450,13 +455,13 @@ class _Deadband(ComparisonFilter):
         super().__init__(callback)
 
     @numeric_only
-    async def __call__(self, new_value: _Numeric) -> Any:
+    async def __call__(self, new_value: _Numeric, event: Event) -> Any:
         """Set a new value for the callback."""
         if self.is_undefined() or not is_close(
             self.value, new_value, tolerance=self._tolerance
         ):
             self.value = new_value
-            return await self._callback(new_value)
+            return await self._callback(new_value, event)
 
 
 def deadband(callback: EventCallback, tolerance: float) -> _Deadband:
@@ -493,7 +498,7 @@ class _Debounce(ComparisonFilter):
         self._calls = 0
         self._min_calls = min_calls
 
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
         if self.is_undefined() or not is_close(self.value, new_value):
             self._calls += 1
@@ -503,7 +508,7 @@ class _Debounce(ComparisonFilter):
         if self.is_undefined() or self._calls >= self._min_calls:
             self.value = new_value
             self._calls = 0
-            return await self._callback(new_value)
+            return await self._callback(new_value, event)
 
 
 def debounce(callback: EventCallback, min_calls: int) -> _Debounce:
@@ -531,13 +536,13 @@ class _Delta(ComparisonFilter):
 
     __slots__ = ()
 
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
         if self.is_undefined() or not is_close(self.value, new_value):
             old_value = self.value
             self.value = new_value
             if (difference := diffence_between(old_value, new_value)) is not None:
-                return await self._callback(difference)
+                return await self._callback(difference, event)
 
 
 def delta(callback: EventCallback) -> _Delta:
@@ -564,11 +569,11 @@ class _OnChange(ComparisonFilter):
 
     __slots__ = ()
 
-    async def __call__(self, new_value: Any) -> Any:
+    async def __call__(self, new_value: Any, event: Event) -> Any:
         """Set a new value for the callback."""
         if self.is_undefined() or not is_close(self.value, new_value):
             self.value = new_value
-            return await self._callback(new_value)
+            return await self._callback(new_value, event)
 
 
 def on_change(callback: EventCallback) -> _OnChange:
