@@ -1,6 +1,7 @@
 """Contains tests for the utility functions."""
 
 import asyncio
+from typing import Literal
 from unittest.mock import Mock, patch
 
 import pytest
@@ -69,12 +70,17 @@ def test_is_divisible(input_value, divisor, expected) -> None:
         ("00000000", 0),
         ("1000", 8),
         ("10000", 16),
+        ("100000001", RAISES),
     ],
 )
-def test_join_bits(input_value: str, expected: int) -> None:
+def test_join_bits(input_value: str, expected: int | Literal["raises"]) -> None:
     """Test joining bits into a single byte."""
-    bits = list(map(int, input_value))
-    assert utils.join_bits(bits) == expected
+    bits = [bool(int(x)) for x in input_value]
+    if expected == RAISES:
+        with pytest.raises(ValueError, match="must not exceed 8"):
+            utils.join_bits(bits)
+    else:
+        assert utils.join_bits(bits) == expected
 
 
 def test_join_bits_with_bool() -> None:
@@ -87,13 +93,20 @@ def test_join_bits_with_bool() -> None:
     ("input_value", "expected"),
     [
         (4, [False, False, False, False, False, True, False, False]),
-        (255, [True, True, True, True, True, True, True, True]),
+        (128, [True, False, False, False, False, False, False, False]),
         (0, [False, False, False, False, False, False, False, False]),
+        (255, [True, True, True, True, True, True, True, True]),
+        (-128, RAISES),
+        (268, RAISES),
     ],
 )
-def test_split_byte(input_value: int, expected: list[bool]) -> None:
+def test_split_byte(input_value: int, expected: list[bool] | Literal["raises"]) -> None:
     """Test splitting a byte into list of bits."""
-    assert utils.split_byte(input_value) == expected
+    if expected == RAISES:
+        with pytest.raises(ValueError, match="between 0 and 255"):
+            utils.split_byte(input_value)
+    else:
+        assert utils.split_byte(input_value) == expected
 
 
 @patch("asyncio.wait_for", side_effect=("test", asyncio.TimeoutError))

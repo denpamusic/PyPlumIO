@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from functools import reduce, wraps
-from typing import ParamSpec, TypeVar
+from typing import Annotated, Final, ParamSpec, TypeAlias, TypeVar
 
 KT = TypeVar("KT")  # Key type.
 VT = TypeVar("VT")  # Value type.
@@ -42,13 +42,33 @@ def is_divisible(a: float, b: float, precision: int = 6) -> bool:
     return a_scaled % b_scaled == 0
 
 
-def join_bits(bits: Sequence[int | bool]) -> int:
+BITS_PER_BYTE: Final = 8
+
+SingleByte: TypeAlias = Annotated[int, "single byte represented by a integer"]
+
+
+def join_bits(bits: Sequence[bool]) -> SingleByte:
     """Join eight bits into a single byte."""
-    return reduce(lambda bit, byte: (bit << 1) | byte, bits)
+    if len(bits) > BITS_PER_BYTE:
+        raise ValueError("The number of bits must not exceed 8.")
+
+    return reduce(lambda byte, bit: (byte << 1) | int(bit), bits, 0)
+
+
+MAX_BYTE: Final = 255
 
 
 def split_byte(byte: int) -> list[bool]:
     """Split single byte into an eight bits."""
+    if byte < 0 or byte > MAX_BYTE:
+        raise ValueError("Byte value must be between 0 and 255.")
+
+    if byte == 0:
+        return [False, False, False, False, False, False, False, False]
+
+    if byte == MAX_BYTE:
+        return [True, True, True, True, True, True, True, True]
+
     return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
 
 
