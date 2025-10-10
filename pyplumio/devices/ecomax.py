@@ -6,7 +6,7 @@ import asyncio
 from collections.abc import Coroutine, Generator, Iterable
 import logging
 import time
-from typing import Any, Final
+from typing import Any, Final, NamedTuple
 
 from pyplumio.const import (
     ATTR_FRAME_ERRORS,
@@ -25,7 +25,7 @@ from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.exceptions import RequestError
 from pyplumio.filters import on_change
-from pyplumio.frames import DataFrameDescription, Frame, Request
+from pyplumio.frames import Frame, Request
 from pyplumio.helpers.event_manager import event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
@@ -101,42 +101,25 @@ class FuelMeter:
         return None
 
 
-REQUIRED: tuple[DataFrameDescription, ...] = (
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_UID,
-        provides=ATTR_PRODUCT,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_REGULATOR_DATA_SCHEMA,
-        provides=ATTR_REGDATA_SCHEMA,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_ECOMAX_PARAMETERS,
-        provides=ATTR_ECOMAX_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_ALERTS,
-        provides=ATTR_TOTAL_ALERTS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_SCHEDULES,
-        provides=ATTR_SCHEDULES,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_MIXER_PARAMETERS,
-        provides=ATTR_MIXER_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_THERMOSTAT_PARAMETERS,
-        provides=ATTR_THERMOSTAT_PARAMETERS,
-    ),
-    DataFrameDescription(
-        frame_type=FrameType.REQUEST_PASSWORD,
-        provides=ATTR_PASSWORD,
-    ),
+class DataKey(NamedTuple):
+    """Map a data key to frame type."""
+
+    key: str
+    provided_by: FrameType
+
+
+REQUIRED_KEYS: tuple[DataKey, ...] = (
+    DataKey(ATTR_PRODUCT, FrameType.REQUEST_UID),
+    DataKey(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+    DataKey(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+    DataKey(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
+    DataKey(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+    DataKey(ATTR_MIXER_PARAMETERS, FrameType.REQUEST_MIXER_PARAMETERS),
+    DataKey(ATTR_THERMOSTAT_PARAMETERS, FrameType.REQUEST_THERMOSTAT_PARAMETERS),
+    DataKey(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
 )
 
-REQUIRED_TYPES = [description.frame_type for description in REQUIRED]
+REQUIRED_TYPES = [frame_type for _, frame_type in REQUIRED_KEYS]
 
 SETUP_TIMEOUT: Final = 60.0
 
@@ -247,10 +230,7 @@ class EcoMAX(PhysicalDevice):
             return False
 
         results = await asyncio.gather(
-            *(
-                self.request(description.provides, description.frame_type)
-                for description in REQUIRED
-            ),
+            *(self.request(key, frame_type) for key, frame_type in REQUIRED_KEYS),
             return_exceptions=True,
         )
 

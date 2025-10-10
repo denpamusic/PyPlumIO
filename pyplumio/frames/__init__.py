@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from dataclasses import dataclass
 from functools import cache, reduce
 import struct
 from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar
@@ -62,14 +61,6 @@ def get_frame_handler(frame_type: int) -> str:
     module, type_name = FrameType(frame_type).name.split("_", 1)
     type_name = to_camelcase(type_name, overrides={"uid": "UID"})
     return f"frames.{module.lower()}s.{type_name}{module.capitalize()}"
-
-
-@dataclass(slots=True)
-class DataFrameDescription:
-    """Describes what data is provided by the frame."""
-
-    frame_type: FrameType
-    provides: str
 
 
 _FrameT = TypeVar("_FrameT", bound="Frame")
@@ -384,7 +375,6 @@ __all__ = [
     "Request",
     "Response",
     "Message",
-    "DataFrameDescription",
     "Structured",
     "bcc",
     "contains",
