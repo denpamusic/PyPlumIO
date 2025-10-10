@@ -9,7 +9,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from pyplumio.const import ATTR_FRAME_ERRORS, DeviceType, FrameType
-from pyplumio.devices import Device, PhysicalDevice, get_device_handler
+from pyplumio.devices import Device, PhysicalDevice, device_handler, get_device_handler
 from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
 from pyplumio.frames import Response
@@ -28,7 +28,7 @@ from tests.conftest import RAISES
         (99, RAISES),
     ],
 )
-def test_device_handler(
+def test_get_device_handler(
     device_type: DeviceType | int, handler: str | Literal["raises"]
 ) -> None:
     """Test getting device handler class by device address."""
@@ -201,3 +201,9 @@ class TestPhysicalDevice:
         assert mock_put_nowait.call_count == 2
         mock_get.assert_awaited_with("alerts", timeout=3.0)
         assert mock_get.call_count == 2
+
+    async def test_device_handler(self) -> None:
+        """Test device handler decorator."""
+        wrapper = device_handler(DeviceType.ECOMAX)
+        device = wrapper(PhysicalDevice)(queue=asyncio.Queue(), network=NetworkInfo())
+        assert device.address == DeviceType.ECOMAX

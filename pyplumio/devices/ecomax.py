@@ -20,7 +20,7 @@ from pyplumio.const import (
     FrameType,
     State,
 )
-from pyplumio.devices import PhysicalDevice
+from pyplumio.devices import PhysicalDevice, device_handler
 from pyplumio.devices.mixer import Mixer
 from pyplumio.devices.thermostat import Thermostat
 from pyplumio.exceptions import RequestError
@@ -124,14 +124,13 @@ REQUIRED_TYPES = [frame_type for _, frame_type in REQUIRED_KEYS]
 SETUP_TIMEOUT: Final = 60.0
 
 
+@device_handler(DeviceType.ECOMAX)
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
     __slots__ = ("_fuel_meter",)
 
     _fuel_meter: FuelMeter
-
-    address = DeviceType.ECOMAX
 
     def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""

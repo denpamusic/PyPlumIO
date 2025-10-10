@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from abc import ABC
 import asyncio
+from collections.abc import Callable
 from functools import cache
 import logging
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TypeVar
 
 from pyplumio.const import ATTR_FRAME_ERRORS, DeviceType, FrameType, State
 from pyplumio.exceptions import RequestError, UnknownDeviceError
@@ -232,10 +233,27 @@ class VirtualDevice(Device, ABC):
         self.index = index
 
 
+_PhysicalDeviceT = TypeVar("_PhysicalDeviceT", bound=PhysicalDevice)
+
+
+def device_handler(
+    device_type: DeviceType,
+) -> Callable[[type[_PhysicalDeviceT]], type[_PhysicalDeviceT]]:
+    """Specify device type (address) for the physical device class."""
+
+    def wrapper(cls: type[_PhysicalDeviceT]) -> type[_PhysicalDeviceT]:
+        """Wrap the physical device class."""
+        setattr(cls, "address", device_type)
+        return cls
+
+    return wrapper
+
+
 __all__ = [
     "Device",
     "PhysicalDevice",
     "VirtualDevice",
-    "is_known_device_type",
+    "device_hander",
     "get_device_handler",
+    "is_known_device_type",
 ]
