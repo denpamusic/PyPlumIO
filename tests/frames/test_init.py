@@ -12,23 +12,29 @@ from pyplumio.frames import (
     ECONET_VERSION,
     Request,
     Response,
+    Structured,
+    contains,
+    frame_type,
     get_frame_handler,
     struct_header,
 )
 from pyplumio.frames.responses import ProgramVersionResponse
+from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 
 
+@frame_type(FrameType.REQUEST_PROGRAM_VERSION)
 class RequestFrame(Request):
-    """Representation of a request frame."""
+    """Represtents a request frame."""
 
-    frame_type = FrameType.REQUEST_PROGRAM_VERSION
+    __slots__ = ()
 
 
+@frame_type(FrameType.RESPONSE_PROGRAM_VERSION)
 class ResponseFrame(Response):
-    """Representation of a response frame."""
+    """Represtents a response frame."""
 
-    frame_type = FrameType.RESPONSE_PROGRAM_VERSION
+    __slots__ = ()
 
 
 @pytest.fixture(name="request_frame")
@@ -181,3 +187,31 @@ def test_response_repr(response_frame: Response) -> None:
         "message=bytearray(b''), "
         "data={'foo': 0})"
     )
+
+
+class StructuredResponse(Structured, Response):
+    """Represents a structured response."""
+
+    __slots__ = ()
+
+
+def test_frame_type() -> None:
+    """Test frame type decorator."""
+    wrapper = frame_type(
+        FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure
+    )
+    response = wrapper(ResponseFrame)()
+    assert response.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE
+    assert not hasattr(response, "structures")
+
+    structured = wrapper(StructuredResponse)()
+    assert structured.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE
+    assert NetworkInfoStructure in structured.structures
+
+
+def test_contains() -> None:
+    """Test contains decorator."""
+    wrapper = contains(NetworkInfoStructure, container="wrap")
+    frame = wrapper(StructuredResponse)()
+    assert NetworkInfoStructure in frame.structures
+    assert frame.container == "wrap"

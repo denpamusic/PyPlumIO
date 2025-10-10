@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from math import isclose
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -458,6 +459,13 @@ class TestNumber:
 
     Verifies value, validation, set, and request creation.
     """
+
+    def test_float(self, number: Number) -> None:
+        """Test float.
+
+        Check conversion to float.
+        """
+        assert isclose(float(number), 1.0)
 
     def test_values(self, number: Number) -> None:
         """Test values.

@@ -290,38 +290,6 @@ class Message(Response):
     __slots__ = ()
 
 
-def frame_type(frame_type: FrameType) -> Callable[..., _FrameT]:
-    """Specify frame type for the frame class."""
-
-    def wrapper(frame: _FrameT) -> _FrameT:
-        """Wrap the frame class."""
-        setattr(frame, "frame_type", frame_type)
-        return frame
-
-    return wrapper
-
-
-def contains(
-    *structures: type[Structure], container: str | None = None
-) -> Callable[..., _FrameT]:
-    """Decorate frame class with structure.
-
-    Indicate which structures need to be used for encoding/decoding
-    the frame as well as provide a way to wrap output data under
-    a single key.
-    """
-
-    def wrapper(frame: _FrameT) -> _FrameT:
-        """Wrap the frame class."""
-        setattr(frame, "structures", structures)
-        if container:
-            setattr(frame, "container", container)
-
-        return frame
-
-    return wrapper
-
-
 class Structured(Frame):
     """Represents a frame that has known structure."""
 
@@ -369,6 +337,46 @@ class Structured(Frame):
             return {self.container: data}
 
         return data
+
+
+def frame_type(
+    frame_type: FrameType, structure: type[Structure] | None = None
+) -> Callable[[type[_FrameT]], type[_FrameT]]:
+    """Specify frame type for the frame class."""
+
+    def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
+        """Wrap the frame class."""
+        setattr(cls, "frame_type", frame_type)
+        if structure and issubclass(cls, Structured):
+            setattr(cls, "structures", (structure,))
+
+        return cls
+
+    return wrapper
+
+
+_StructuredT = TypeVar("_StructuredT", bound=Structured)
+
+
+def contains(
+    *structures: type[Structure], container: str | None = None
+) -> Callable[[type[_StructuredT]], type[_StructuredT]]:
+    """Decorate frame class with structure.
+
+    Indicate which structures need to be used for encoding/decoding
+    the frame as well as provide a way to wrap output data under
+    a single key.
+    """
+
+    def wrapper(cls: type[_StructuredT]) -> type[_StructuredT]:
+        """Wrap the frame class."""
+        setattr(cls, "structures", structures)
+        if container:
+            setattr(cls, "container", container)
+
+        return cls
+
+    return wrapper
 
 
 __all__ = [
