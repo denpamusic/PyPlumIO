@@ -339,7 +339,7 @@ class Structured(Frame):
         return data
 
 
-def frame_type(
+def frame_handler(
     frame_type: FrameType, structure: type[Structure] | None = None
 ) -> Callable[[type[_FrameT]], type[_FrameT]]:
     """Specify frame type for the frame class."""
@@ -388,7 +388,7 @@ __all__ = [
     "Structured",
     "bcc",
     "contains",
-    "frame_type",
+    "frame_handler",
     "get_frame_handler",
     "is_known_frame_type",
 ]

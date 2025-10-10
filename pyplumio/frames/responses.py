@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from pyplumio.const import ATTR_PASSWORD, FrameType
-from pyplumio.frames import Response, Structured, frame_type
+from pyplumio.frames import Response, Structured, frame_handler
 from pyplumio.structures.alerts import AlertsStructure
 from pyplumio.structures.ecomax_parameters import EcomaxParametersStructure
 from pyplumio.structures.mixer_parameters import MixerParametersStructure
@@ -17,14 +17,14 @@ from pyplumio.structures.schedules import SchedulesStructure
 from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
 
-@frame_type(FrameType.RESPONSE_ALERTS, structure=AlertsStructure)
+@frame_handler(FrameType.RESPONSE_ALERTS, structure=AlertsStructure)
 class AlertsResponse(Structured, Response):
     """Represents response to a device alerts request."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure)
+@frame_handler(FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure)
 class DeviceAvailableResponse(Structured, Response):
     """Represents a device available response.
 
@@ -34,7 +34,7 @@ class DeviceAvailableResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_ECOMAX_CONTROL)
+@frame_handler(FrameType.RESPONSE_ECOMAX_CONTROL)
 class EcomaxControlResponse(Response):
     """Represents response to an ecoMAX control request.
 
@@ -45,7 +45,9 @@ class EcomaxControlResponse(Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_ECOMAX_PARAMETERS, structure=EcomaxParametersStructure)
+@frame_handler(
+    FrameType.RESPONSE_ECOMAX_PARAMETERS, structure=EcomaxParametersStructure
+)
 class EcomaxParametersResponse(Structured, Response):
     """Represents an ecoMAX parameters response.
 
@@ -55,7 +57,7 @@ class EcomaxParametersResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_MIXER_PARAMETERS, structure=MixerParametersStructure)
+@frame_handler(FrameType.RESPONSE_MIXER_PARAMETERS, structure=MixerParametersStructure)
 class MixerParametersResponse(Structured, Response):
     """Represents a mixer parameters response.
 
@@ -65,7 +67,7 @@ class MixerParametersResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_PASSWORD)
+@frame_handler(FrameType.RESPONSE_PASSWORD)
 class PasswordResponse(Response):
     """Represents a password response.
 
@@ -80,7 +82,7 @@ class PasswordResponse(Response):
         return {ATTR_PASSWORD: password}
 
 
-@frame_type(FrameType.RESPONSE_PROGRAM_VERSION, structure=ProgramVersionStructure)
+@frame_handler(FrameType.RESPONSE_PROGRAM_VERSION, structure=ProgramVersionStructure)
 class ProgramVersionResponse(Structured, Response):
     """Represents a program version response.
 
@@ -90,7 +92,7 @@ class ProgramVersionResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(
+@frame_handler(
     FrameType.RESPONSE_REGULATOR_DATA_SCHEMA, structure=RegulatorDataSchemaStructure
 )
 class RegulatorDataSchemaResponse(Structured, Response):
@@ -103,14 +105,14 @@ class RegulatorDataSchemaResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_SCHEDULES, structure=SchedulesStructure)
+@frame_handler(FrameType.RESPONSE_SCHEDULES, structure=SchedulesStructure)
 class SchedulesResponse(Structured, Response):
     """Represents response to a device schedules request."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_SET_ECOMAX_PARAMETER)
+@frame_handler(FrameType.RESPONSE_SET_ECOMAX_PARAMETER)
 class SetEcomaxParameterResponse(Response):
     """Represents response to a set ecoMAX parameter request.
 
@@ -121,7 +123,7 @@ class SetEcomaxParameterResponse(Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_SET_MIXER_PARAMETER)
+@frame_handler(FrameType.RESPONSE_SET_MIXER_PARAMETER)
 class SetMixerParameterResponse(Response):
     """Represents response to a set mixer parameter request.
 
@@ -132,7 +134,7 @@ class SetMixerParameterResponse(Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER)
+@frame_handler(FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER)
 class SetThermostatParameterResponse(Response):
     """Represents response to a set thermostat parameter request.
 
@@ -143,7 +145,7 @@ class SetThermostatParameterResponse(Response):
     __slots__ = ()
 
 
-@frame_type(
+@frame_handler(
     FrameType.RESPONSE_THERMOSTAT_PARAMETERS, structure=ThermostatParametersStructure
 )
 class ThermostatParametersResponse(Structured, Response):
@@ -155,7 +157,7 @@ class ThermostatParametersResponse(Structured, Response):
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_UID, structure=ProductInfoStructure)
+@frame_handler(FrameType.RESPONSE_UID, structure=ProductInfoStructure)
 class UIDResponse(Structured, Response):
     """Represents an UID response.
 

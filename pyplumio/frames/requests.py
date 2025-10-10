@@ -19,13 +19,13 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, Response, frame_type
+from pyplumio.frames import Request, Response, frame_handler
 from pyplumio.frames.responses import DeviceAvailableResponse, ProgramVersionResponse
 from pyplumio.structures.schedules import SCHEDULES
 from pyplumio.utils import join_bits
 
 
-@frame_type(FrameType.REQUEST_ALERTS)
+@frame_handler(FrameType.REQUEST_ALERTS)
 class AlertsRequest(Request):
     """Represents an alerts request.
 
@@ -40,7 +40,7 @@ class AlertsRequest(Request):
         return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
 
 
-@frame_type(FrameType.REQUEST_CHECK_DEVICE)
+@frame_handler(FrameType.REQUEST_CHECK_DEVICE)
 class CheckDeviceRequest(Request):
     """Represents a check device request."""
 
@@ -51,7 +51,7 @@ class CheckDeviceRequest(Request):
         return DeviceAvailableResponse(recipient=self.sender, **kwargs)
 
 
-@frame_type(FrameType.REQUEST_ECOMAX_CONTROL)
+@frame_handler(FrameType.REQUEST_ECOMAX_CONTROL)
 class EcomaxControlRequest(Request):
     """Represents an ecoMAX control request.
 
@@ -69,7 +69,7 @@ class EcomaxControlRequest(Request):
             raise FrameDataError from e
 
 
-@frame_type(FrameType.REQUEST_ECOMAX_PARAMETERS)
+@frame_handler(FrameType.REQUEST_ECOMAX_PARAMETERS)
 class EcomaxParametersRequest(Request):
     """Represents an ecoMAX parameters request.
 
@@ -83,7 +83,7 @@ class EcomaxParametersRequest(Request):
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-@frame_type(FrameType.REQUEST_MIXER_PARAMETERS)
+@frame_handler(FrameType.REQUEST_MIXER_PARAMETERS)
 class MixerParametersRequest(Request):
     """Represents a mixer parameters request.
 
@@ -98,14 +98,14 @@ class MixerParametersRequest(Request):
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-@frame_type(FrameType.REQUEST_PASSWORD)
+@frame_handler(FrameType.REQUEST_PASSWORD)
 class PasswordRequest(Request):
     """Represents a password request."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.REQUEST_PROGRAM_VERSION)
+@frame_handler(FrameType.REQUEST_PROGRAM_VERSION)
 class ProgramVersionRequest(Request):
     """Represents a program version request."""
 
@@ -116,21 +116,21 @@ class ProgramVersionRequest(Request):
         return ProgramVersionResponse(recipient=self.sender, **kwargs)
 
 
-@frame_type(FrameType.REQUEST_REGULATOR_DATA_SCHEMA)
+@frame_handler(FrameType.REQUEST_REGULATOR_DATA_SCHEMA)
 class RegulatorDataSchemaRequest(Request):
     """Represents regulator data schema request."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.REQUEST_SCHEDULES)
+@frame_handler(FrameType.REQUEST_SCHEDULES)
 class SchedulesRequest(Request):
     """Represents a schedules request."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.REQUEST_SET_ECOMAX_PARAMETER)
+@frame_handler(FrameType.REQUEST_SET_ECOMAX_PARAMETER)
 class SetEcomaxParameterRequest(Request):
     """Represents a request to set an ecoMAX parameter.
 
@@ -147,7 +147,7 @@ class SetEcomaxParameterRequest(Request):
             raise FrameDataError from e
 
 
-@frame_type(FrameType.REQUEST_SET_MIXER_PARAMETER)
+@frame_handler(FrameType.REQUEST_SET_MIXER_PARAMETER)
 class SetMixerParameterRequest(Request):
     """Represents a request to set a mixer parameter.
 
@@ -166,7 +166,7 @@ class SetMixerParameterRequest(Request):
             raise FrameDataError from e
 
 
-@frame_type(FrameType.REQUEST_SET_SCHEDULE)
+@frame_handler(FrameType.REQUEST_SET_SCHEDULE)
 class SetScheduleRequest(Request):
     """Represents a request to set a schedule."""
 
@@ -189,7 +189,7 @@ class SetScheduleRequest(Request):
         )
 
 
-@frame_type(FrameType.REQUEST_SET_THERMOSTAT_PARAMETER)
+@frame_handler(FrameType.REQUEST_SET_THERMOSTAT_PARAMETER)
 class SetThermostatParameterRequest(Request):
     """Represents a request to set a thermostat parameter.
 
@@ -218,7 +218,7 @@ class SetThermostatParameterRequest(Request):
             raise FrameDataError from e
 
 
-@frame_type(FrameType.REQUEST_START_MASTER)
+@frame_handler(FrameType.REQUEST_START_MASTER)
 class StartMasterRequest(Request):
     """Represents a request to become a master.
 
@@ -229,7 +229,7 @@ class StartMasterRequest(Request):
     __slots__ = ()
 
 
-@frame_type(FrameType.REQUEST_STOP_MASTER)
+@frame_handler(FrameType.REQUEST_STOP_MASTER)
 class StopMasterRequest(Request):
     """Represents a request to stop being a master.
 
@@ -240,7 +240,7 @@ class StopMasterRequest(Request):
     __slots__ = ()
 
 
-@frame_type(FrameType.REQUEST_THERMOSTAT_PARAMETERS)
+@frame_handler(FrameType.REQUEST_THERMOSTAT_PARAMETERS)
 class ThermostatParametersRequest(Request):
     """Represents a thermostat parameters request.
 
@@ -255,7 +255,7 @@ class ThermostatParametersRequest(Request):
         return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-@frame_type(FrameType.REQUEST_UID)
+@frame_handler(FrameType.REQUEST_UID)
 class UIDRequest(Request):
     """Represents an UID request."""
 

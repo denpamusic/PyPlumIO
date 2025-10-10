@@ -14,7 +14,7 @@ from pyplumio.frames import (
     Response,
     Structured,
     contains,
-    frame_type,
+    frame_handler,
     get_frame_handler,
     struct_header,
 )
@@ -23,14 +23,14 @@ from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 
 
-@frame_type(FrameType.REQUEST_PROGRAM_VERSION)
+@frame_handler(FrameType.REQUEST_PROGRAM_VERSION)
 class RequestFrame(Request):
     """Represtents a request frame."""
 
     __slots__ = ()
 
 
-@frame_type(FrameType.RESPONSE_PROGRAM_VERSION)
+@frame_handler(FrameType.RESPONSE_PROGRAM_VERSION)
 class ResponseFrame(Response):
     """Represtents a response frame."""
 
@@ -195,9 +195,9 @@ class StructuredResponse(Structured, Response):
     __slots__ = ()
 
 
-def test_frame_type() -> None:
+def test_frame_handler() -> None:
     """Test frame type decorator."""
-    wrapper = frame_type(
+    wrapper = frame_handler(
         FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure
     )
     response = wrapper(ResponseFrame)()
