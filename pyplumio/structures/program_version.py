@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import struct
 from typing import Any, Final
 
-from pyplumio._version import __version_tuple__
+from pyplumio import version_tuple
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
@@ -14,7 +14,7 @@ ATTR_VERSION: Final = "version"
 
 VERSION_INFO_SIZE: Final = 15
 
-SOFTWARE_VERSION: Final = ".".join(str(x) for x in __version_tuple__[0:3])
+SOFTWARE_VERSION: Final = ".".join(str(x) for x in version_tuple[0:3])
 
 struct_program_version = struct.Struct("<2sB2s3s3HB")
 
