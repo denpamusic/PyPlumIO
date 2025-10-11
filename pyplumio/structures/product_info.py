@@ -63,7 +63,7 @@ def format_model_name(model_name: str) -> str:
     return model_name
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class ProductInfo:
     """Represents a product info provided by an UID response."""
 
