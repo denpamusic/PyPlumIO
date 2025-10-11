@@ -46,12 +46,12 @@ def seconds_to_datetime(timestamp: int) -> datetime:
     in seconds counted from Jan 1st, 2000.
     """
 
-    def datetime_kwargs(timestamp: int) -> Generator[Any, None, None]:
+    def datetime_kwargs(timestamp: int) -> Generator[tuple[Any, int]]:
         """Yield a tuple, that represents a single datetime kwarg."""
         for name, seconds, offset in DATETIME_INTERVALS:
             value = timestamp // seconds
             timestamp -= value * seconds
-            yield name, (value + offset)
+            yield name, value + offset
 
     return datetime(**dict(datetime_kwargs(timestamp)))
 

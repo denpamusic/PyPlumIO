@@ -24,7 +24,7 @@ from pyplumio.stream import (
 
 
 @pytest.fixture(name="mock_stream_writer")
-def fixture_mock_stream_writer() -> Generator[asyncio.StreamWriter, None, None]:
+def fixture_mock_stream_writer() -> Generator[asyncio.StreamWriter]:
     """Mock asyncio StreamWriter.
 
     Provides a patched StreamWriter for testing purposes.

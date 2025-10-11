@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Any, Final
+from typing import Any, Final, TypeAlias
 
 from pyplumio.parameters import ParameterValues, unpack_parameter
 from pyplumio.parameters.thermostat import get_thermostat_parameter_types
@@ -17,6 +17,9 @@ ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
 THERMOSTAT_PARAMETER_SIZE: Final = 3
 
 
+_ParameterValues: TypeAlias = tuple[int, ParameterValues]
+
+
 class ThermostatParametersStructure(StructureDecoder):
     """Represents a thermostat parameters data structure."""
 
@@ -26,7 +29,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
-    ) -> Generator[tuple[int, ParameterValues], None, None]:
+    ) -> Generator[_ParameterValues]:
         """Get a single thermostat parameter."""
         parameter_types = get_thermostat_parameter_types()
         for index in range(start, (start + end) // thermostats):
@@ -40,7 +43,7 @@ class ThermostatParametersStructure(StructureDecoder):
 
     def _thermostat_parameters(
         self, message: bytearray, thermostats: int, start: int, end: int
-    ) -> Generator[tuple[int, list[tuple[int, ParameterValues]]], None, None]:
+    ) -> Generator[tuple[int, list[_ParameterValues]]]:
         """Get parameters for a thermostat."""
         for index in range(thermostats):
             if parameters := list(

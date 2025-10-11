@@ -146,7 +146,7 @@ class EcoMAX(PhysicalDevice):
 
         super().handle_frame(frame)
 
-    def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer, None, None]:
+    def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer]:
         """Iterate through the mixer indexes.
 
         For each index, return or create an instance of the mixer class.
@@ -158,7 +158,7 @@ class EcoMAX(PhysicalDevice):
 
         return self.dispatch_nowait(ATTR_MIXERS, mixers)
 
-    def _thermostats(self, indexes: Iterable[int]) -> Generator[Thermostat, None, None]:
+    def _thermostats(self, indexes: Iterable[int]) -> Generator[Thermostat]:
         """Iterate through the thermostat indexes.
 
         For each index, return or create an instance of the thermostat
@@ -329,7 +329,7 @@ class EcoMAX(PhysicalDevice):
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
 
-        def _schedule_parameter_events() -> Generator[Coroutine, Any, None]:
+        def _schedule_parameter_events() -> Generator[Coroutine]:
             """Get dispatch calls for schedule parameter events."""
             for index, values in parameters:
                 description = SCHEDULE_PARAMETERS[index]

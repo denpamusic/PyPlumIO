@@ -24,7 +24,7 @@ class EcomaxParametersStructure(StructureDecoder):
 
     def _ecomax_parameter(
         self, message: bytearray, start: int, end: int
-    ) -> Generator[tuple[int, ParameterValues], None, None]:
+    ) -> Generator[tuple[int, ParameterValues]]:
         """Unpack an ecoMAX parameter."""
         for index in range(start, start + end):
             if parameter := unpack_parameter(message, self._offset):
