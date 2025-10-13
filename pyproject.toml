@@ -42,7 +42,7 @@ test = [
     "pyserial-asyncio-fast==0.16",
     "pytest==8.4.2",
     "pytest-asyncio==1.2.0",
-    "ruff==0.13.3",
+    "ruff==0.14.0",
     "tox==4.30.3",
     "types-pyserial==3.5.0.20251001"
 ]
