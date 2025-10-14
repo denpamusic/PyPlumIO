@@ -435,7 +435,9 @@ PARAMETER_TYPES: dict[ProductType, list[EcomaxParameterDescription]] = {
             name="feeder_calibration",
         ),
         EcomaxNumberDescription(
-            name="fuel_factor",
+            name="fuel_tank_capacity",
+            step=50.0,
+            unit_of_measurement=UnitOfMeasurement.KILOGRAMS,
         ),
         EcomaxNumberDescription(
             name="fuel_calorific_value",
