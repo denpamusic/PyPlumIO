@@ -1,0 +1,322 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connecting &mdash; PyPlumIO 0.6.3.dev1+g0cb285296 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5687b092"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reading" href="reading.html" />
+    <link rel="prev" title="Welcome to PyPlumIO’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Connecting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#opening-the-connection">Opening the connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#protocols">Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#network-information">Network Information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#statistics">Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connection-examples">Connection Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Connecting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/connecting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="connecting">
+<h1>Connecting<a class="headerlink" href="#connecting" title="Link to this heading"></a></h1>
+<section id="opening-the-connection">
+<h2>Opening the connection<a class="headerlink" href="#opening-the-connection" title="Link to this heading"></a></h2>
+<p>With this you can connect to the controller remotely via RS-485 to
+Ethernet/WiFi converters, which are readily available online or
+can be custom built using wired connection and ser2net software.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although <strong>async with</strong> syntax is preferred, you can initiate connection without it.
+See following <a class="reference internal" href="#connection-examples"><span class="std std-ref">examples</span></a> for more information.</p>
+</div>
+<p>You can connect to the ecoMAX controller via wired connection through
+RS-485 to USB or RS-485 to TTL adapters, that are connected directly
+to the device running PyPlumIO.</p>
+<p>You MUST not connect RS-485 lines directly to the UART outputs of your
+PC or you’ll risk damaging your PC/controller or the ecoMAX controller itself.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_serial_connection</span><span class="p">(</span><span class="s2">&quot;/dev/ttyUSB0&quot;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="protocols">
+<h2>Protocols<a class="headerlink" href="#protocols" title="Link to this heading"></a></h2>
+<p>Connection helpers and classes allow to specify custom protocol to handle data, once
+connection is established.</p>
+<p>All protocols should inherit following abstract base class:</p>
+<p>Most of documentation assumes that protocol is left as is, which
+is by default AsyncProtocol. However, setting different protocol
+allows for more fine-grained control over data processing.</p>
+<p>In following example we’ll set protocol to DummyProtocol, request and
+output alerts and close the connection without an additional overhead of
+working with device classes and queues.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.const</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">requests</span><span class="p">,</span> <span class="n">responses</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a connection and request alerts.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">DummyProtocol</span><span class="p">()</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">requests</span><span class="o">.</span><span class="n">AlertsRequest</span><span class="p">(</span><span class="n">recipient</span><span class="o">=</span><span class="n">DeviceType</span><span class="o">.</span><span class="n">ECOMAX</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">conn</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">frame</span> <span class="o">:=</span> <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span> <span class="n">responses</span><span class="o">.</span><span class="n">AlertsResponse</span>
+                <span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">except</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">ProtocolError</span><span class="p">:</span>
+                <span class="c1"># Skip protocol errors and read the next frame.</span>
+                <span class="k">pass</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>All built-in protocols are listed below.</p>
+</section>
+<section id="network-information">
+<h2>Network Information<a class="headerlink" href="#network-information" title="Link to this heading"></a></h2>
+<p>When opening the connection, you can send ethernet and wireless
+network information to the ecoMAX controller by passing one or both
+of data classes below to the Protocol of your choice.</p>
+<p>Once set, network information will be shown in information section
+on the ecoMAX panel.</p>
+<p>In the example below, we’ll set both ethernet and wireless parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.const</span><span class="w"> </span><span class="kn">import</span> <span class="n">EncryptionType</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize a connection with network parameters.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">,</span>
+        <span class="n">protocol</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">AsyncProtocol</span><span class="p">(</span>
+            <span class="n">ethernet_parameters</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">EthernetParameters</span><span class="p">(</span>
+                <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.10.1.100&quot;</span><span class="p">,</span>
+                <span class="n">netmask</span><span class="o">=</span><span class="s2">&quot;255.255.255.0&quot;</span><span class="p">,</span>
+                <span class="n">gateway</span><span class="o">=</span><span class="s2">&quot;10.10.1.1&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">wireless_parameters</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">WirelessParameters</span><span class="p">(</span>
+                <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.10.2.100&quot;</span><span class="p">,</span>
+                <span class="n">netmask</span><span class="o">=</span><span class="s2">&quot;255.255.255.0&quot;</span><span class="p">,</span>
+                <span class="n">gateway</span><span class="o">=</span><span class="s2">&quot;10.10.2.1&quot;</span><span class="p">,</span>
+                <span class="n">ssid</span><span class="o">=</span><span class="s2">&quot;My SSID&quot;</span><span class="p">,</span>
+                <span class="n">encryption</span><span class="o">=</span><span class="n">EncryptionType</span><span class="o">.</span><span class="n">WPA2</span><span class="p">,</span>
+                <span class="n">signal_quality</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="statistics">
+<h2>Statistics<a class="headerlink" href="#statistics" title="Link to this heading"></a></h2>
+<p>Since PyPlumIO v0.5.56, you can access statistics via following property.</p>
+<p>Statistics contain transfer data consisting of number of received/sent frames and bytes
+as well as datetime of when connection was established, when connection was lost and
+number of connection loss event.</p>
+<p>The <cite>devices</cite> property of statistics class of also contains a list of
+device statistics objects. Those statistics include time the device was initially
+connected as well as time, when device was last seen (sent an <a class="reference internal" href="frames.html#regulatordata"><span class="std std-ref">RegulatorData</span></a>
+message).</p>
+<p>In the following example we’ll print connection statistics after establishing a
+connection.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print connection statistics.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">statistics</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="connection-examples">
+<h2>Connection Examples<a class="headerlink" href="#connection-examples" title="Link to this heading"></a></h2>
+<p>The following example illustrates opening a TCP connection using Python’s
+context manager.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="n">_LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Opens the connection and gets the ecoMAX device.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get the ecoMAX device within 10 seconds or timeout.</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+                <span class="o">...</span>
+        <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+            <span class="c1"># If device times out, log the error.</span>
+            <span class="n">_LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to get the device within 10 seconds&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Run the coroutine in asyncio event loop.</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The following example illustrates opening a TCP connection without
+using Python’s context manager.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="n">_LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Opens the connection and gets the ecoMAX device.&quot;&quot;&quot;</span>
+    <span class="n">connection</span> <span class="o">=</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span>
+
+    <span class="c1"># Connect to the device.</span>
+    <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get the ecoMAX device within 10 seconds or timeout.</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="o">...</span>
+    <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+        <span class="c1"># If device times out, log the error.</span>
+        <span class="n">_LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to get the device within 10 seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Close the connection.</span>
+    <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="c1"># Run the coroutine in asyncio event loop.</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to PyPlumIO’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reading.html" class="btn btn-neutral float-right" title="Reading" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
