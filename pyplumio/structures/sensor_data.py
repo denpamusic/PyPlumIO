@@ -5,9 +5,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 import math
 import struct
-from typing import Any, Final
-
-from typing_extensions import TypeVar
+from typing import Any, Final, TypeVar
 
 from pyplumio.const import ATTR_SCHEDULE, BYTE_UNDEFINED, DeviceState, LambdaState
 from pyplumio.data_types import Float, UnsignedInt, UnsignedShort
