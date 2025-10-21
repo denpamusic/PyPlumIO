@@ -43,7 +43,7 @@ test = [
     "pytest==8.4.2",
     "pytest-asyncio==1.2.0",
     "ruff==0.14.1",
-    "tox==4.30.3",
+    "tox==4.31.0",
     "types-pyserial==3.5.0.20251001"
 ]
 docs = [
