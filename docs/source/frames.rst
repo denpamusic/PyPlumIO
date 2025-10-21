@@ -568,6 +568,8 @@ Message
 Handler
 ^^^^^^^
 
+.. autoclass:: pyplumio.structures.frame_versions.FrameVersionsStructure
+
 .. autoclass:: pyplumio.structures.regulator_data.RegulatorDataStructure
 
 SensorData
@@ -697,30 +699,6 @@ Message
 Handlers
 ^^^^^^^^
 
-.. autoclass:: pyplumio.structures.outputs.OutputsStructure
+.. autoclass:: pyplumio.structures.frame_versions.FrameVersionsStructure
 
-.. autoclass:: pyplumio.structures.output_flags.OutputFlagsStructure
-
-.. autoclass:: pyplumio.structures.temperatures.TemperaturesStructure
-
-.. autoclass:: pyplumio.structures.statuses.StatusesStructure
-
-.. autoclass:: pyplumio.structures.pending_alerts.PendingAlertsStructure
-
-.. autoclass:: pyplumio.structures.fuel_level.FuelLevelStructure
-
-.. autoclass:: pyplumio.structures.fan_power.FanPowerStructure
-
-.. autoclass:: pyplumio.structures.boiler_load.BoilerLoadStructure
-
-.. autoclass:: pyplumio.structures.boiler_power.BoilerPowerStructure
-
-.. autoclass:: pyplumio.structures.fuel_consumption.FuelConsumptionStructure
-
-.. autoclass:: pyplumio.structures.modules.ModulesStructure
-
-.. autoclass:: pyplumio.structures.lambda_sensor.LambdaSensorStructure
-
-.. autoclass:: pyplumio.structures.thermostat_sensors.ThermostatSensorsStructure
-
-.. autoclass:: pyplumio.structures.mixer_sensors.MixerSensorsStructure
+.. autoclass:: pyplumio.structures.sensor_data.SensorDataStructure
