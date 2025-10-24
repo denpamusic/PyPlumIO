@@ -24,10 +24,13 @@ from pyplumio.structures.network_info import (
     WirelessParameters,
 )
 from pyplumio.structures.regulator_data import ATTR_REGDATA
+from pyplumio.utils import timeout
 
 _LOGGER = logging.getLogger(__name__)
 
 ConnectionLostCallback: TypeAlias = Callable[[], Awaitable[None]]
+
+SHUTDOWN_TIMEOUT: Final = 10
 
 
 class Protocol(ABC):
@@ -68,6 +71,7 @@ class Protocol(ABC):
         """Do something on connection lost."""
 
     @abstractmethod
+    @timeout(SHUTDOWN_TIMEOUT)
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
 
@@ -94,6 +98,7 @@ class DummyProtocol(Protocol):
             await self.close_writer()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
+    @timeout(SHUTDOWN_TIMEOUT)
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
         if self.connected.is_set():
@@ -252,6 +257,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             await self._connection_close()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
+    @timeout(SHUTDOWN_TIMEOUT)
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
         await self._write_queue.join()
@@ -277,7 +283,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 # Read and process frame.
                 if frame := await reader.read():
                     self.statistics.update_received(frame)
-                    device = await self.get_device_entry(frame.sender)
+                    device = await self._get_device_entry(frame.sender)
                     device.handle_frame(frame)
 
             except ProtocolError as e:
@@ -291,7 +297,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
                 _LOGGER.exception("Unexpected exception")
 
     @acache
-    async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
+    async def _get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Return the device entry."""
         name = device_type.name.lower()
         if name not in self.data:
