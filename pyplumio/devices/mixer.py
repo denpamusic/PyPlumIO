@@ -28,7 +28,7 @@ class Mixer(VirtualDevice):
 
     @event_listener(priority=0)
     async def on_event_mixer_sensors(
-        self, sensors: dict[str, Any], event: Event | None = None
+        self, sensors: dict[str, Any], event: Event
     ) -> bool:
         """Update mixer sensors and dispatch the events."""
         _LOGGER.debug("Received mixer %i sensors", self.index)
@@ -39,7 +39,7 @@ class Mixer(VirtualDevice):
 
     @event_listener(priority=0)
     async def on_event_mixer_parameters(
-        self, parameters: list[tuple[int, ParameterValues]], event: Event | None = None
+        self, parameters: list[tuple[int, ParameterValues]], event: Event
     ) -> bool:
         """Update mixer parameters and dispatch the events."""
         _LOGGER.debug("Received mixer %i parameters", self.index)

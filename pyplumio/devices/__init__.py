@@ -145,7 +145,7 @@ class PhysicalDevice(Device, ABC):
 
     @event_listener(filter=on_change, priority=0)
     async def on_event_frame_versions(
-        self, versions: dict[int, int], event: Event | None = None
+        self, versions: dict[int, int], event: Event
     ) -> None:
         """Check frame versions and update outdated frames."""
         _LOGGER.debug("Received frame version table")

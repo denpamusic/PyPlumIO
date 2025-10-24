@@ -27,7 +27,7 @@ class Thermostat(VirtualDevice):
 
     @event_listener(priority=0)
     async def on_event_thermostat_sensors(
-        self, sensors: dict[str, Any], event: Event | None = None
+        self, sensors: dict[str, Any], event: Event
     ) -> bool:
         """Update thermostat sensors and dispatch the events."""
         _LOGGER.debug("Received thermostat %i sensors", self.index)
@@ -38,7 +38,7 @@ class Thermostat(VirtualDevice):
 
     @event_listener(priority=0)
     async def on_event_thermostat_parameters(
-        self, parameters: list[tuple[int, ParameterValues]], event: Event | None = None
+        self, parameters: list[tuple[int, ParameterValues]], event: Event
     ) -> bool:
         """Update thermostat parameters and dispatch the events."""
         _LOGGER.debug("Received thermostat %i parameters", self.index)
