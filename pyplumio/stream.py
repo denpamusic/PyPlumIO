@@ -22,8 +22,9 @@ from pyplumio.frames import (
 )
 from pyplumio.utils import timeout
 
-READER_TIMEOUT: Final = 10
-WRITER_TIMEOUT: Final = 10
+WAIT_FOR_READ_SECONDS: Final = 10
+WAIT_FOR_WRITE_SECONDS: Final = 10
+FORCE_CLOSE_AFTER_SECONDS: Final = 10
 
 MIN_FRAME_LENGTH: Final = 10
 MAX_FRAME_LENGTH: Final = 1000
@@ -44,7 +45,7 @@ class FrameWriter:
         """Initialize a new frame writer."""
         self._writer = writer
 
-    @timeout(WRITER_TIMEOUT)
+    @timeout(WAIT_FOR_WRITE_SECONDS)
     async def write(self, frame: Frame) -> None:
         """Send the frame and wait until send buffer is empty."""
         self._writer.write(frame.bytes)
@@ -61,7 +62,7 @@ class FrameWriter:
                 "Failed to close the frame writer due to an unexpected error"
             )
 
-    @timeout(WRITER_TIMEOUT)
+    @timeout(FORCE_CLOSE_AFTER_SECONDS)
     async def wait_closed(self) -> None:
         """Wait until the frame writer is closed."""
         await self._writer.wait_closed()
@@ -188,7 +189,7 @@ class FrameReader:
 
             await self._reader.read_into_buffer(MAX_FRAME_LENGTH)
 
-    @timeout(READER_TIMEOUT)
+    @timeout(WAIT_FOR_READ_SECONDS)
     async def read(self) -> Frame | None:
         """Read the frame and return corresponding handler object."""
         header = await self._read_header()

@@ -19,8 +19,8 @@ from pyplumio.utils import timeout
 
 _LOGGER = logging.getLogger(__name__)
 
-CONNECT_TIMEOUT: Final = 5
-RECONNECT_TIMEOUT: Final = 20
+TRY_CONNECT_FOR_SECONDS: Final = 5
+RECONNECT_AFTER_SECONDS: Final = 20
 
 try:
     import serial_asyncio_fast as pyserial_asyncio
@@ -88,9 +88,9 @@ class Connection(ABC, TaskManager):
         except ConnectionFailedError:
             _LOGGER.error(
                 "Can't connect to the device, retrying in %.1f seconds",
-                RECONNECT_TIMEOUT,
+                RECONNECT_AFTER_SECONDS,
             )
-            await asyncio.sleep(RECONNECT_TIMEOUT)
+            await asyncio.sleep(RECONNECT_AFTER_SECONDS)
             self.create_task(self._reconnect(), name="reconnect_task")
 
     async def connect(self) -> None:
@@ -126,7 +126,7 @@ class Connection(ABC, TaskManager):
         """Return connection options."""
         return self._options
 
-    @timeout(CONNECT_TIMEOUT)
+    @timeout(TRY_CONNECT_FOR_SECONDS)
     @abstractmethod
     async def _open_connection(
         self,
@@ -162,7 +162,7 @@ class TcpConnection(Connection):
             f"TcpConnection(host={self.host}, port={self.port}, options={self.options})"
         )
 
-    @timeout(CONNECT_TIMEOUT)
+    @timeout(TRY_CONNECT_FOR_SECONDS)
     async def _open_connection(
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
@@ -203,7 +203,7 @@ class SerialConnection(Connection):
             f"options={self.options})"
         )
 
-    @timeout(CONNECT_TIMEOUT)
+    @timeout(TRY_CONNECT_FOR_SECONDS)
     async def _open_connection(
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:

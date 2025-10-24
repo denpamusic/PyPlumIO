@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ConnectionLostCallback: TypeAlias = Callable[[], Awaitable[None]]
 
-SHUTDOWN_TIMEOUT: Final = 10
+FORCE_SHUTDOWN_AFTER_SECONDS: Final = 10
 
 
 class Protocol(ABC):
@@ -71,7 +71,7 @@ class Protocol(ABC):
         """Do something on connection lost."""
 
     @abstractmethod
-    @timeout(SHUTDOWN_TIMEOUT)
+    @timeout(FORCE_SHUTDOWN_AFTER_SECONDS)
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
 
@@ -98,7 +98,7 @@ class DummyProtocol(Protocol):
             await self.close_writer()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
-    @timeout(SHUTDOWN_TIMEOUT)
+    @timeout(FORCE_SHUTDOWN_AFTER_SECONDS)
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
         if self.connected.is_set():
@@ -257,7 +257,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             await self._connection_close()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
-    @timeout(SHUTDOWN_TIMEOUT)
+    @timeout(FORCE_SHUTDOWN_AFTER_SECONDS)
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
         await self._write_queue.join()
