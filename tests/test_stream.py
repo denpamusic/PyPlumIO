@@ -15,8 +15,8 @@ from pyplumio.frames import ECONET_TYPE, ECONET_VERSION
 from pyplumio.frames.requests import EcomaxParametersRequest, ProgramVersionRequest
 from pyplumio.stream import (
     DEFAULT_BUFFER_SIZE,
+    FORCE_CLOSE_AFTER_SECONDS,
     MAX_FRAME_LENGTH,
-    WRITER_TIMEOUT,
     BufferedReader,
     FrameReader,
     FrameWriter,
@@ -134,7 +134,7 @@ class TestFrameWriter:
         # Check for timeout decorator presence and value.
         assert (
             getattr(FrameWriter.wait_closed, "_has_timeout_seconds", None)
-            == WRITER_TIMEOUT
+            == FORCE_CLOSE_AFTER_SECONDS
         )
 
 

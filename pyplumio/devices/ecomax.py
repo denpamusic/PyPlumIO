@@ -121,7 +121,7 @@ REQUIRED_KEYS: tuple[DataKey, ...] = (
 
 REQUIRED_TYPES = [frame_type for _, frame_type in REQUIRED_KEYS]
 
-SETUP_TIMEOUT: Final = 60.0
+WAIT_FOR_SETUP_SECONDS: Final = 60.0
 
 
 @device_handler(DeviceType.ECOMAX)
@@ -224,11 +224,11 @@ class EcoMAX(PhysicalDevice):
         _LOGGER.debug("Setting up device entry")
 
         try:
-            await self.wait_for(ATTR_SENSORS, timeout=SETUP_TIMEOUT)
+            await self.wait_for(ATTR_SENSORS, timeout=WAIT_FOR_SETUP_SECONDS)
         except asyncio.TimeoutError:
             _LOGGER.error(
                 "Could not setup device entry; no response from device for %u seconds",
-                SETUP_TIMEOUT,
+                WAIT_FOR_SETUP_SECONDS,
             )
             return False
 
