@@ -19,12 +19,8 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames import Request, Response
-from pyplumio.frames.requests import (
-    CheckDeviceRequest,
-    ProgramVersionRequest,
-    StartMasterRequest,
-)
-from pyplumio.protocol import AsyncProtocol, DummyProtocol, Queues, Statistics
+from pyplumio.frames.requests import StartMasterRequest
+from pyplumio.protocol import AsyncProtocol, DummyProtocol, Statistics
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
     EthernetParameters,
@@ -149,7 +145,6 @@ async def test_async_protocol_connection_established(
     # Create stream reader, stream writer and queue mocks..
     mock_stream_reader = Mock(spec=asyncio.StreamReader)
     mock_stream_writer = Mock(spec=asyncio.StreamWriter)
-    mock_read_queue = Mock(spec=asyncio.Queue)
     mock_write_queue = Mock(spec=asyncio.Queue)
     mock_put_nowait = mock_write_queue.put_nowait
 
@@ -159,9 +154,7 @@ async def test_async_protocol_connection_established(
 
     # Test connection established.
     with (
-        patch.object(
-            async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
-        ),
+        patch.object(async_protocol, "_write_queue", mock_write_queue),
         patch(
             "pyplumio.protocol.Statistics.reset_transfer_statistics"
         ) as mock_reset_transfer_statistics,
@@ -190,7 +183,6 @@ async def test_async_protocol_connection_established(
 
 async def test_async_protocol_connection_lost() -> None:
     """Test losing the connection with an async protocol."""
-    mock_read_queue = Mock(spec=asyncio.Queue)
     mock_write_queue = Mock(spec=asyncio.Queue)
 
     # Create connection lost callback mock.
@@ -210,9 +202,7 @@ async def test_async_protocol_connection_lost() -> None:
     async_protocol.connected.set()
     mock_on_connection_lost.assert_not_awaited()
 
-    with patch.object(
-        async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
-    ):
+    with patch.object(async_protocol, "_write_queue", mock_write_queue):
         await async_protocol.connection_lost()
 
     # Check that devices were notified and callback was called.
@@ -244,7 +234,6 @@ async def test_async_protocol_shutdown(
     async_protocol: AsyncProtocol,
 ) -> None:
     """Test shutting down connection with an async protocol."""
-    mock_read_queue = Mock()
     mock_write_queue = Mock()
 
     mock_writer = AsyncMock(spec=FrameWriter)
@@ -255,9 +244,7 @@ async def test_async_protocol_shutdown(
     mock_frame_producer_task = Mock(spec=asyncio.Task)
 
     with (
-        patch.object(
-            async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
-        ),
+        patch.object(async_protocol, "_write_queue", mock_write_queue),
         patch(
             "pyplumio.protocol.AsyncProtocol.tasks",
             return_value=[
@@ -273,12 +260,12 @@ async def test_async_protocol_shutdown(
     mock_gather.await_count = 3
     mock_gather.assert_has_awaits(
         [
-            call(mock_read_queue.join(), mock_write_queue.join()),
             call(*async_protocol.tasks, return_exceptions=True),
             call(mock_dispatch()),
             call(mock_shutdown()),
         ]
     )
+
     mock_writer.close.assert_awaited_once()
     assert async_protocol.writer is None
 
@@ -308,7 +295,6 @@ async def test_async_protocol_frame_producer(
     mock_writer = AsyncMock(spec=FrameWriter)
 
     # Create mock queues.
-    mock_read_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue = AsyncMock(spec=asyncio.Queue)
     mock_write_queue.empty = Mock(
         side_effect=(
@@ -326,11 +312,7 @@ async def test_async_protocol_frame_producer(
         ) as mock_connection_lost,
         caplog.at_level(logging.DEBUG),
     ):
-        await async_protocol.frame_producer(
-            Queues(mock_read_queue, mock_write_queue),
-            reader=mock_reader,
-            writer=mock_writer,
-        )
+        await async_protocol.frame_handler(reader=mock_reader, writer=mock_writer)
 
     assert caplog.record_tuples == [
         (
@@ -367,7 +349,6 @@ async def test_async_protocol_frame_producer(
 
     mock_writer.write.assert_awaited_once_with(request)
     mock_write_queue.task_done.assert_called_once()
-    mock_read_queue.put_nowait.assert_called_once_with(success)
     mock_connection_lost.assert_called_once()
     assert mock_write_queue.get.await_count == 1
     assert mock_write_queue.empty.call_count == 8
@@ -398,14 +379,10 @@ async def test_async_protocol_frame_consumer(
     frozen_time,
 ) -> None:
     """Test a frame consumer task within an async protocol."""
-    mock_read_queue = Mock(spec=asyncio.Queue)
     mock_write_queue = Mock(spec=asyncio.Queue)
-    mock_read_queue.get = AsyncMock()
 
     with (
-        patch.object(
-            async_protocol, "_queues", Queues(mock_read_queue, mock_write_queue)
-        ),
+        patch.object(async_protocol, "_write_queue", mock_write_queue),
         patch("asyncio.Lock.acquire", return_value=True) as mock_lock_acquire,
         patch("asyncio.Lock.release") as mock_lock_release,
     ):
@@ -413,17 +390,6 @@ async def test_async_protocol_frame_consumer(
 
     mock_lock_acquire.assert_awaited_once()
     mock_lock_release.assert_called_once()
-
-    mock_read_queue.get.side_effect = (
-        CheckDeviceRequest(sender=DeviceType.ECOMAX),
-        ProgramVersionRequest(sender=DeviceType.ECOMAX),
-    )
-
-    with (
-        caplog.at_level(logging.DEBUG),
-        patch("asyncio.Event.is_set", side_effect=(True, True, False)),
-    ):
-        await async_protocol.frame_consumer(mock_read_queue)
 
     await async_protocol.shutdown()
 
@@ -457,7 +423,6 @@ async def test_async_protocol_frame_consumer(
             call(mock_program_version_response()),
         ]
     )
-    assert mock_read_queue.task_done.call_count == 2
 
     # Test statistics.
     device_statistics = async_protocol.statistics.devices.pop()
