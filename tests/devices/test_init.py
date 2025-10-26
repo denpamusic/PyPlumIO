@@ -205,5 +205,7 @@ class TestPhysicalDevice:
     async def test_device_handler(self) -> None:
         """Test device handler decorator."""
         wrapper = device_handler(DeviceType.ECOMAX)
-        device = wrapper(PhysicalDevice)(queue=asyncio.Queue(), network=NetworkInfo())
+        device = wrapper(PhysicalDevice)(
+            queue=asyncio.Queue(), network_info=NetworkInfo()
+        )
         assert device.address == DeviceType.ECOMAX

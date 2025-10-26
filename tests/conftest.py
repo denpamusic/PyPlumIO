@@ -168,7 +168,7 @@ def skip_asyncio_sleep():
 @pytest.fixture(name="ecomax")
 async def fixture_ecomax() -> EcoMAX:
     """Return an ecoMAX object."""
-    ecomax = EcoMAX(asyncio.Queue(), network=NetworkInfo())
+    ecomax = EcoMAX(asyncio.Queue(), network_info=NetworkInfo())
     product_info = ProductInfo(
         type=ProductType.ECOMAX_P,
         id=90,

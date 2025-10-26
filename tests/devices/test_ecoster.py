@@ -8,5 +8,5 @@ from pyplumio.structures.network_info import NetworkInfo
 
 def test_init() -> None:
     """Test ecoSTER instance."""
-    ecoster = EcoSTER(asyncio.Queue(), network=NetworkInfo())
+    ecoster = EcoSTER(asyncio.Queue(), network_info=NetworkInfo())
     assert isinstance(ecoster, EcoSTER)

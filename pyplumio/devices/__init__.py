@@ -130,17 +130,17 @@ class PhysicalDevice(Device, ABC):
     virtual devices associated with them via parent property.
     """
 
-    __slots__ = ("address", "_network", "_frame_versions")
+    __slots__ = ("address", "_network_info", "_frame_versions")
 
     address: ClassVar[int]
 
-    _network: NetworkInfo
+    _network_info: NetworkInfo
     _frame_versions: dict[int, int]
 
-    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
+    def __init__(self, queue: asyncio.Queue[Frame], network_info: NetworkInfo) -> None:
         """Initialize a new physical device."""
         super().__init__(queue)
-        self._network = network
+        self._network_info = network_info
         self._frame_versions = {}
 
     @event_listener(filter=on_change)

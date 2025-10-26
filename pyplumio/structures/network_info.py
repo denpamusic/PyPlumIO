@@ -10,7 +10,7 @@ from pyplumio.data_types import IPv4, VarString
 from pyplumio.structures import Structure
 from pyplumio.utils import ensure_dict
 
-ATTR_NETWORK: Final = "network"
+ATTR_NETWORK_INFO: Final = "network_info"
 
 DEFAULT_IP: Final = "0.0.0.0"
 DEFAULT_NETMASK: Final = "255.255.255.0"
@@ -50,11 +50,11 @@ class WirelessParameters(EthernetParameters):
     signal_quality: int = 100
 
 
-@dataclass(frozen=True, slots=True, kw_only=True)
+@dataclass(slots=True, kw_only=True)
 class NetworkInfo:
     """Represents a network parameters."""
 
-    eth: EthernetParameters = field(default_factory=EthernetParameters)
+    ethernet: EthernetParameters = field(default_factory=EthernetParameters)
     wlan: WirelessParameters = field(default_factory=WirelessParameters)
     server_status: bool = True
 
@@ -66,13 +66,13 @@ class NetworkInfoStructure(Structure):
 
     def encode(self, data: dict[str, Any]) -> bytearray:
         """Encode data to the bytearray message."""
-        network_info: NetworkInfo = data.get(ATTR_NETWORK, NetworkInfo())
+        network_info: NetworkInfo = data.get(ATTR_NETWORK_INFO, NetworkInfo())
         return bytearray(
             b"\1"
-            + IPv4(network_info.eth.ip).to_bytes()
-            + IPv4(network_info.eth.netmask).to_bytes()
-            + IPv4(network_info.eth.gateway).to_bytes()
-            + network_info.eth.status.to_bytes(length=1, byteorder="little")
+            + IPv4(network_info.ethernet.ip).to_bytes()
+            + IPv4(network_info.ethernet.netmask).to_bytes()
+            + IPv4(network_info.ethernet.gateway).to_bytes()
+            + network_info.ethernet.status.to_bytes(length=1, byteorder="little")
             + IPv4(network_info.wlan.ip).to_bytes()
             + IPv4(network_info.wlan.netmask).to_bytes()
             + IPv4(network_info.wlan.gateway).to_bytes()
@@ -93,8 +93,8 @@ class NetworkInfoStructure(Structure):
             ensure_dict(
                 data,
                 {
-                    ATTR_NETWORK: NetworkInfo(
-                        eth=EthernetParameters(
+                    ATTR_NETWORK_INFO: NetworkInfo(
+                        ethernet=EthernetParameters(
                             ip=IPv4.from_bytes(message, offset).value,
                             netmask=IPv4.from_bytes(message, offset + 4).value,
                             gateway=IPv4.from_bytes(message, offset + 8).value,
@@ -122,7 +122,7 @@ __all__ = [
     "WirelessParameters",
     "NetworkInfo",
     "NetworkInfoStructure",
-    "ATTR_NETWORK",
+    "ATTR_NETWORK_INFO",
     "DEFAULT_IP",
     "DEFAULT_NETMASK",
 ]

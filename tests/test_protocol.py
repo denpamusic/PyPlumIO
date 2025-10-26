@@ -27,6 +27,7 @@ from pyplumio.frames.requests import (
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Queues, Statistics
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
+    ATTR_NETWORK_INFO,
     EthernetParameters,
     NetworkInfo,
     WirelessParameters,
@@ -232,7 +233,7 @@ async def test_async_protocol_connection_lost() -> None:
 @patch.object(
     AsyncProtocol,
     "data",
-    {"ecomax": EcoMAX(queue=asyncio.Queue(), network=NetworkInfo())},
+    {"ecomax": EcoMAX(queue=asyncio.Queue(), network_info=NetworkInfo())},
 )
 @pytest.mark.usefixtures("skip_asyncio_events")
 async def test_async_protocol_shutdown(
@@ -430,8 +431,8 @@ async def test_async_protocol_frame_consumer(
     # Check that network settings is correctly set.
     mock_device_available_response.assert_called_once_with(
         data={
-            "network": NetworkInfo(
-                eth=EthernetParameters(
+            ATTR_NETWORK_INFO: NetworkInfo(
+                ethernet=EthernetParameters(
                     ip="1.1.1.2",
                     netmask="255.255.255.255",
                     gateway="1.1.1.1",

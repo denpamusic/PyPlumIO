@@ -42,7 +42,7 @@ from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_PARAMETERS,
 )
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
+from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
@@ -132,15 +132,15 @@ class EcoMAX(PhysicalDevice):
 
     _fuel_meter: FuelMeter
 
-    def __init__(self, queue: asyncio.Queue[Frame], network: NetworkInfo) -> None:
+    def __init__(self, queue: asyncio.Queue[Frame], network_info: NetworkInfo) -> None:
         """Initialize a new ecoMAX controller."""
-        super().__init__(queue, network)
+        super().__init__(queue, network_info)
         self._fuel_meter = FuelMeter()
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
         if isinstance(frame, Request) and (
-            response := frame.response(data={ATTR_NETWORK: self._network})
+            response := frame.response(data={ATTR_NETWORK_INFO: self._network_info})
         ):
             self.queue.put_nowait(response)
 

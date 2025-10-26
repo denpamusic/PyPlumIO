@@ -58,7 +58,7 @@ from pyplumio.parameters.ecomax import PARAMETER_TYPES, EcomaxNumber, EcomaxSwit
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
-from pyplumio.structures.network_info import ATTR_NETWORK, NetworkInfo
+from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
@@ -100,7 +100,7 @@ async def test_ecomax_handle_frame(
     request = Request()
     ecomax.handle_frame(request)
     args = mock_response.call_args[1]
-    assert isinstance(args["data"][ATTR_NETWORK], NetworkInfo)
+    assert isinstance(args["data"][ATTR_NETWORK_INFO], NetworkInfo)
     mock_put_nowait.assert_called_once_with(mock_response.return_value)
     mock_handle_frame.assert_called_once_with(request)
 

@@ -216,7 +216,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     """
 
     consumers_count: int
-    _network: NetworkInfo
+    _network_info: NetworkInfo
     _queues: Queues
     _entry_lock: asyncio.Lock
     _statistics: Statistics
@@ -230,8 +230,8 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         """Initialize a new async protocol."""
         super().__init__()
         self.consumers_count = consumers_count
-        self._network = NetworkInfo(
-            eth=ethernet_parameters or EthernetParameters(status=False),
+        self._network_info = NetworkInfo(
+            ethernet=ethernet_parameters or EthernetParameters(status=False),
             wlan=wireless_parameters or WirelessParameters(status=False),
         )
         self._entry_lock = asyncio.Lock()
@@ -339,7 +339,9 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         async with self._entry_lock:
             if name not in self.data:
                 device = await PhysicalDevice.create(
-                    device_type, queue=self._queues.write, network=self._network
+                    device_type,
+                    queue=self._queues.write,
+                    network_info=self._network_info,
                 )
                 device.dispatch_nowait(ATTR_CONNECTED, True)
                 device.dispatch_nowait(ATTR_SETUP, True)
@@ -352,6 +354,11 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     def statistics(self) -> Statistics:
         """Return the statistics."""
         return self._statistics
+
+    @property
+    def network_info(self) -> NetworkInfo:
+        """Return the network info."""
+        return self._network_info
 
 
 __all__ = [
