@@ -52,14 +52,18 @@ def get_device_handler(device_type: int) -> str:
 class Device(ABC, EventManager):
     """Represents a device."""
 
-    __slots__ = ("queue",)
+    __slots__ = ("_write_queue",)
 
-    queue: asyncio.Queue[Frame]
+    _write_queue: asyncio.Queue[Frame]
 
-    def __init__(self, queue: asyncio.Queue[Frame]) -> None:
+    def __init__(self, write_queue: asyncio.Queue[Frame]) -> None:
         """Initialize a new device."""
         super().__init__()
-        self.queue = queue
+        self._write_queue = write_queue
+
+    def queue_send(self, frame: Frame) -> None:
+        """Send frame to the write queue."""
+        self._write_queue.put_nowait(frame)
 
     async def set(
         self,
@@ -137,9 +141,11 @@ class PhysicalDevice(Device, ABC):
     _network_info: NetworkInfo
     _frame_versions: dict[int, int]
 
-    def __init__(self, queue: asyncio.Queue[Frame], network_info: NetworkInfo) -> None:
+    def __init__(
+        self, write_queue: asyncio.Queue[Frame], network_info: NetworkInfo
+    ) -> None:
         """Initialize a new physical device."""
-        super().__init__(queue)
+        super().__init__(write_queue)
         self._network_info = network_info
         self._frame_versions = {}
 
@@ -167,7 +173,7 @@ class PhysicalDevice(Device, ABC):
         """Request frame version from the device."""
         _LOGGER.debug("Updating frame %s to version %i", repr(frame_type), version)
         request = await Request.create(frame_type, recipient=self.address)
-        self.queue.put_nowait(request)
+        self.queue_send(request)
 
     def has_frame_version(self, frame_type: FrameType | int, version: int) -> bool:
         """Return True if frame data is up to date, False otherwise."""
@@ -199,7 +205,7 @@ class PhysicalDevice(Device, ABC):
         initial_retries = retries
         while retries > 0:
             try:
-                self.queue.put_nowait(request)
+                self.queue_send(request)
                 return await self.get(name, timeout=timeout)
             except asyncio.TimeoutError:
                 retries -= 1
@@ -211,7 +217,7 @@ class PhysicalDevice(Device, ABC):
         )
 
     @classmethod
-    async def create(cls, device_type: int, **kwargs: Any) -> PhysicalDevice:
+    async def create(cls, device_type: DeviceType, **kwargs: Any) -> PhysicalDevice:
         """Create a physical device handler object."""
         return await create_instance(get_device_handler(device_type), cls=cls, **kwargs)
 
@@ -225,10 +231,10 @@ class VirtualDevice(Device, ABC):
     index: int
 
     def __init__(
-        self, queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
+        self, write_queue: asyncio.Queue[Frame], parent: PhysicalDevice, index: int = 0
     ) -> None:
         """Initialize a new sub-device."""
-        super().__init__(queue)
+        super().__init__(write_queue)
         self.parent = parent
         self.index = index
 

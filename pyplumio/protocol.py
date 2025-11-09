@@ -15,7 +15,6 @@ from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ProtocolError
 from pyplumio.frames import Frame
 from pyplumio.frames.requests import StartMasterRequest
-from pyplumio.helpers.async_cache import acache
 from pyplumio.helpers.event_manager import EventManager
 from pyplumio.stream import FrameReader, FrameWriter
 from pyplumio.structures.network_info import (
@@ -101,18 +100,6 @@ class DummyProtocol(Protocol):
             await self.close_writer()
 
 
-@dataclass(slots=True)
-class Queues:
-    """Represents asyncio queues."""
-
-    read: asyncio.Queue[Frame] = field(default_factory=asyncio.Queue)
-    write: asyncio.Queue[Frame] = field(default_factory=asyncio.Queue)
-
-    async def join(self) -> None:
-        """Wait for queues to finish."""
-        await asyncio.gather(self.read.join(), self.write.join())
-
-
 NEVER: Final = "never"
 
 
@@ -194,7 +181,7 @@ class DeviceStatistics:
         """Return a hash of the statistics based on unique address."""
         return self.address
 
-    async def update_last_seen(self, _: Any) -> None:
+    async def update_last_seen(self, _: Any | None = None) -> None:
         """Update last seen property."""
         self.last_seen = datetime.now()
 
@@ -202,41 +189,34 @@ class DeviceStatistics:
 class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     """Represents an async protocol.
 
-    This protocol implements producer-consumers pattern using
-    asyncio queues.
+    This protocol implements frame handling using a single task and
+    write queue.
 
-    The frame producer tries to read frames from the write queue.
-    If any is available, it sends them to the device via frame writer.
+    The frame handler processes frames in both directions:
+    - Sends frames from the write queue to the device via frame writer
+    - Reads incoming frames via frame reader and processes them
 
-    It then reads stream via frame reader and puts received frame
-    into the read queue.
-
-    Frame consumers read frames from the read queue, create device
-    entry, if needed, and send frame to the entry for the processing.
+    Each received frame is passed to appropriate device handler for
+    further processing.
     """
 
-    consumers_count: int
     _network_info: NetworkInfo
-    _queues: Queues
-    _entry_lock: asyncio.Lock
+    _write_queue: asyncio.Queue[Frame]
     _statistics: Statistics
 
     def __init__(
         self,
         ethernet_parameters: EthernetParameters | None = None,
         wireless_parameters: WirelessParameters | None = None,
-        consumers_count: int = 3,
     ) -> None:
         """Initialize a new async protocol."""
         super().__init__()
-        self.consumers_count = consumers_count
         self._network_info = NetworkInfo(
             ethernet=ethernet_parameters or EthernetParameters(status=False),
             wlan=wireless_parameters or WirelessParameters(status=False),
         )
-        self._entry_lock = asyncio.Lock()
+        self._write_queue = asyncio.Queue()
         self._statistics = Statistics()
-        self._queues = Queues()
 
     def connection_established(
         self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
@@ -244,17 +224,11 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         """Start frame producer and consumers."""
         self.reader = FrameReader(reader)
         self.writer = FrameWriter(writer)
-        self._queues.write.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
+        self._write_queue.put_nowait(StartMasterRequest(recipient=DeviceType.ECOMAX))
         self.create_task(
-            self.frame_producer(self._queues, reader=self.reader, writer=self.writer),
-            name="frame_producer_task",
+            self.frame_handler(reader=self.reader, writer=self.writer),
+            name="frame_handler_task",
         )
-        for consumer_id in range(self.consumers_count):
-            self.create_task(
-                self.frame_consumer(self._queues.read),
-                name=f"frame_consumer_task ({consumer_id})",
-            )
-
         for device in self.data.values():
             device.dispatch_nowait(ATTR_CONNECTED, True)
 
@@ -278,41 +252,31 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
 
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
-        await self._queues.join()
         self.cancel_tasks()
         await self.wait_until_done()
         if self.connected.is_set():
             await self._connection_close()
             await asyncio.gather(*(device.shutdown() for device in self.data.values()))
 
-    async def _write_from_queue(
-        self, writer: FrameWriter, queue: asyncio.Queue[Frame]
-    ) -> None:
-        """Send frame from the queue to the remote device."""
-        frame = await queue.get()
-        await writer.write(frame)
-        queue.task_done()
-        self.statistics.update_sent(frame)
-
-    async def _read_into_queue(
-        self, reader: FrameReader, queue: asyncio.Queue[Frame]
-    ) -> None:
-        """Read frame from the remote device into the queue."""
-        if frame := await reader.read():
-            queue.put_nowait(frame)
-            self.statistics.update_received(frame)
-
-    async def frame_producer(
-        self, queues: Queues, reader: FrameReader, writer: FrameWriter
-    ) -> None:
+    async def frame_handler(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handle frame reads and writes."""
         await self.connected.wait()
         while self.connected.is_set():
             try:
-                if not queues.write.empty():
-                    await self._write_from_queue(writer, queues.write)
+                # Handle pending writes.
+                frame: Frame | None
+                if not self._write_queue.empty():
+                    frame = await self._write_queue.get()
+                    await writer.write(frame)
+                    self._write_queue.task_done()
+                    self.statistics.update_sent(frame)
 
-                await self._read_into_queue(reader, queues.read)
+                # Read and process frame.
+                if frame := await reader.read():
+                    self.statistics.update_received(frame)
+                    device = await self._get_device_entry(frame.sender)
+                    device.handle_frame(frame)
+
             except ProtocolError as e:
                 self.statistics.failed_frames += 1
                 _LOGGER.debug("Can't process received frame: %s", e)
@@ -323,32 +287,20 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             except Exception:
                 _LOGGER.exception("Unexpected exception")
 
-    async def frame_consumer(self, queue: asyncio.Queue[Frame]) -> None:
-        """Handle frame processing."""
-        await self.connected.wait()
-        while self.connected.is_set():
-            frame = await queue.get()
-            device = await self.get_device_entry(frame.sender)
-            device.handle_frame(frame)
-            queue.task_done()
-
-    @acache
-    async def get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
+    async def _get_device_entry(self, device_type: DeviceType) -> PhysicalDevice:
         """Return the device entry."""
         name = device_type.name.lower()
-        async with self._entry_lock:
-            if name not in self.data:
-                device = await PhysicalDevice.create(
-                    device_type,
-                    queue=self._queues.write,
-                    network_info=self._network_info,
-                )
-                device.dispatch_nowait(ATTR_CONNECTED, True)
-                device.dispatch_nowait(ATTR_SETUP, True)
-                await self.dispatch(name, device)
-                self.statistics.update_devices(device)
+        if entry := self.get_nowait(name, None):
+            return entry
 
-        return self.data[name]
+        device = await PhysicalDevice.create(
+            device_type, write_queue=self._write_queue, network_info=self._network_info
+        )
+        device.dispatch_nowait(ATTR_CONNECTED, True)
+        device.dispatch_nowait(ATTR_SETUP, True)
+        await self.dispatch(name, device)
+        self.statistics.update_devices(device)
+        return device
 
     @property
     def statistics(self) -> Statistics:

@@ -132,9 +132,11 @@ class EcoMAX(PhysicalDevice):
 
     _fuel_meter: FuelMeter
 
-    def __init__(self, queue: asyncio.Queue[Frame], network_info: NetworkInfo) -> None:
+    def __init__(
+        self, write_queue: asyncio.Queue[Frame], network_info: NetworkInfo
+    ) -> None:
         """Initialize a new ecoMAX controller."""
-        super().__init__(queue, network_info)
+        super().__init__(write_queue, network_info)
         self._fuel_meter = FuelMeter()
 
     def handle_frame(self, frame: Frame) -> None:
@@ -142,24 +144,26 @@ class EcoMAX(PhysicalDevice):
         if isinstance(frame, Request) and (
             response := frame.response(data={ATTR_NETWORK_INFO: self._network_info})
         ):
-            self.queue.put_nowait(response)
+            self.queue_send(response)
 
         super().handle_frame(frame)
 
     def _mixers(self, indexes: Iterable[int]) -> Generator[Mixer]:
-        """Iterate through the mixer indexes.
+        """Iterate through indexes and yield a Mixer instance.
 
         For each index, return or create an instance of the mixer class.
         Once done, dispatch the 'mixers' event without waiting.
         """
         mixers: dict[int, Mixer] = self._data.setdefault(ATTR_MIXERS, {})
         for index in indexes:
-            yield mixers.setdefault(index, Mixer(self.queue, parent=self, index=index))
+            yield mixers.setdefault(
+                index, Mixer(self._write_queue, parent=self, index=index)
+            )
 
         return self.dispatch_nowait(ATTR_MIXERS, mixers)
 
     def _thermostats(self, indexes: Iterable[int]) -> Generator[Thermostat]:
-        """Iterate through the thermostat indexes.
+        """Iterate through indexes and yield a Thermostat instance.
 
         For each index, return or create an instance of the thermostat
         class. Once done, dispatch the 'thermostats' event without
@@ -168,7 +172,7 @@ class EcoMAX(PhysicalDevice):
         thermostats: dict[int, Thermostat] = self._data.setdefault(ATTR_THERMOSTATS, {})
         for index in indexes:
             yield thermostats.setdefault(
-                index, Thermostat(self.queue, parent=self, index=index)
+                index, Thermostat(self._write_queue, parent=self, index=index)
             )
 
         return self.dispatch_nowait(ATTR_THERMOSTATS, thermostats)

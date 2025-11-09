@@ -234,14 +234,14 @@ async def test_ecomax_setup_errors(mock_wait_for, mock_request, ecomax: EcoMAX) 
     mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=60.0)
 
 
-@patch("asyncio.Queue.put")
+@patch("asyncio.Queue.put_nowait")
 @class_from_json(
     EcomaxParametersResponse,
     "responses/ecomax_parameters.json",
     arguments=("message",),
 )
 async def test_ecomax_parameters_event_listener(
-    mock_put, ecomax: EcoMAX, ecomax_parameters: EcomaxParametersResponse
+    mock_put_nowait, ecomax: EcoMAX, ecomax_parameters: EcomaxParametersResponse
 ) -> None:
     """Test event listener for ecoMAX parameters."""
     ecomax.handle_frame(ecomax_parameters)
@@ -271,7 +271,7 @@ async def test_ecomax_parameters_event_listener(
 
     # Test setting parameter with the step.
     await fuel_calorific_value.set(2.5, timeout=0)
-    request = mock_put.call_args[0][0]
+    request = mock_put_nowait.call_args[0][0]
     assert isinstance(request, SetEcomaxParameterRequest)
     assert request.data[ATTR_VALUE] == 25
 
@@ -285,7 +285,7 @@ async def test_ecomax_parameters_event_listener(
 
     # Test setting the parameter with the offset.
     await heating_heat_curve_shift.set(1, timeout=0)
-    request = mock_put.call_args[0][0]
+    request = mock_put_nowait.call_args[0][0]
     assert isinstance(request, SetEcomaxParameterRequest)
     assert request.data[ATTR_VALUE] == 21
 

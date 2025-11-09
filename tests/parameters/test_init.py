@@ -268,11 +268,11 @@ class TestParameter:
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
-    @patch("asyncio.Queue.put")
+    @patch("asyncio.Queue.put_nowait")
     @pytest.mark.parametrize("nowait", [False, True])
     async def test_set(
         self,
-        mock_put,
+        mock_put_nowait,
         mock_create_request,
         mock_validate,
         parameter: Parameter,
@@ -302,7 +302,7 @@ class TestParameter:
         assert parameter == 4
         mock_validate.assert_called_once_with(4)
         mock_create_request.assert_awaited_once()
-        mock_put.assert_awaited_once_with(mock_create_request.return_value)
+        mock_put_nowait.assert_called_once_with(mock_create_request.return_value)
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
@@ -334,7 +334,7 @@ class TestParameter:
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
-    @patch("asyncio.Queue.put")
+    @patch("asyncio.Queue.put_nowait")
     @pytest.mark.parametrize(
         (
             "event_side_effect",
@@ -356,7 +356,7 @@ class TestParameter:
     )
     async def test_set_with_retries(
         self,
-        mock_put,
+        mock_put_nowait,
         mock_create_request,
         mock_validate,
         parameter: Parameter,
@@ -386,19 +386,19 @@ class TestParameter:
         assert parameter == 5
         mock_create_request.assert_awaited_once()
         mock_validate.assert_called_once_with(5)
-        assert mock_put.call_count == expected_call_count
+        assert mock_put_nowait.call_count == expected_call_count
 
         if log_message:
             assert log_message in caplog.text
 
     @patch.object(DummyParameter, "validate")
     @patch.object(DummyParameter, "create_request", new_callable=AsyncMock)
-    @patch("asyncio.Queue.put")
+    @patch("asyncio.Queue.put_nowait")
     @patch("asyncio.Event.set")
     async def test_set_optimistic(
         self,
         mock_set,
-        mock_put,
+        mock_put_nowait,
         mock_create_request,
         mock_validate,
         parameter: Parameter,
@@ -413,7 +413,7 @@ class TestParameter:
         assert parameter == 5
         assert parameter.update_pending.is_set() is False
         mock_validate.assert_called_once_with(5)
-        mock_put.assert_awaited_once_with(mock_create_request.return_value)
+        mock_put_nowait.assert_called_once_with(mock_create_request.return_value)
         mock_set.assert_not_called()
 
     @pytest.mark.usefixtures("skip_asyncio_events")

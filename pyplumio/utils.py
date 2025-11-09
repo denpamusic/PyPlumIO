@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Awaitable, Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Coroutine, Mapping, Sequence
 from functools import reduce, wraps
-from typing import Annotated, Final, ParamSpec, TypeAlias, TypeVar
+from typing import Annotated, Any, Final, ParamSpec, TypeAlias, TypeVar
 
 KT = TypeVar("KT")  # Key type.
 VT = TypeVar("VT")  # Value type.
@@ -78,10 +78,12 @@ P = ParamSpec("P")
 
 def timeout(
     seconds: float,
-) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Awaitable[T]]]:
+) -> Callable[[Callable[P, Awaitable[T]]], Callable[P, Coroutine[Any, Any, T]]]:
     """Decorate a timeout for the awaitable."""
 
-    def decorator(func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
+    def decorator(
+        func: Callable[P, Awaitable[T]],
+    ) -> Callable[P, Coroutine[Any, Any, T]]:
         @wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)

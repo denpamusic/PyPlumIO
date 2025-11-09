@@ -295,7 +295,7 @@ class Schedule(Iterable):
 
     async def commit(self) -> None:
         """Commit a weekly schedule to the device."""
-        await self.device.queue.put(
+        self.device.queue_send(
             await Request.create(
                 FrameType.REQUEST_SET_SCHEDULE,
                 recipient=self.device.address,

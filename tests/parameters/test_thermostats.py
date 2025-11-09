@@ -1,5 +1,7 @@
 """Contains tests for the thermostat parameter descriptors."""
 
+import asyncio
+
 import pytest
 
 from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE
@@ -19,7 +21,7 @@ from pyplumio.parameters.thermostat import (
 @pytest.fixture(name="thermostat")
 def fixture_thermostat(ecomax: EcoMAX) -> Thermostat:
     """Return an thermostat object."""
-    return Thermostat(ecomax.queue, parent=ecomax)
+    return Thermostat(asyncio.Queue(), parent=ecomax)
 
 
 async def test_mixer_parameter_create_request(thermostat: Thermostat) -> None:

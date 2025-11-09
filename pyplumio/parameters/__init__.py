@@ -204,7 +204,7 @@ class Parameter(ABC):
         self._values = replace(self._values, value=value)
         request = await self.create_request()
         if self.description.optimistic:
-            await self.device.queue.put(request)
+            self.device.queue_send(request)
             return True
 
         self.update_done.clear()
@@ -233,7 +233,7 @@ class Parameter(ABC):
 
     async def _send_update_request(self, request: Request, timeout: float) -> bool:
         """Send update request to the remote and confirm the result."""
-        await self.device.queue.put(request)
+        self.device.queue_send(request)
         with suppress(asyncio.TimeoutError):
             # Wait for the update to be done
             await asyncio.wait_for(self.update_done.wait(), timeout=timeout)

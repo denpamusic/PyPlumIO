@@ -1,5 +1,7 @@
 """Contains tests for the mixer parameter descriptors."""
 
+import asyncio
+
 import pytest
 
 from pyplumio.const import ATTR_DEVICE_INDEX, ATTR_INDEX, ATTR_VALUE, ProductType
@@ -20,7 +22,7 @@ from pyplumio.parameters.mixer import (
 @pytest.fixture(name="mixer")
 def fixture_mixer(ecomax: EcoMAX) -> Mixer:
     """Return an mixer object."""
-    return Mixer(ecomax.queue, parent=ecomax)
+    return Mixer(asyncio.Queue(), parent=ecomax)
 
 
 async def test_mixer_parameter_create_request(mixer: Mixer) -> None:
