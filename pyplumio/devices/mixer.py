@@ -26,7 +26,7 @@ class Mixer(LogicalDevice):
 
     __slots__ = ()
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_mixer_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update mixer sensors and dispatch the events."""
         _LOGGER.debug("Received mixer %i sensors", self.index)
@@ -35,7 +35,7 @@ class Mixer(LogicalDevice):
         )
         return True
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_mixer_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:

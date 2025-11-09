@@ -25,7 +25,7 @@ class Thermostat(LogicalDevice):
 
     __slots__ = ()
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_thermostat_sensors(self, sensors: dict[str, Any]) -> bool:
         """Update thermostat sensors and dispatch the events."""
         _LOGGER.debug("Received thermostat %i sensors", self.index)
@@ -34,7 +34,7 @@ class Thermostat(LogicalDevice):
         )
         return True
 
-    @event_listener
+    @event_listener(priority=0)
     async def on_event_thermostat_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> bool:
