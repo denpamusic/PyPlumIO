@@ -55,7 +55,7 @@ class NetworkInfo:
     """Represents a network parameters."""
 
     ethernet: EthernetParameters = field(default_factory=EthernetParameters)
-    wlan: WirelessParameters = field(default_factory=WirelessParameters)
+    wireless: WirelessParameters = field(default_factory=WirelessParameters)
     server_status: bool = True
 
 
@@ -73,15 +73,17 @@ class NetworkInfoStructure(Structure):
             + IPv4(network_info.ethernet.netmask).to_bytes()
             + IPv4(network_info.ethernet.gateway).to_bytes()
             + network_info.ethernet.status.to_bytes(length=1, byteorder="little")
-            + IPv4(network_info.wlan.ip).to_bytes()
-            + IPv4(network_info.wlan.netmask).to_bytes()
-            + IPv4(network_info.wlan.gateway).to_bytes()
+            + IPv4(network_info.wireless.ip).to_bytes()
+            + IPv4(network_info.wireless.netmask).to_bytes()
+            + IPv4(network_info.wireless.gateway).to_bytes()
             + network_info.server_status.to_bytes(length=1, byteorder="little")
-            + network_info.wlan.encryption.to_bytes(length=1, byteorder="little")
-            + network_info.wlan.signal_quality.to_bytes(length=1, byteorder="little")
-            + network_info.wlan.status.to_bytes(length=1, byteorder="little")
+            + network_info.wireless.encryption.to_bytes(length=1, byteorder="little")
+            + network_info.wireless.signal_quality.to_bytes(
+                length=1, byteorder="little"
+            )
+            + network_info.wireless.status.to_bytes(length=1, byteorder="little")
             + b"\0" * 4
-            + VarString(network_info.wlan.ssid).to_bytes()
+            + VarString(network_info.wireless.ssid).to_bytes()
         )
 
     def decode(
@@ -100,7 +102,7 @@ class NetworkInfoStructure(Structure):
                             gateway=IPv4.from_bytes(message, offset + 8).value,
                             status=bool(message[offset + 13]),
                         ),
-                        wlan=WirelessParameters(
+                        wireless=WirelessParameters(
                             ip=IPv4.from_bytes(message, offset + 13).value,
                             netmask=IPv4.from_bytes(message, offset + 17).value,
                             gateway=IPv4.from_bytes(message, offset + 21).value,

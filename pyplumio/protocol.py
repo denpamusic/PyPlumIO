@@ -213,7 +213,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         super().__init__()
         self._network_info = NetworkInfo(
             ethernet=ethernet_parameters or EthernetParameters(status=False),
-            wlan=wireless_parameters or WirelessParameters(status=False),
+            wireless=wireless_parameters or WirelessParameters(status=False),
         )
         self._write_queue = asyncio.Queue()
         self._statistics = Statistics()
