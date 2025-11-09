@@ -9,5 +9,5 @@ pytest-asyncio==1.2.0
 pytest==8.4.2
 ruff==0.14.3
 tomli==2.3.0
-tox==4.31.0
+tox==4.32.0
 types-pyserial==3.5.0.20251001
