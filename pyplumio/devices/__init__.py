@@ -149,7 +149,7 @@ class PhysicalDevice(Device, ABC):
         self._network_info = network_info
         self._frame_versions = {}
 
-    @event_listener(filter=on_change)
+    @event_listener(filter=on_change, priority=0)
     async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
         """Check frame versions and update outdated frames."""
         _LOGGER.debug("Received frame version table")

@@ -4,11 +4,24 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
+from dataclasses import dataclass, field
 import inspect
+import logging
 from types import MappingProxyType
 from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
+
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(slots=True, frozen=True)
+class EventListener:
+    """Represents an event listener."""
+
+    callback: EventCallback
+    priority: int = field(default=1, compare=False)
+
 
 EventCallback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
 _Callable: TypeAlias = Callable[..., Any]
@@ -17,16 +30,20 @@ _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
 
 
 @overload
-def event_listener(name: _Callable, filter: None = None) -> EventCallback: ...
+def event_listener(
+    name: _Callable, filter: None = None, *, priority: int = 1
+) -> EventCallback: ...
 
 
 @overload
 def event_listener(
-    name: str | None = None, filter: _Callable | None = None
+    name: str | None = None, filter: _Callable | None = None, *, priority: int = 1
 ) -> _Callable: ...
 
 
-def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
+def event_listener(
+    name: Any = None, filter: _Callable | None = None, *, priority: int = 1
+) -> Any:
     """Mark a function as an event listener.
 
     This decorator attaches metadata to the function, identifying it
@@ -42,6 +59,7 @@ def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
         )
         setattr(func, "_on_event", event)
         setattr(func, "_on_event_filter", filter)
+        setattr(func, "_on_event_priority", priority)
         return func
 
     if callable(name):
@@ -56,18 +74,18 @@ T = TypeVar("T")
 class EventManager(TaskManager, Generic[T]):
     """Represents an event manager."""
 
-    __slots__ = ("_data", "_events", "_callbacks")
+    __slots__ = ("_data", "_events", "_listeners")
 
     _data: dict[str, T]
     _events: dict[str, asyncio.Event]
-    _callbacks: dict[str, list[EventCallback]]
+    _listeners: dict[str, set[EventListener]]
 
     def __init__(self) -> None:
         """Initialize a new event manager."""
         super().__init__()
         self._data = {}
         self._events = {}
-        self._callbacks = {}
+        self._listeners = {}
         self._register_event_listeners()
 
     def __getattr__(self, name: str) -> T:
@@ -79,15 +97,17 @@ class EventManager(TaskManager, Generic[T]):
 
     def _register_event_listeners(self) -> None:
         """Register the event listeners."""
-        for event, callback in self.event_listeners():
-            filter_func = getattr(callback, "_on_event_filter", None)
-            self.subscribe(event, filter_func(callback) if filter_func else callback)
+        for event, listener in self.event_listeners():
+            filter_func = getattr(listener, "_on_event_filter", None)
+            priority = getattr(listener, "_on_event_priority", 1)
+            callback = filter_func(listener) if filter_func else listener
+            self.subscribe(event, callback, priority=priority)
 
     def event_listeners(self) -> Generator[tuple[str, EventCallback]]:
         """Get the event listeners."""
-        for _, callback in inspect.getmembers(self, predicate=inspect.ismethod):
-            if event := getattr(callback, "_on_event", None):
-                yield (event, callback)
+        for _, listener in inspect.getmembers(self, predicate=inspect.ismethod):
+            if event := getattr(listener, "_on_event", None):
+                yield (event, listener)
 
     async def wait_for(self, name: str, timeout: float | None = None) -> None:
         """Wait for the value to become available.
@@ -142,24 +162,35 @@ class EventManager(TaskManager, Generic[T]):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: _EventCallbackT) -> _EventCallbackT:
-        """Subscribe a callback to the event.
+    def subscribe(
+        self, name: str, callback: _EventCallbackT, *, priority: int = 1
+    ) -> _EventCallbackT:
+        """Subscribe a listener to the event.
 
         :param name: Event name or ID
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: A reference to the callback, that can be used
             with `EventManager.unsubscribe()`.
-        :rtype: Callback
+        :rtype: EventCallback
         """
-        callbacks = self._callbacks.setdefault(name, [])
-        callbacks.append(callback)
+        listener = EventListener(callback, priority=priority)
+        listeners = self._listeners.setdefault(name, set())
+        listeners.add(listener)
+        _LOGGER.debug(
+            "Registered listener '%s' for event '%s' with priority %d",
+            callback.__name__,
+            name,
+            priority,
+        )
         return callback
 
-    def subscribe_once(self, name: str, callback: EventCallback) -> EventCallback:
-        """Subscribe a callback to the event once.
+    def subscribe_once(
+        self, name: str, callback: EventCallback, *, priority: int = 1
+    ) -> EventCallback:
+        """Subscribe a listener to the event once.
 
         Callback will be unsubscribed after single event.
 
@@ -167,10 +198,10 @@ class EventManager(TaskManager, Generic[T]):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: A reference to the callback, that can be used
             with `EventManager.unsubscribe()`.
-        :rtype: Callback
+        :rtype: EventCallback
         """
 
         async def _call_once(value: Any) -> Any:
@@ -178,7 +209,7 @@ class EventManager(TaskManager, Generic[T]):
             self.unsubscribe(name, _call_once)
             return await callback(value)
 
-        return self.subscribe(name, _call_once)
+        return self.subscribe(name, _call_once, priority=priority)
 
     def unsubscribe(self, name: str, callback: EventCallback) -> bool:
         """Usubscribe a callback from the event.
@@ -188,22 +219,36 @@ class EventManager(TaskManager, Generic[T]):
         :param callback: A coroutine callback function, previously
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: `True` if callback is found, `False` otherwise.
         :rtype: bool
         """
-        if name in self._callbacks and callback in self._callbacks[name]:
-            self._callbacks[name].remove(callback)
+        listener = EventListener(callback)
+        if name in self._listeners and listener in self._listeners[name]:
+            self._listeners[name].remove(listener)
             return True
 
         return False
 
     async def dispatch(self, name: str, value: T) -> None:
-        """Call registered callbacks and dispatch the event."""
-        if callbacks := self._callbacks.get(name, None):
-            for callback in list(callbacks):
+        """Call registered listeners and dispatch the event."""
+        listeners = self._listeners.get(name, set())
+        sorted_listeners = sorted(listeners, key=lambda listener: listener.priority)
+        _LOGGER.debug("Dispatching event '%s' with %d listeners", name, len(listeners))
+        for listener in sorted_listeners:
+            callback = listener.callback
+            _LOGGER.debug(
+                "Executing listener '%s' with priority %d",
+                callback.__name__,
+                listener.priority,
+            )
+            try:
                 if (result := await callback(value)) is not None:
                     value = result
+            except Exception as e:
+                _LOGGER.exception(
+                    "Error in event listener %s: %s", callback.__name__, e
+                )
 
         self._data[name] = value
         self.set_event(name)
