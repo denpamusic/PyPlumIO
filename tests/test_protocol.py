@@ -103,6 +103,7 @@ class TestAsyncProtocol:
         assert protocol.statistics.connected_since == NEVER
         protocol.connection_established(reader=mock_reader, writer=mock_writer)
         assert protocol.connected.is_set()
+        assert protocol.network_info.server_status is True
 
         # Test frame handler task was created.
         mock_frame_handler.assert_called_once_with(
