@@ -266,14 +266,13 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
 
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
+        self.cancel_tasks()
+        self._clear_write_queue()
+        await self.wait_until_done()
         if self.connected.is_set():
             self._mark_disconnected()
             await self._close_writer()
             await asyncio.gather(*(device.shutdown() for device in self.data.values()))
-
-        self._clear_write_queue()
-        self.cancel_tasks()
-        await self.wait_until_done()
 
     async def frame_handler(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handle frame reads and writes."""
