@@ -5,6 +5,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import asyncio
 from collections.abc import Awaitable, Callable
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
@@ -46,7 +47,7 @@ class Protocol(ABC):
         self.writer = None
         self._on_connection_lost = set()
 
-    async def close_writer(self) -> None:
+    async def _close_writer(self) -> None:
         """Ensure that writer is closed."""
         if self.writer:
             await self.writer.close()
@@ -91,14 +92,14 @@ class DummyProtocol(Protocol):
         """Close writer and call connection lost callbacks."""
         if self.connected.is_set():
             self.connected.clear()
-            await self.close_writer()
+            await self._close_writer()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
     async def shutdown(self) -> None:
         """Shutdown the protocol."""
         if self.connected.is_set():
             self.connected.clear()
-            await self.close_writer()
+            await self._close_writer()
 
 
 NEVER: Final = "never"
@@ -237,35 +238,45 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         self.statistics.reset_transfer_statistics()
         self.statistics.connected_since = datetime.now()
 
-    async def _connection_close(self) -> None:
-        """Close the connection if it is established."""
+    async def _mark_disconnected(self) -> None:
+        """Mark as protocol as disconnected."""
         self.connected.clear()
-        await asyncio.gather(
-            *(device.dispatch(ATTR_CONNECTED, False) for device in self.data.values())
-        )
-        await self.close_writer()
+        for device in self.data.values():
+            device.dispatch_nowait(ATTR_CONNECTED, False)
+
+    def _clear_write_queue(self) -> None:
+        """Clear the write queue."""
+        with suppress(asyncio.QueueEmpty):
+            while not self._write_queue.empty():
+                self._write_queue.get_nowait()
+                self._write_queue.task_done()
 
     async def connection_lost(self) -> None:
         """Close the connection and call connection lost callbacks."""
         if self.connected.is_set():
-            await self._connection_close()
+            await self._mark_disconnected()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
+            await self._close_writer()
 
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
+        if self.connected.is_set():
+            await self._mark_disconnected()
+            await asyncio.gather(*(device.shutdown() for device in self.data.values()))
+            await self._close_writer()
+
+        self._clear_write_queue()
         self.cancel_tasks()
         await self.wait_until_done()
-        if self.connected.is_set():
-            await self._connection_close()
-            await asyncio.gather(*(device.shutdown() for device in self.data.values()))
 
     async def frame_handler(self, reader: FrameReader, writer: FrameWriter) -> None:
         """Handle frame reads and writes."""
         await self.connected.wait()
         while self.connected.is_set():
             try:
-                # Handle pending writes.
                 frame: Frame | None
+
+                # Handle pending writes.
                 if not self._write_queue.empty():
                     frame = await self._write_queue.get()
                     await writer.write(frame)

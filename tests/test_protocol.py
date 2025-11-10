@@ -40,21 +40,20 @@ class TestDummyProtocol:
         assert protocol.reader is mock_frame_reader.return_value
         assert protocol.writer is mock_frame_writer.return_value
 
-    @patch("pyplumio.protocol.Protocol.close_writer")
     @patch("asyncio.Event.is_set", return_value=True)
     @patch("asyncio.Event.clear")
-    async def test_connection_lost(
-        self, mock_clear, mock_is_set, mock_close_writer
-    ) -> None:
+    async def test_connection_lost(self, mock_clear, mock_is_set) -> None:
         """Test connection lost."""
         protocol = DummyProtocol()
         mock_connection_lost_callback = AsyncMock()
         protocol.on_connection_lost.add(mock_connection_lost_callback)
+        mock_writer = AsyncMock(spec=FrameWriter, autospec=True)
+        protocol.writer = mock_writer
         await protocol.connection_lost()
         mock_is_set.assert_called_once()
         mock_clear.assert_called_once()
         mock_connection_lost_callback.assert_awaited_once()
-        mock_close_writer.assert_awaited_once()
+        mock_writer.close.assert_awaited_once()
 
     @patch("pyplumio.protocol.FrameWriter.close")
     async def test_shutdown(self, mock_close) -> None:
@@ -124,38 +123,50 @@ class TestAsyncProtocol:
         mock_reset_transfer_statistics.assert_called_once()
         assert protocol.statistics.connected_since == datetime.now()
 
-    @patch("pyplumio.protocol.Protocol.close_writer")
     @patch("asyncio.Event.is_set", return_value=True)
     @patch("asyncio.Event.clear")
-    async def test_connection_lost(
-        self, mock_clear, mock_is_set, mock_close_writer
-    ) -> None:
+    async def test_connection_lost(self, mock_clear, mock_is_set) -> None:
         """Test connection lost."""
         protocol = AsyncProtocol()
         mock_connection_lost_callback = AsyncMock()
         protocol.on_connection_lost.add(mock_connection_lost_callback)
         mock_physical_device = Mock(spec=PhysicalDevice)
         await protocol.dispatch("physical_device", mock_physical_device)
+        mock_writer = AsyncMock(spec=FrameWriter, autospec=True)
+        protocol.writer = mock_writer
         await protocol.connection_lost()
         mock_is_set.assert_called_once()
         mock_clear.assert_called_once()
-        mock_close_writer.assert_awaited_once()
+        mock_writer.close.assert_awaited_once()
         mock_connection_lost_callback.assert_awaited_once()
-        mock_physical_device.dispatch.assert_awaited_once_with(ATTR_CONNECTED, False)
+        mock_physical_device.dispatch_nowait.assert_called_once_with(
+            ATTR_CONNECTED, False
+        )
 
-    @patch("pyplumio.protocol.Protocol.close_writer")
+    @patch("asyncio.Queue.empty", side_effect=(False, True))
+    @patch("asyncio.Queue.get_nowait")
+    @patch("asyncio.Queue.task_done")
     @patch("pyplumio.protocol.AsyncProtocol.cancel_tasks")
-    async def test_shutdown(self, mock_cancel_tasks, mock_close_writer) -> None:
+    async def test_shutdown(
+        self, mock_cancel_tasks, mock_task_done, mock_get_nowait, mock_empty
+    ) -> None:
         """Test connection shutdown."""
         protocol = AsyncProtocol()
         mock_physical_device = Mock(spec=PhysicalDevice)
         await protocol.dispatch("physical_device", mock_physical_device)
         protocol.connected.set()
+        mock_writer = AsyncMock(spec=FrameWriter, autospec=True)
+        protocol.writer = mock_writer
         await protocol.shutdown()
-        mock_close_writer.assert_awaited_once()
-        mock_physical_device.dispatch.assert_awaited_once_with(ATTR_CONNECTED, False)
+        mock_writer.close.assert_awaited_once()
+        mock_physical_device.dispatch_nowait.assert_called_once_with(
+            ATTR_CONNECTED, False
+        )
         mock_physical_device.shutdown.assert_awaited_once()
         mock_cancel_tasks.assert_called_once()
+        assert mock_empty.call_count == 2
+        mock_get_nowait.assert_called_once()
+        mock_task_done.assert_called_once()
 
     @pytest.fixture(name="statistics")
     @patch("asyncio.Queue.empty", side_effect=(False, True, True, True, True))
