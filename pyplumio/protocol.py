@@ -261,15 +261,15 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         """Close the connection and call connection lost callbacks."""
         if self.connected.is_set():
             self._mark_disconnected()
-            await asyncio.gather(*(callback() for callback in self.on_connection_lost))
             await self._close_writer()
+            await asyncio.gather(*(callback() for callback in self.on_connection_lost))
 
     async def shutdown(self) -> None:
         """Shutdown the protocol and close the connection."""
         if self.connected.is_set():
             self._mark_disconnected()
-            await asyncio.gather(*(device.shutdown() for device in self.data.values()))
             await self._close_writer()
+            await asyncio.gather(*(device.shutdown() for device in self.data.values()))
 
         self._clear_write_queue()
         self.cancel_tasks()
