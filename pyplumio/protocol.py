@@ -231,9 +231,6 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             self.frame_handler(reader=self.reader, writer=self.writer),
             name="frame_handler_task",
         )
-        for device in self.data.values():
-            device.dispatch_nowait(ATTR_CONNECTED, True)
-
         self._mark_connected()
         self.statistics.reset_transfer_statistics()
 
@@ -242,6 +239,8 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         self.connected.set()
         self.network_info.server_status = True
         self.statistics.connected_since = datetime.now()
+        for device in self.data.values():
+            device.dispatch_nowait(ATTR_CONNECTED, True)
 
     def _mark_disconnected(self) -> None:
         """Mark connection as disconnected."""
