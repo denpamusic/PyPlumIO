@@ -56,7 +56,7 @@ class NetworkInfo:
 
     ethernet: EthernetParameters = field(default_factory=EthernetParameters)
     wireless: WirelessParameters = field(default_factory=WirelessParameters)
-    server_status: bool = True
+    server_status: bool = False
 
 
 class NetworkInfoStructure(Structure):
