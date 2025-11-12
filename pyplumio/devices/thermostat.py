@@ -7,7 +7,7 @@ from collections.abc import Coroutine, Generator
 import logging
 from typing import Any
 
-from pyplumio.devices import VirtualDevice
+from pyplumio.devices import LogicalDevice
 from pyplumio.helpers.event_manager import event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.thermostat import (
@@ -20,7 +20,7 @@ from pyplumio.parameters.thermostat import (
 _LOGGER = logging.getLogger()
 
 
-class Thermostat(VirtualDevice):
+class Thermostat(LogicalDevice):
     """Represents a thermostat."""
 
     __slots__ = ()

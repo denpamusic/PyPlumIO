@@ -7,7 +7,7 @@ from collections.abc import Coroutine, Generator
 import logging
 from typing import Any
 
-from pyplumio.devices import VirtualDevice
+from pyplumio.devices import LogicalDevice
 from pyplumio.helpers.event_manager import event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.mixer import (
@@ -21,7 +21,7 @@ from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 _LOGGER = logging.getLogger(__name__)
 
 
-class Mixer(VirtualDevice):
+class Mixer(LogicalDevice):
     """Represents a mixer."""
 
     __slots__ = ()

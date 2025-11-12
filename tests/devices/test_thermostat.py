@@ -1,4 +1,4 @@
-"""Contains tests for the thermostat virtual device."""
+"""Contains tests for the thermostat logical device."""
 
 import asyncio
 from typing import Final
