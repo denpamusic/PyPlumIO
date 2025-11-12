@@ -1,4 +1,4 @@
-"""Contains tests for the mixer virtual device."""
+"""Contains tests for the mixer logical device."""
 
 import asyncio
 import logging

@@ -131,7 +131,7 @@ class PhysicalDevice(Device, ABC):
     """Represents a physical device.
 
     Physical device have network address and can have multiple
-    virtual devices associated with them via parent property.
+    logical devices associated with them via parent property.
     """
 
     __slots__ = ("address", "_network_info", "_frame_versions")
@@ -222,8 +222,8 @@ class PhysicalDevice(Device, ABC):
         return await create_instance(get_device_handler(device_type), cls=cls, **kwargs)
 
 
-class VirtualDevice(Device, ABC):
-    """Represents a virtual device associated with physical device."""
+class LogicalDevice(Device, ABC):
+    """Represents a logical device associated with physical device."""
 
     __slots__ = ("parent", "index")
 
@@ -258,7 +258,7 @@ def device_handler(
 __all__ = [
     "Device",
     "PhysicalDevice",
-    "VirtualDevice",
+    "LogicalDevice",
     "device_hander",
     "get_device_handler",
     "is_known_device_type",
