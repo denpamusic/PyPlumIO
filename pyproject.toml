@@ -19,6 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries",
     "Topic :: Home Automation",
 ]
@@ -241,7 +242,7 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = lint, type, py{310,311,312,313}
+    envlist = lint, type, py{310,311,312,313,314}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
@@ -252,6 +253,7 @@ legacy_tox_ini = """
         3.11: py311
         3.12: py312
         3.13: py313, lint, type
+        3.14: py314
 
     [testenv]
     deps =
