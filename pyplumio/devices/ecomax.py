@@ -256,7 +256,7 @@ class EcoMAX(PhysicalDevice):
         product_info = await self.get(ATTR_PRODUCT)
         parameter_types = await get_ecomax_parameter_types(product_info)
 
-        def _ecomax_parameter_events() -> Generator[Coroutine]:
+        def _ecomax_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
             """Get dispatch calls for ecoMAX parameter events."""
             for index, values in parameters:
                 try:
@@ -333,7 +333,7 @@ class EcoMAX(PhysicalDevice):
     ) -> bool:
         """Update schedule parameters and dispatch the events."""
 
-        def _schedule_parameter_events() -> Generator[Coroutine]:
+        def _schedule_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
             """Get dispatch calls for schedule parameter events."""
             for index, values in parameters:
                 description = SCHEDULE_PARAMETERS[index]

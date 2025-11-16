@@ -42,7 +42,7 @@ class Thermostat(LogicalDevice):
         _LOGGER.debug("Received thermostat %i parameters", self.index)
         parameter_types = get_thermostat_parameter_types()
 
-        def _thermostat_parameter_events() -> Generator[Coroutine]:
+        def _thermostat_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
             """Get dispatch calls for thermostat parameter events."""
             for index, values in parameters:
                 description = parameter_types[index]

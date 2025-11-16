@@ -69,7 +69,7 @@ DEFAULT_TOLERANCE: Final = 1e-6
 
 
 @overload
-def is_close(old: Parameter, new: Parameter, *, tolerance: None = None) -> bool: ...
+def is_close(old: Parameter, new: Parameter) -> bool: ...
 
 
 @overload
@@ -79,9 +79,7 @@ def is_close(
 
 
 @overload
-def is_close(
-    old: SupportsComparison, new: SupportsComparison, *, tolerance: None = None
-) -> bool: ...
+def is_close(old: SupportsComparison, new: SupportsComparison) -> bool: ...
 
 
 def is_close(
@@ -100,6 +98,9 @@ def is_close(
     return old.__eq__(new)
 
 
+_SubtractableT = TypeVar("_SubtractableT", list, SupportsSubtraction)
+
+
 @overload
 def diffence_between(old: list, new: list) -> list: ...
 
@@ -110,9 +111,7 @@ def diffence_between(
 ) -> SupportsSubtraction: ...
 
 
-def diffence_between(
-    old: SupportsSubtraction | list, new: SupportsSubtraction | list
-) -> SupportsSubtraction | list | None:
+def diffence_between(old: _SubtractableT, new: _SubtractableT) -> Any:
     """Return a difference between values."""
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
@@ -120,7 +119,7 @@ def diffence_between(
     if isinstance(old, SupportsSubtraction) and isinstance(new, SupportsSubtraction):
         return new.__sub__(old)
 
-    return None
+    return NotImplemented
 
 
 _Numeric: TypeAlias = float | int | Decimal | Number
@@ -536,7 +535,8 @@ class _Delta(ComparisonFilter):
         if self.is_undefined() or not is_close(self.value, new_value):
             old_value = self.value
             self.value = new_value
-            if (difference := diffence_between(old_value, new_value)) is not None:
+            difference = diffence_between(old_value, new_value)
+            if difference is not NotImplemented:
                 return await self._callback(difference)
 
 

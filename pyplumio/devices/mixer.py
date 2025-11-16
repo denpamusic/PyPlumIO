@@ -44,7 +44,7 @@ class Mixer(LogicalDevice):
         product_info = await self.parent.get(ATTR_PRODUCT)
         parameter_types = get_mixer_parameter_types(product_info)
 
-        def _mixer_parameter_events() -> Generator[Coroutine]:
+        def _mixer_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
             """Get dispatch calls for mixer parameter events."""
             for index, values in parameters:
                 try:

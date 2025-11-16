@@ -10,23 +10,27 @@ from typing import Any, Generic, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 
-EventCallback: TypeAlias = Callable[[Any], Coroutine[Any, Any, Any]]
-_Callable: TypeAlias = Callable[..., Any]
+EventCallback: TypeAlias = Callable[..., Coroutine[Any, Any, Any]]
+_FilterFunc: TypeAlias = Callable[[EventCallback], Any]
 
 _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
 
 
 @overload
-def event_listener(name: _Callable, filter: None = None) -> EventCallback: ...
+def event_listener(name: Callable[..., Any]) -> EventCallback: ...
+
+
+@overload
+def event_listener(name: Callable[..., Any], filter: _FilterFunc) -> EventCallback: ...
 
 
 @overload
 def event_listener(
-    name: str | None = None, filter: _Callable | None = None
-) -> _Callable: ...
+    name: str | None = None, filter: _FilterFunc | None = None
+) -> Callable[..., EventCallback]: ...
 
 
-def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
+def event_listener(name: Any = None, filter: Any = None) -> Any:
     """Mark a function as an event listener.
 
     This decorator attaches metadata to the function, identifying it
@@ -50,16 +54,16 @@ def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
         return decorator
 
 
-T = TypeVar("T")
-DefaultT = TypeVar("DefaultT")
+_EventDataT = TypeVar("_EventDataT")
+_DefaultT = TypeVar("_DefaultT")
 
 
-class EventManager(TaskManager, Generic[T]):
+class EventManager(TaskManager, Generic[_EventDataT]):
     """Represents an event manager."""
 
     __slots__ = ("_data", "_events", "_callbacks")
 
-    _data: dict[str, T]
+    _data: dict[str, _EventDataT]
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[EventCallback]]
 
@@ -71,7 +75,7 @@ class EventManager(TaskManager, Generic[T]):
         self._callbacks = {}
         self._register_event_listeners()
 
-    def __getattr__(self, name: str) -> T:
+    def __getattr__(self, name: str) -> _EventDataT:
         """Return attributes from the underlying data dictionary."""
         try:
             return self.data[name]
@@ -103,7 +107,7 @@ class EventManager(TaskManager, Generic[T]):
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
 
-    async def get(self, name: str, timeout: float | None = None) -> T:
+    async def get(self, name: str, timeout: float | None = None) -> _EventDataT:
         """Get the value by name.
 
         :param name: Event name or ID
@@ -119,13 +123,10 @@ class EventManager(TaskManager, Generic[T]):
         return self.data[name]
 
     @overload
-    def get_nowait(self, name: str) -> T: ...
+    def get_nowait(self, name: str) -> _EventDataT: ...
 
     @overload
-    def get_nowait(self, name: str, default: None = None) -> T: ...
-
-    @overload
-    def get_nowait(self, name: str, default: DefaultT) -> T | DefaultT: ...
+    def get_nowait(self, name: str, default: _DefaultT) -> _EventDataT | _DefaultT: ...
 
     def get_nowait(self, name: str, default: Any = None) -> Any:
         """Get the value by name without waiting.
@@ -137,9 +138,9 @@ class EventManager(TaskManager, Generic[T]):
         :type name: str
         :param default: default value to return if data is unavailable,
             defaults to `None`
-        :type default: T, optional
+        :type default: _DefaultT, optional
         :return: An event data
-        :rtype: T, optional
+        :rtype: _DataT | _DefaultT, optional
         """
         try:
             return self.data[name]
@@ -153,10 +154,10 @@ class EventManager(TaskManager, Generic[T]):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: A reference to the callback, that can be used
             with `EventManager.unsubscribe()`.
-        :rtype: Callback
+        :rtype: EventCallback
         """
         callbacks = self._callbacks.setdefault(name, [])
         callbacks.append(callback)
@@ -171,10 +172,10 @@ class EventManager(TaskManager, Generic[T]):
         :type name: str
         :param callback: A coroutine callback function, that will be
             awaited on the with the event data as an argument.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: A reference to the callback, that can be used
             with `EventManager.unsubscribe()`.
-        :rtype: Callback
+        :rtype: EventCallback
         """
 
         async def _call_once(value: Any) -> Any:
@@ -192,7 +193,7 @@ class EventManager(TaskManager, Generic[T]):
         :param callback: A coroutine callback function, previously
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
-        :type callback: Callback
+        :type callback: EventCallback
         :return: `True` if callback is found, `False` otherwise.
         :rtype: bool
         """
@@ -202,7 +203,7 @@ class EventManager(TaskManager, Generic[T]):
 
         return False
 
-    async def dispatch(self, name: str, value: T) -> None:
+    async def dispatch(self, name: str, value: _EventDataT) -> None:
         """Call registered callbacks and dispatch the event."""
         if callbacks := self._callbacks.get(name, None):
             for callback in list(callbacks):
@@ -212,17 +213,17 @@ class EventManager(TaskManager, Generic[T]):
         self._data[name] = value
         self.set_event(name)
 
-    def dispatch_nowait(self, name: str, value: T) -> None:
+    def dispatch_nowait(self, name: str, value: _EventDataT) -> None:
         """Call a registered callbacks and dispatch the event without waiting."""
         self.create_task(self.dispatch(name, value))
 
-    async def load(self, data: dict[str, T]) -> None:
+    async def load(self, data: dict[str, _EventDataT]) -> None:
         """Load event data."""
         await asyncio.gather(
             *(self.dispatch(name, value) for name, value in data.items())
         )
 
-    def load_nowait(self, data: dict[str, T]) -> None:
+    def load_nowait(self, data: dict[str, _EventDataT]) -> None:
         """Load event data without waiting."""
         self.create_task(self.load(data))
 
@@ -246,7 +247,7 @@ class EventManager(TaskManager, Generic[T]):
         return self._events
 
     @property
-    def data(self) -> MappingProxyType[str, T]:
+    def data(self) -> MappingProxyType[str, _EventDataT]:
         """Return the event data."""
         return MappingProxyType(self._data)
 
