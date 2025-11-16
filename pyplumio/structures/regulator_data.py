@@ -53,9 +53,9 @@ class RegulatorDataStructure(StructureDecoder):
             message, offset + 2, data
         )
 
-        if (device := self.frame.handler) is not None and (
-            schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])
-        ):
+        device = self.frame.handler
+        schema: list[tuple[int, DataType]]
+        if device and (schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])):
             self._bitarray_index = 0
             data[ATTR_REGDATA] = {
                 param_id: self._unpack_regulator_data(message, data_type)
