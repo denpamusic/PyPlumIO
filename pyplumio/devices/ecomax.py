@@ -43,7 +43,7 @@ from pyplumio.structures.ecomax_parameters import (
 )
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
-from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+from pyplumio.structures.product_info import ATTR_PRODUCT
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULES,
@@ -253,7 +253,7 @@ class EcoMAX(PhysicalDevice):
     ) -> bool:
         """Update ecoMAX parameters and dispatch the events."""
         _LOGGER.debug("Received device parameters")
-        product_info: ProductInfo = await self.get(ATTR_PRODUCT)
+        product_info = await self.get(ATTR_PRODUCT)
         parameter_types = await get_ecomax_parameter_types(product_info)
 
         def _ecomax_parameter_events() -> Generator[Coroutine]:

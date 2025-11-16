@@ -16,7 +16,7 @@ from pyplumio.parameters.mixer import (
     MixerSwitchDescription,
     get_mixer_parameter_types,
 )
-from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+from pyplumio.structures.product_info import ATTR_PRODUCT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class Mixer(LogicalDevice):
     ) -> bool:
         """Update mixer parameters and dispatch the events."""
         _LOGGER.debug("Received mixer %i parameters", self.index)
-        product_info: ProductInfo = await self.parent.get(ATTR_PRODUCT)
+        product_info = await self.parent.get(ATTR_PRODUCT)
         parameter_types = get_mixer_parameter_types(product_info)
 
         def _mixer_parameter_events() -> Generator[Coroutine]:
