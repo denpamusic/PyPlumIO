@@ -282,7 +282,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
 
                 # Handle pending writes.
                 if not self._write_queue.empty():
-                    frame = await self._write_queue.get()
+                    frame = self._write_queue.get_nowait()
                     await writer.write(frame)
                     self._write_queue.task_done()
                     self.statistics.update_sent(frame)

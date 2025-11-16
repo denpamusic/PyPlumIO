@@ -171,7 +171,7 @@ class TestAsyncProtocol:
 
     @pytest.fixture(name="statistics")
     @patch("asyncio.Queue.empty", side_effect=(False, True, True, True, True))
-    @patch("asyncio.Queue.get", side_effect=(request,))
+    @patch("asyncio.Queue.get_nowait", side_effect=(request,))
     @patch("asyncio.Queue.task_done")
     @patch("asyncio.create_task")
     @patch("pyplumio.protocol.AsyncProtocol.connection_lost", new_callable=Mock)
@@ -189,7 +189,7 @@ class TestAsyncProtocol:
         mock_connection_lost,
         mock_create_task,
         mock_task_done,
-        mock_get,
+        mock_get_nowait,
         mock_empty,
         caplog,
     ) -> Statistics:
@@ -213,7 +213,7 @@ class TestAsyncProtocol:
 
         # Test write.
         mock_task_done.assert_called_once()
-        mock_get.assert_awaited_once()
+        mock_get_nowait.assert_called_once()
         mock_write.assert_awaited_once_with(request)
         assert mock_empty.call_count == 5
 
