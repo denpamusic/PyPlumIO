@@ -51,6 +51,7 @@ def event_listener(name: Any = None, filter: _Callable | None = None) -> Any:
 
 
 T = TypeVar("T")
+DefaultT = TypeVar("DefaultT")
 
 
 class EventManager(TaskManager, Generic[T]):
@@ -118,10 +119,13 @@ class EventManager(TaskManager, Generic[T]):
         return self.data[name]
 
     @overload
-    def get_nowait(self, name: str, default: None = ...) -> T | None: ...
+    def get_nowait(self, name: str) -> T: ...
 
     @overload
-    def get_nowait(self, name: str, default: T) -> T: ...
+    def get_nowait(self, name: str, default: None = None) -> T: ...
+
+    @overload
+    def get_nowait(self, name: str, default: DefaultT) -> T | DefaultT: ...
 
     def get_nowait(self, name: str, default: Any = None) -> Any:
         """Get the value by name without waiting.
