@@ -7,6 +7,7 @@ import asyncio
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 import logging
+from types import MappingProxyType
 from typing import Any, Final
 
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
@@ -122,9 +123,9 @@ class Connection(ABC, TaskManager):
         return self._protocol
 
     @property
-    def options(self) -> dict[str, Any]:
+    def options(self) -> MappingProxyType[str, Any]:
         """Return connection options."""
-        return self._options
+        return MappingProxyType(self._options)
 
     @timeout(TRY_CONNECT_FOR_SECONDS)
     @abstractmethod
