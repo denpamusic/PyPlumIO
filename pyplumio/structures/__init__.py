@@ -3,23 +3,21 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import Any
 
 from pyplumio.frames import Frame
 
 
-@dataclass(slots=True)
-class StructureDataClass:
-    """Represents a structure dataclass mixin."""
+class Structure(ABC):
+    """Represents a data structure."""
+
+    __slots__ = ("frame",)
 
     frame: Frame
 
-
-class Structure(ABC, StructureDataClass):
-    """Represents a data structure."""
-
-    __slots__ = ()
+    def __init__(self, frame: Frame) -> None:
+        """Initialize a new structure."""
+        self.frame = frame
 
     @abstractmethod
     def encode(self, data: dict[str, Any]) -> bytearray:
