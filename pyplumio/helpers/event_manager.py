@@ -17,11 +17,9 @@ _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
 
 
 @overload
-def event_listener(name: Callable[..., Any]) -> EventCallback: ...
-
-
-@overload
-def event_listener(name: Callable[..., Any], filter: _FilterFunc) -> EventCallback: ...
+def event_listener(
+    name: Callable[..., Any], filter: _FilterFunc | None = None
+) -> EventCallback: ...
 
 
 @overload
