@@ -7,10 +7,9 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar, TypeVar, cast
 
-from pyplumio.helpers.factory import create_instance
 from pyplumio.parameters import ParameterDescription
 from pyplumio.structures.product_info import ProductInfo
-from pyplumio.utils import to_camelcase
+from pyplumio.utils import create_instance, to_camelcase
 
 _LOGGER = logging.getLogger(__name__)
 

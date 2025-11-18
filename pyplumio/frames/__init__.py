@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.helpers.factory import create_instance
-from pyplumio.utils import ensure_dict, to_camelcase
+from pyplumio.utils import create_instance, ensure_dict, to_camelcase
 
 if TYPE_CHECKING:
     from pyplumio.structures import Structure

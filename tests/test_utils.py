@@ -7,6 +7,10 @@ from unittest.mock import Mock, patch
 import pytest
 
 from pyplumio import utils
+from pyplumio.frames import Frame, Request, Response
+from pyplumio.frames.messages import RegulatorDataMessage
+from pyplumio.frames.requests import StopMasterRequest
+from pyplumio.frames.responses import UIDResponse
 from tests.conftest import RAISES
 
 
@@ -131,3 +135,30 @@ async def test_timeout(mock_wait_for) -> None:
     wrapper = decorator(mock_func)
     with pytest.raises(asyncio.TimeoutError):
         await wrapper("test_arg", kwarg="test_kwarg")
+
+
+@pytest.mark.parametrize(
+    ("path", "base", "expected", "error_pattern"),
+    [
+        ("frames.requests.StopMasterRequest", Request, StopMasterRequest, None),
+        ("frames.responses.UIDResponse", Response, UIDResponse, None),
+        ("frames.messages.RegulatorDataMessage", Frame, RegulatorDataMessage, None),
+        ("frames.responses.UIDResponse", Request, RAISES, "Expected instance"),
+        ("frames.requests.NonExistent", Request, RAISES, "no attribute"),
+        ("frames.request.StopMasterRequest", Request, RAISES, "No module"),
+    ],
+)
+async def test_create_instance(
+    path: str,
+    base: type,
+    expected: type | Literal["raises"],
+    error_pattern: str | None,
+) -> None:
+    """Test creating an instance of class."""
+    if expected == RAISES:
+        with pytest.raises(
+            (TypeError, AttributeError, ModuleNotFoundError), match=error_pattern
+        ):
+            await utils.create_instance(path, cls=base)
+    else:
+        assert isinstance(await utils.create_instance(path, cls=base), expected)

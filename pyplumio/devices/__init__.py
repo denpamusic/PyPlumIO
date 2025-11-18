@@ -14,10 +14,9 @@ from pyplumio.exceptions import RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
 from pyplumio.frames import Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
-from pyplumio.helpers.factory import create_instance
 from pyplumio.parameters import Numeric, Parameter
 from pyplumio.structures.network_info import NetworkInfo
-from pyplumio.utils import to_camelcase
+from pyplumio.utils import create_instance, to_camelcase
 
 _LOGGER = logging.getLogger(__name__)
 

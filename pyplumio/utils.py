@@ -5,7 +5,11 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Awaitable, Callable, Coroutine, Mapping, Sequence
 from functools import reduce, wraps
+import importlib
+from types import ModuleType
 from typing import Annotated, Any, Final, ParamSpec, TypeAlias, TypeVar
+
+from pyplumio.helpers.async_cache import acache
 
 KT = TypeVar("KT")  # Key type.
 VT = TypeVar("VT")  # Value type.
@@ -94,11 +98,34 @@ def timeout(
     return decorator
 
 
+@acache
+async def import_module(name: str) -> ModuleType:
+    """Import module by name."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, importlib.import_module, f"pyplumio.{name}")
+
+
+async def create_instance(class_path: str, /, cls: type[T], **kwargs: Any) -> T:
+    """Return a class instance from the class path."""
+    module_name, class_name = class_path.rsplit(".", 1)
+    module = await import_module(module_name)
+    instance = getattr(module, class_name)(**kwargs)
+    if not isinstance(instance, cls):
+        raise TypeError(
+            f"Expected instance of '{cls.__name__}', but got "
+            f"'{type(instance).__name__}' from '{class_name}'"
+        )
+
+    return instance
+
+
 __all__ = [
+    "create_instance",
     "ensure_dict",
+    "import_module",
     "is_divisible",
-    "to_camelcase",
     "join_bits",
     "split_byte",
     "timeout",
+    "to_camelcase",
 ]
