@@ -171,6 +171,11 @@ class Filter(ABC):
 
         return NotImplemented
 
+    @property
+    def __name__(self) -> str:
+        """Return a callback name."""
+        return self._callback.__name__
+
     @abstractmethod
     async def __call__(self, new_value: Any) -> Any:
         """Set a new value for the callback."""

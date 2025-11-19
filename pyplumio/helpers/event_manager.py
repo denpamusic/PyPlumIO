@@ -5,8 +5,9 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
 import inspect
+import logging
 from types import MappingProxyType
-from typing import Any, Generic, TypeAlias, TypeVar, overload
+from typing import Any, Generic, NewType, TypeAlias, TypeVar, overload
 
 from pyplumio.helpers.task_manager import TaskManager
 
@@ -14,6 +15,8 @@ EventCallback: TypeAlias = Callable[..., Coroutine[Any, Any, Any]]
 _FilterFunc: TypeAlias = Callable[[EventCallback], Any]
 
 _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @overload
@@ -54,6 +57,9 @@ def event_listener(name: Any = None, filter: Any = None) -> Any:
 
 _EventDataT = TypeVar("_EventDataT")
 _DefaultT = TypeVar("_DefaultT")
+
+StopPropagationType = NewType("StopPropagationType", object)
+StopPropagation = StopPropagationType(object())
 
 
 class EventManager(TaskManager, Generic[_EventDataT]):
@@ -158,6 +164,9 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         :rtype: EventCallback
         """
         callbacks = self._callbacks.setdefault(name, [])
+        _LOGGER.debug(
+            "Registered listener '%s' for event '%s'", callback.__name__, name
+        )
         callbacks.append(callback)
         return callback
 
@@ -203,10 +212,22 @@ class EventManager(TaskManager, Generic[_EventDataT]):
 
     async def dispatch(self, name: str, value: _EventDataT) -> None:
         """Call registered callbacks and dispatch the event."""
-        if callbacks := self._callbacks.get(name, None):
-            for callback in list(callbacks):
-                if (result := await callback(value)) is not None:
-                    value = result
+        callbacks = self._callbacks.get(name, [])
+        for callback in list(callbacks):
+            try:
+                result = await callback(value)
+            except Exception as e:
+                _LOGGER.exception(
+                    "Error in event listener %s: %s", callback.__name__, e
+                )
+                continue
+
+            if result is None:
+                continue
+            elif result is StopPropagation:
+                break
+            else:
+                value = result
 
         self._data[name] = value
         self.set_event(name)
@@ -250,4 +271,10 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         return MappingProxyType(self._data)
 
 
-__all__ = ["EventCallback", "EventManager", "event_listener"]
+__all__ = [
+    "event_listener",
+    "EventCallback",
+    "EventManager",
+    "StopPropagation",
+    "StopPropagationType",
+]

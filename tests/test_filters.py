@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from importlib import reload
 import logging
 import sys
-from typing import Literal
+from typing import Any, Literal
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -33,6 +33,20 @@ def fixture_use_numpy(request, monkeypatch, caplog):
         assert message not in caplog.text
 
     return request.param
+
+
+class DummyFilter(filters.Filter):
+    """Represents a dummy filter for testing."""
+
+    async def __call__(self, _: Any) -> Any:
+        """Set a new value for the callback."""
+
+
+async def test_filter_name() -> None:
+    """Test that __name__ property returns underlying callback name."""
+    test_callback = AsyncMock()
+    dummy_filter = DummyFilter(test_callback)
+    assert dummy_filter.__name__ is test_callback.__name__
 
 
 @pytest.mark.parametrize(

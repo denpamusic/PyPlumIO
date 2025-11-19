@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 import pytest
 
 from pyplumio.filters import Filter
-from pyplumio.helpers.event_manager import EventManager, event_listener
+from pyplumio.helpers.event_manager import EventManager, StopPropagation, event_listener
 
 
 @pytest.fixture(name="event_manager")
@@ -172,6 +172,27 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     event_manager.dispatch_nowait("test_key2", "test_value2")
     await event_manager.wait_until_done()
     callback.assert_not_awaited()
+
+
+async def test_dispatch_with_callback_error(
+    event_manager: EventManager, caplog
+) -> None:
+    """Test dispatching an event with callback error."""
+    callback = AsyncMock(side_effect=(OSError,))
+    event_manager.subscribe("test_key1", callback)
+    await event_manager.dispatch("test_key1", "test_value1")
+    assert "Error in event listener" in caplog.text
+
+
+async def test_dispatch_with_stop_propagation(event_manager: EventManager) -> None:
+    """Test dispatching an event to callback that stops propagation."""
+    callback1 = AsyncMock(return_value=StopPropagation)
+    callback2 = AsyncMock()
+    event_manager.subscribe("test_key1", callback1)
+    event_manager.subscribe("test_key1", callback2)
+    await event_manager.dispatch("test_key1", "test_value1")
+    callback1.assert_awaited_once_with("test_value1")
+    callback2.assert_not_awaited()
 
 
 def test_create_event(event_manager: EventManager) -> None:

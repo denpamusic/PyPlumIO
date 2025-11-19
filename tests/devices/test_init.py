@@ -40,7 +40,7 @@ def test_get_device_handler(
 
 
 class DummyDevice(Device):
-    """Represents a dummy device."""
+    """Represents a dummy device for testing."""
 
 
 @pytest.fixture(name="device")
