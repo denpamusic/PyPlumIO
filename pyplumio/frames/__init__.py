@@ -263,30 +263,10 @@ class Request(Frame):
 class Response(Frame):
     """Represents a response."""
 
-    __slots__ = ()
-
-    def create_message(self, data: dict[str, Any]) -> bytearray:
-        """Create a frame message."""
-        return bytearray()
-
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
-        """Decode a frame message."""
-        return {}
-
-
-class Message(Response):
-    """Represents a message."""
-
-    __slots__ = ()
-
-
-class Structured(Frame):
-    """Represents a frame that has known structure."""
-
     __slots__ = ("_structures",)
 
     container: ClassVar[str]
-    structures: ClassVar[list[type[Structure]]]
+    structures: ClassVar[list[type[Structure]]] = []
 
     _structures: list[Structure]
 
@@ -301,9 +281,7 @@ class Structured(Frame):
         **kwargs: Any,
     ) -> None:
         """Initialize a new structured frame."""
-        if hasattr(self, "structures"):
-            self._structures = [structure(self) for structure in self.structures]
-
+        self._structures = [structure(self) for structure in self.structures]
         super().__init__(
             recipient, sender, econet_type, econet_version, message, data, **kwargs
         )
@@ -329,6 +307,12 @@ class Structured(Frame):
         return data
 
 
+class Message(Response):
+    """Represents a message."""
+
+    __slots__ = ()
+
+
 def frame_handler(
     frame_type: FrameType, structure: type[Structure] | None = None
 ) -> Callable[[type[_FrameT]], type[_FrameT]]:
@@ -337,7 +321,7 @@ def frame_handler(
     def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
         """Wrap the frame class."""
         setattr(cls, "frame_type", frame_type)
-        if structure and issubclass(cls, Structured):
+        if structure and issubclass(cls, Response):
             setattr(cls, "structures", (structure,))
 
         return cls
@@ -345,12 +329,12 @@ def frame_handler(
     return wrapper
 
 
-_StructuredT = TypeVar("_StructuredT", bound=Structured)
+_ResponseT = TypeVar("_ResponseT", bound=Response)
 
 
 def contains(
     *structures: type[Structure], container: str | None = None
-) -> Callable[[type[_StructuredT]], type[_StructuredT]]:
+) -> Callable[[type[_ResponseT]], type[_ResponseT]]:
     """Decorate frame class with structure.
 
     Indicate which structures need to be used for encoding/decoding
@@ -358,7 +342,7 @@ def contains(
     a single key.
     """
 
-    def wrapper(cls: type[_StructuredT]) -> type[_StructuredT]:
+    def wrapper(cls: type[_ResponseT]) -> type[_ResponseT]:
         """Wrap the frame class."""
         setattr(cls, "structures", structures)
         if container:
@@ -374,7 +358,6 @@ __all__ = [
     "Request",
     "Response",
     "Message",
-    "Structured",
     "bcc",
     "contains",
     "frame_handler",

@@ -12,7 +12,6 @@ from pyplumio.frames import (
     ECONET_VERSION,
     Request,
     Response,
-    Structured,
     contains,
     frame_handler,
     get_frame_handler,
@@ -189,12 +188,6 @@ def test_response_repr(response_frame: Response) -> None:
     )
 
 
-class StructuredResponse(Structured, Response):
-    """Represents a structured response."""
-
-    __slots__ = ()
-
-
 def test_frame_handler() -> None:
     """Test frame type decorator."""
     wrapper = frame_handler(
@@ -202,16 +195,12 @@ def test_frame_handler() -> None:
     )
     response = wrapper(ResponseFrame)()
     assert response.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE
-    assert not hasattr(response, "structures")
-
-    structured = wrapper(StructuredResponse)()
-    assert structured.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE
-    assert NetworkInfoStructure in structured.structures
+    assert NetworkInfoStructure in response.structures
 
 
 def test_contains() -> None:
     """Test contains decorator."""
     wrapper = contains(NetworkInfoStructure, container="wrap")
-    frame = wrapper(StructuredResponse)()
+    frame = wrapper(ResponseFrame)()
     assert NetworkInfoStructure in frame.structures
     assert frame.container == "wrap"
