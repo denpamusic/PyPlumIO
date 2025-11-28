@@ -92,7 +92,7 @@ from tests.conftest import (
 
 @patch("asyncio.Queue.put_nowait")
 @patch("pyplumio.devices.PhysicalDevice.handle_frame")
-@patch("pyplumio.frames.Request.response", return_value=Mock(spec=Response))
+@patch("pyplumio.frames.Request.create_response", return_value=Mock(spec=Response))
 async def test_ecomax_handle_frame(
     mock_response, mock_handle_frame, mock_put_nowait, ecomax: EcoMAX
 ) -> None:

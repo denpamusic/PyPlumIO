@@ -242,10 +242,28 @@ class Frame(ABC):
         """Decode a frame message."""
 
 
+def frame_handler(
+    frame_type: FrameType, structure: type[Structure] | None = None
+) -> Callable[[type[_FrameT]], type[_FrameT]]:
+    """Specify frame type for the frame class."""
+
+    def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
+        """Wrap the frame class."""
+        setattr(cls, "frame_type", frame_type)
+        if structure and issubclass(cls, Response):
+            setattr(cls, "structures", (structure,))
+
+        return cls
+
+    return wrapper
+
+
 class Request(Frame):
     """Represents a request."""
 
     __slots__ = ()
+
+    response: ClassVar[type[Response]]
 
     def create_message(self, data: dict[str, Any]) -> bytearray:
         """Create a frame message."""
@@ -255,9 +273,38 @@ class Request(Frame):
         """Decode a frame message."""
         return {}
 
-    def response(self, **kwargs: Any) -> Response | None:
-        """Return a response frame."""
+    def create_response(self, **kwargs: Any) -> Response | None:
+        """Create response frame."""
+        if hasattr(self, "response"):
+            return self.response(recipient=self.sender, **kwargs)
+
         return None
+
+    def validate_response(self, response: Response) -> bool:
+        """Validate if response is valid for the request."""
+        if not hasattr(self, "response"):
+            raise NotImplementedError
+
+        if isinstance(response, self.response):
+            return True
+
+        return False
+
+
+_RequestT = TypeVar("_RequestT", bound=Request)
+
+
+def expect_response(
+    response: type[Response],
+) -> Callable[[type[_RequestT]], type[_RequestT]]:
+    """Assign response to the request class."""
+
+    def wrapper(cls: type[_RequestT]) -> type[_RequestT]:
+        """Wrap the request class."""
+        setattr(cls, "response", response)
+        return cls
+
+    return wrapper
 
 
 class Response(Frame):
@@ -313,22 +360,6 @@ class Message(Response):
     __slots__ = ()
 
 
-def frame_handler(
-    frame_type: FrameType, structure: type[Structure] | None = None
-) -> Callable[[type[_FrameT]], type[_FrameT]]:
-    """Specify frame type for the frame class."""
-
-    def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
-        """Wrap the frame class."""
-        setattr(cls, "frame_type", frame_type)
-        if structure and issubclass(cls, Response):
-            setattr(cls, "structures", (structure,))
-
-        return cls
-
-    return wrapper
-
-
 _ResponseT = TypeVar("_ResponseT", bound=Response)
 
 
@@ -360,6 +391,7 @@ __all__ = [
     "Message",
     "bcc",
     "contains",
+    "expect_response",
     "frame_handler",
     "get_frame_handler",
     "is_known_frame_type",

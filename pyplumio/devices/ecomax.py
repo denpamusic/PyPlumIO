@@ -142,7 +142,9 @@ class EcoMAX(PhysicalDevice):
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
         if isinstance(frame, Request) and (
-            response := frame.response(data={ATTR_NETWORK_INFO: self._network_info})
+            response := frame.create_response(
+                data={ATTR_NETWORK_INFO: self._network_info}
+            )
         ):
             self.queue_send(response)
 
