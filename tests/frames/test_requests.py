@@ -5,7 +5,7 @@ from tests.conftest import load_json_parameters
 
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, requests, responses
+from pyplumio.frames import Request, Response, requests, responses
 from pyplumio.structures.network_info import (
     ATTR_NETWORK_INFO,
     EthernetParameters,
@@ -14,8 +14,14 @@ from pyplumio.structures.network_info import (
 
 
 def test_request_class_response_property() -> None:
-    """Test response property for a abstract request class."""
+    """Test response property for base request class."""
     assert Request().create_response() is None
+
+
+def test_request_class_validate_response() -> None:
+    """Test validate_response() for base request class."""
+    with pytest.raises(NotImplementedError):
+        Request().validate_response(Response())
 
 
 def test_program_version_response_recipient_and_type() -> None:
@@ -38,6 +44,15 @@ def test_check_device_response_recipient_and_type() -> None:
     assert isinstance(response, responses.DeviceAvailableResponse)
     assert response.recipient == DeviceType.ECONET
     assert response.data[ATTR_NETWORK_INFO] is network_info
+
+
+def test_check_device_validate_response() -> None:
+    """Test response validation."""
+    request = requests.CheckDeviceRequest(
+        recipient=DeviceType.ALL, sender=DeviceType.ECONET
+    )
+    assert request.validate_response(responses.DeviceAvailableResponse()) is True
+    assert request.validate_response(responses.AlertsResponse()) is False
 
 
 @pytest.mark.parametrize(
