@@ -1,0 +1,1202 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frames &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Protocol" href="protocol.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Frames</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stopmaster">StopMaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#startmaster">StartMaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#checkdevice">CheckDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ecomaxparameters">EcomaxParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mixerparameters">MixerParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setecomaxparameter">SetEcomaxParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setmixerparameter">SetMixerParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schedules">Schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setschedule">SetSchedule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uid">UID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#password">Password</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ecomaxcontrol">EcomaxControl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#alerts">Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#programversion">ProgramVersion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#regulatordataschema">RegulatorDataSchema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#thermostatparameters">ThermostatParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setthermostatparameter">SetThermostatParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#regulatordata">RegulatorData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sensordata">SensorData</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Frames</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/frames.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="frames">
+<h1>Frames<a class="headerlink" href="#frames" title="Link to this heading"></a></h1>
+<section id="stopmaster">
+<h2>StopMaster<a class="headerlink" href="#stopmaster" title="Link to this heading"></a></h2>
+<p>Stop the ecoMAX controller transmission.</p>
+<section id="request">
+<h3>Request<a class="headerlink" href="#request" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_STOP_MASTER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_STOP_MASTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">24</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_STOP_MASTER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="startmaster">
+<h2>StartMaster<a class="headerlink" href="#startmaster" title="Link to this heading"></a></h2>
+<p>Start the ecoMAX controller transmission.</p>
+<section id="id1">
+<h3>Request<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_START_MASTER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_START_MASTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">25</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_START_MASTER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="checkdevice">
+<h2>CheckDevice<a class="headerlink" href="#checkdevice" title="Link to this heading"></a></h2>
+<p>Check if device is available. This frame is being broadcasted by the ecoMAX
+controller to all connected devices.</p>
+<p>The response to this request can contain the network parameters as
+represented by the following dataclass:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.network_info.NetworkInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.network_info.</span></span><span class="sig-name descname"><span class="pre">NetworkInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ethernet:</span> <span class="pre">~pyplumio.structures.network_info.EthernetParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wireless:</span> <span class="pre">~pyplumio.structures.network_info.WirelessParameters</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">server_status:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.network_info.NetworkInfo" title="Link to this definition"></a></dt>
+<dd><p>Represents a network parameters.</p>
+</dd></dl>
+
+<section id="id2">
+<h3>Request<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_CHECK_DEVICE">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_CHECK_DEVICE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">48</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_CHECK_DEVICE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="response">
+<h3>Response<a class="headerlink" href="#response" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_DEVICE_AVAILABLE">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_DEVICE_AVAILABLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">176</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_DEVICE_AVAILABLE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>network</p></td>
+<td><p>Contains network parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="ecomaxparameters">
+<h2>EcomaxParameters<a class="headerlink" href="#ecomaxparameters" title="Link to this heading"></a></h2>
+<p>Get the ecoMAX controller editable parameters.
+Each parameter is represented by a tuple containing parameter index and parameter
+values represented by the following dataclass:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.parameters.ParameterValues">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.</span></span><span class="sig-name descname"><span class="pre">ParameterValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.parameters.ParameterValues" title="Link to this definition"></a></dt>
+<dd><p>Represents a parameter values.</p>
+</dd></dl>
+
+<section id="id3">
+<h3>Request<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_ECOMAX_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_ECOMAX_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">49</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_ECOMAX_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>start</p></td>
+<td><p>Parameter index to start on.</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>count</p></td>
+<td><p>Number of parameters to request.</p></td>
+<td><p>255</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id4">
+<h3>Response<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_ECOMAX_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_ECOMAX_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">177</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_ECOMAX_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ecomax_parameters</p></td>
+<td><p>Contains a list of ecomax parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="handler">
+<h3>Handler<a class="headerlink" href="#handler" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.ecomax_parameters.EcomaxParametersStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.ecomax_parameters.</span></span><span class="sig-name descname"><span class="pre">EcomaxParametersStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.ecomax_parameters.EcomaxParametersStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents an ecoMAX parameters structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="mixerparameters">
+<h2>MixerParameters<a class="headerlink" href="#mixerparameters" title="Link to this heading"></a></h2>
+<p>Get the editable parameters for each connected mixer.</p>
+<section id="id5">
+<h3>Request<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_MIXER_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_MIXER_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_MIXER_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>device_index</p></td>
+<td><p>Mixer index.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>start</p></td>
+<td><p>Parameter index to start on.</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>count</p></td>
+<td><p>Number of parameters to request.</p></td>
+<td><p>255</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id6">
+<h3>Response<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_MIXER_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_MIXER_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">178</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_MIXER_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>mixer_parameters</p></td>
+<td><p>Contains a list of parameters for each connected mixer.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id7">
+<h3>Handler<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.mixer_parameters.MixerParametersStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.mixer_parameters.</span></span><span class="sig-name descname"><span class="pre">MixerParametersStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.mixer_parameters.MixerParametersStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a mixer parameters data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="setecomaxparameter">
+<h2>SetEcomaxParameter<a class="headerlink" href="#setecomaxparameter" title="Link to this heading"></a></h2>
+<p>Set the editable parameter value.</p>
+<section id="id8">
+<h3>Request<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_SET_ECOMAX_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_SET_ECOMAX_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">51</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_SET_ECOMAX_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>index</p></td>
+<td><p>Parameter index.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>value</p></td>
+<td><p>Value to set parameter to.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id9">
+<h3>Response<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_SET_ECOMAX_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">179</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="setmixerparameter">
+<h2>SetMixerParameter<a class="headerlink" href="#setmixerparameter" title="Link to this heading"></a></h2>
+<p>Set the editable parameter for the connected mixer.</p>
+<section id="id10">
+<h3>Request<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_SET_MIXER_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_SET_MIXER_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">52</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_SET_MIXER_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>device_index</p></td>
+<td><p>Mixer index.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>index</p></td>
+<td><p>Parameter index.</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>value</p></td>
+<td><p>Value to set parameter to.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id11">
+<h3>Response<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_SET_MIXER_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_SET_MIXER_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">180</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_SET_MIXER_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="schedules">
+<h2>Schedules<a class="headerlink" href="#schedules" title="Link to this heading"></a></h2>
+<p>Get the list of schedules from the ecoMAX controller.
+This doesn’t include schedules from thermostat (ecoSTER) devices.</p>
+<section id="id12">
+<h3>Request<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_SCHEDULES">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_SCHEDULES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">54</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_SCHEDULES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id13">
+<h3>Response<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_SCHEDULES">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_SCHEDULES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">182</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_SCHEDULES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>schedules</p></td>
+<td><p>Contains a list of schedules.</p></td>
+</tr>
+<tr class="row-odd"><td><p>schedule_parameters</p></td>
+<td><p>Contains a list of schedule parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id14">
+<h3>Handler<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.schedules.SchedulesStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.schedules.</span></span><span class="sig-name descname"><span class="pre">SchedulesStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.schedules.SchedulesStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a schedule data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="setschedule">
+<h2>SetSchedule<a class="headerlink" href="#setschedule" title="Link to this heading"></a></h2>
+<p>Set the schedule on the ecoMAX controller.
+All schedules must be passed with this request all at once, even
+unchanged ones.</p>
+<section id="id15">
+<h3>Request<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_SET_SCHEDULE">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_SET_SCHEDULE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">55</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_SET_SCHEDULE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>data</p></td>
+<td><p>List of schedule data.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>switch</p></td>
+<td><p>List of values for a schedule switches (on/off).</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>parameter</p></td>
+<td><p>List of values for a schedule parameters</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="uid">
+<h2>UID<a class="headerlink" href="#uid" title="Link to this heading"></a></h2>
+<p>Get the device identification as presented in the following dataclass:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.product_info.ProductInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.product_info.</span></span><span class="sig-name descname"><span class="pre">ProductInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ProductType</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.product_info.ProductInfo" title="Link to this definition"></a></dt>
+<dd><p>Represents a product info provided by an UID response.</p>
+</dd></dl>
+
+<section id="id16">
+<h3>Request<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_UID">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_UID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">57</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_UID" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id17">
+<h3>Response<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_UID">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_UID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">185</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_UID" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>product_info</p></td>
+<td><p>Contains a product info.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id18">
+<h3>Handler<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.product_info.ProductInfoStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.product_info.</span></span><span class="sig-name descname"><span class="pre">ProductInfoStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.product_info.ProductInfoStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a product info data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="password">
+<h2>Password<a class="headerlink" href="#password" title="Link to this heading"></a></h2>
+<p>Get the device service password.</p>
+<section id="id19">
+<h3>Request<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_PASSWORD">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_PASSWORD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">58</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_PASSWORD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id20">
+<h3>Response<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_PASSWORD">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_PASSWORD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">186</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_PASSWORD" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>password</p></td>
+<td><p>Contains a device service password.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="ecomaxcontrol">
+<h2>EcomaxControl<a class="headerlink" href="#ecomaxcontrol" title="Link to this heading"></a></h2>
+<p>Turns the ecoMAX controller on or off.</p>
+<section id="id21">
+<h3>Request<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_ECOMAX_CONTROL">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_ECOMAX_CONTROL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">59</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_ECOMAX_CONTROL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>value</p></td>
+<td><p>Value that describes wanted state. 0 - off, 1 - on</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id22">
+<h3>Response<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_ECOMAX_CONTROL">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_ECOMAX_CONTROL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">187</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_ECOMAX_CONTROL" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="alerts">
+<h2>Alerts<a class="headerlink" href="#alerts" title="Link to this heading"></a></h2>
+<p>Get the list of device alerts, each is represented by the following dataclass:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.alerts.Alert">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.alerts.</span></span><span class="sig-name descname"><span class="pre">Alert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.alerts.Alert" title="Link to this definition"></a></dt>
+<dd><p>Represents a device alert.</p>
+</dd></dl>
+
+<section id="id23">
+<h3>Request<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_ALERTS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_ALERTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">61</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_ALERTS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>start</p></td>
+<td><p>Index to start on.</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>count</p></td>
+<td><p>Number of alerts to request.</p></td>
+<td><p>10</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id24">
+<h3>Response<a class="headerlink" href="#id24" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_ALERTS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_ALERTS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">189</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_ALERTS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>alerts</p></td>
+<td><p>Contains a list of alerts.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id25">
+<h3>Handler<a class="headerlink" href="#id25" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.alerts.AlertsStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.alerts.</span></span><span class="sig-name descname"><span class="pre">AlertsStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.alerts.AlertsStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents an alerts data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="programversion">
+<h2>ProgramVersion<a class="headerlink" href="#programversion" title="Link to this heading"></a></h2>
+<p>Get the software version, represented by the following dataclass:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.program_version.VersionInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.program_version.</span></span><span class="sig-name descname"><span class="pre">VersionInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">software</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0.6.7'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">struct_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\xff\xff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">struct_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">device_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'z\x00'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">processor_signature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">b'\x00\x00\x00'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.program_version.VersionInfo" title="Link to this definition"></a></dt>
+<dd><p>Represents a version info provided in program version response.</p>
+</dd></dl>
+
+<p>It is broadcasted by the ecoMAX controller to all connected devices.</p>
+<section id="id26">
+<h3>Request<a class="headerlink" href="#id26" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_PROGRAM_VERSION">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_PROGRAM_VERSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">64</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_PROGRAM_VERSION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id27">
+<h3>Response<a class="headerlink" href="#id27" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_PROGRAM_VERSION">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_PROGRAM_VERSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">192</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_PROGRAM_VERSION" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>version_info</p></td>
+<td><p>Contains software version.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id28">
+<h3>Handler<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.program_version.ProgramVersionStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.program_version.</span></span><span class="sig-name descname"><span class="pre">ProgramVersionStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.program_version.ProgramVersionStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a program version data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="regulatordataschema">
+<h2>RegulatorDataSchema<a class="headerlink" href="#regulatordataschema" title="Link to this heading"></a></h2>
+<p>Get the regulator data schema, that describes the data type of <a class="reference internal" href="#regulatordata"><span class="std std-ref">RegulatorData</span></a> message.</p>
+<p>It’s represented by dictionary, that’s indexed by regulator data field id and
+a member of the following DataType class, that defines the regulator data field type.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.data_types.DataType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.data_types.</span></span><span class="sig-name descname"><span class="pre">DataType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">T</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.data_types.DataType" title="Link to this definition"></a></dt>
+<dd><p>Represents a data type.</p>
+</dd></dl>
+
+<section id="id29">
+<h3>Request<a class="headerlink" href="#id29" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_REGULATOR_DATA_SCHEMA">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_REGULATOR_DATA_SCHEMA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">85</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_REGULATOR_DATA_SCHEMA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="id30">
+<h3>Response<a class="headerlink" href="#id30" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_REGULATOR_DATA_SCHEMA">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_REGULATOR_DATA_SCHEMA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">213</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_REGULATOR_DATA_SCHEMA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>regdata_schema</p></td>
+<td><p>Contains regulator data schema.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id31">
+<h3>Handler<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.regulator_data_schema.RegulatorDataSchemaStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.regulator_data_schema.</span></span><span class="sig-name descname"><span class="pre">RegulatorDataSchemaStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.regulator_data_schema.RegulatorDataSchemaStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a regulator data schema structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="thermostatparameters">
+<h2>ThermostatParameters<a class="headerlink" href="#thermostatparameters" title="Link to this heading"></a></h2>
+<section id="id32">
+<h3>Request<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_THERMOSTAT_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_THERMOSTAT_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">92</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_THERMOSTAT_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>device_index</p></td>
+<td><p>Mixer index.</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>start</p></td>
+<td><p>Parameter index to start on.</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>count</p></td>
+<td><p>Number of parameters to request.</p></td>
+<td><p>255</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id33">
+<h3>Response<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_THERMOSTAT_PARAMETERS">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_THERMOSTAT_PARAMETERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">220</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_THERMOSTAT_PARAMETERS" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>thermostat_profile</p></td>
+<td><p>Contains current thermostat profile or None.</p></td>
+</tr>
+<tr class="row-odd"><td><p>thermostat_parameters</p></td>
+<td><p>Contains list of thermostat parameters.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id34">
+<h3>Handler<a class="headerlink" href="#id34" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.thermostat_parameters.ThermostatParametersStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.thermostat_parameters.</span></span><span class="sig-name descname"><span class="pre">ThermostatParametersStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.thermostat_parameters.ThermostatParametersStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a thermostat parameters data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="setthermostatparameter">
+<h2>SetThermostatParameter<a class="headerlink" href="#setthermostatparameter" title="Link to this heading"></a></h2>
+<p>Set the editable parameter for the connected thermostat.</p>
+<section id="id35">
+<h3>Request<a class="headerlink" href="#id35" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.REQUEST_SET_THERMOSTAT_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">REQUEST_SET_THERMOSTAT_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">93</span></em><a class="headerlink" href="#pyplumio.const.FrameType.REQUEST_SET_THERMOSTAT_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.1%" />
+<col style="width: 68.4%" />
+<col style="width: 10.5%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>offset</p></td>
+<td><p>Parameter offset. (n<sub>thermostat</sub> * n<sub>parameters per thermostat</sub> )</p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>index</p></td>
+<td><p>Parameter index.</p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>value</p></td>
+<td><p>Value to set parameter to.</p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id36">
+<h3>Response<a class="headerlink" href="#id36" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">RESPONSE_SET_THERMOSTAT_PARAMETER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">221</span></em><a class="headerlink" href="#pyplumio.const.FrameType.RESPONSE_SET_THERMOSTAT_PARAMETER" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+<section id="regulatordata">
+<h2>RegulatorData<a class="headerlink" href="#regulatordata" title="Link to this heading"></a></h2>
+<p>Special message that is broadcasted by the ecoMAX controller at regular interval.
+It contains all controller’s data indexed by numerical keys.</p>
+<p>As this is broadcasted message, there’s no need to send a request, but in order to be
+decoded, <a class="reference internal" href="#regulatordataschema"><span class="std std-ref">RegulatorDataSchema</span></a> request must be send to obtain the schema.</p>
+<section id="message">
+<h3>Message<a class="headerlink" href="#message" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.MESSAGE_REGULATOR_DATA">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">MESSAGE_REGULATOR_DATA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#pyplumio.const.FrameType.MESSAGE_REGULATOR_DATA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>regdata</p></td>
+<td><p>Contains regulator data indexed by numerical keys.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="id37">
+<h3>Handler<a class="headerlink" href="#id37" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.frame_versions.FrameVersionsStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.frame_versions.</span></span><span class="sig-name descname"><span class="pre">FrameVersionsStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.frame_versions.FrameVersionsStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a frame version data structure.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.regulator_data.RegulatorDataStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.regulator_data.</span></span><span class="sig-name descname"><span class="pre">RegulatorDataStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.regulator_data.RegulatorDataStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a regulator data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+<section id="sensordata">
+<h2>SensorData<a class="headerlink" href="#sensordata" title="Link to this heading"></a></h2>
+<p>Special message that is being send by the ecoMAX controller as result of responding
+to <a class="reference internal" href="#checkdevice"><span class="std std-ref">CheckDevice</span></a> request.</p>
+<p>Unlike <a class="reference internal" href="#regulatordata"><span class="std std-ref">RegulatorData</span></a>, it’s structure is predetermined and consistent across
+all ecoMAX controllers and thus can be decoded without schema. However, it only contains
+common sensors and lacks controller-specific sensors.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some of the attributes listed below, might be unsupported by your ecoMAX controller.</p>
+</div>
+<section id="id38">
+<h3>Message<a class="headerlink" href="#id38" title="Link to this heading"></a></h3>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.const.FrameType.MESSAGE_SENSOR_DATA">
+<span class="sig-prename descclassname"><span class="pre">FrameType.</span></span><span class="sig-name descname"><span class="pre">MESSAGE_SENSOR_DATA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">53</span></em><a class="headerlink" href="#pyplumio.const.FrameType.MESSAGE_SENSOR_DATA" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>fan</p></td>
+<td><p>Blower fan status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>feeder</p></td>
+<td><p>Feeder status.</p></td>
+</tr>
+<tr class="row-even"><td><p>heating_pump</p></td>
+<td><p>Heating pump status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>water_heater_pump</p></td>
+<td><p>Water heater pump status.</p></td>
+</tr>
+<tr class="row-even"><td><p>circulation_pump</p></td>
+<td><p>Hot water recirculation pump status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>lighter</p></td>
+<td><p>Lighter status.</p></td>
+</tr>
+<tr class="row-even"><td><p>alarm</p></td>
+<td><p>Alarm status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>outer_boiler</p></td>
+<td><p>Outer boiler status.</p></td>
+</tr>
+<tr class="row-even"><td><p>fan2_exhaust</p></td>
+<td><p>Exhaust fan status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>feeder2</p></td>
+<td><p>Secondary feeder status.</p></td>
+</tr>
+<tr class="row-even"><td><p>outer_feeder</p></td>
+<td><p>Outer feeder status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>solar_pump</p></td>
+<td><p>Solar pump status.</p></td>
+</tr>
+<tr class="row-even"><td><p>fireplace_pump</p></td>
+<td><p>Fireplace pump status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>heating_pump_flag</p></td>
+<td><p>Indicates whether heating pump is connected.</p></td>
+</tr>
+<tr class="row-even"><td><p>water_heater_pump_flag</p></td>
+<td><p>Indicates whether water heater pump is connected.</p></td>
+</tr>
+<tr class="row-odd"><td><p>circulation_pump_flag</p></td>
+<td><p>Indicates whether hot water recirculation pump is connected.</p></td>
+</tr>
+<tr class="row-even"><td><p>solar_pump_flag</p></td>
+<td><p>Indicates whether solar pump is connected.</p></td>
+</tr>
+<tr class="row-odd"><td><p>heating_temp</p></td>
+<td><p>Heating temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>feeder_temp</p></td>
+<td><p>Feeder temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>water_heater_temp</p></td>
+<td><p>Water heater temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>outside_temp</p></td>
+<td><p>Outside temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>return_temp</p></td>
+<td><p>Return feedwater temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>exhaust_temp</p></td>
+<td><p>Exhaust fumes temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>optical_temp</p></td>
+<td><p>Flame intensity in percent.</p></td>
+</tr>
+<tr class="row-even"><td><p>upper_buffer_temp</p></td>
+<td><p>Upper buffer temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>lower_buffer_temp</p></td>
+<td><p>Lower buffer temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>upper_solar_temp</p></td>
+<td><p>Upper solar buffer temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>lower_solar_temp</p></td>
+<td><p>Lower solar buffer temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>fireplace_temp</p></td>
+<td><p>Fireplace temperature.</p></td>
+</tr>
+<tr class="row-odd"><td><p>heating_target</p></td>
+<td><p>Heating target temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>heating_status</p></td>
+<td><p>Heating status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>water_heater_target</p></td>
+<td><p>Water heater target temperature.</p></td>
+</tr>
+<tr class="row-even"><td><p>water_heater_status</p></td>
+<td><p>Water heater status.</p></td>
+</tr>
+<tr class="row-odd"><td><p>pending_alerts</p></td>
+<td><p>Number of pending alerts.</p></td>
+</tr>
+<tr class="row-even"><td><p>fuel_level</p></td>
+<td><p>Current fuel level in percent.</p></td>
+</tr>
+<tr class="row-odd"><td><p>fan_power</p></td>
+<td><p>Current fan power in percent.</p></td>
+</tr>
+<tr class="row-even"><td><p>boiler_load</p></td>
+<td><p>Boiler load (power) in percent.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boiler_power</p></td>
+<td><p>Boiler power in kWh.</p></td>
+</tr>
+<tr class="row-even"><td><p>fuel_consumption</p></td>
+<td><p>Current fuel consumption in kg/h.</p></td>
+</tr>
+<tr class="row-odd"><td><p>modules</p></td>
+<td><p>Dataclass containing versions of the connected modules.</p></td>
+</tr>
+<tr class="row-even"><td><p>lambda_state</p></td>
+<td><p>Current lambda sensor state.</p></td>
+</tr>
+<tr class="row-odd"><td><p>lambda_target</p></td>
+<td><p>Lambda sensor target.</p></td>
+</tr>
+<tr class="row-even"><td><p>lambda_level</p></td>
+<td><p>Lambda sensor level.</p></td>
+</tr>
+<tr class="row-odd"><td><p>thermostat_sensor</p></td>
+<td><p>Thermostat sensors.</p></td>
+</tr>
+<tr class="row-even"><td><p>thermsotats_available</p></td>
+<td><p>Number of thermostats supported by your controller.</p></td>
+</tr>
+<tr class="row-odd"><td><p>thermostats_connected</p></td>
+<td><p>Number of thermostats currently connected to your controller.</p></td>
+</tr>
+<tr class="row-even"><td><p>mixer_sensor</p></td>
+<td><p>Mixer sensors.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mixers_available</p></td>
+<td><p>Number of mixers supported by your controller.</p></td>
+</tr>
+<tr class="row-even"><td><p>mixers_connected</p></td>
+<td><p>Number of mixers currently connected to your controller.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="handlers">
+<h3>Handlers<a class="headerlink" href="#handlers" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.frame_versions.</span></span><span class="sig-name descname"><span class="pre">FrameVersionsStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>Represents a frame version data structure.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.structures.sensor_data.SensorDataStructure">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.structures.sensor_data.</span></span><span class="sig-name descname"><span class="pre">SensorDataStructure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Frame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.structures.sensor_data.SensorDataStructure" title="Link to this definition"></a></dt>
+<dd><p>Represents a sensor data structure.</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="protocol.html" class="btn btn-neutral float-left" title="Protocol" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

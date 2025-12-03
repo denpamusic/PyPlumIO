@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Writing &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Callbacks" href="callbacks.html" />
+    <link rel="prev" title="Reading" href="reading.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Writing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setters">Setters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-examples">Writing Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Writing</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/writing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="writing">
+<h1>Writing<a class="headerlink" href="#writing" title="Link to this heading"></a></h1>
+<section id="setters">
+<h2>Setters<a class="headerlink" href="#setters" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.devices.Device.set">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.devices.Device.</span></span><span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'on'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'off'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pyplumio.devices.Device.set" title="Link to this definition"></a></dt>
+<dd><p>Set a parameter value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the parameter</p></li>
+<li><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>bool</em><em> | </em><em>Literal</em><em>[</em><em>&quot;on&quot;</em><em>, </em><em>&quot;off&quot;</em><em>]</em>) – New value for the parameter</p></li>
+<li><p><strong>retries</strong> (<em>int</em><em>, </em><em>optional</em>) – Try setting parameter for this amount of
+times, defaults to 0 (disabled)</p></li>
+<li><p><strong>timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – Wait this amount of seconds for confirmation,
+defaults to <cite>None</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>True</cite> if parameter was successfully set, <cite>False</cite>
+otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>asyncio.TimeoutError</strong> – when waiting past specified timeout</p></li>
+<li><p><strong>ValueError</strong> – when a new value is outside of allowed range</p></li>
+<li><p><strong>TypeError</strong> – when found data is not valid parameter</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>When using blocking setter, you’ll get the result represented by a
+boolean value. <cite>True</cite> if write was successful, <cite>False</cite> otherwise.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Heating target temperature was successfully set.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error while trying to set heating target temperature.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.devices.Device.set_nowait">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.devices.Device.</span></span><span class="sig-name descname"><span class="pre">set_nowait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'on'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'off'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pyplumio.devices.Device.set_nowait" title="Link to this definition"></a></dt>
+<dd><p>Set a parameter value without waiting for the result.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name of the parameter</p></li>
+<li><p><strong>value</strong> (<em>int</em><em> | </em><em>float</em><em> | </em><em>bool</em><em> | </em><em>Literal</em><em>[</em><em>&quot;on&quot;</em><em>, </em><em>&quot;off&quot;</em><em>]</em>) – New value for the parameter</p></li>
+<li><p><strong>retries</strong> (<em>int</em><em>, </em><em>optional</em>) – Try setting parameter for this amount of
+times, defaults to 0 (disabled)</p></li>
+<li><p><strong>timeout</strong> (<em>float</em><em>, </em><em>optional</em>) – Wait this amount of seconds for confirmation.
+As this method operates in the background without waiting,
+this value is used to determine failure when
+retrying and doesn’t block, defaults to <cite>None</cite></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<p>When using non-blocking setter, you can’t access the result as task is
+done in background. However, you’ll still get error log message in case
+of a failure.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ecomax</span><span class="o">.</span><span class="n">set_nowait</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="parameters">
+<h2>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h2>
+<p>For the parameters, it’s possible to retrieve the <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> object
+and then modify it via it’s own setter method.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.parameters.Parameter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.</span></span><span class="sig-name descname"><span class="pre">Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ParameterDescription</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">values</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="frames.html#pyplumio.parameters.ParameterValues" title="pyplumio.parameters.ParameterValues"><span class="pre">ParameterValues</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.parameters.Parameter" title="Link to this definition"></a></dt>
+<dd><p>Represents a base parameter.</p>
+</dd></dl>
+
+<p>When using the parameter object directly, you don’t need to pass the
+parameter name to the setter method.</p>
+<section id="numbers">
+<h3>Numbers<a class="headerlink" href="#numbers" title="Link to this heading"></a></h3>
+<p>Numbers are parameters that have numerical value associated with them.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">Number</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+    <span class="n">heating_target</span><span class="p">:</span> <span class="n">Number</span> <span class="o">=</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">heating_target</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">65</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each number has an unique range of allowed values.
+PyPlumIO will raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if value isn’t within acceptable
+range.</p>
+<p>You can check allowed range boundaries by reading <code class="docutils literal notranslate"><span class="pre">min_value</span></code> and
+<code class="docutils literal notranslate"><span class="pre">max_value</span></code> properties of the parameter object.
+Please note, that both values are <strong>inclusive</strong>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">Number</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+    <span class="n">target_temp</span><span class="p">:</span> <span class="n">Number</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">target_temp</span><span class="o">.</span><span class="n">min_value</span><span class="p">)</span>  <span class="c1"># Minimum allowed target temperature.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">target_temp</span><span class="o">.</span><span class="n">max_value</span><span class="p">)</span>  <span class="c1"># Maximum allowed target temperature.</span>
+</pre></div>
+</div>
+</section>
+<section id="switches">
+<h3>Switches<a class="headerlink" href="#switches" title="Link to this heading"></a></h3>
+<p>Switches are parameters that could only have two possible states: on or off.</p>
+<p>Thus, for switches, you can use Python’s boolean keywords <cite>True</cite> or <cite>False</cite>,
+string literals “on” or “off” or special <code class="docutils literal notranslate"><span class="pre">turn_on()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">turn_off()</span></code> methods.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.Switch.turn_on">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.Switch.</span></span><span class="sig-name descname"><span class="pre">turn_on</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pyplumio.parameters.Switch.turn_on" title="Link to this definition"></a></dt>
+<dd><p>Set a switch value to ‘on’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>True</cite> if parameter was successfully turned on, <cite>False</cite>
+otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.Switch.turn_on_nowait">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.Switch.</span></span><span class="sig-name descname"><span class="pre">turn_on_nowait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pyplumio.parameters.Switch.turn_on_nowait" title="Link to this definition"></a></dt>
+<dd><p>Set a switch value to ‘on’ without waiting.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.Switch.turn_off">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.Switch.</span></span><span class="sig-name descname"><span class="pre">turn_off</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pyplumio.parameters.Switch.turn_off" title="Link to this definition"></a></dt>
+<dd><p>Set a switch value to ‘off’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>True</cite> if parameter was successfully turned off, <cite>False</cite>
+otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.Switch.turn_off_nowait">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.Switch.</span></span><span class="sig-name descname"><span class="pre">turn_off_nowait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pyplumio.parameters.Switch.turn_off_nowait" title="Link to this definition"></a></dt>
+<dd><p>Set a switch value to ‘off’ without waiting.</p>
+</dd></dl>
+
+<p>Good example of a switch is “ecomax_control” that allows you to switch
+the ecoMAX controller on or off.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Set an ecomax_control parameter value to &quot;on&quot;.</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;ecomax_control&quot;</span><span class="p">,</span> <span class="s2">&quot;on&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to use <strong>turn_on()</strong> method, you must first get the parameter
+object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">Switch</span>
+
+<span class="c1"># Get an ecomax_control parameter and turn it on.</span>
+<span class="n">ecomax_control</span><span class="p">:</span> <span class="n">Switch</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax_control&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax_control</span><span class="o">.</span><span class="n">turn_on</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If you simply want to switch the ecoMAX controller on or off,
+there’s a handy built-in way to do that.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Turn on the controller.</span>
+<span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_on</span><span class="p">()</span>
+
+<span class="c1"># Turn off the controller.</span>
+<span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_off</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="writing-examples">
+<h2>Writing Examples<a class="headerlink" href="#writing-examples" title="Link to this heading"></a></h2>
+<p>The following example opens a connection, enables the controller
+without waiting for the result and tries to set a target temperature,
+outputting the result to the terminal.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Turn on the controller and set target temperature.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="c1"># Get the ecoMAX device.</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="c1"># Turn on controller without waiting for the result.</span>
+            <span class="n">ecomax</span><span class="o">.</span><span class="n">turn_on_nowait</span><span class="p">()</span>
+
+            <span class="c1"># Set heating temperature to 65 degrees.</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="mi">65</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Heating temperature is set to 65.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t set heating temperature.&quot;</span><span class="p">)</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="reading.html" class="btn btn-neutral float-left" title="Reading" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="callbacks.html" class="btn btn-neutral float-right" title="Callbacks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

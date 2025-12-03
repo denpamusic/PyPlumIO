@@ -1,0 +1,576 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connecting &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reading" href="reading.html" />
+    <link rel="prev" title="Welcome to PyPlumIO’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Connecting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#opening-the-connection">Opening the connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#protocols">Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#network-information">Network Information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#statistics">Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connection-examples">Connection Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Connecting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/connecting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="connecting">
+<h1>Connecting<a class="headerlink" href="#connecting" title="Link to this heading"></a></h1>
+<section id="opening-the-connection">
+<h2>Opening the connection<a class="headerlink" href="#opening-the-connection" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.open_tcp_connection">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">open_tcp_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyplumio.Protocol" title="pyplumio.protocol.Protocol"><span class="pre">Protocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnect_on_failure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TcpConnection</span></span></span><a class="headerlink" href="#pyplumio.open_tcp_connection" title="Link to this definition"></a></dt>
+<dd><p>Create a TCP connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>host</strong> (<em>str</em>) – IP address or host name of the remote RS-485 server</p></li>
+<li><p><strong>port</strong> (<em>int</em>) – Port that remote RS-485 server is listening to</p></li>
+<li><p><strong>protocol</strong> (<a class="reference internal" href="#pyplumio.Protocol" title="pyplumio.Protocol"><em>Protocol</em></a><em>, </em><em>optional</em>) – Protocol that will be used for communication with
+the ecoMAX controller, default to AsyncProtocol</p></li>
+<li><p><strong>reconnect_on_failure</strong> (<em>bool</em><em>, </em><em>optional</em>) – <cite>True</cite> if PyPlumIO should try
+reconnecting on failure, otherwise <cite>False</cite>, default to <cite>True</cite></p></li>
+<li><p><strong>**options</strong> – Additional arguments to be passed to
+asyncio.open_connection()</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of TCP connection</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>TcpConnection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>With this you can connect to the controller remotely via RS-485 to
+Ethernet/WiFi converters, which are readily available online or
+can be custom built using wired connection and ser2net software.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although <strong>async with</strong> syntax is preferred, you can initiate connection without it.
+See following <a class="reference internal" href="#connection-examples"><span class="std std-ref">examples</span></a> for more information.</p>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.open_serial_connection">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">open_serial_connection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baudrate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">115200</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyplumio.Protocol" title="pyplumio.protocol.Protocol"><span class="pre">Protocol</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnect_on_failure</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">SerialConnection</span></span></span><a class="headerlink" href="#pyplumio.open_serial_connection" title="Link to this definition"></a></dt>
+<dd><p>Create a serial connection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>url</strong> (<em>str</em>) – Serial port device url. e. g. /dev/ttyUSB0</p></li>
+<li><p><strong>baudrate</strong> (<em>int</em><em>, </em><em>optional</em>) – Serial port baud rate, defaults to 115200</p></li>
+<li><p><strong>protocol</strong> (<a class="reference internal" href="#pyplumio.Protocol" title="pyplumio.Protocol"><em>Protocol</em></a><em>, </em><em>optional</em>) – Protocol that will be used for communication with
+the ecoMAX controller, default to AsyncProtocol</p></li>
+<li><p><strong>reconnect_on_failure</strong> (<em>bool</em><em>, </em><em>optional</em>) – <cite>True</cite> if PyPlumIO should try
+reconnecting on failure, otherwise <cite>False</cite>, default to <cite>True</cite></p></li>
+<li><p><strong>**options</strong> – Additional arguments to be passed to
+serial_asyncio.open_serial_connection()</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of serial connection</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>SerialConnection</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>You can connect to the ecoMAX controller via wired connection through
+RS-485 to USB or RS-485 to TTL adapters, that are connected directly
+to the device running PyPlumIO.</p>
+<p>You MUST not connect RS-485 lines directly to the UART outputs of your
+PC or you’ll risk damaging your PC/controller or the ecoMAX controller itself.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+<span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_serial_connection</span><span class="p">(</span><span class="s2">&quot;/dev/ttyUSB0&quot;</span><span class="p">,</span> <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="protocols">
+<h2>Protocols<a class="headerlink" href="#protocols" title="Link to this heading"></a></h2>
+<p>Connection helpers and classes allow to specify custom protocol to handle data, once
+connection is established.</p>
+<p>All protocols should inherit following abstract base class:</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.Protocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">Protocol</span></span><a class="headerlink" href="#pyplumio.Protocol" title="Link to this definition"></a></dt>
+<dd><p>Represents a protocol.</p>
+</dd></dl>
+
+<p>Most of documentation assumes that protocol is left as is, which
+is by default AsyncProtocol. However, setting different protocol
+allows for more fine-grained control over data processing.</p>
+<p>In following example we’ll set protocol to DummyProtocol, request and
+output alerts and close the connection without an additional overhead of
+working with device classes and queues.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.const</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeviceType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">requests</span><span class="p">,</span> <span class="n">responses</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Open a connection and request alerts.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">DummyProtocol</span><span class="p">()</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="n">requests</span><span class="o">.</span><span class="n">AlertsRequest</span><span class="p">(</span><span class="n">recipient</span><span class="o">=</span><span class="n">DeviceType</span><span class="o">.</span><span class="n">ECOMAX</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">conn</span><span class="o">.</span><span class="n">connected</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">frame</span> <span class="o">:=</span> <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">read</span><span class="p">()),</span> <span class="n">responses</span><span class="o">.</span><span class="n">AlertsResponse</span>
+                <span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">except</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">ProtocolError</span><span class="p">:</span>
+                <span class="c1"># Skip protocol errors and read the next frame.</span>
+                <span class="k">pass</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>All built-in protocols are listed below.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.DummyProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">DummyProtocol</span></span><a class="headerlink" href="#pyplumio.DummyProtocol" title="Link to this definition"></a></dt>
+<dd><p>Represents a dummy protocol.</p>
+<p>This protocol sets frame reader and writer as attributes, then
+sets connected event and does nothing.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.AsyncProtocol">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">AsyncProtocol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ethernet_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyplumio.EthernetParameters" title="pyplumio.structures.network_info.EthernetParameters"><span class="pre">EthernetParameters</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wireless_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pyplumio.WirelessParameters" title="pyplumio.structures.network_info.WirelessParameters"><span class="pre">WirelessParameters</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.AsyncProtocol" title="Link to this definition"></a></dt>
+<dd><p>Represents an async protocol.</p>
+<p>This protocol implements frame handling using a single task and
+write queue.</p>
+<p>The frame handler processes frames in both directions:
+- Sends frames from the write queue to the device via frame writer
+- Reads incoming frames via frame reader and processes them</p>
+<p>Each received frame is passed to appropriate device handler for
+further processing.</p>
+</dd></dl>
+
+</section>
+<section id="network-information">
+<h2>Network Information<a class="headerlink" href="#network-information" title="Link to this heading"></a></h2>
+<p>When opening the connection, you can send ethernet and wireless
+network information to the ecoMAX controller by passing one or both
+of data classes below to the Protocol of your choice.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.EthernetParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">EthernetParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0.0.0.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">netmask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'255.255.255.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gateway</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0.0.0.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.EthernetParameters" title="Link to this definition"></a></dt>
+<dd><p>Represents an ethernet parameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.EthernetParameters.gateway">
+<span class="sig-name descname"><span class="pre">gateway</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.EthernetParameters.gateway" title="Link to this definition"></a></dt>
+<dd><p>Gateway IP address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.EthernetParameters.ip">
+<span class="sig-name descname"><span class="pre">ip</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.EthernetParameters.ip" title="Link to this definition"></a></dt>
+<dd><p>IP address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.EthernetParameters.netmask">
+<span class="sig-name descname"><span class="pre">netmask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.EthernetParameters.netmask" title="Link to this definition"></a></dt>
+<dd><p>IP subnet mask</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.EthernetParameters.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pyplumio.EthernetParameters.status" title="Link to this definition"></a></dt>
+<dd><p>Connection status. Parameters will be ignored if set to <cite>False</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.</span></span><span class="sig-name descname"><span class="pre">WirelessParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0.0.0.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">netmask</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'255.255.255.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gateway</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'0.0.0.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encryption</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">EncryptionType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">EncryptionType.NONE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_quality</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.WirelessParameters" title="Link to this definition"></a></dt>
+<dd><p>Represents a wireless network parameters.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.status">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.status" title="Link to this definition"></a></dt>
+<dd><p>Connection status. Parameters will be ignored if set to <cite>False</cite></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.encryption">
+<span class="sig-name descname"><span class="pre">encryption</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">EncryptionType</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.encryption" title="Link to this definition"></a></dt>
+<dd><p>Wireless encryption standard
+(0 - unknown, 1 - no encryption, 2 - WEP, 3 - WPA, 4 - WPA2)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.gateway">
+<span class="sig-name descname"><span class="pre">gateway</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.gateway" title="Link to this definition"></a></dt>
+<dd><p>Gateway IP address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.ip">
+<span class="sig-name descname"><span class="pre">ip</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.ip" title="Link to this definition"></a></dt>
+<dd><p>IP address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.netmask">
+<span class="sig-name descname"><span class="pre">netmask</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.netmask" title="Link to this definition"></a></dt>
+<dd><p>IP subnet mask</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.signal_quality">
+<span class="sig-name descname"><span class="pre">signal_quality</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.signal_quality" title="Link to this definition"></a></dt>
+<dd><p>Wireless signal strength in percentage</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.WirelessParameters.ssid">
+<span class="sig-name descname"><span class="pre">ssid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#pyplumio.WirelessParameters.ssid" title="Link to this definition"></a></dt>
+<dd><p>Wireless Service Set IDentifier</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">status</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>Connection status. Parameters will be ignored if set to <cite>False</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+<p>Once set, network information will be shown in information section
+on the ecoMAX panel.</p>
+<p>In the example below, we’ll set both ethernet and wireless parameters.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.const</span><span class="w"> </span><span class="kn">import</span> <span class="n">EncryptionType</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize a connection with network parameters.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+        <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">,</span>
+        <span class="n">protocol</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">AsyncProtocol</span><span class="p">(</span>
+            <span class="n">ethernet_parameters</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">EthernetParameters</span><span class="p">(</span>
+                <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.10.1.100&quot;</span><span class="p">,</span>
+                <span class="n">netmask</span><span class="o">=</span><span class="s2">&quot;255.255.255.0&quot;</span><span class="p">,</span>
+                <span class="n">gateway</span><span class="o">=</span><span class="s2">&quot;10.10.1.1&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">wireless_parameters</span><span class="o">=</span><span class="n">pyplumio</span><span class="o">.</span><span class="n">WirelessParameters</span><span class="p">(</span>
+                <span class="n">ip</span><span class="o">=</span><span class="s2">&quot;10.10.2.100&quot;</span><span class="p">,</span>
+                <span class="n">netmask</span><span class="o">=</span><span class="s2">&quot;255.255.255.0&quot;</span><span class="p">,</span>
+                <span class="n">gateway</span><span class="o">=</span><span class="s2">&quot;10.10.2.1&quot;</span><span class="p">,</span>
+                <span class="n">ssid</span><span class="o">=</span><span class="s2">&quot;My SSID&quot;</span><span class="p">,</span>
+                <span class="n">encryption</span><span class="o">=</span><span class="n">EncryptionType</span><span class="o">.</span><span class="n">WPA2</span><span class="p">,</span>
+                <span class="n">signal_quality</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="statistics">
+<h2>Statistics<a class="headerlink" href="#statistics" title="Link to this heading"></a></h2>
+<p>Since PyPlumIO v0.5.56, you can access statistics via following property.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.AsyncProtocol.statistics">
+<span class="sig-prename descclassname"><span class="pre">AsyncProtocol.</span></span><span class="sig-name descname"><span class="pre">statistics</span></span><a class="headerlink" href="#pyplumio.protocol.AsyncProtocol.statistics" title="Link to this definition"></a></dt>
+<dd><p>Return the statistics.</p>
+</dd></dl>
+
+<p>Statistics contain transfer data consisting of number of received/sent frames and bytes
+as well as datetime of when connection was established, when connection was lost and
+number of connection loss event.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.protocol.</span></span><span class="sig-name descname"><span class="pre">Statistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">received_bytes:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">received_frames:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sent_bytes:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sent_frames:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">failed_frames:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connected_since:</span> <span class="pre">~datetime.datetime</span> <span class="pre">|</span> <span class="pre">~typing.Literal['never']</span> <span class="pre">=</span> <span class="pre">'never'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_loss_at:</span> <span class="pre">~datetime.datetime</span> <span class="pre">|</span> <span class="pre">~typing.Literal['never']</span> <span class="pre">=</span> <span class="pre">'never'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_losses:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">devices:</span> <span class="pre">set[~pyplumio.protocol.DeviceStatistics]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.protocol.Statistics" title="Link to this definition"></a></dt>
+<dd><p>Represents a connection statistics.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.connected_since">
+<span class="sig-name descname"><span class="pre">connected_since</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'never'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.connected_since" title="Link to this definition"></a></dt>
+<dd><p>Datetime object representing connection time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.connection_loss_at">
+<span class="sig-name descname"><span class="pre">connection_loss_at</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'never'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.connection_loss_at" title="Link to this definition"></a></dt>
+<dd><p>Datetime object representing last connection loss event</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.connection_losses">
+<span class="sig-name descname"><span class="pre">connection_losses</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.connection_losses" title="Link to this definition"></a></dt>
+<dd><p>Number of connection lost event</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.devices">
+<span class="sig-name descname"><span class="pre">devices</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">set</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pyplumio.protocol.DeviceStatistics" title="pyplumio.protocol.DeviceStatistics"><span class="pre">DeviceStatistics</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.devices" title="Link to this definition"></a></dt>
+<dd><p>List of statistics for connected devices</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.failed_frames">
+<span class="sig-name descname"><span class="pre">failed_frames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.failed_frames" title="Link to this definition"></a></dt>
+<dd><p>Number of failed frames. Resets on reconnect.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.received_bytes">
+<span class="sig-name descname"><span class="pre">received_bytes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.received_bytes" title="Link to this definition"></a></dt>
+<dd><p>Number of received bytes. Resets on reconnect.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.received_frames">
+<span class="sig-name descname"><span class="pre">received_frames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.received_frames" title="Link to this definition"></a></dt>
+<dd><p>Number of received frames. Resets on reconnect.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.sent_bytes">
+<span class="sig-name descname"><span class="pre">sent_bytes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.sent_bytes" title="Link to this definition"></a></dt>
+<dd><p>Number of sent bytes. Resets on reconnect.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.Statistics.sent_frames">
+<span class="sig-name descname"><span class="pre">sent_frames</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.Statistics.sent_frames" title="Link to this definition"></a></dt>
+<dd><p>Number of sent frames. Resets on reconnect.</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>The <cite>devices</cite> property of statistics class of also contains a list of
+device statistics objects. Those statistics include time the device was initially
+connected as well as time, when device was last seen (sent an <a class="reference internal" href="frames.html#regulatordata"><span class="std std-ref">RegulatorData</span></a>
+message).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyplumio.protocol.DeviceStatistics">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyplumio.protocol.</span></span><span class="sig-name descname"><span class="pre">DeviceStatistics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">address:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_seen:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">last_seen:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyplumio.protocol.DeviceStatistics" title="Link to this definition"></a></dt>
+<dd><p>Represents a device statistics.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.DeviceStatistics.address">
+<span class="sig-name descname"><span class="pre">address</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pyplumio.protocol.DeviceStatistics.address" title="Link to this definition"></a></dt>
+<dd><p>Device address</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.DeviceStatistics.first_seen">
+<span class="sig-name descname"><span class="pre">first_seen</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#pyplumio.protocol.DeviceStatistics.first_seen" title="Link to this definition"></a></dt>
+<dd><p>Datetime object representing connection time</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pyplumio.protocol.DeviceStatistics.last_seen">
+<span class="sig-name descname"><span class="pre">last_seen</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#pyplumio.protocol.DeviceStatistics.last_seen" title="Link to this definition"></a></dt>
+<dd><p>Datetime object representing time when device was last seen</p>
+</dd></dl>
+
+</dd></dl>
+
+<p>In the following example we’ll print connection statistics after establishing a
+connection.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Print connection statistics.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">statistics</span><span class="p">)</span>
+        <span class="o">...</span>
+</pre></div>
+</div>
+</section>
+<section id="connection-examples">
+<h2>Connection Examples<a class="headerlink" href="#connection-examples" title="Link to this heading"></a></h2>
+<p>The following example illustrates opening a TCP connection using Python’s
+context manager.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="n">_LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Opens the connection and gets the ecoMAX device.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get the ecoMAX device within 10 seconds or timeout.</span>
+            <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+                <span class="o">...</span>
+        <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+            <span class="c1"># If device times out, log the error.</span>
+            <span class="n">_LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to get the device within 10 seconds&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># Run the coroutine in asyncio event loop.</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>The following example illustrates opening a TCP connection without
+using Python’s context manager.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="n">_LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Opens the connection and gets the ecoMAX device.&quot;&quot;&quot;</span>
+    <span class="n">connection</span> <span class="o">=</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8899</span><span class="p">)</span>
+
+    <span class="c1"># Connect to the device.</span>
+    <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get the ecoMAX device within 10 seconds or timeout.</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="o">...</span>
+    <span class="k">except</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+        <span class="c1"># If device times out, log the error.</span>
+        <span class="n">_LOGGER</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to get the device within 10 seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Close the connection.</span>
+    <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="c1"># Run the coroutine in asyncio event loop.</span>
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to PyPlumIO’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reading.html" class="btn btn-neutral float-right" title="Reading" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

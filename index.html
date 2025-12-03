@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to PyPlumIO’s documentation! &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Connecting" href="connecting.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Welcome to PyPlumIO’s documentation!</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="welcome-to-pyplumio-s-documentation">
+<h1>Welcome to PyPlumIO’s documentation!<a class="headerlink" href="#welcome-to-pyplumio-s-documentation" title="Link to this heading"></a></h1>
+<p>The <a class="reference external" href="https://github.com/denpamusic/PyPlumIO/">PyPlumIO</a> project aims to
+provide complete and easy to use solution for communicating with
+climate devices manufactured by <a class="reference external" href="https://www.plum.pl/">Plum Sp. z o.o.</a></p>
+<p>Currently it supports reading and writing parameters of ecoMAX controllers by
+Plum Sp. z o.o., getting service password and sending network information to
+show on controller’s display.</p>
+<p>Devices can be connected directly via RS-485 to USB adapter or through network by using
+RS-485 to Ethernet/WiFi converter.</p>
+</section>
+<section id="quickstart">
+<h1>Quickstart<a class="headerlink" href="#quickstart" title="Link to this heading"></a></h1>
+<ol class="arabic simple">
+<li><p>To use PyPlumIO, first install it using pip:</p></li>
+</ol>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(.venv)</span> <span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span>pyplumio
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Connect to the ecoMAX controller:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">connection</span> <span class="o">=</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_serial_connection</span><span class="p">(</span><span class="s2">&quot;/dev/ttyUSB0&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ecomax</span> <span class="o">=</span> <span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Print some values:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="k">await</span> <span class="n">ecomax</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Don’t forget to close the connection:</p></li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="documentation">
+<h1>Documentation<a class="headerlink" href="#documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="connecting.html#opening-the-connection">Opening the connection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connecting.html#protocols">Protocols</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connecting.html#network-information">Network Information</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connecting.html#statistics">Statistics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="connecting.html#connection-examples">Connection Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="reading.html#dataset">Dataset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reading.html#getters">Getters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reading.html#regulator-data">Regulator Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reading.html#reading-examples">Reading Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="writing.html#setters">Setters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="writing.html#parameters">Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="writing.html#writing-examples">Writing Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="callbacks.html#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="callbacks.html#subscribing-to-events">Subscribing to events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="callbacks.html#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="callbacks.html#callbacks-examples">Callbacks Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mixers_thermostats.html#about-mixers-thermostats">About Mixers/Thermostats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mixers_thermostats.html#mixer-examples">Mixer Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mixers_thermostats.html#thermostat-examples">Thermostat Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="schedules.html#about-schedules">About Schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schedules.html#enabling-disabling-schedule">Enabling/Disabling Schedule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schedules.html#changing-schedule-parameter">Changing Schedule Parameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schedules.html#setting-schedule">Setting Schedule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="schedules.html#schedule-examples">Schedule Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#about-protocol">About Protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#frame-structure">Frame structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#communication">Communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protocol.html#versioning">Versioning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#stopmaster">StopMaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#startmaster">StartMaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#checkdevice">CheckDevice</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#ecomaxparameters">EcomaxParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#mixerparameters">MixerParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#setecomaxparameter">SetEcomaxParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#setmixerparameter">SetMixerParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#schedules">Schedules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#setschedule">SetSchedule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#uid">UID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#password">Password</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#ecomaxcontrol">EcomaxControl</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#alerts">Alerts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#programversion">ProgramVersion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#regulatordataschema">RegulatorDataSchema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#thermostatparameters">ThermostatParameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#setthermostatparameter">SetThermostatParameter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#regulatordata">RegulatorData</a></li>
+<li class="toctree-l2"><a class="reference internal" href="frames.html#sensordata">SensorData</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="connecting.html" class="btn btn-neutral float-right" title="Connecting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

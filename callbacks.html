@@ -1,0 +1,577 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Callbacks &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Mixers/Thermostats" href="mixers_thermostats.html" />
+    <link rel="prev" title="Writing" href="writing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Callbacks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subscribing-to-events">Subscribing to events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#callbacks-examples">Callbacks Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Callbacks</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/callbacks.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="callbacks">
+<h1>Callbacks<a class="headerlink" href="#callbacks" title="Link to this heading"></a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>PyPlumIO has an extensive event driven system where each device
+property is an event that you can subscribe to.</p>
+<p>When you subscribe callback to the event, your callback will be
+awaited with the property value each time the property is received
+from the device by PyPlumIO.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Callbacks must be coroutines defined with <strong>async def</strong>.</p>
+</div>
+</section>
+<section id="subscribing-to-events">
+<h2>Subscribing to events<a class="headerlink" href="#subscribing-to-events" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.devices.Device.subscribe">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.devices.Device.</span></span><span class="sig-name descname"><span class="pre">subscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">_EventCallbackT</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_EventCallbackT</span></span></span><a class="headerlink" href="#pyplumio.devices.Device.subscribe" title="Link to this definition"></a></dt>
+<dd><p>Subscribe a callback to the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Event name or ID</p></li>
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A coroutine callback function, that will be
+awaited on the with the event data as an argument.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to the callback, that can be used
+with <cite>EventManager.unsubscribe()</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EventCallback</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.devices.Device.subscribe_once">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.devices.Device.</span></span><span class="sig-name descname"><span class="pre">subscribe_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pyplumio.devices.Device.subscribe_once" title="Link to this definition"></a></dt>
+<dd><p>Subscribe a callback to the event once.</p>
+<p>Callback will be unsubscribed after single event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Event name or ID</p></li>
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A coroutine callback function, that will be
+awaited on the with the event data as an argument.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A reference to the callback, that can be used
+with <cite>EventManager.unsubscribe()</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EventCallback</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>To remove the previously registered callback, use the
+<code class="docutils literal notranslate"><span class="pre">unsubscribe()</span></code> method.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.devices.Device.unsubscribe">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.devices.Device.</span></span><span class="sig-name descname"><span class="pre">unsubscribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">self</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pyplumio.devices.Device.unsubscribe" title="Link to this definition"></a></dt>
+<dd><p>Usubscribe a callback from the event.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Event name or ID</p></li>
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A coroutine callback function, previously
+subscribed to an event using <code class="docutils literal notranslate"><span class="pre">subscribe()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">subscribe_once()</span></code> methods.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><cite>True</cite> if callback is found, <cite>False</cite> otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
+<p>PyPlumIO’s callback system can be further improved upon by
+using built-in filters. Filters allow you to specify when you want your
+callback to be awaited.</p>
+<p>All built-in filters are described below.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.aggregate">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Aggregate</span></span></span><a class="headerlink" href="#pyplumio.filters.aggregate" title="Link to this definition"></a></dt>
+<dd><p>Create a new aggregate filter.</p>
+<p>A callback function will be called with a sum of values collected
+over a specified time period or when sample size limit reached.
+Can only be used with numeric values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function to be awaited once filter
+conditions are fulfilled</p></li>
+<li><p><strong>seconds</strong> (<em>float</em>) – A callback will be awaited with a sum of values
+aggregated over this amount of seconds.</p></li>
+<li><p><strong>sample_size</strong> (<em>int</em>) – The maximum number of values to aggregate
+before calling the callback</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Aggregate</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter aggregates values for specified amount of seconds or until
+certain sample size is reached and then calls the callback with the
+sum of values collected.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback with the fuel burned during 30 seconds.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+    <span class="s2">&quot;fuel_burned&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.clamp">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">clamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_out_of_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Clamp</span></span></span><a class="headerlink" href="#pyplumio.filters.clamp" title="Link to this definition"></a></dt>
+<dd><p>Create a new clamp filter.</p>
+<p>A callback function will be called and passed value clamped
+between specified boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function to be awaited on new value</p></li>
+<li><p><strong>min_value</strong> (<em>float</em>) – A lower boundary</p></li>
+<li><p><strong>max_value</strong> (<em>float</em>) – An upper boundary</p></li>
+<li><p><strong>ignore_out_of_range</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <cite>True</cite>, values outside of
+specified boundaries will be ignored, defaults to <cite>False</cite></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Clamp</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter clamps value between specified boundaries.
+It can be used to filter out outliers and corrupted data.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback with value clamped between 0 and 100.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;load&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_value</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+
+<span class="c1"># Await the callback with value clamped between 0 and 100 and</span>
+<span class="c1"># do not call the callback if value is out of range.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span>
+    <span class="s2">&quot;load&quot;</span><span class="p">,</span>
+    <span class="n">filters</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span>
+        <span class="n">my_callback2</span><span class="p">,</span>
+        <span class="n">min_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">max_value</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">ignore_out_of_range</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.on_change">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">on_change</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_OnChange</span></span></span><a class="headerlink" href="#pyplumio.filters.on_change" title="Link to this definition"></a></dt>
+<dd><p>Create a new value changed filter.</p>
+<p>A callback function will only be called if the value is changed from the
+previous call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>callback</strong> (<em>Callback</em>) – A callback function to be awaited on value change</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_OnChange</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Normally callbacks are awaited each time the PyPlumIO receives data
+from the device, regardless of whether value is changed or not.</p>
+<p>With this filter it’s possible to only await the callback when
+value is changed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback once heating_temp value is changed since</span>
+<span class="c1"># last call.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">on_change</span><span class="p">(</span><span class="n">my_callback</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.deadband">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">deadband</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Deadband</span></span></span><a class="headerlink" href="#pyplumio.filters.deadband" title="Link to this definition"></a></dt>
+<dd><p>Create a new deadband filter.</p>
+<p>A callback function will only be called when the value is significantly changed
+from the previous callback call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function to be awaited on significant value change</p></li>
+<li><p><strong>tolerance</strong> (<em>float</em>) – The minimum difference required to trigger the callback</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Deadband</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter await the callback on signifacant changes only.
+Significance is defined by <code class="docutils literal notranslate"><span class="pre">tolerance</span></code> argument (i. e. tolerance=0.1
+will only await callback when value is changed by more that 0.1).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback once heating_temp value is changed by more</span>
+<span class="c1"># than 0.1 since last call.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">deadband</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">0.1</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.debounce">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">debounce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_calls</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Debounce</span></span></span><a class="headerlink" href="#pyplumio.filters.debounce" title="Link to this definition"></a></dt>
+<dd><p>Create a new debounce filter.</p>
+<p>A callback function will only be called once the value is stabilized
+across multiple filter calls.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function to be awaited on value change</p></li>
+<li><p><strong>min_calls</strong> (<em>int</em>) – Value shouldn’t change for this amount of
+filter calls</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Debounce</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter will only await the callback once value is settled across
+multiple calls, specified in <code class="docutils literal notranslate"><span class="pre">min_calls</span></code> argument.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback once outside_temp stays the same for three</span>
+<span class="c1"># consecutive times it&#39;s received by PyPlumIO.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;outside_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">debounce</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">min_calls</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.throttle">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">throttle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Throttle</span></span></span><a class="headerlink" href="#pyplumio.filters.throttle" title="Link to this definition"></a></dt>
+<dd><p>Create a new throttle filter.</p>
+<p>A callback function will only be called once a certain amount of
+seconds passed since the last call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function that will be awaited once
+filter conditions are fulfilled</p></li>
+<li><p><strong>seconds</strong> (<em>float</em>) – A callback will be awaited at most once per
+this amount of seconds</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Throttle</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter limits how often your callback will be awaited.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback once per 5 seconds, regardless of</span>
+<span class="c1"># how often outside_temp value is being processed by PyPlumIO.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;outside_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">throttle</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.delta">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">delta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Delta</span></span></span><a class="headerlink" href="#pyplumio.filters.delta" title="Link to this definition"></a></dt>
+<dd><p>Create a new difference filter.</p>
+<p>A callback function will be called with a difference between two
+subsequent values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>callback</strong> (<em>EventCallback</em>) – A callback function that will be awaited with
+difference between values in two subsequent calls</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Delta</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Instead of raw value, this filter awaits callback with value change.</p>
+<p>It can be used with numeric values, dictionaries, tuples or lists.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback with difference between values in current</span>
+<span class="c1"># and last await.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;outside_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">delta</span><span class="p">(</span><span class="n">my_callback</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.filters.custom">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.filters.</span></span><span class="sig-name descname"><span class="pre">custom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Coroutine</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">_Custom</span></span></span><a class="headerlink" href="#pyplumio.filters.custom" title="Link to this definition"></a></dt>
+<dd><p>Create a new custom filter.</p>
+<p>A callback function will be called when a user-defined filter
+function, that’s being called with the value as an argument,
+returns true.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>callback</strong> (<em>Callback</em>) – A callback function to be awaited when
+filter function return true</p></li>
+<li><p><strong>filter_func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Any</em><em>]</em><em>, </em><em>bool</em><em>]</em>) – Filter function, that will be called with a
+value and should return <cite>True</cite> to await filter’s callback</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of callable filter</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>_Custom</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This filter allows to specify filter function that will be called
+every time the value is received from the controller.</p>
+<p>A callback is awaited once the filter function returns true.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio</span><span class="w"> </span><span class="kn">import</span> <span class="n">filters</span>
+
+<span class="c1"># Await the callback when temperature is higher that 10 degrees</span>
+<span class="c1"># Celsius.</span>
+<span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;outside_temp&quot;</span><span class="p">,</span> <span class="n">filters</span><span class="o">.</span><span class="n">custom</span><span class="p">(</span><span class="n">my_callback</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+</section>
+<section id="callbacks-examples">
+<h2>Callbacks Examples<a class="headerlink" href="#callbacks-examples" title="Link to this heading"></a></h2>
+<p>In this example we’ll use filter chaining to achieve more complex event
+processing.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">throttle</span><span class="p">,</span> <span class="n">on_change</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">my_callback</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints current heating temperature.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Heating Temperature: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subscribes callback to the current heating temperature.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="c1"># Await the callback on value change but no faster than</span>
+            <span class="c1"># once per 5 seconds.</span>
+            <span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">,</span> <span class="n">throttle</span><span class="p">(</span><span class="n">on_change</span><span class="p">(</span><span class="n">my_callback</span><span class="p">),</span> <span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+
+            <span class="c1"># Wait until disconnected (forever)</span>
+            <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">wait_until_done</span><span class="p">()</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In the example below, <code class="docutils literal notranslate"><span class="pre">my_callback</span></code> with be called with
+current heating temperature on every SensorDataMessage.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">my_callback</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints current heating temperature.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Heating Temperature: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subscribes callback to the current heating temperature.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="c1"># Subscribe my_callback to heating_temp event.</span>
+            <span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">,</span> <span class="n">my_callback</span><span class="p">)</span>
+
+            <span class="c1"># Wait until disconnected (forever)</span>
+            <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">wait_until_done</span><span class="p">()</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In the example below, <code class="docutils literal notranslate"><span class="pre">my_callback</span></code> with be called with
+current target temperature once and <code class="docutils literal notranslate"><span class="pre">my_callback2</span></code> will be called
+when heating temperature will change more the 0.1 degrees Celsius.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyplumio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">on_change</span>
+
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">my_callback</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints heating target temperature.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Target Temperature: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">my_callback2</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints current heating temperature.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current Temperature: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subscribes callback to the current heating temperature.&quot;&quot;&quot;</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">pyplumio</span><span class="o">.</span><span class="n">open_tcp_connection</span><span class="p">(</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="mi">8899</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">async</span> <span class="k">with</span> <span class="n">conn</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;ecomax&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ecomax</span><span class="p">:</span>
+            <span class="c1"># Subscribe my_callback to heating_target_temp event.</span>
+            <span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe_once</span><span class="p">(</span><span class="s2">&quot;heating_target_temp&quot;</span><span class="p">,</span> <span class="n">my_callback</span><span class="p">)</span>
+
+            <span class="c1"># Subscribe my_callback2 to heating_temp changes.</span>
+            <span class="n">ecomax</span><span class="o">.</span><span class="n">subscribe</span><span class="p">(</span><span class="s2">&quot;heating_temp&quot;</span><span class="p">,</span> <span class="n">on_change</span><span class="p">(</span><span class="n">my_callback2</span><span class="p">))</span>
+
+            <span class="c1"># Wait until disconnected (forever)</span>
+            <span class="k">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">wait_until_done</span><span class="p">()</span>
+
+
+<span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="writing.html" class="btn btn-neutral float-left" title="Writing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mixers_thermostats.html" class="btn btn-neutral float-right" title="Mixers/Thermostats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Protocol &mdash; PyPlumIO 0.6.7.dev30+g6d0ba3b08 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e57346f2"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Frames" href="frames.html" />
+    <link rel="prev" title="Schedules" href="schedules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Protocol</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#about-protocol">About Protocol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#frame-structure">Frame structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#communication">Communication</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#versioning">Versioning</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Protocol</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/protocol.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="protocol">
+<h1>Protocol<a class="headerlink" href="#protocol" title="Link to this heading"></a></h1>
+<section id="about-protocol">
+<h2>About Protocol<a class="headerlink" href="#about-protocol" title="Link to this heading"></a></h2>
+<p>Plum devices use RS-485 standard for communication.</p>
+<p>Each frame consists of header (7 bytes), message type (1 byte),
+message data (optional), CRC (1 byte) and frame end delimiter (1 byte).
+The minimum frame size therefore is 10 bytes.</p>
+<p>Protocol supports unicast and broadcast frames.
+Broadcast frames will always have their recipient address set
+to <strong>0x00</strong>, while unicast messages will have specific device address.
+ecoMAX controller address is <strong>0x45</strong>, ecoSTER panel
+address is <strong>0x51</strong>.</p>
+<p>For example, we can request list of editable parameters from the ecoMAX
+controller by sending frame with frame type <strong>49</strong> and receive response
+with frame type <strong>177</strong> that contains requested parameters.</p>
+</section>
+<section id="frame-structure">
+<h2>Frame structure<a class="headerlink" href="#frame-structure" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Header:</dt><dd><ul>
+<li><p>[Byte] Frame start delimiter. Always <strong>0x68</strong>.</p></li>
+<li><p>[Unsigned Short] Byte size of the frame. Includes CRC and frame end delimiter.</p></li>
+<li><p>[Byte] Recipient address.</p></li>
+<li><p>[Byte] Sender address.</p></li>
+<li><p>[Byte] Sender type. PyPlumIO uses EcoNET type <strong>48</strong>.</p></li>
+<li><p>[Byte] ecoNET version. PyPlumIO uses version <strong>5</strong>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Body:</dt><dd><ul>
+<li><p>[Byte] Frame type.</p></li>
+<li><p>[Byte*] Message data (optional).</p></li>
+<li><p>[Byte] Frame CRC.</p></li>
+<li><p>[Byte] Frame end delimiter. Always <strong>0x16</strong>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="communication">
+<h2>Communication<a class="headerlink" href="#communication" title="Link to this heading"></a></h2>
+<p>The controller constantly sends out <a class="reference internal" href="frames.html#programversion"><span class="std std-ref">ProgramVersion[frame_type=64]</span></a> and
+<a class="reference internal" href="frames.html#checkdevice"><span class="std std-ref">CheckDevice[frame_type=48]</span></a> requests to every known device on the
+network and broadcasts <a class="reference internal" href="frames.html#regulatordata"><span class="std std-ref">RegulatorData[frame_type=8]</span></a> message,
+that contains basic controller data.</p>
+<p>Initial exchange between ecoMAX controller (EM) and
+PyPlumIO library (PIO) can be illustrated with following diagram:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Sender</p></th>
+<th class="head"></th>
+<th class="head"><p>Receiver</p></th>
+<th class="head"><p>Frame</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>EM[0x45]</p></td>
+<td><p>&gt;</p></td>
+<td><p>ANY[0x00]</p></td>
+<td><p><a class="reference internal" href="frames.html#regulatordata"><span class="std std-ref">RegulatorDataMessage</span></a></p></td>
+<td><p>Contains ecoMAX data.</p></td>
+</tr>
+<tr class="row-odd"><td><p>EM[0x45]</p></td>
+<td><p>&gt;</p></td>
+<td><p>PIO[0x56]</p></td>
+<td><p><a class="reference internal" href="frames.html#programversion"><span class="std std-ref">ProgramVersionRequest</span></a></p></td>
+<td><p>Program version request.</p></td>
+</tr>
+<tr class="row-even"><td><p>EM[0x45]</p></td>
+<td><p>&lt;</p></td>
+<td><p>PIO[0x56]</p></td>
+<td><p><a class="reference internal" href="frames.html#programversion"><span class="std std-ref">ProgramVersionResponse</span></a></p></td>
+<td><p>Contains program version.</p></td>
+</tr>
+<tr class="row-odd"><td><p>EM[0x45]</p></td>
+<td><p>&gt;</p></td>
+<td><p>PIO[0x56]</p></td>
+<td><p><a class="reference internal" href="frames.html#checkdevice"><span class="std std-ref">CheckDeviceRequest</span></a></p></td>
+<td><p>Check device request.</p></td>
+</tr>
+<tr class="row-even"><td><p>EM[0x45]</p></td>
+<td><p>&lt;</p></td>
+<td><p>PIO[0x56]</p></td>
+<td><p><a class="reference internal" href="frames.html#checkdevice"><span class="std std-ref">DeviceAvailableResponse</span></a></p></td>
+<td><p>Contains network information.</p></td>
+</tr>
+<tr class="row-odd"><td><p>EM[0x45]</p></td>
+<td><p>&gt;</p></td>
+<td><p>PIO[0x56]</p></td>
+<td><p><a class="reference internal" href="frames.html#sensordata"><span class="std std-ref">SensorDataMessage</span></a></p></td>
+<td><p>Contains ecoMAX sensor data.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Device network address is listed in square brackets.</p>
+</div>
+</section>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading"></a></h2>
+<p>Protocol has built-in way to track frame versions. This is used to
+synchronize changes between devices.</p>
+<p>Both broadcast <a class="reference internal" href="frames.html#regulatordata"><span class="std std-ref">RegulatorData[frame_type=8]</span></a> and unicast
+<a class="reference internal" href="frames.html#sensordata"><span class="std std-ref">SensorData[frame_type=53]</span></a> frames sent by the ecoMAX controller
+contain versioning data.</p>
+<p>This data can be represented with following dictionary:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame_versions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">49</span><span class="p">:</span> <span class="mi">37</span><span class="p">,</span>
+    <span class="mi">50</span><span class="p">:</span> <span class="mi">37</span><span class="p">,</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">56</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="mi">57</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">61</span><span class="p">:</span> <span class="mi">40767</span><span class="p">,</span>
+    <span class="mi">80</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">81</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">82</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">83</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In this dictionary, keys are frame types and values are version numbers.</p>
+<p>In example above, frame <a class="reference internal" href="frames.html#ecomaxparameters"><span class="std std-ref">EcomaxParameters</span></a> with frame type 49 has version 37.
+If we change any parameters either remotely or on the controller itself,
+the version number will increase, so PyPlumIO will be able
+to tell that it’s need to request list of parameters again
+to obtain changes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">frame_versions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">49</span><span class="p">:</span> <span class="mi">38</span><span class="p">,</span>  <span class="c1"># Note the version number change.</span>
+    <span class="mi">50</span><span class="p">:</span> <span class="mi">37</span><span class="p">,</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">56</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="mi">57</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">61</span><span class="p">:</span> <span class="mi">40767</span><span class="p">,</span>
+    <span class="mi">80</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">81</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">82</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">83</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="schedules.html" class="btn btn-neutral float-left" title="Schedules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="frames.html" class="btn btn-neutral float-right" title="Frames" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
