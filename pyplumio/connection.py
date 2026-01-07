@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import Any, Final
 
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+import serial_asyncio_fast
 
 from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ConnectionFailedError
@@ -22,13 +23,6 @@ _LOGGER = logging.getLogger(__name__)
 
 TRY_CONNECT_FOR_SECONDS: Final = 5
 RECONNECT_AFTER_SECONDS: Final = 20
-
-try:
-    import serial_asyncio_fast as pyserial_asyncio
-
-    _LOGGER.info("Using pyserial-asyncio-fast in place of pyserial-asyncio")
-except ImportError:
-    import serial_asyncio as pyserial_asyncio  # type: ignore[no-redef]
 
 
 class Connection(ABC, TaskManager):
@@ -221,7 +215,7 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await pyserial_asyncio.open_serial_connection(
+        return await serial_asyncio_fast.open_serial_connection(
             url=self.url,
             baudrate=self.baudrate,
             bytesize=EIGHTBITS,

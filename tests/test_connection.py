@@ -3,16 +3,13 @@
 from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
-from importlib import reload
 import logging
-import sys
-from typing import Any, Final
+from typing import Final
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
-import pyplumio.connection
 from pyplumio.connection import (
     RECONNECT_AFTER_SECONDS,
     Connection,
@@ -22,24 +19,6 @@ from pyplumio.connection import (
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
-
-
-@pytest.fixture(name="use_fast", params=(True, False))
-def fixture_use_fast(request, monkeypatch, caplog) -> Any:
-    """Try with and without serial-asyncio-fast package."""
-    if not request.param:
-        monkeypatch.setitem(sys.modules, "serial_asyncio_fast", None)
-
-    with caplog.at_level(logging.INFO):
-        reload(pyplumio.connection)
-
-    message = "Using pyserial-asyncio-fast in place of pyserial-asyncio"
-    if request.param:
-        assert message in caplog.text
-    else:
-        assert message not in caplog.text
-
-    return request.param
 
 
 @pytest.fixture(name="stream_writer")
@@ -69,12 +48,11 @@ def fixture_asyncio_open_connection(
 
 @pytest.fixture(name="serial_asyncio_open_serial_connection")
 def fixture_serial_asyncio_open_serial_connection(
-    use_fast, stream_reader: StreamReader, stream_writer: StreamWriter
+    stream_reader: StreamReader, stream_writer: StreamWriter
 ):
     """Bypass opening serial_asyncio connection."""
-    module = "serial_asyncio_fast" if use_fast else "serial_asyncio"
     with patch(
-        f"{module}.open_serial_connection",
+        "serial_asyncio_fast.open_serial_connection",
         return_value=(stream_reader, stream_writer),
     ) as mock_connection:
         yield mock_connection
