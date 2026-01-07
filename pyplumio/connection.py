@@ -37,11 +37,12 @@ class Connection(ABC, TaskManager):
     All specific connection classes MUST be inherited from this class.
     """
 
-    __slots__ = ("_protocol", "_reconnect_on_failure", "_options")
+    __slots__ = ("_protocol", "_reconnect_on_failure", "_options", "_retries")
 
     _protocol: Protocol
     _reconnect_on_failure: bool
     _options: dict[str, Any]
+    _retries: int
 
     def __init__(
         self,
@@ -60,6 +61,7 @@ class Connection(ABC, TaskManager):
         self._reconnect_on_failure = reconnect_on_failure
         self._protocol = protocol
         self._options = options
+        self._retries = 0
 
     async def __aenter__(self) -> Connection:
         """Provide an entry point for the context manager."""
@@ -86,11 +88,21 @@ class Connection(ABC, TaskManager):
         """Try to connect and reconnect on failure."""
         try:
             await self._connect()
+            if self._retries > 0:
+                _LOGGER.info(
+                    "Connection to device restored after %i retries", self._retries
+                )
+                self._retries = 0
         except ConnectionFailedError:
-            _LOGGER.error(
-                "Can't connect to the device, retrying in %.1f seconds",
-                RECONNECT_AFTER_SECONDS,
-            )
+            if self._retries == 0:
+                _LOGGER.error(
+                    (
+                        "Unable to connect to the device. Connection we be retried "
+                        "automatically every %i seconds in background."
+                    ),
+                    RECONNECT_AFTER_SECONDS,
+                )
+            self._retries += 1
             await asyncio.sleep(RECONNECT_AFTER_SECONDS)
             self.create_task(self._reconnect(), name="reconnect_task")
 

@@ -13,7 +13,12 @@ import pytest
 from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 import pyplumio.connection
-from pyplumio.connection import Connection, SerialConnection, TcpConnection
+from pyplumio.connection import (
+    RECONNECT_AFTER_SECONDS,
+    Connection,
+    SerialConnection,
+    TcpConnection,
+)
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
@@ -115,33 +120,43 @@ class TestConnection:
         await connection.close()
         mock_protocol.shutdown.assert_called_once()
 
-    @pytest.mark.parametrize(
-        ("reconnect_on_failure", "expected_log"),
-        [
-            (True, "Can't connect to the device"),
-            (False, None),
-        ],
+    @pytest.mark.parametrize("reconnect_on_failure", [True, False])
+    @patch.object(
+        DummyConnection,
+        "_open_connection",
+        side_effect=(OSError, (AsyncMock(), AsyncMock), None),
     )
-    @patch.object(DummyConnection, "_open_connection", side_effect=(OSError, None))
+    @patch("pyplumio.protocol.AsyncProtocol.connection_established")
     async def test_reconnect(
         self,
+        mock_connection_established,
         mock_open_connection,
         caplog,
         reconnect_on_failure: bool,
-        expected_log: str | None,
     ) -> None:
         """Test reconnect logic."""
         connection = DummyConnection(reconnect_on_failure=reconnect_on_failure)
         if reconnect_on_failure:
             with caplog.at_level(logging.ERROR):
                 await connection.connect()
+                assert "Unable to connect to the device." in caplog.text
+                assert (
+                    f"automatically every {RECONNECT_AFTER_SECONDS} seconds"
+                    in caplog.text
+                )
 
-            assert expected_log in caplog.text
+            with caplog.at_level(logging.INFO):
+                await connection.connect()
+                assert "Connection to device restored after 1 retries" in caplog.text
+                mock_connection_established.assert_called_once()
+
+            assert mock_open_connection.await_count == 2
+
         else:
             with pytest.raises(ConnectionFailedError):
                 await connection.connect()
 
-        mock_open_connection.assert_awaited_once()
+            mock_open_connection.assert_awaited_once()
 
     @patch.object(DummyConnection, "close")
     @patch.object(DummyConnection, "connect")
