@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Home Automation",
 ]
 dependencies = [
-    "pyserial-asyncio==0.6"
+    "pyserial-asyncio-fast==0.16"
 ]
 dynamic = ["version"]
 
