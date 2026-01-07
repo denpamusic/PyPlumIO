@@ -5,7 +5,7 @@ mypy==1.19.1
 numpy<3.0.0,>=2.0.0
 pre-commit==4.5.1
 pyserial-asyncio-fast==0.16
-pytest==9.0.1
+pytest==9.0.2
 pytest-asyncio==1.3.0
 ruff==0.14.10
 tomli==2.3.0
