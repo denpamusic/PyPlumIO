@@ -135,7 +135,7 @@ exclude = [
 ]
 line-length = 88
 indent-width = 4
-target-version = "py310"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = [
@@ -242,18 +242,17 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = lint, type, py{310,311,312,313,314}
+    envlist = lint, type, py{311,312,313,314}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
 
     [gh-actions]
     python =
-        3.10: py310
         3.11: py311
         3.12: py312
-        3.13: py313, lint, type
-        3.14: py314
+        3.13: py313
+        3.14: py314, lint, type
 
     [testenv]
     deps =
