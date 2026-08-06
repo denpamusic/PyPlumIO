@@ -7,7 +7,7 @@ authors = [
 ]
 description = "PyPlumIO is a native ecoNET library for Plum ecoMAX controllers."
 readme = { file = "README.md", content-type = "text/markdown" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 keywords = ["home", "automation", "heating"]
 license = {text = "MIT License"}
 classifiers = [
@@ -15,7 +15,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -135,7 +134,7 @@ exclude = [
 ]
 line-length = 88
 indent-width = 4
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [
@@ -242,17 +241,16 @@ asyncio_default_fixture_loop_scope = "function"
 [tool.tox]
 legacy_tox_ini = """
     [tox]
-    envlist = lint, type, py{310,311,312,313,314}
+    envlist = lint, type, py{311,312,313,314}
     isolated_build = True
     skip_missing_interpreters = True
     ignore_basepython_conflict = True
 
     [gh-actions]
     python =
-        3.10: py310
-        3.11: py311
+        3.11: py311, lint, type
         3.12: py312
-        3.13: py313, lint, type
+        3.13: py313
         3.14: py314
 
     [testenv]
