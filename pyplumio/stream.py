@@ -57,7 +57,7 @@ class FrameWriter:
         try:
             self._writer.close()
             await self.wait_closed()
-        except (OSError, asyncio.TimeoutError):
+        except (OSError, TimeoutError):
             _LOGGER.exception(
                 "Failed to close the frame writer due to an unexpected error"
             )

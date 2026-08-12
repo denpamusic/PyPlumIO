@@ -86,7 +86,7 @@ class Device(ABC, EventManager):
         :return: `True` if parameter was successfully set, `False`
             otherwise.
         :rtype: bool
-        :raise asyncio.TimeoutError: when waiting past specified timeout
+        :raise TimeoutError: when waiting past specified timeout
         :raise ValueError: when a new value is outside of allowed range
         :raise TypeError: when found data is not valid parameter
         """
@@ -206,7 +206,7 @@ class PhysicalDevice(Device, ABC):
             try:
                 self.queue_send(request)
                 return await self.get(name, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 retries -= 1
 
         raise RequestError(

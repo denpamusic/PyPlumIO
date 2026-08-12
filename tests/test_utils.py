@@ -1,6 +1,5 @@
 """Contains tests for the utility functions."""
 
-import asyncio
 from typing import Literal
 from unittest.mock import Mock, patch
 
@@ -113,7 +112,7 @@ def test_split_byte(input_value: int, expected: list[bool] | Literal["raises"]) 
         assert utils.split_byte(input_value) == expected
 
 
-@patch("asyncio.wait_for", side_effect=("test", asyncio.TimeoutError))
+@patch("asyncio.wait_for", side_effect=("test", TimeoutError))
 async def test_timeout(mock_wait_for) -> None:
     """Test a timeout decorator."""
     # Mock function to pass to the decorator.
@@ -133,7 +132,7 @@ async def test_timeout(mock_wait_for) -> None:
     mock_func.return_value = "test"
     decorator = utils.timeout(10)
     wrapper = decorator(mock_func)
-    with pytest.raises(asyncio.TimeoutError):
+    with pytest.raises(TimeoutError):
         await wrapper("test_arg", kwarg="test_kwarg")
 
 

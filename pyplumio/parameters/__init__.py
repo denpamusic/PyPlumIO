@@ -234,7 +234,7 @@ class Parameter(ABC):
     async def _send_update_request(self, request: Request, timeout: float) -> bool:
         """Send update request to the remote and confirm the result."""
         self.device.queue_send(request)
-        with suppress(asyncio.TimeoutError):
+        with suppress(TimeoutError):
             # Wait for the update to be done
             await asyncio.wait_for(self.update_done.wait(), timeout=timeout)
 

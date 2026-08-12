@@ -204,7 +204,7 @@ context manager.
                 # Get the ecoMAX device within 10 seconds or timeout.
                 async with conn.device("ecomax", timeout=10) as ecomax:
                     ...
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # If device times out, log the error.
                 _LOGGER.error("Failed to get the device within 10 seconds")
         
@@ -237,7 +237,7 @@ using Python's context manager.
             # Get the ecoMAX device within 10 seconds or timeout.
             async with conn.device("ecomax", timeout=10) as ecomax:
                 ...
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # If device times out, log the error.
             _LOGGER.error("Failed to get the device within 10 seconds")
 

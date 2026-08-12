@@ -191,7 +191,7 @@ class EcoMAX(PhysicalDevice):
         """Try to set the ecoMAX control state."""
         try:
             return await self.set(ATTR_ECOMAX_CONTROL, state, timeout=0.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error("ecoMAX control is not available. Please try again later.")
 
         return False
@@ -227,7 +227,7 @@ class EcoMAX(PhysicalDevice):
 
         try:
             await self.wait_for(ATTR_SENSORS, timeout=WAIT_FOR_SETUP_SECONDS)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             _LOGGER.error(
                 "Could not setup device entry; no response from device for %u seconds",
                 WAIT_FOR_SETUP_SECONDS,

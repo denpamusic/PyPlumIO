@@ -296,7 +296,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
             except ProtocolError as e:
                 self.statistics.failed_frames += 1
                 _LOGGER.debug("Can't process received frame: %s", e)
-            except (OSError, asyncio.TimeoutError):
+            except (OSError, TimeoutError):
                 self.statistics.update_connection_lost()
                 self.create_task(self.connection_lost())
                 break

@@ -1,6 +1,5 @@
 """Contains tests for the ecoMAX device."""
 
-import asyncio
 from datetime import timedelta
 import logging
 from typing import Any, cast
@@ -208,7 +207,7 @@ async def test_ecomax_setup(mock_wait_for, mock_request, ecomax: EcoMAX) -> None
 
 
 @patch("pyplumio.devices.ecomax.EcoMAX.request")
-@patch("pyplumio.devices.ecomax.EcoMAX.wait_for", side_effect=(asyncio.TimeoutError,))
+@patch("pyplumio.devices.ecomax.EcoMAX.wait_for", side_effect=(TimeoutError,))
 async def test_ecomax_setup_failed(
     mock_wait_for, mock_request, ecomax: EcoMAX, caplog
 ) -> None:

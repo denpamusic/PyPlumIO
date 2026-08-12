@@ -106,7 +106,7 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         :param timeout: Wait this amount of seconds for a data to
             become available, defaults to `None`
         :type timeout: float, optional
-        :raise asyncio.TimeoutError: when waiting past specified timeout
+        :raise TimeoutError: when waiting past specified timeout
         """
         if name not in self.data:
             await asyncio.wait_for(self.create_event(name).wait(), timeout=timeout)
@@ -121,7 +121,7 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         :type timeout: float, optional
         :return: An event data
         :rtype: T
-        :raise asyncio.TimeoutError: when waiting past specified timeout
+        :raise TimeoutError: when waiting past specified timeout
         """
         await self.wait_for(name, timeout=timeout)
         return self.data[name]

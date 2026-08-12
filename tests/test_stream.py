@@ -93,7 +93,7 @@ class TestFrameWriter:
         [
             (False, None),
             (True, OSError),
-            (True, asyncio.TimeoutError),
+            (True, TimeoutError),
         ],
     )
     async def test_close(
@@ -179,7 +179,7 @@ class TestBufferedReader:
 
     @patch(
         "asyncio.StreamReader.readexactly",
-        side_effect=asyncio.IncompleteReadError(bytearray(), expected=7),
+        side_effect=asyncio.IncompleteReadError(b"", expected=7),
     )
     async def test_ensure_buffer_with_incomplete_read(
         self, mock_readexactly, buffered_reader: BufferedReader
@@ -371,7 +371,7 @@ class TestFrameReader:
 
     @patch(
         "asyncio.StreamReader.readexactly",
-        side_effect=asyncio.IncompleteReadError(bytearray(), expected=7),
+        side_effect=asyncio.IncompleteReadError(b"", expected=7),
     )
     async def test_incomplete_header(
         self, mock_readexactly, frame_reader: FrameReader, read_frame_start
@@ -404,7 +404,7 @@ class TestFrameReader:
         "asyncio.StreamReader.readexactly",
         side_effect=(
             b"\x0c\x00\x00\x56\x30\x05",
-            asyncio.IncompleteReadError(bytearray(), 10),
+            asyncio.IncompleteReadError(b"", 10),
         ),
         new_callable=AsyncMock,
     )

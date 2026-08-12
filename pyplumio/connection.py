@@ -75,7 +75,7 @@ class Connection(ABC, TaskManager):
         try:
             reader, writer = await self._open_connection()
             self.protocol.connection_established(reader, writer)
-        except (OSError, asyncio.TimeoutError) as err:
+        except (OSError, TimeoutError) as err:
             raise ConnectionFailedError from err
 
     async def _reconnect(self) -> None:
@@ -215,7 +215,7 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await serial_asyncio_fast.open_serial_connection(
+        return await serial_asyncio_fast.open_serial_connection(  # type: ignore[unused-ignore, no-any-return]
             url=self.url,
             baudrate=self.baudrate,
             bytesize=EIGHTBITS,

@@ -177,7 +177,7 @@ class TestPhysicalDevice:
 
     @patch(
         "pyplumio.devices.PhysicalDevice.get",
-        side_effect=(asyncio.TimeoutError, asyncio.TimeoutError),
+        side_effect=(TimeoutError, TimeoutError),
     )
     @patch("pyplumio.frames.Request.create", autospec=True)
     @patch("asyncio.Queue.put_nowait")
