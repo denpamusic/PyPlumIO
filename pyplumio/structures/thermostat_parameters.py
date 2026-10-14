@@ -9,7 +9,6 @@ from pyplumio.parameters import ParameterValues, unpack_parameter
 from pyplumio.parameters.thermostat import get_thermostat_parameter_types
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.sensor_data import ATTR_THERMOSTATS_AVAILABLE
-from pyplumio.utils import ensure_dict
 
 ATTR_THERMOSTAT_PROFILE: Final = "thermostat_profile"
 ATTR_THERMOSTAT_PARAMETERS: Final = "thermostat_parameters"
@@ -22,10 +21,6 @@ _ParameterValues: TypeAlias = tuple[int, ParameterValues]
 
 class ThermostatParametersStructure(StructureDecoder):
     """Represents a thermostat parameters data structure."""
-
-    __slots__ = ("_offset",)
-
-    _offset: int
 
     def _thermostat_parameter(
         self, message: bytearray, thermostats: int, start: int, end: int
@@ -51,32 +46,23 @@ class ThermostatParametersStructure(StructureDecoder):
             ):
                 yield (index, parameters)
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         device = self.frame.handler
         if not device or not (
             thermostats := device.get_nowait(ATTR_THERMOSTATS_AVAILABLE, None)
         ):
-            return ensure_dict(data, {ATTR_THERMOSTAT_PARAMETERS: None}), offset
+            data[ATTR_THERMOSTAT_PARAMETERS] = None
+            return
 
         start = message[offset + 1]
         end = message[offset + 2]
         offset += 3
         thermostat_profile = unpack_parameter(message, offset)
         self._offset = offset + THERMOSTAT_PARAMETER_SIZE
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_THERMOSTAT_PROFILE: thermostat_profile,
-                    ATTR_THERMOSTAT_PARAMETERS: dict(
-                        self._thermostat_parameters(message, thermostats, start, end)
-                    ),
-                },
-            ),
-            self._offset,
+        data[ATTR_THERMOSTAT_PROFILE] = thermostat_profile
+        data[ATTR_THERMOSTAT_PARAMETERS] = dict(
+            self._thermostat_parameters(message, thermostats, start, end)
         )
 
 

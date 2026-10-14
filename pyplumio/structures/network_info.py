@@ -8,7 +8,6 @@ from typing import Any, Final
 from pyplumio.const import EncryptionType
 from pyplumio.data_types import IPv4, VarString
 from pyplumio.structures import Structure
-from pyplumio.utils import ensure_dict
 
 ATTR_NETWORK_INFO: Final = "network_info"
 
@@ -86,36 +85,29 @@ class NetworkInfoStructure(Structure):
             + VarString(network_info.wireless.ssid).to_bytes()
         )
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
-        """Decode bytes and return message data and offset."""
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        """Decode message into data."""
         offset += 1
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_NETWORK_INFO: NetworkInfo(
-                        ethernet=EthernetParameters(
-                            ip=IPv4.from_bytes(message, offset).value,
-                            netmask=IPv4.from_bytes(message, offset + 4).value,
-                            gateway=IPv4.from_bytes(message, offset + 8).value,
-                            status=bool(message[offset + 13]),
-                        ),
-                        wireless=WirelessParameters(
-                            ip=IPv4.from_bytes(message, offset + 13).value,
-                            netmask=IPv4.from_bytes(message, offset + 17).value,
-                            gateway=IPv4.from_bytes(message, offset + 21).value,
-                            encryption=EncryptionType(int(message[offset + 26])),
-                            signal_quality=int(message[offset + 27]),
-                            status=bool(message[offset + 28]),
-                            ssid=VarString.from_bytes(message, offset + 33).value,
-                        ),
-                        server_status=bool(message[offset + 25]),
-                    )
-                },
-            ),
-            offset + NETWORK_INFO_SIZE,
+        ethernet = EthernetParameters(
+            ip=IPv4.from_bytes(message, offset).value,
+            netmask=IPv4.from_bytes(message, offset + 4).value,
+            gateway=IPv4.from_bytes(message, offset + 8).value,
+            status=bool(message[offset + 13]),
+        )
+        wireless = WirelessParameters(
+            ip=IPv4.from_bytes(message, offset + 13).value,
+            netmask=IPv4.from_bytes(message, offset + 17).value,
+            gateway=IPv4.from_bytes(message, offset + 21).value,
+            encryption=EncryptionType(int(message[offset + 26])),
+            signal_quality=int(message[offset + 27]),
+            status=bool(message[offset + 28]),
+            ssid=VarString.from_bytes(message, offset + 33).value,
+        )
+        self._offset += offset + NETWORK_INFO_SIZE
+        data[ATTR_NETWORK_INFO] = NetworkInfo(
+            ethernet=ethernet,
+            wireless=wireless,
+            server_status=bool(message[offset + 25]),
         )
 
 

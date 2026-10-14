@@ -12,7 +12,6 @@ from typing import Any, Final, Literal, NamedTuple
 from pyplumio.const import AlertType
 from pyplumio.data_types import UnsignedInt
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
 
 ATTR_ALERTS: Final = "alerts"
 ATTR_TOTAL_ALERTS: Final = "total_alerts"
@@ -68,10 +67,6 @@ class Alert:
 class AlertsStructure(StructureDecoder):
     """Represents an alerts data structure."""
 
-    __slots__ = ("_offset",)
-
-    _offset: int
-
     def _unpack_alert(self, message: bytearray) -> Alert:
         """Unpack an alert."""
         offset = self._offset
@@ -93,30 +88,21 @@ class AlertsStructure(StructureDecoder):
         self._offset = offset
         return Alert(code, from_dt, to_dt)
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
-        """Decode bytes and return message data and offset."""
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        """Decode the message."""
         total_alerts = message[offset]
         start = message[offset + 1]
         end = message[offset + 2]
         self._offset = offset + 3
         if end == 0:
             # No alerts found.
-            return ensure_dict(data, {ATTR_TOTAL_ALERTS: total_alerts}), self._offset
+            data[ATTR_TOTAL_ALERTS] = total_alerts
+            return
 
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_ALERTS: [
-                        self._unpack_alert(message) for _ in range(start, start + end)
-                    ],
-                    ATTR_TOTAL_ALERTS: total_alerts,
-                },
-            ),
-            self._offset,
-        )
+        data[ATTR_ALERTS] = [
+            self._unpack_alert(message) for _ in range(start, start + end)
+        ]
+        data[ATTR_TOTAL_ALERTS] = total_alerts
 
 
 __all__ = ["AlertsStructure", "Alert", "ATTR_ALERTS", "ATTR_TOTAL_ALERTS"]

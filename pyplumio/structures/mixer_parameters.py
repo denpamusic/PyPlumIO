@@ -7,7 +7,6 @@ from typing import Any, Final, TypeAlias
 
 from pyplumio.parameters import ParameterValues, unpack_parameter
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
 
 ATTR_MIXER_PARAMETERS: Final = "mixer_parameters"
 
@@ -18,10 +17,6 @@ _ParameterValues: TypeAlias = tuple[int, ParameterValues]
 
 class MixerParametersStructure(StructureDecoder):
     """Represents a mixer parameters data structure."""
-
-    __slots__ = ("_offset",)
-
-    _offset: int
 
     def _mixer_parameter(
         self, message: bytearray, start: int, end: int
@@ -41,24 +36,14 @@ class MixerParametersStructure(StructureDecoder):
             if parameters := list(self._mixer_parameter(message, start, end)):
                 yield (index, parameters)
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
-        """Decode bytes and return message data and offset."""
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        """Decode message into data."""
         start = message[offset + 1]
         end = message[offset + 2]
         mixers = message[offset + 3]
         self._offset = offset + 4
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_MIXER_PARAMETERS: dict(
-                        self._mixer_parameters(message, mixers, start, end)
-                    )
-                },
-            ),
-            self._offset,
+        data[ATTR_MIXER_PARAMETERS] = dict(
+            self._mixer_parameters(message, mixers, start, end)
         )
 
 

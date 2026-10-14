@@ -31,7 +31,7 @@ from pyplumio.parameters import (
     unpack_parameter,
 )
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict, split_byte
+from pyplumio.utils import split_byte
 
 ATTR_SCHEDULES: Final = "schedules"
 ATTR_SCHEDULE_PARAMETERS: Final = "schedule_parameters"
@@ -307,10 +307,6 @@ class Schedule(Iterable):
 class SchedulesStructure(StructureDecoder):
     """Represents a schedule data structure."""
 
-    __slots__ = ("_offset",)
-
-    _offset: int
-
     def _unpack_schedule(self, message: bytearray) -> list[list[bool]]:
         """Unpack a schedule."""
         offset = self._offset
@@ -323,15 +319,14 @@ class SchedulesStructure(StructureDecoder):
         # Split the schedule. Each day consists of 48 half-hour intervals.
         return [schedule[i : i + 48] for i in range(0, len(schedule), 48)]
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         try:
             start = message[offset + 1]
             end = message[offset + 2]
         except IndexError:
-            return ensure_dict(data, {ATTR_SCHEDULES: []}), offset
+            data[ATTR_SCHEDULES] = []
+            return
 
         schedules: list[tuple[int, list[list[bool]]]] = []
         parameters: list[tuple[int, ParameterValues]] = []
@@ -349,12 +344,8 @@ class SchedulesStructure(StructureDecoder):
             if parameter is not None:
                 parameters.append((index * 2 + 1, parameter))
 
-        return (
-            ensure_dict(
-                data, {ATTR_SCHEDULES: schedules, ATTR_SCHEDULE_PARAMETERS: parameters}
-            ),
-            self._offset,
-        )
+        data[ATTR_SCHEDULES] = schedules
+        data[ATTR_SCHEDULE_PARAMETERS] = parameters
 
 
 __all__ = [

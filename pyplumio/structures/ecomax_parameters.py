@@ -7,7 +7,6 @@ from typing import Any, Final
 
 from pyplumio.parameters import ParameterValues, unpack_parameter
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
 
 ATTR_ECOMAX_PARAMETERS: Final = "ecomax_parameters"
 ATTR_ECOMAX_CONTROL: Final = "ecomax_control"
@@ -17,10 +16,6 @@ ECOMAX_PARAMETER_SIZE: Final = 3
 
 class EcomaxParametersStructure(StructureDecoder):
     """Represents an ecoMAX parameters structure."""
-
-    __slots__ = ("_offset",)
-
-    _offset: int
 
     def _ecomax_parameter(
         self, message: bytearray, start: int, end: int
@@ -32,24 +27,12 @@ class EcomaxParametersStructure(StructureDecoder):
 
             self._offset += ECOMAX_PARAMETER_SIZE
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         start = message[offset + 1]
         end = message[offset + 2]
         self._offset = offset + 3
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_ECOMAX_PARAMETERS: list(
-                        self._ecomax_parameter(message, start, end)
-                    )
-                },
-            ),
-            self._offset,
-        )
+        data[ATTR_ECOMAX_PARAMETERS] = list(self._ecomax_parameter(message, start, end))
 
 
 __all__ = ["ATTR_ECOMAX_PARAMETERS", "EcomaxParametersStructure"]

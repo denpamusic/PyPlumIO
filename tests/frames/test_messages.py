@@ -20,8 +20,8 @@ from pyplumio.structures.sensor_data import ATTR_STATE
         load_json_test_data("messages/regulator_data.json"),
     ),
     ids=[
-        "unknown_regulator_data_version",
         "EM350P2_regulator_data",
+        "unknown_regulator_data_version",
         "incomplete_boolean",
     ],
 )
@@ -31,7 +31,6 @@ async def test_regulator_data_message(ecomax: EcoMAX, schema, regdata) -> None:
     frame.assign_to(ecomax)
     ecomax.load_nowait(schema["data"])
     await ecomax.wait_until_done()
-
     if regdata["id"] == "unknown_regulator_data_version":
         assert ATTR_FRAME_VERSIONS not in frame.data
         assert ATTR_REGDATA not in frame.data

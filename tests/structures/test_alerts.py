@@ -1,6 +1,7 @@
 """Contains tests for alerts structure decoder."""
 
 import datetime as dt
+from typing import Any
 
 import pytest
 
@@ -45,7 +46,8 @@ class TestAlertStructure:
         message = bytearray(
             [0x01, 0x00, 0x01, 0x00, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01]
         )
-        data, offset = alerts_structure.decode(message)
+        data: dict[str, Any] = {}
+        alerts_structure.decode(message, data)
         assert data == {
             ATTR_ALERTS: [
                 Alert(
@@ -56,11 +58,12 @@ class TestAlertStructure:
             ],
             ATTR_TOTAL_ALERTS: 1,
         }
-        assert offset == 12
+        assert alerts_structure.offset == 12
 
     def test_decode_without_alerts(self, alerts_structure: AlertsStructure) -> None:
         """Test decoding of alerts structure without any alerts."""
         message = bytearray([0x00, 0x00, 0x00])
-        data, offset = alerts_structure.decode(message)
+        data: dict[str, Any] = {}
+        alerts_structure.decode(message, data)
         assert data == {ATTR_TOTAL_ALERTS: 0}
-        assert offset == 3
+        assert alerts_structure.offset == 3

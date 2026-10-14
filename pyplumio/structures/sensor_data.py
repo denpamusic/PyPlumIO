@@ -1,16 +1,15 @@
 """Contains sensor data decoder."""
 
-from collections.abc import Generator, MutableMapping
+from collections.abc import Generator
 from contextlib import suppress
 from dataclasses import dataclass
 import math
 import struct
-from typing import Any, Final, TypeVar
+from typing import Any, Final
 
 from pyplumio.const import ATTR_SCHEDULE, BYTE_UNDEFINED, DeviceState, LambdaState
 from pyplumio.data_types import Float, UnsignedInt, UnsignedShort
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
 
 ATTR_AIR_IN_TEMP: Final = "air_in_temp"
 ATTR_AIR_OUT_TEMP: Final = "air_out_temp"
@@ -156,26 +155,18 @@ class ConnectedModules:
 struct_version = struct.Struct("<BBB")
 struct_vendor = struct.Struct("<BB")
 
-_DataT = TypeVar("_DataT", bound=MutableMapping)
-
 
 class SensorDataStructure(StructureDecoder):
     """Represents a sensor data structure."""
 
-    __slots__ = ("_offset",)
-
-    _offset: int
-
-    def _decode_outputs(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_outputs(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode outputs from message."""
         outputs = UnsignedInt.from_bytes(message, self._offset)
         self._offset += outputs.size
         for index, output in enumerate(OUTPUTS):
             data[output] = bool(outputs.value & 2**index)
 
-        return data
-
-    def _decode_output_flags(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_output_flags(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode output flags from message."""
         output_flags = UnsignedInt.from_bytes(message, self._offset)
         self._offset += output_flags.size
@@ -183,9 +174,8 @@ class SensorDataStructure(StructureDecoder):
         data[ATTR_WATER_HEATER_PUMP_FLAG] = bool(output_flags.value & 0x08)
         data[ATTR_CIRCULATION_PUMP_FLAG] = bool(output_flags.value & 0x10)
         data[ATTR_SOLAR_PUMP_FLAG] = bool(output_flags.value & 0x800)
-        return data
 
-    def _decode_temperatures(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_temperatures(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode temperatures from message."""
         offset = self._offset
         temperatures = message[offset]
@@ -200,24 +190,21 @@ class SensorDataStructure(StructureDecoder):
                 data[TEMPERATURES[index]] = temp.value
 
         self._offset = offset
-        return data
 
-    def _decode_statuses(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_statuses(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode statuses from message."""
         for index, status in enumerate(STATUSES):
             data[status] = message[self._offset + index]
 
         self._offset += len(STATUSES)
-        return data
 
-    def _decode_pending_alerts(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_pending_alerts(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode pending alerts from message."""
         pending_alerts = message[self._offset]
         data[ATTR_PENDING_ALERTS] = pending_alerts
         self._offset += pending_alerts + 1
-        return data
 
-    def _decode_fuel_level(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_fuel_level(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode fuel level from message."""
         fuel_level = message[self._offset]
         self._offset += 1
@@ -230,29 +217,23 @@ class SensorDataStructure(StructureDecoder):
                 else fuel_level - FUEL_LEVEL_OFFSET
             )
 
-        return data
-
-    def _decode_boiler_load(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_boiler_load(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode boiler load from message."""
         boiler_load = message[self._offset]
         self._offset += 1
         if boiler_load != BYTE_UNDEFINED:
             data[ATTR_BOILER_LOAD] = boiler_load
 
-        return data
-
     def _decode_float_value(
-        self, name: str, message: bytearray, data: _DataT
-    ) -> _DataT:
+        self, name: str, message: bytearray, data: dict[str, Any]
+    ) -> None:
         """Decode float value and increase an offset."""
         float_value = Float.from_bytes(message, self._offset)
         self._offset += float_value.size
         if not math.isnan(float_value.value):
             data[name] = float_value.value
 
-        return data
-
-    def _decode_modules(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_modules(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode modules from message."""
         offset = self._offset
 
@@ -278,9 +259,8 @@ class SensorDataStructure(StructureDecoder):
 
         data[ATTR_MODULES] = ConnectedModules(**dict(_module_versions()))
         self._offset = offset
-        return data
 
-    def _decode_lambda_sensor(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_lambda_sensor(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode lambda sensor from message."""
         offset = self._offset
         lambda_state = message[offset]
@@ -298,9 +278,10 @@ class SensorDataStructure(StructureDecoder):
             data[ATTR_LAMBDA_LEVEL] = level.value / 10
 
         self._offset = offset
-        return data
 
-    def _decode_thermostat_sensors(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_thermostat_sensors(
+        self, message: bytearray, data: dict[str, Any]
+    ) -> None:
         """Decode thermostat sensors from message."""
         contact_mask = 1
         schedule_mask = 1 << 3
@@ -348,9 +329,8 @@ class SensorDataStructure(StructureDecoder):
             data[ATTR_THERMOSTATS_AVAILABLE] = thermostats
 
         self._offset = offset
-        return data
 
-    def _decode_mixer_sensors(self, message: bytearray, data: _DataT) -> _DataT:
+    def _decode_mixer_sensors(self, message: bytearray, data: dict[str, Any]) -> None:
         """Decode mixer sensors from message."""
         offset = self._offset
 
@@ -383,37 +363,32 @@ class SensorDataStructure(StructureDecoder):
         data[ATTR_MIXERS_CONNECTED] = len(mixer_sensors)
         data[ATTR_MIXERS_AVAILABLE] = mixers
         self._offset = offset
-        return data
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
-        data = ensure_dict(data)
         data[ATTR_STATE] = message[offset]
         self._offset = offset + 1
         with suppress(ValueError):
             data[ATTR_STATE] = DeviceState(data[ATTR_STATE])
 
-        data = self._decode_outputs(message, data)
-        data = self._decode_output_flags(message, data)
-        data = self._decode_temperatures(message, data)
-        data = self._decode_statuses(message, data)
-        data = self._decode_pending_alerts(message, data)
-        data = self._decode_fuel_level(message, data)
+        self._decode_outputs(message, data)
+        self._decode_output_flags(message, data)
+        self._decode_temperatures(message, data)
+        self._decode_statuses(message, data)
+        self._decode_pending_alerts(message, data)
+        self._decode_fuel_level(message, data)
         data[ATTR_TRANSMISSION] = message[self._offset]
         self._offset += 1
-        data = self._decode_float_value(ATTR_FAN_POWER, message, data)
-        data = self._decode_boiler_load(message, data)
-        data = self._decode_float_value(ATTR_BOILER_POWER, message, data)
-        data = self._decode_float_value(ATTR_FUEL_CONSUMPTION, message, data)
+        self._decode_float_value(ATTR_FAN_POWER, message, data)
+        self._decode_boiler_load(message, data)
+        self._decode_float_value(ATTR_BOILER_POWER, message, data)
+        self._decode_float_value(ATTR_FUEL_CONSUMPTION, message, data)
         data[ATTR_THERMOSTAT] = message[self._offset]
         self._offset += 1
-        data = self._decode_modules(message, data)
-        data = self._decode_lambda_sensor(message, data)
-        data = self._decode_thermostat_sensors(message, data)
-        data = self._decode_mixer_sensors(message, data)
-        return data, offset
+        self._decode_modules(message, data)
+        self._decode_lambda_sensor(message, data)
+        self._decode_thermostat_sensors(message, data)
+        self._decode_mixer_sensors(message, data)
 
 
 __all__ = [

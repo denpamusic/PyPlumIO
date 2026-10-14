@@ -8,7 +8,6 @@ from pyplumio.data_types import BitArray, DataType
 from pyplumio.structures import StructureDecoder
 from pyplumio.structures.frame_versions import FrameVersionsStructure
 from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
-from pyplumio.utils import ensure_dict
 
 ATTR_REGDATA: Final = "regdata"
 
@@ -18,9 +17,8 @@ REGDATA_VERSION: Final = "1.0"
 class RegulatorDataStructure(StructureDecoder):
     """Represents a regulator data structure."""
 
-    __slots__ = ("_offset", "_bitarray_index")
+    __slots__ = ("_bitarray_index",)
 
-    _offset: int
     _bitarray_index: int
 
     def _unpack_regulator_data(self, message: bytearray, data_type: DataType) -> Any:
@@ -39,30 +37,23 @@ class RegulatorDataStructure(StructureDecoder):
         self._offset += data_type.size
         return data_type.value
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
-        data = ensure_dict(data)
         offset += 2
         regdata_version = f"{message[offset + 1]}.{message[offset]}"
-        if regdata_version != REGDATA_VERSION:
-            return data, offset
-
-        data, self._offset = FrameVersionsStructure(self.frame).decode(
-            message, offset + 2, data
-        )
-
-        device = self.frame.handler
-        schema: list[tuple[int, DataType]]
-        if device and (schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])):
-            self._bitarray_index = 0
-            data[ATTR_REGDATA] = {
-                param_id: self._unpack_regulator_data(message, data_type)
-                for param_id, data_type in schema
-            }
-
-        return data, self._offset
+        self._offset = offset
+        if regdata_version == REGDATA_VERSION:
+            frame_version_structure = FrameVersionsStructure(self.frame)
+            frame_version_structure.decode(message, data, self._offset + 2)
+            self._offset = frame_version_structure.offset
+            device = self.frame.handler
+            schema: list[tuple[int, DataType]]
+            if device and (schema := device.get_nowait(ATTR_REGDATA_SCHEMA, [])):
+                self._bitarray_index = 0
+                data[ATTR_REGDATA] = {
+                    param_id: self._unpack_regulator_data(message, data_type)
+                    for param_id, data_type in schema
+                }
 
 
 __all__ = ["ATTR_REGDATA", "REGDATA_VERSION", "RegulatorDataStructure"]

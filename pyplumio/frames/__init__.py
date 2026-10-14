@@ -346,7 +346,8 @@ class Response(Frame):
         data: dict[str, Any] = {}
         offset = 0
         for structure in self._structures:
-            data, offset = structure.decode(message, offset, data)
+            structure.decode(message, data, offset)
+            offset = structure.offset
 
         if hasattr(self, "container"):
             return {self.container: data}

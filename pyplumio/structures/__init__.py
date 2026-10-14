@@ -11,26 +11,28 @@ from pyplumio.frames import Frame
 class Structure(ABC):
     """Represents a data structure."""
 
-    __slots__ = ("frame",)
+    __slots__ = ("frame", "_offset")
 
     frame: Frame
+    _offset: int
 
     def __init__(self, frame: Frame) -> None:
         """Initialize a new structure."""
         self.frame = frame
+        self._offset = 0
+
+    @property
+    def offset(self) -> int:
+        """Return a structure read offset."""
+        return self._offset
 
     @abstractmethod
     def encode(self, data: dict[str, Any]) -> bytearray:
-        """Encode data to the bytearray message."""
+        """Encode message from data."""
 
     @abstractmethod
-    def decode(
-        self,
-        message: bytearray,
-        offset: int = 0,
-        data: dict[str, Any] | None = None,
-    ) -> tuple[dict[str, Any], int]:
-        """Decode bytes and return message data and offset."""
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        """Decode message into data."""
 
 
 class StructureDecoder(Structure, ABC):
@@ -39,14 +41,12 @@ class StructureDecoder(Structure, ABC):
     __slots__ = ()
 
     def encode(self, data: dict[str, Any]) -> bytearray:
-        """Encode data to the bytearray message."""
+        """Encode message from data."""
         return bytearray()
 
     @abstractmethod
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
-        """Decode bytes and return message data and offset."""
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        """Decode message into data."""
 
 
 __all__ = ["Structure", "StructureDecoder"]

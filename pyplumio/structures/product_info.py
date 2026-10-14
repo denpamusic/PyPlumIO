@@ -11,7 +11,6 @@ from typing import Any, Final
 from pyplumio.const import ProductType
 from pyplumio.data_types import UnsignedShort, VarBytes, VarString
 from pyplumio.structures import StructureDecoder
-from pyplumio.utils import ensure_dict
 
 ATTR_PRODUCT: Final = "product"
 
@@ -80,9 +79,7 @@ class ProductInfoStructure(StructureDecoder):
 
     __slots__ = ()
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
         offset += 3
@@ -94,22 +91,14 @@ class ProductInfoStructure(StructureDecoder):
         offset += image.size
         model_name = VarString.from_bytes(message, offset)
         offset += model_name.size
-
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_PRODUCT: ProductInfo(
-                        type=ProductType(product_type),
-                        id=product_id,
-                        uid=unpack_uid(uid.value),
-                        logo=logo.value,
-                        image=image.value,
-                        model=format_model_name(model_name.value),
-                    )
-                },
-            ),
-            offset,
+        self._offset = offset
+        data[ATTR_PRODUCT] = ProductInfo(
+            type=ProductType(product_type),
+            id=product_id,
+            uid=unpack_uid(uid.value),
+            logo=logo.value,
+            image=image.value,
+            model=format_model_name(model_name.value),
         )
 
 

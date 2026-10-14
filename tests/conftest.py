@@ -93,7 +93,11 @@ def json_test_data(
 ):
     """Pytest decorator to inject JSON test data as a test argument."""
     if not name:
-        name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+        name = (
+            json_path.rsplit("/", maxsplit=1)[-1]
+            .rsplit("\\", maxsplit=1)[-1]
+            .rsplit(".", 1)[0]
+        )
 
     if selector:
         name += f"_{selector}"
@@ -122,7 +126,11 @@ def class_from_json(
 ):
     """Pytest decorator to inject JSON test data as a test argument."""
     if not name:
-        name = json_path.split("/")[-1].split("\\")[-1].rsplit(".", 1)[0]
+        name = (
+            json_path.rsplit("/", maxsplit=1)[-1]
+            .rsplit("\\", maxsplit=1)[-1]
+            .rsplit(".", 1)[0]
+        )
 
     init_args = arguments if arguments else ()
 

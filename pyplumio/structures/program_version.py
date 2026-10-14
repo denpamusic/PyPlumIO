@@ -8,7 +8,6 @@ from typing import Any, Final
 
 from pyplumio import version_tuple
 from pyplumio.structures import Structure
-from pyplumio.utils import ensure_dict
 
 ATTR_VERSION: Final = "version"
 
@@ -51,9 +50,7 @@ class ProgramVersionStructure(Structure):
         )
         return message
 
-    def decode(
-        self, message: bytearray, offset: int = 0, data: dict[str, Any] | None = None
-    ) -> tuple[dict[str, Any], int]:
+    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         (
             struct_tag,
@@ -65,21 +62,13 @@ class ProgramVersionStructure(Structure):
             software3,
             _,  # recipient
         ) = struct_program_version.unpack_from(message)
-
-        return (
-            ensure_dict(
-                data,
-                {
-                    ATTR_VERSION: VersionInfo(
-                        software=".".join(map(str, [software1, software2, software3])),
-                        struct_tag=struct_tag,
-                        struct_version=struct_version,
-                        device_id=device_id,
-                        processor_signature=processor_signature,
-                    )
-                },
-            ),
-            offset + VERSION_INFO_SIZE,
+        self._offset = offset + VERSION_INFO_SIZE
+        data[ATTR_VERSION] = VersionInfo(
+            software=".".join(map(str, [software1, software2, software3])),
+            struct_tag=struct_tag,
+            struct_version=struct_version,
+            device_id=device_id,
+            processor_signature=processor_signature,
         )
 
 

@@ -1,5 +1,7 @@
 """Contains tests for frame versions structure decoder."""
 
+from typing import Any
+
 import pytest
 
 from pyplumio.const import FrameType
@@ -22,6 +24,7 @@ class TestFrameVersionsStructure:
     def test_decode(self, frame_versions_structure: FrameVersionsStructure) -> None:
         """Test decoding of frame versions structure."""
         message = bytearray([0x01, 0x31, 0xFF, 0x00, 0x00, 0x00])
-        data, offset = frame_versions_structure.decode(message)
+        data: dict[str, Any] = {}
+        frame_versions_structure.decode(message, data)
         assert data == {ATTR_FRAME_VERSIONS: {FrameType.REQUEST_ECOMAX_PARAMETERS: 255}}
-        assert offset == 4
+        assert frame_versions_structure.offset == 4

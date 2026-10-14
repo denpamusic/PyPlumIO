@@ -1,5 +1,7 @@
 """Contains tests for ecoMAX parameters structure decoder."""
 
+from typing import Any
+
 import pytest
 
 from pyplumio.frames.responses import EcomaxParametersResponse
@@ -24,10 +26,11 @@ class TestEcomaxParametersStructure:
     ) -> None:
         """Test decoding of ecoMAX parameters structure."""
         message = bytearray([0x01, 0x00, 0x01, 0x02, 0x01, 0x03])
-        data, offset = ecomax_parameters_structure.decode(message)
+        data: dict[str, Any] = {}
+        ecomax_parameters_structure.decode(message, data)
         assert data == {
             ATTR_ECOMAX_PARAMETERS: [
                 (0, ParameterValues(value=2, min_value=1, max_value=3))
             ]
         }
-        assert offset == 6
+        assert ecomax_parameters_structure.offset == 6
