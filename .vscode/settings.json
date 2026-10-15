@@ -5,12 +5,18 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
-  "editor.rulers": [72, 88],
+  "editor.rulers": [
+    72,
+    88
+  ],
   "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.tabSize": 4
   },
   "[json]": {
     "editor.tabSize": 2
-  }
+  },
+  "python.testing.pytestArgs": [
+    "."
+  ]
 }
