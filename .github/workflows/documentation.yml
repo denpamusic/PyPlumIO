@@ -21,7 +21,7 @@ jobs:
         run: uv python install 3.11
 
       - name: Sphinx build
-        run: uv run --python 3.11 --group docs sphinx-build ./docs/source ./docs/build
+        run: uv run --locked --no-default-groups --python 3.11 --group docs sphinx-build ./docs/source ./docs/build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4

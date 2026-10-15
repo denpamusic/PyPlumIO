@@ -26,5 +26,5 @@ jobs:
         run: uv python install 3.11
 
       - name: Run type checking with mypy
-        run: uv run --python 3.11 --group typing mypy pyplumio tests
+        run: uv run --locked --no-default-groups --python 3.11 --group typing --group test mypy pyplumio tests
 

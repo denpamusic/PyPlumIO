@@ -26,14 +26,14 @@ jobs:
         run: uv python install 3.11
 
       - name: Run spell check
-        run: uv run --python 3.11 --group lint codespell
+        run: uv run --locked --no-default-groups --python 3.11 --group lint codespell
 
       - name: Run ruff check
-        run: uv run --python 3.11 --group lint ruff check .
+        run: uv run --locked --no-default-groups --python 3.11 --group lint ruff check .
 
       - name: Run ruff format check
-        run: uv run --python 3.11 --group lint ruff format --check .
+        run: uv run --locked --no-default-groups --python 3.11 --group lint ruff format --check .
 
       - name: Run complexipy
-        run: uv run --python 3.11 --group lint complexipy . --max-complexity-allowed 15
+        run: uv run --locked --no-default-groups --python 3.11 --group lint complexipy . --max-complexity-allowed 15
 

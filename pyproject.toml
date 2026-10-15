@@ -40,18 +40,18 @@ dev = [
 ]
 test = [
     "freezegun>=1.5.5",
-    "numpy>=2.0.0,<3.0.0",
+    "numpy>=2.0.0,<2.5.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=6.0.0",
 ]
 lint = [
-    "codespell>=2.4.1",
+    "codespell>=2.4.3",
     "complexipy>=8.0.1",
     "ruff>=0.17.0",
 ]
 typing = [
-    "mypy>=1.19.1",
+    "mypy>=1.19.1,<=2.4.0",
     "types-pyserial>=3.5.0.20251001",
 ]
 docs = [
@@ -63,6 +63,16 @@ docs = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/pyplumio",
+    "/tests",
+    "/docs",
+    "/LICENSE",
+    "/README.md",
+    "/pyproject.toml",
+]
 
 [tool.codespell]
 skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.venv,.vscode,build,docs"

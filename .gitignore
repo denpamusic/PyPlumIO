@@ -112,3 +112,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Complexipy
+.complexipy_cache/
+
+# QLTY
+.qlty/results/
+.qlty/out/

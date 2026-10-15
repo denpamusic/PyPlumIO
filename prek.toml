@@ -1,31 +1,14 @@
 # See https://github.com/j178/prek for more information
+#
+# All hooks run through uv, so tool versions come from uv.lock, the same
+# versions CI uses. Update them with `uv lock --upgrade-package <name>`.
 
 [[repos]]
-repo = "https://github.com/astral-sh/ruff-pre-commit"
-rev = "v0.17.0"
+repo = "local"
 hooks = [
-    { id = "ruff-check", args = ["--fix"] },
-    { id = "ruff-format" },
+    { id = "ruff-check", name = "ruff check", entry = "uv run --frozen ruff check --fix --force-exclude", language = "system", types_or = ["python", "pyi"] },
+    { id = "ruff-format", name = "ruff format", entry = "uv run --frozen ruff format --force-exclude", language = "system", types_or = ["python", "pyi"] },
+    { id = "codespell", name = "codespell", entry = "uv run --frozen codespell", language = "system", types = ["text"] },
+    { id = "mypy", name = "mypy", entry = "uv run --frozen mypy pyplumio tests", language = "system", types_or = ["python", "pyi"], pass_filenames = false },
+    { id = "complexipy", name = "complexipy", entry = "uv run --frozen complexipy", language = "system", types = ["python"] },
 ]
-
-[[repos]]
-repo = "https://github.com/codespell-project/codespell"
-rev = "v2.4.3"
-hooks = [
-    { id = "codespell" },
-]
-
-[[repos]]
-repo = "https://github.com/pre-commit/mirrors-mypy"
-rev = "v2.4.0"
-hooks = [
-    { id = "mypy" },
-]
-
-[[repos]]
-repo = "https://github.com/rohaquinlop/complexipy-pre-commit"
-rev = "v8.0.1"
-hooks = [
-    { id = "complexipy", args = ["--max-complexity-allowed=15"] },
-]
-
