@@ -42,9 +42,11 @@ through network by using RS-485 to Ethernet/WiFi converter.
 
 ## Quickstart
 
-1. To use PyPlumIO, first install it using pip:
+1. To use PyPlumIO, first install it using [uv](https://docs.astral.sh/uv/) or pip:
 
 ```bash
+uv add pyplumio
+# or
 pip install pyplumio
 ```
 

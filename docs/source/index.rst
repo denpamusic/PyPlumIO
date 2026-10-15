@@ -19,10 +19,12 @@ RS-485 to Ethernet/WiFi converter.
 
 Quickstart
 ==========
-1. To use PyPlumIO, first install it using pip:
+1. To use PyPlumIO, first install it using uv or pip:
 
 .. code-block:: console
 
+    $ uv add pyplumio
+    # or
     (.venv) $ pip install pyplumio
 
 2. Connect to the ecoMAX controller:
