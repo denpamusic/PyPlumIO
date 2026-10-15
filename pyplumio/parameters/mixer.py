@@ -29,11 +29,9 @@ if TYPE_CHECKING:
     from pyplumio.devices.mixer import Mixer
 
 
-@dataclass
+@dataclass(slots=True)
 class MixerParameterDescription(ParameterDescription):
     """Represents a mixer parameter description."""
-
-    __slots__ = ()
 
 
 class MixerParameter(Parameter):

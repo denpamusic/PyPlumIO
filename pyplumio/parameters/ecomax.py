@@ -35,11 +35,9 @@ if TYPE_CHECKING:
     from pyplumio.devices.ecomax import EcoMAX
 
 
-@dataclass
+@dataclass(slots=True)
 class EcomaxParameterDescription(ParameterDescription):
     """Represents an ecoMAX parameter description."""
-
-    __slots__ = ()
 
 
 class EcomaxParameter(Parameter):

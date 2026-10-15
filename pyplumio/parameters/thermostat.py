@@ -33,6 +33,9 @@ if TYPE_CHECKING:
 class ThermostatParameterDescription(ParameterDescription):
     """Represents a thermostat parameter description."""
 
+    # Mixin for diamond subclasses: keep the instance layout empty to
+    # avoid a layout conflict. Concrete subclasses use slots=True and
+    # get the "size" slot generated there.
     __slots__ = ()
 
     size: int = 1

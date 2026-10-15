@@ -1,5 +1,7 @@
 """Contains sensor data decoder."""
 
+from __future__ import annotations
+
 from collections.abc import Generator
 from contextlib import suppress
 from dataclasses import dataclass

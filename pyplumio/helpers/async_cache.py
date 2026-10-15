@@ -1,5 +1,7 @@
 """Contains a simple async cache for caching results of async functions."""
 
+from __future__ import annotations
+
 from collections.abc import Awaitable, Callable, Coroutine
 from functools import wraps
 from types import MappingProxyType

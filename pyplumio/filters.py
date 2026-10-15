@@ -102,16 +102,16 @@ _SubtractableT = TypeVar("_SubtractableT", list, SupportsSubtraction)
 
 
 @overload
-def diffence_between(old: list, new: list) -> list: ...
+def difference_between(old: list, new: list) -> list: ...
 
 
 @overload
-def diffence_between(
+def difference_between(
     old: SupportsSubtraction, new: SupportsSubtraction
 ) -> SupportsSubtraction: ...
 
 
-def diffence_between(old: _SubtractableT, new: _SubtractableT) -> Any:
+def difference_between(old: _SubtractableT, new: _SubtractableT) -> Any:
     """Return a difference between values."""
     if isinstance(old, list) and isinstance(new, list):
         return [x for x in new if x not in old]
@@ -540,7 +540,7 @@ class _Delta(ComparisonFilter):
         if self.is_undefined() or not is_close(self.value, new_value):
             old_value = self.value
             self.value = new_value
-            difference = diffence_between(old_value, new_value)
+            difference = difference_between(old_value, new_value)
             if difference is not NotImplemented:
                 return await self._callback(difference)
 

@@ -1,5 +1,7 @@
 """Contains patch for ecoMAX 860D3-HB."""
 
+from __future__ import annotations
+
 from pyplumio.const import UnitOfMeasurement
 from pyplumio.parameters.custom import CustomParameter, CustomParameters, Signature
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription

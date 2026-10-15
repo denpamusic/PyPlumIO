@@ -84,7 +84,7 @@ SCHEDULES: tuple[str, ...] = (
 )
 
 
-@dataclass
+@dataclass(slots=True)
 class ScheduleParameterDescription(ParameterDescription):
     """Represent a schedule parameter description."""
 
