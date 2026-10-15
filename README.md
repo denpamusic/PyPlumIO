@@ -2,7 +2,6 @@
 
 [![PyPI version](https://badge.fury.io/py/PyPlumIO.svg)](https://badge.fury.io/py/PyPlumIO)
 [![PyPI Supported Python Versions](https://img.shields.io/pypi/pyversions/pyplumio.svg)](https://pypi.python.org/pypi/pyplumio/)
-[![PyPlumIO CI](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml/badge.svg)](https://github.com/denpamusic/PyPlumIO/actions/workflows/ci.yml)
 [![Maintainability](https://qlty.sh/gh/denpamusic/projects/PyPlumIO/maintainability.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
 [![Code Coverage](https://qlty.sh/gh/denpamusic/projects/PyPlumIO/coverage.svg)](https://qlty.sh/gh/denpamusic/projects/PyPlumIO)
 [![stability-release-candidate](https://img.shields.io/badge/stability-pre--release-48c9b0.svg)](https://guidelines.denpa.pro/stability#release-candidate)
@@ -75,6 +74,54 @@ There is companion Home Assistant integration that is being co-developed with
 this package and depends on it. Click button below to check it out.
 
 [![Plum ecoMAX for Home Assistant](https://img.shields.io/badge/Plum%20ecoMAX%20for%20Home%20Assistant-41bdf5)](https://github.com/denpamusic/homeassistant-plum-ecomax)
+
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/) for project and dependency management, and [prek](https://github.com/j178/prek) for Git hooks.
+
+### Setup
+
+Install the project and development dependencies:
+
+```bash
+uv sync
+```
+
+### Running Tests
+
+Run the test suite with coverage enforcement (100% required):
+
+```bash
+uv run pytest
+```
+
+### Code Quality & Formatting
+
+Run linters, format checks, and cognitive complexity analysis:
+
+```bash
+uv run codespell
+uv run ruff check .
+uv run ruff format --check .
+uv run complexipy . --max-complexity-allowed 15
+```
+
+### Type Checking
+
+Run type checking with mypy:
+
+```bash
+uv run mypy pyplumio tests
+```
+
+### Git Hooks
+
+Install and run Git hooks via prek:
+
+```bash
+prek install
+prek run --all-files
+```
 
 ## Attribution
 

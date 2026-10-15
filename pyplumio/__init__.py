@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
-from pyplumio._version import __version__, __version_tuple__, version, version_tuple
 from pyplumio.connection import SerialConnection, TcpConnection
 from pyplumio.exceptions import (
     ChecksumError,
@@ -20,6 +20,13 @@ from pyplumio.exceptions import (
 from pyplumio.frames import Frame
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
+
+try:
+    __version__ = _pkg_version("PyPlumIO")
+except PackageNotFoundError:  # pragma: no cover
+    __version__ = "unknown"
+
+version = __version__
 
 
 def open_serial_connection(
@@ -92,9 +99,7 @@ def open_tcp_connection(
 
 __all__ = [
     "__version__",
-    "__version_tuple__",
     "version",
-    "version_tuple",
     "AsyncProtocol",
     "ChecksumError",
     "ConnectionFailedError",

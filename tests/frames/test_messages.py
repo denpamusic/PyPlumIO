@@ -15,9 +15,11 @@ from pyplumio.structures.sensor_data import ATTR_STATE
 
 @pytest.mark.parametrize(
     ("schema", "regdata"),
-    zip(
-        load_json_test_data("responses/regulator_data_schema.json"),
-        load_json_test_data("messages/regulator_data.json"),
+    list(
+        zip(
+            load_json_test_data("responses/regulator_data_schema.json"),
+            load_json_test_data("messages/regulator_data.json"),
+        )
     ),
     ids=[
         "EM350P2_regulator_data",

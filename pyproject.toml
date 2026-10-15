@@ -1,7 +1,6 @@
-# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-
 [project]
 name = "PyPlumIO"
+version = "0.7.0"
 authors = [
     {name = "Denis Paavilainen", email = "denpa@denpa.pro"}
 ]
@@ -26,58 +25,53 @@ classifiers = [
 dependencies = [
     "pyserial-asyncio-fast==0.16"
 ]
-dynamic = ["version"]
 
 [project.urls]
 "Documentation" = "https://pyplumio.denpa.pro"
 "Source Code" = "https://github.com/denpamusic/PyPlumIO"
 "Bug Tracker" = "https://github.com/denpamusic/PyPlumIO/issues"
 
-[project.optional-dependencies]
+[dependency-groups]
+dev = [
+    {include-group = "test"},
+    {include-group = "docs"},
+    {include-group = "lint"},
+    {include-group = "typing"},
+]
 test = [
-    "codespell==2.4.1",
-    "coverage==7.15.4",
-    "freezegun==1.5.5",
-    "mypy==1.19.1",
-    "numpy<3.0.0,>=2.0.0",
-    "pyserial-asyncio-fast==0.16",
-    "pytest==9.1.1",
-    "pytest-asyncio==1.3.0",
-    "ruff==0.16.2",
-    "tox==4.58.0",
-    "types-pyserial==3.5.0.20251001"
+    "freezegun>=1.5.5",
+    "numpy>=2.0.0,<3.0.0",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=6.0.0",
+]
+lint = [
+    "codespell>=2.4.1",
+    "complexipy>=8.0.1",
+    "ruff>=0.17.0",
+]
+typing = [
+    "mypy>=1.19.1",
+    "types-pyserial>=3.5.0.20251001",
 ]
 docs = [
-    "sphinx==8.1.3",
-    "sphinx_rtd_theme==3.1.0",
-    "readthedocs-sphinx-search==0.3.2"
+    "sphinx>=8.1.3",
+    "sphinx-rtd-theme>=3.1.0",
+    "readthedocs-sphinx-search>=0.3.2",
 ]
-dev = [
-    "pyplumio[test,docs]",
-    "pre-commit==4.6.1",
-    "tomli==2.4.1"
-]
-
 
 [build-system]
-requires = ["setuptools", "setuptools-scm"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-platforms = ["any"]
-packages = ["pyplumio"]
-
-[tool.setuptools.package-data]
-pyplumio = ["py.typed"]
-
-[tool.setuptools_scm]
-write_to = "pyplumio/_version.py"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.codespell]
-skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.tox,.vscode,build,docs"
+skip = ".git,.mypy_cache,.pytest_cache,.ruff_cache,.venv,.vscode,build,docs"
+
+[tool.complexipy]
+max-complexity-allowed = 15
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 show_error_codes = true
 follow_imports = "silent"
 local_partial_types = true
@@ -105,12 +99,11 @@ disallow_untyped_defs = true
 warn_return_any = true
 warn_unreachable = true
 exclude = [
-    "_version.py",
     ".git",
     ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
-    ".tox",
+    ".venv",
     ".vscode",
     "build",
     "docs",
@@ -127,11 +120,10 @@ exclude = [
     ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
-    ".tox",
+    ".venv",
     ".vscode",
     "build",
     "docs",
-    "_version.py",
 ]
 line-length = 88
 indent-width = 4
@@ -230,8 +222,12 @@ max-complexity = 25
 # Allow print in main
 "pyplumio/__main__.py" = ["T201"]
 
+[tool.coverage.run]
+source = ["pyplumio"]
+
 [tool.coverage.report]
 exclude_lines = [
+    "pragma: no cover",
     "if TYPE_CHECKING:",
     "@overload",
     "pytest.fail",
@@ -240,52 +236,4 @@ exclude_lines = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
-
-[tool.tox]
-legacy_tox_ini = """
-    [tox]
-    envlist = lint, type, py{311,312,313,314}
-    isolated_build = True
-    skip_missing_interpreters = True
-    ignore_basepython_conflict = True
-
-    [gh-actions]
-    python =
-        3.11: py311, lint, type
-        3.12: py312
-        3.13: py313
-        3.14: py314
-
-    [testenv]
-    deps =
-        -r{toxinidir}/requirements.txt
-        -r{toxinidir}/requirements_test.txt
-
-    commands =
-        coverage run --source=pyplumio -m pytest tests/
-        coverage report -m
-
-    [testenv:lint]
-    deps =
-        -r{toxinidir}/requirements.txt
-        -r{toxinidir}/requirements_test.txt
-
-    commands =
-        codespell
-        ruff check .
-
-    [testenv:test]
-    deps =
-        -r{toxinidir}/requirements.txt
-        -r{toxinidir}/requirements_test.txt
-    commands =
-        pytest
-
-    [testenv:type]
-    deps =
-        -r{toxinidir}/requirements.txt
-        -r{toxinidir}/requirements_test.txt
-
-    commands =
-        mypy .
-"""
+addopts = "--cov=pyplumio --cov-report=term-missing --cov-fail-under=100"

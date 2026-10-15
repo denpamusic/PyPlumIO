@@ -3,17 +3,28 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version as _pkg_version
+import re
 import struct
 from typing import Any, Final
 
-from pyplumio import version_tuple
 from pyplumio.structures import Structure
 
 ATTR_VERSION: Final = "version"
 
 VERSION_INFO_SIZE: Final = 15
 
-SOFTWARE_VERSION: Final = ".".join(str(x) for x in version_tuple[0:3])
+
+def _get_software_version() -> str:
+    """Return the software version."""
+    try:
+        digits = re.findall(r"\d+", _pkg_version("PyPlumIO"))
+        return ".".join((digits + ["0", "0", "0"])[:3])
+    except PackageNotFoundError:  # pragma: no cover
+        return "0.0.0"
+
+
+SOFTWARE_VERSION: Final = _get_software_version()
 
 struct_program_version = struct.Struct("<2sB2s3s3HB")
 

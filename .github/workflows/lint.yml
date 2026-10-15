@@ -1,0 +1,39 @@
+---
+name: lint
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Run spell check
+        run: uv run --python 3.11 --group lint codespell
+
+      - name: Run ruff check
+        run: uv run --python 3.11 --group lint ruff check .
+
+      - name: Run ruff format check
+        run: uv run --python 3.11 --group lint ruff format --check .
+
+      - name: Run complexipy
+        run: uv run --python 3.11 --group lint complexipy . --max-complexity-allowed 15
+
