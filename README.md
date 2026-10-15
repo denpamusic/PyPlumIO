@@ -10,11 +10,6 @@
 
 ---
 
-> ⚠️ **Important Announcement**  
-Due to personal health reasons, this project is now on hold until April, 2026. No support and no updates will be available until then, however PR's are still very much welcome and will be reviewed ASAP. Thank you for the understanding and sorry for any inconvenience!
-
----
-
 ## Overview
 
 This package aims to provide complete and easy to use solution for
