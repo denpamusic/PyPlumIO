@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar
 
 from pyplumio.const import DeviceType, FrameType
 from pyplumio.exceptions import UnknownFrameError
-from pyplumio.utils import create_instance, ensure_dict, to_camelcase
+from pyplumio.utils import create_instance, to_camelcase
 
 if TYPE_CHECKING:
     from pyplumio.structures import Structure
@@ -105,7 +105,7 @@ class Frame(ABC):
         self.econet_type = econet_type
         self.econet_version = econet_version
         self._handler = None
-        self._data = data if not kwargs else ensure_dict(data, kwargs)
+        self._data = (data or {}) | kwargs if kwargs else data
         self._message = message
 
     def __eq__(self, other: object) -> bool:

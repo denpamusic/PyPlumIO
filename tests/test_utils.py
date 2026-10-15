@@ -32,18 +32,6 @@ def test_to_camelcase(input_value, overrides, expected) -> None:
 
 
 @pytest.mark.parametrize(
-    ("dct", "defaults", "expected"),
-    [
-        ({"foo": "bar"}, {"baz": "foobar"}, {"foo": "bar", "baz": "foobar"}),
-        ({}, {"baz": "foobar"}, {"baz": "foobar"}),
-    ],
-)
-def test_ensure_dict(dct, defaults, expected) -> None:
-    """Test ensure dictionary."""
-    assert utils.ensure_dict(dct, defaults) == expected
-
-
-@pytest.mark.parametrize(
     ("input_value", "divisor", "expected"),
     [
         (10.0, 0.2, True),
@@ -97,8 +85,8 @@ def test_join_bits_with_bool() -> None:
     [
         (4, [False, False, False, False, False, True, False, False]),
         (128, [True, False, False, False, False, False, False, False]),
-        (0, [False, False, False, False, False, False, False, False]),
-        (255, [True, True, True, True, True, True, True, True]),
+        (0, [False] * 8),
+        (255, [True] * 8),
         (-128, RAISES),
         (268, RAISES),
     ],

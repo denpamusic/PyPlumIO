@@ -11,18 +11,6 @@ from typing import Annotated, Any, Final, ParamSpec, TypeAlias, TypeVar
 
 from pyplumio.helpers.async_cache import acache
 
-KT = TypeVar("KT")  # Key type.
-VT = TypeVar("VT")  # Value type.
-
-
-def ensure_dict(initial: dict[KT, VT] | None, *args: dict[KT, VT]) -> dict[KT, VT]:
-    """Create or merge multiple dictionaries."""
-    data = initial if initial is not None else {}
-    for extra in args:
-        data |= extra
-
-    return data
-
 
 def to_camelcase(text: str, overrides: Mapping[str, str] | None = None) -> str:
     """Convert snake_case to CamelCase."""
@@ -68,10 +56,10 @@ def split_byte(byte: SingleByte) -> list[bool]:
         raise ValueError("Byte value must be between 0 and 255.")
 
     if byte == 0:
-        return [False, False, False, False, False, False, False, False]
+        return [False] * 8
 
     if byte == MAX_BYTE:
-        return [True, True, True, True, True, True, True, True]
+        return [True] * 8
 
     return [bool(byte & (1 << bit)) for bit in reversed(range(8))]
 
@@ -121,7 +109,6 @@ async def create_instance(class_path: str, /, cls: type[T], **kwargs: Any) -> T:
 
 __all__ = [
     "create_instance",
-    "ensure_dict",
     "import_module",
     "is_divisible",
     "join_bits",
