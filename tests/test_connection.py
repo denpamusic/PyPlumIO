@@ -8,7 +8,7 @@ from typing import Final
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
+from serialx import Parity, StopBits
 
 from pyplumio.connection import (
     RECONNECT_AFTER_SECONDS,
@@ -35,25 +35,13 @@ def fixture_stream_reader():
         yield mock_stream_reader
 
 
-@pytest.fixture(name="asyncio_open_connection")
-def fixture_asyncio_open_connection(
-    stream_reader: StreamReader, stream_writer: StreamWriter
-):
-    """Bypass opening asyncio connection."""
-    with patch(
-        "asyncio.open_connection", return_value=(stream_reader, stream_writer)
-    ) as mock_connection:
-        yield mock_connection
-
-
-@pytest.fixture(name="serial_asyncio_open_serial_connection")
-def fixture_serial_asyncio_open_serial_connection(
+@pytest.fixture(name="serialx_open_serial_connection")
+def serialx_open_serial_connection(
     stream_reader: StreamReader, stream_writer: StreamWriter
 ):
     """Bypass opening serial_asyncio connection."""
     with patch(
-        "serial_asyncio_fast.open_serial_connection",
-        return_value=(stream_reader, stream_writer),
+        "serialx.open_serial_connection", return_value=(stream_reader, stream_writer)
     ) as mock_connection:
         yield mock_connection
 
@@ -192,12 +180,12 @@ class TestTcpConnection:
     """Contains tests for TcpConnection class."""
 
     async def test_connection(
-        self, tcp_connection: TcpConnection, asyncio_open_connection
+        self, tcp_connection: TcpConnection, serialx_open_serial_connection
     ) -> None:
         """Test TCP connection."""
         await tcp_connection.connect()
-        asyncio_open_connection.assert_awaited_once_with(
-            host=HOST, port=PORT, timeout=10
+        serialx_open_serial_connection.assert_awaited_once_with(
+            f"socket://{HOST}:{PORT}", timeout=10
         )
 
     async def test_repr(self, tcp_connection: TcpConnection) -> None:
@@ -215,16 +203,16 @@ class TestSerialConnection:
     """Contains tests for SerialConnection class."""
 
     async def test_connect(
-        self, serial_connection: SerialConnection, serial_asyncio_open_serial_connection
+        self, serial_connection: SerialConnection, serialx_open_serial_connection
     ) -> None:
         """Test serial connect."""
         await serial_connection.connect()
-        serial_asyncio_open_serial_connection.assert_called_once_with(
-            url=URL,
+        serialx_open_serial_connection.assert_called_once_with(
+            URL,
             baudrate=115200,
-            bytesize=EIGHTBITS,
-            parity=PARITY_NONE,
-            stopbits=STOPBITS_ONE,
+            byte_size=8,
+            parity=Parity.NONE,
+            stopbits=StopBits.ONE,
             timeout=10,
         )
 

@@ -10,8 +10,8 @@ import logging
 from types import MappingProxyType
 from typing import Any, Final
 
-from serial import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
-import serial_asyncio_fast
+import serialx
+from serialx import Parity, StopBits
 
 from pyplumio.devices import PhysicalDevice
 from pyplumio.exceptions import ConnectionFailedError
@@ -174,8 +174,8 @@ class TcpConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await asyncio.open_connection(
-            host=self.host, port=self.port, **self.options
+        return await serialx.open_serial_connection(
+            f"socket://{self.host}:{self.port}", **self.options
         )
 
 
@@ -215,12 +215,12 @@ class SerialConnection(Connection):
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await serial_asyncio_fast.open_serial_connection(  # type: ignore[unused-ignore, no-any-return]
-            url=self.url,
+        return await serialx.open_serial_connection(
+            self.url,
             baudrate=self.baudrate,
-            bytesize=EIGHTBITS,
-            parity=PARITY_NONE,
-            stopbits=STOPBITS_ONE,
+            byte_size=8,
+            parity=Parity.NONE,
+            stopbits=StopBits.ONE,
             **self.options,
         )
 
