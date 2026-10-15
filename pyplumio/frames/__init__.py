@@ -84,7 +84,7 @@ class Frame(ABC):
     econet_version: int
     frame_type: ClassVar[FrameType]
     _handler: PhysicalDevice | None
-    _message: bytearray | None
+    _message: bytes | None
     _data: dict[str, Any] | None
 
     __hash__ = object.__hash__
@@ -95,7 +95,7 @@ class Frame(ABC):
         sender: DeviceType = DeviceType.ECONET,
         econet_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
-        message: bytearray | None = None,
+        message: bytes | None = None,
         data: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
@@ -137,7 +137,7 @@ class Frame(ABC):
             f"sender={repr(self.sender)}, "
             f"econet_type={self.econet_type}, "
             f"econet_version={self.econet_version}, "
-            f"message={self.message}, "
+            f"message={self.message!r}, "
             f"data={self.data})"
         )
 
@@ -147,7 +147,7 @@ class Frame(ABC):
 
     def hex(self, *args: Any, **kwargs: Any) -> str:
         """Return a frame message represented as hex string."""
-        return self.bytes.hex(*args, **kwargs)
+        return self.raw_bytes.hex(*args, **kwargs)
 
     def assign_to(self, device: PhysicalDevice) -> None:
         """Assign device to the frame."""
@@ -175,7 +175,7 @@ class Frame(ABC):
         self._message = None
 
     @property
-    def message(self) -> bytearray:
+    def message(self) -> bytes:
         """Return the frame message."""
         if self._message is None:
             self._message = self.create_message(
@@ -185,7 +185,7 @@ class Frame(ABC):
         return self._message
 
     @message.setter
-    def message(self, message: bytearray) -> None:
+    def message(self, message: bytes) -> None:
         """Set the frame message."""
         self._message = message
         self._data = None
@@ -202,7 +202,7 @@ class Frame(ABC):
         )
 
     @property
-    def header(self) -> bytearray:
+    def header(self) -> bytes:
         """Return the frame header."""
         buffer = bytearray(struct_header.size)
         struct_header.pack_into(
@@ -216,16 +216,17 @@ class Frame(ABC):
             self.econet_version,
         )
 
-        return buffer
+        return bytes(buffer)
 
     @property
-    def bytes(self) -> bytes:
+    def raw_bytes(self) -> bytes:
         """Return the frame bytes."""
-        data = self.header
+        data = bytearray(self.header)
         data.append(self.frame_type)
         data += self.message
-        data.append(bcc(data))
+        data.append(bcc(bytes(data)))
         data.append(FRAME_END)
+
         return bytes(data)
 
     @classmethod
@@ -234,11 +235,11 @@ class Frame(ABC):
         return await create_instance(get_frame_handler(frame_type), cls=cls, **kwargs)
 
     @abstractmethod
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
 
     @abstractmethod
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
+    def decode_message(self, message: bytes) -> dict[str, Any]:
         """Decode a frame message."""
 
 
@@ -265,11 +266,11 @@ class Request(Frame):
 
     response: ClassVar[type[Response]]
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
-        return bytearray()
+        return b""
 
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
+    def decode_message(self, message: bytes) -> dict[str, Any]:
         """Decode a frame message."""
         return {}
 
@@ -323,7 +324,7 @@ class Response(Frame):
         sender: DeviceType = DeviceType.ECONET,
         econet_type: int = ECONET_TYPE,
         econet_version: int = ECONET_VERSION,
-        message: bytearray | None = None,
+        message: bytes | None = None,
         data: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
@@ -333,15 +334,15 @@ class Response(Frame):
             recipient, sender, econet_type, econet_version, message, data, **kwargs
         )
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create frame message."""
-        message = bytearray()
+        message = b""
         for structure in self._structures:
             message += structure.encode(data)
 
         return message
 
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
+    def decode_message(self, message: bytes) -> dict[str, Any]:
         """Decode frame message."""
         data: dict[str, Any] = {}
         offset = 0

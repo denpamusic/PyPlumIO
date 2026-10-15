@@ -19,7 +19,7 @@ class MixerParametersStructure(StructureDecoder):
     """Represents a mixer parameters data structure."""
 
     def _mixer_parameter(
-        self, message: bytearray, start: int, end: int
+        self, message: bytes, start: int, end: int
     ) -> Generator[_ParameterValues]:
         """Get a single mixer parameter."""
         for index in range(start, start + end):
@@ -29,14 +29,14 @@ class MixerParametersStructure(StructureDecoder):
             self._offset += MIXER_PARAMETER_SIZE
 
     def _mixer_parameters(
-        self, message: bytearray, mixers: int, start: int, end: int
+        self, message: bytes, mixers: int, start: int, end: int
     ) -> Generator[tuple[int, list[_ParameterValues]]]:
         """Get parameters for a mixer."""
         for index in range(mixers):
             if parameters := list(self._mixer_parameter(message, start, end)):
                 yield (index, parameters)
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode message into data."""
         start = message[offset + 1]
         end = message[offset + 2]

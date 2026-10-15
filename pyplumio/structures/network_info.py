@@ -63,10 +63,10 @@ class NetworkInfoStructure(Structure):
 
     __slots__ = ()
 
-    def encode(self, data: dict[str, Any]) -> bytearray:
-        """Encode data to the bytearray message."""
+    def encode(self, data: dict[str, Any]) -> bytes:
+        """Encode data to bytes."""
         network_info: NetworkInfo = data.get(ATTR_NETWORK_INFO, NetworkInfo())
-        return bytearray(
+        return bytes(
             b"\1"
             + IPv4(network_info.ethernet.ip).to_bytes()
             + IPv4(network_info.ethernet.netmask).to_bytes()
@@ -85,7 +85,7 @@ class NetworkInfoStructure(Structure):
             + VarString(network_info.wireless.ssid).to_bytes()
         )
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode message into data."""
         offset += 1
         ethernet = EthernetParameters(

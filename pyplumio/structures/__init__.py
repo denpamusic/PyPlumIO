@@ -27,11 +27,11 @@ class Structure(ABC):
         return self._offset
 
     @abstractmethod
-    def encode(self, data: dict[str, Any]) -> bytearray:
+    def encode(self, data: dict[str, Any]) -> bytes:
         """Encode message from data."""
 
     @abstractmethod
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode message into data."""
 
 
@@ -40,12 +40,12 @@ class StructureDecoder(Structure, ABC):
 
     __slots__ = ()
 
-    def encode(self, data: dict[str, Any]) -> bytearray:
+    def encode(self, data: dict[str, Any]) -> bytes:
         """Encode message from data."""
-        return bytearray()
+        return b""
 
     @abstractmethod
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode message into data."""
 
 

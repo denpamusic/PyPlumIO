@@ -23,7 +23,7 @@ class ThermostatParametersStructure(StructureDecoder):
     """Represents a thermostat parameters data structure."""
 
     def _thermostat_parameter(
-        self, message: bytearray, thermostats: int, start: int, end: int
+        self, message: bytes, thermostats: int, start: int, end: int
     ) -> Generator[_ParameterValues]:
         """Get a single thermostat parameter."""
         parameter_types = get_thermostat_parameter_types()
@@ -37,7 +37,7 @@ class ThermostatParametersStructure(StructureDecoder):
             self._offset += THERMOSTAT_PARAMETER_SIZE * description.size
 
     def _thermostat_parameters(
-        self, message: bytearray, thermostats: int, start: int, end: int
+        self, message: bytes, thermostats: int, start: int, end: int
     ) -> Generator[tuple[int, list[_ParameterValues]]]:
         """Get parameters for a thermostat."""
         for index in range(thermostats):
@@ -46,7 +46,7 @@ class ThermostatParametersStructure(StructureDecoder):
             ):
                 yield (index, parameters)
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         device = self.frame.handler
         if not device or not (

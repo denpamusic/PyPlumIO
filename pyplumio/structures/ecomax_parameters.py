@@ -18,7 +18,7 @@ class EcomaxParametersStructure(StructureDecoder):
     """Represents an ecoMAX parameters structure."""
 
     def _ecomax_parameter(
-        self, message: bytearray, start: int, end: int
+        self, message: bytes, start: int, end: int
     ) -> Generator[tuple[int, ParameterValues]]:
         """Unpack an ecoMAX parameter."""
         for index in range(start, start + end):
@@ -27,7 +27,7 @@ class EcomaxParametersStructure(StructureDecoder):
 
             self._offset += ECOMAX_PARAMETER_SIZE
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         start = message[offset + 1]
         end = message[offset + 2]

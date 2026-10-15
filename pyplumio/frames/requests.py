@@ -35,9 +35,9 @@ class AlertsRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
+        return bytes([data.get(ATTR_START, 0), data.get(ATTR_COUNT, 10)])
 
 
 @frame_handler(FrameType.REQUEST_CHECK_DEVICE)
@@ -59,10 +59,10 @@ class EcomaxControlRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
         try:
-            return bytearray([data[ATTR_VALUE]])
+            return bytes([data[ATTR_VALUE]])
         except KeyError as e:
             raise FrameDataError from e
 
@@ -77,9 +77,9 @@ class EcomaxParametersRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
+        return bytes([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 @frame_handler(FrameType.REQUEST_MIXER_PARAMETERS)
@@ -93,9 +93,9 @@ class MixerParametersRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
+        return bytes([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 @frame_handler(FrameType.REQUEST_PASSWORD)
@@ -140,10 +140,10 @@ class SetEcomaxParameterRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
         try:
-            return bytearray([data[ATTR_INDEX], data[ATTR_VALUE]])
+            return bytes([data[ATTR_INDEX], data[ATTR_VALUE]])
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
@@ -158,12 +158,10 @@ class SetMixerParameterRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
         try:
-            return bytearray(
-                [data[ATTR_DEVICE_INDEX], data[ATTR_INDEX], data[ATTR_VALUE]]
-            )
+            return bytes([data[ATTR_DEVICE_INDEX], data[ATTR_INDEX], data[ATTR_VALUE]])
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
@@ -174,7 +172,7 @@ class SetScheduleRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
         message = b"\1"
         try:
@@ -186,7 +184,7 @@ class SetScheduleRequest(Request):
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
 
-        return bytearray(message) + bytearray(
+        return bytes(message) + bytes(
             join_bits(day[i : i + 8]) for day in schedule for i in range(0, len(day), 8)
         )
 
@@ -209,13 +207,13 @@ class SetThermostatParameterRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
         try:
             index = data[ATTR_INDEX]
             value: int = data[ATTR_VALUE]
             offset = data[ATTR_OFFSET]
-            message = bytearray([index if offset is None else index + offset])
+            message = bytes([index if offset is None else index + offset])
             return message + value.to_bytes(length=data[ATTR_SIZE], byteorder="little")
         except (KeyError, ValueError) as e:
             raise FrameDataError from e
@@ -254,9 +252,9 @@ class ThermostatParametersRequest(Request):
 
     __slots__ = ()
 
-    def create_message(self, data: dict[str, Any]) -> bytearray:
+    def create_message(self, data: dict[str, Any]) -> bytes:
         """Create a frame message."""
-        return bytearray([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
+        return bytes([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
 @frame_handler(FrameType.REQUEST_UID)

@@ -85,7 +85,9 @@ class TestFrameWriter:
         """
         program_version_request = ProgramVersionRequest()
         await frame_writer.write(program_version_request)
-        mock_stream_writer.write.assert_called_once_with(program_version_request.bytes)
+        mock_stream_writer.write.assert_called_once_with(
+            program_version_request.raw_bytes
+        )
         mock_stream_writer.drain.assert_awaited_once()
 
     @pytest.mark.parametrize(

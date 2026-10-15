@@ -76,7 +76,7 @@ class PasswordResponse(Response):
 
     __slots__ = ()
 
-    def decode_message(self, message: bytearray) -> dict[str, Any]:
+    def decode_message(self, message: bytes) -> dict[str, Any]:
         """Decode a frame message."""
         password = message[1:].decode() if message[1:] else None
         return {ATTR_PASSWORD: password}

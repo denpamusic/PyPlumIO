@@ -34,8 +34,8 @@ class ProgramVersionStructure(Structure):
 
     __slots__ = ()
 
-    def encode(self, data: dict[str, Any]) -> bytearray:
-        """Encode data to the bytearray message."""
+    def encode(self, data: dict[str, Any]) -> bytes:
+        """Encode data to bytes."""
         message = bytearray(struct_program_version.size)
         version_info: VersionInfo = data.get(ATTR_VERSION, VersionInfo())
         struct_program_version.pack_into(
@@ -48,9 +48,10 @@ class ProgramVersionStructure(Structure):
             *map(int, version_info.software.split(".", 2)),
             self.frame.sender,
         )
-        return message
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+        return bytes(message)
+
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         (
             struct_tag,

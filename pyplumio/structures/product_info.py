@@ -79,7 +79,7 @@ class ProductInfoStructure(StructureDecoder):
 
     __slots__ = ()
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         product_type, product_id = struct.unpack_from("<BH", message)
         offset += 3

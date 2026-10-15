@@ -12,21 +12,21 @@ from tests.conftest import DEFAULT_TOLERANCE, UNDEFINED
 @pytest.mark.parametrize(
     ("cls", "buffer", "expected"),
     [
-        (data_types.Undefined, bytearray(), None),
-        (data_types.SignedChar, bytearray.fromhex("16"), 22),
-        (data_types.Short, bytearray.fromhex("ECFF"), -20),
-        (data_types.Int, bytearray.fromhex("019AFFFF"), -26111),
-        (data_types.UnsignedChar, bytearray.fromhex("03"), 3),
-        (data_types.UnsignedShort, bytearray.fromhex("2A01"), 298),
-        (data_types.UnsignedInt, bytearray.fromhex("9A3F0000"), 16282),
-        (data_types.Float, bytearray.fromhex("00004041"), 12.0),
-        (data_types.Double, bytearray.fromhex("3D0AD7A3703D2840"), 12.12),
-        (data_types.Int64, bytearray.fromhex("FFFFFFFFF8A432EB"), -1498954336607141889),
-        (data_types.UInt64, bytearray.fromhex("4549505152535455"), 6148631004284209477),
-        (data_types.IPv4, bytearray.fromhex("7F000001"), "127.0.0.1"),
+        (data_types.Undefined, b"", None),
+        (data_types.SignedChar, bytes.fromhex("16"), 22),
+        (data_types.Short, bytes.fromhex("ECFF"), -20),
+        (data_types.Int, bytes.fromhex("019AFFFF"), -26111),
+        (data_types.UnsignedChar, bytes.fromhex("03"), 3),
+        (data_types.UnsignedShort, bytes.fromhex("2A01"), 298),
+        (data_types.UnsignedInt, bytes.fromhex("9A3F0000"), 16282),
+        (data_types.Float, bytes.fromhex("00004041"), 12.0),
+        (data_types.Double, bytes.fromhex("3D0AD7A3703D2840"), 12.12),
+        (data_types.Int64, bytes.fromhex("FFFFFFFFF8A432EB"), -1498954336607141889),
+        (data_types.UInt64, bytes.fromhex("4549505152535455"), 6148631004284209477),
+        (data_types.IPv4, bytes.fromhex("7F000001"), "127.0.0.1"),
         (
             data_types.IPv6,
-            bytearray.fromhex("FEEDDEADBEEF00000000000000000001"),
+            bytes.fromhex("FEEDDEADBEEF00000000000000000001"),
             "feed:dead:beef::1",
         ),
         (data_types.String, b"test\x00", "test"),
@@ -65,7 +65,7 @@ def test_hash_no_value() -> None:
 
 def test_bitarray() -> None:
     """Test a bit array data type."""
-    buffer = bytearray([0x55])
+    buffer = b"\x55"
     data_type = data_types.BitArray.from_bytes(buffer)
     expected_bits = [1, 0, 1, 0, 1, 0, 1, 0]
     last_index = data_types.BITARRAY_LAST_INDEX

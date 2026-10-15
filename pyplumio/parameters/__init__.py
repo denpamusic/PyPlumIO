@@ -23,7 +23,7 @@ _ParameterT = TypeVar("_ParameterT", bound="Parameter")
 
 
 def unpack_parameter(
-    data: bytearray, offset: int = 0, size: int = 1
+    data: bytes, offset: int = 0, size: int = 1
 ) -> ParameterValues | None:
     """Unpack a device parameter."""
     if not is_valid_parameter(data[offset : offset + size * 3]):
@@ -40,7 +40,7 @@ def unpack_parameter(
     )
 
 
-def is_valid_parameter(data: bytearray) -> bool:
+def is_valid_parameter(data: bytes) -> bool:
     """Check if parameter contains any bytes besides 0xFF."""
     return any(x for x in data if x != BYTE_UNDEFINED)
 

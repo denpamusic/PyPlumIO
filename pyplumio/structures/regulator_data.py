@@ -21,7 +21,7 @@ class RegulatorDataStructure(StructureDecoder):
 
     _bitarray_index: int
 
-    def _unpack_regulator_data(self, message: bytearray, data_type: DataType) -> Any:
+    def _unpack_regulator_data(self, message: bytes, data_type: DataType) -> Any:
         """Unpack a regulator data sensor."""
         if not isinstance(data_type, BitArray) and self._bitarray_index > 0:
             # Current data type is not bitarray, but previous was, thus
@@ -37,7 +37,7 @@ class RegulatorDataStructure(StructureDecoder):
         self._offset += data_type.size
         return data_type.value
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         offset += 2
         regdata_version = f"{message[offset + 1]}.{message[offset]}"

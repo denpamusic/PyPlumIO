@@ -43,9 +43,7 @@ class TestAlertStructure:
 
     def test_decode(self, alerts_structure: AlertsStructure) -> None:
         """Test decoding of alerts structure."""
-        message = bytearray(
-            [0x01, 0x00, 0x01, 0x00, 0xFF, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01]
-        )
+        message = bytes.fromhex("01000100FF01010101010101")
         data: dict[str, Any] = {}
         alerts_structure.decode(message, data)
         assert data == {
@@ -62,7 +60,7 @@ class TestAlertStructure:
 
     def test_decode_without_alerts(self, alerts_structure: AlertsStructure) -> None:
         """Test decoding of alerts structure without any alerts."""
-        message = bytearray([0x00, 0x00, 0x00])
+        message = bytes.fromhex("000000")
         data: dict[str, Any] = {}
         alerts_structure.decode(message, data)
         assert data == {ATTR_TOTAL_ALERTS: 0}

@@ -23,7 +23,7 @@ class TestMixerParametersStructure:
 
     def test_decode(self, mixer_parameters_structure: MixerParametersStructure) -> None:
         """Test decoding of mixer parameters structure."""
-        message = bytearray([0x01, 0x00, 0x01, 0x01, 0x01, 0x02, 0x03])
+        message = bytes.fromhex("01000101010203")
         data: dict[str, Any] = {}
         mixer_parameters_structure.decode(message, data)
         assert data == {

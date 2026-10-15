@@ -307,7 +307,7 @@ class Schedule(Iterable):
 class SchedulesStructure(StructureDecoder):
     """Represents a schedule data structure."""
 
-    def _unpack_schedule(self, message: bytearray) -> list[list[bool]]:
+    def _unpack_schedule(self, message: bytes) -> list[list[bool]]:
         """Unpack a schedule."""
         offset = self._offset
         schedule = [
@@ -319,7 +319,7 @@ class SchedulesStructure(StructureDecoder):
         # Split the schedule. Each day consists of 48 half-hour intervals.
         return [schedule[i : i + 48] for i in range(0, len(schedule), 48)]
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         try:
             start = message[offset + 1]

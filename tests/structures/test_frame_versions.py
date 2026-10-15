@@ -23,7 +23,7 @@ class TestFrameVersionsStructure:
 
     def test_decode(self, frame_versions_structure: FrameVersionsStructure) -> None:
         """Test decoding of frame versions structure."""
-        message = bytearray([0x01, 0x31, 0xFF, 0x00, 0x00, 0x00])
+        message = bytes.fromhex("0131FF000000")
         data: dict[str, Any] = {}
         frame_versions_structure.decode(message, data)
         assert data == {ATTR_FRAME_VERSIONS: {FrameType.REQUEST_ECOMAX_PARAMETERS: 255}}

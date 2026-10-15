@@ -48,9 +48,9 @@ class FrameWriter:
     @timeout(WAIT_FOR_WRITE_SECONDS)
     async def write(self, frame: Frame) -> None:
         """Send the frame and wait until send buffer is empty."""
-        self._writer.write(frame.bytes)
+        self._writer.write(frame.raw_bytes)
         await self._writer.drain()
-        _LOGGER.debug("Sent frame: %s, bytes: %s", frame, frame.bytes)
+        _LOGGER.debug("Sent frame: %s, bytes: %s", frame, frame.raw_bytes)
 
     async def close(self) -> None:
         """Close the frame writer."""

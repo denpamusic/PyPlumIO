@@ -25,7 +25,7 @@ class TestEcomaxParametersStructure:
         self, ecomax_parameters_structure: EcomaxParametersStructure
     ) -> None:
         """Test decoding of ecoMAX parameters structure."""
-        message = bytearray([0x01, 0x00, 0x01, 0x02, 0x01, 0x03])
+        message = bytes.fromhex("010001020103")
         data: dict[str, Any] = {}
         ecomax_parameters_structure.decode(message, data)
         assert data == {

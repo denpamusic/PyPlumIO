@@ -55,14 +55,11 @@ def fixture_switch(ecomax: EcoMAX) -> Switch:
 @pytest.mark.parametrize(
     ("data", "expected_result"),
     [
-        (bytearray([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED]), True),
-        (
-            bytearray([BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED, BYTE_UNDEFINED]),
-            False,
-        ),
+        (bytes([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED]), True),
+        (bytes([BYTE_UNDEFINED] * 4), False),
     ],
 )
-def test_is_valid_parameter(data: bytearray, expected_result: bool) -> None:
+def test_is_valid_parameter(data: bytes, expected_result: bool) -> None:
     """Test is_valid_parameter.
 
     Checks if parameter data is valid.
@@ -95,9 +92,9 @@ class DummyParameter(Parameter):
     def max_value(self) -> Any:
         """Return the maximum allowed value."""
 
-    @property
-    async def create_request(self):
+    async def create_request(self) -> Request:
         """Create a request to change the parameter."""
+        return Request()
 
 
 @pytest.fixture(name="parameter")

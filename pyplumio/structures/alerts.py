@@ -67,7 +67,7 @@ class Alert:
 class AlertsStructure(StructureDecoder):
     """Represents an alerts data structure."""
 
-    def _unpack_alert(self, message: bytearray) -> Alert:
+    def _unpack_alert(self, message: bytes) -> Alert:
         """Unpack an alert."""
         offset = self._offset
         code = message[offset]
@@ -88,7 +88,7 @@ class AlertsStructure(StructureDecoder):
         self._offset = offset
         return Alert(code, from_dt, to_dt)
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode the message."""
         total_alerts = message[offset]
         start = message[offset + 1]

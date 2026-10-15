@@ -65,8 +65,8 @@ def fixture_types() -> tuple[int, int]:
 def test_decode_create_message(frames: tuple[Request, Response]) -> None:
     """Test creating and decoding frame message."""
     for frame in frames:
-        assert frame.create_message(data={}) == bytearray()
-        assert frame.decode_message(message=bytearray()) == {}
+        assert frame.create_message(data={}) == b""
+        assert frame.decode_message(message=b"") == {}
 
 
 @pytest.mark.parametrize(
@@ -121,19 +121,19 @@ def test_get_header(frames: tuple[Request, Response]) -> None:
 
 def test_base_class_with_message() -> None:
     """Test base request class with a message."""
-    frame = RequestFrame(message=bytearray.fromhex("B00B"))
+    frame = RequestFrame(message=bytes.fromhex("B00B"))
     assert frame.message == b"\xb0\x0b"
 
 
 def test_to_bytes() -> None:
     """Test conversion to bytes."""
-    frame = RequestFrame(message=bytearray(b"\xb0\x0b"))
-    assert frame.bytes == b"\x68\x0c\x00\x00\x56\x30\x05\x40\xb0\x0b\xfc\x16"
+    frame = RequestFrame(message=b"\xb0\x0b")
+    assert frame.raw_bytes == b"\x68\x0c\x00\x00\x56\x30\x05\x40\xb0\x0b\xfc\x16"
 
 
 def test_to_hex() -> None:
     """Test conversion to hex."""
-    frame = RequestFrame(message=bytearray(b"\xb0\x0b"))
+    frame = RequestFrame(message=b"\xb0\x0b")
     hex_data = "680c000056300540b00bfc16"
     assert frame.hex() == hex_data
 
@@ -155,10 +155,10 @@ def test_data_setter():
 def test_message_setter():
     """Test frame message setter."""
     frame = ProgramVersionResponse(
-        message=bytearray.fromhex("ffff057a00000000000004000f0056")
+        message=bytes.fromhex("ffff057a00000000000004000f0056")
     )
     assert frame.data[ATTR_VERSION].struct_version == 5
-    frame.message = bytearray.fromhex("ffff067a00000000000004000f0056")
+    frame.message = bytes.fromhex("ffff067a00000000000004000f0056")
     assert frame.data[ATTR_VERSION].struct_version == 6
 
 
@@ -170,7 +170,7 @@ def test_request_repr(request_frame: Request) -> None:
         "sender=<DeviceType.ECONET: 86>, "
         "econet_type=48, "
         "econet_version=5, "
-        "message=bytearray(b''), "
+        "message=b'', "
         "data={'foo': 0})"
     )
 
@@ -183,7 +183,7 @@ def test_response_repr(response_frame: Response) -> None:
         "sender=<DeviceType.ECONET: 86>, "
         "econet_type=48, "
         "econet_version=5, "
-        "message=bytearray(b''), "
+        "message=b'', "
         "data={'foo': 0})"
     )
 

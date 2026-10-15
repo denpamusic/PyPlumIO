@@ -15,7 +15,7 @@ ATTR_FRAME_VERSIONS: Final = "frame_versions"
 class FrameVersionsStructure(StructureDecoder):
     """Represents a frame version data structure."""
 
-    def _unpack_frame_versions(self, message: bytearray) -> tuple[FrameType | int, int]:
+    def _unpack_frame_versions(self, message: bytes) -> tuple[FrameType | int, int]:
         """Unpack frame versions."""
         frame_type = message[self._offset]
         self._offset += 1
@@ -26,7 +26,7 @@ class FrameVersionsStructure(StructureDecoder):
 
         return frame_type, version.value
 
-    def decode(self, message: bytearray, data: dict[str, Any], offset: int = 0) -> None:
+    def decode(self, message: bytes, data: dict[str, Any], offset: int = 0) -> None:
         """Decode bytes and return message data and offset."""
         frame_versions = message[offset]
         self._offset = offset + 1

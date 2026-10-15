@@ -91,12 +91,13 @@ class TestConnection:
     )
     async def test_connect(self, mock_open_connection, mock_protocol) -> None:
         """Test a connection."""
+        mock_protocol.shutdown = AsyncMock()
         connection = DummyConnection(protocol=mock_protocol)
         assert connection.protocol is mock_protocol
         await connection.connect()
         mock_open_connection.assert_awaited_once()
         await connection.close()
-        mock_protocol.shutdown.assert_called_once()
+        mock_protocol.shutdown.assert_awaited_once()
 
     @pytest.mark.parametrize("reconnect_on_failure", [True, False])
     @patch.object(
