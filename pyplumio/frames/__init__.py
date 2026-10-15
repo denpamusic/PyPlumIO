@@ -244,15 +244,15 @@ class Frame(ABC):
 
 
 def frame_handler(
-    frame_type: FrameType, structure: type[Structure] | None = None
+    frame_type: FrameType, contains: type[Structure] | None = None
 ) -> Callable[[type[_FrameT]], type[_FrameT]]:
     """Specify frame type for the frame class."""
 
     def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
         """Wrap the frame class."""
         setattr(cls, "frame_type", frame_type)
-        if structure and issubclass(cls, Response):
-            setattr(cls, "structures", (structure,))
+        if contains and issubclass(cls, Response):
+            setattr(cls, "structures", (contains,))
 
         return cls
 
@@ -295,7 +295,7 @@ class Request(Frame):
 _RequestT = TypeVar("_RequestT", bound=Request)
 
 
-def expect_response(
+def expects_response(
     response: type[Response],
 ) -> Callable[[type[_RequestT]], type[_RequestT]]:
     """Assign response to the request class."""
@@ -393,7 +393,7 @@ __all__ = [
     "Message",
     "bcc",
     "contains",
-    "expect_response",
+    "expects_response",
     "frame_handler",
     "get_frame_handler",
     "is_known_frame_type",

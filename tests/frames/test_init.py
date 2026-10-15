@@ -191,7 +191,7 @@ def test_response_repr(response_frame: Response) -> None:
 def test_frame_handler() -> None:
     """Test frame type decorator."""
     wrapper = frame_handler(
-        FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure
+        FrameType.RESPONSE_DEVICE_AVAILABLE, contains=NetworkInfoStructure
     )
     response = wrapper(ResponseFrame)()
     assert response.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE

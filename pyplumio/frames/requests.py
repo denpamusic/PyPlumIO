@@ -19,13 +19,13 @@ from pyplumio.const import (
     FrameType,
 )
 from pyplumio.exceptions import FrameDataError
-from pyplumio.frames import Request, expect_response, frame_handler, responses
+from pyplumio.frames import Request, expects_response, frame_handler, responses
 from pyplumio.structures.schedules import SCHEDULES
 from pyplumio.utils import join_bits
 
 
 @frame_handler(FrameType.REQUEST_ALERTS)
-@expect_response(responses.AlertsResponse)
+@expects_response(responses.AlertsResponse)
 class AlertsRequest(Request):
     """Represents an alerts request.
 
@@ -41,7 +41,7 @@ class AlertsRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_CHECK_DEVICE)
-@expect_response(responses.DeviceAvailableResponse)
+@expects_response(responses.DeviceAvailableResponse)
 class CheckDeviceRequest(Request):
     """Represents a check device request."""
 
@@ -49,7 +49,7 @@ class CheckDeviceRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_ECOMAX_CONTROL)
-@expect_response(responses.EcomaxControlResponse)
+@expects_response(responses.EcomaxControlResponse)
 class EcomaxControlRequest(Request):
     """Represents an ecoMAX control request.
 
@@ -68,7 +68,7 @@ class EcomaxControlRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_ECOMAX_PARAMETERS)
-@expect_response(responses.EcomaxParametersResponse)
+@expects_response(responses.EcomaxParametersResponse)
 class EcomaxParametersRequest(Request):
     """Represents an ecoMAX parameters request.
 
@@ -83,7 +83,7 @@ class EcomaxParametersRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_MIXER_PARAMETERS)
-@expect_response(responses.MixerParametersResponse)
+@expects_response(responses.MixerParametersResponse)
 class MixerParametersRequest(Request):
     """Represents a mixer parameters request.
 
@@ -99,7 +99,7 @@ class MixerParametersRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_PASSWORD)
-@expect_response(responses.PasswordResponse)
+@expects_response(responses.PasswordResponse)
 class PasswordRequest(Request):
     """Represents a password request."""
 
@@ -107,7 +107,7 @@ class PasswordRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_PROGRAM_VERSION)
-@expect_response(responses.ProgramVersionResponse)
+@expects_response(responses.ProgramVersionResponse)
 class ProgramVersionRequest(Request):
     """Represents a program version request."""
 
@@ -115,7 +115,7 @@ class ProgramVersionRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_REGULATOR_DATA_SCHEMA)
-@expect_response(responses.RegulatorDataSchemaResponse)
+@expects_response(responses.RegulatorDataSchemaResponse)
 class RegulatorDataSchemaRequest(Request):
     """Represents regulator data schema request."""
 
@@ -123,7 +123,7 @@ class RegulatorDataSchemaRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_SCHEDULES)
-@expect_response(responses.SchedulesResponse)
+@expects_response(responses.SchedulesResponse)
 class SchedulesRequest(Request):
     """Represents a schedules request."""
 
@@ -131,7 +131,7 @@ class SchedulesRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_SET_ECOMAX_PARAMETER)
-@expect_response(responses.SetEcomaxParameterResponse)
+@expects_response(responses.SetEcomaxParameterResponse)
 class SetEcomaxParameterRequest(Request):
     """Represents a request to set an ecoMAX parameter.
 
@@ -149,7 +149,7 @@ class SetEcomaxParameterRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_SET_MIXER_PARAMETER)
-@expect_response(responses.SetMixerParameterResponse)
+@expects_response(responses.SetMixerParameterResponse)
 class SetMixerParameterRequest(Request):
     """Represents a request to set a mixer parameter.
 
@@ -190,7 +190,7 @@ class SetScheduleRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_SET_THERMOSTAT_PARAMETER)
-@expect_response(responses.SetThermostatParameterResponse)
+@expects_response(responses.SetThermostatParameterResponse)
 class SetThermostatParameterRequest(Request):
     """Represents a request to set a thermostat parameter.
 
@@ -242,7 +242,7 @@ class StopMasterRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_THERMOSTAT_PARAMETERS)
-@expect_response(responses.ThermostatParametersResponse)
+@expects_response(responses.ThermostatParametersResponse)
 class ThermostatParametersRequest(Request):
     """Represents a thermostat parameters request.
 
@@ -258,7 +258,7 @@ class ThermostatParametersRequest(Request):
 
 
 @frame_handler(FrameType.REQUEST_UID)
-@expect_response(responses.UIDResponse)
+@expects_response(responses.UIDResponse)
 class UIDRequest(Request):
     """Represents an UID request."""
 

@@ -9,7 +9,7 @@ from pyplumio.structures.regulator_data import RegulatorDataStructure
 from pyplumio.structures.sensor_data import SensorDataStructure
 
 
-@frame_handler(FrameType.MESSAGE_REGULATOR_DATA, structure=RegulatorDataStructure)
+@frame_handler(FrameType.MESSAGE_REGULATOR_DATA, contains=RegulatorDataStructure)
 class RegulatorDataMessage(Message):
     """Represents a regulator data message."""
 

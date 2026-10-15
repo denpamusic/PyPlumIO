@@ -17,14 +17,14 @@ from pyplumio.structures.schedules import SchedulesStructure
 from pyplumio.structures.thermostat_parameters import ThermostatParametersStructure
 
 
-@frame_handler(FrameType.RESPONSE_ALERTS, structure=AlertsStructure)
+@frame_handler(FrameType.RESPONSE_ALERTS, contains=AlertsStructure)
 class AlertsResponse(Response):
     """Represents response to a device alerts request."""
 
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_DEVICE_AVAILABLE, structure=NetworkInfoStructure)
+@frame_handler(FrameType.RESPONSE_DEVICE_AVAILABLE, contains=NetworkInfoStructure)
 class DeviceAvailableResponse(Response):
     """Represents a device available response.
 
@@ -45,9 +45,7 @@ class EcomaxControlResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(
-    FrameType.RESPONSE_ECOMAX_PARAMETERS, structure=EcomaxParametersStructure
-)
+@frame_handler(FrameType.RESPONSE_ECOMAX_PARAMETERS, contains=EcomaxParametersStructure)
 class EcomaxParametersResponse(Response):
     """Represents an ecoMAX parameters response.
 
@@ -57,7 +55,7 @@ class EcomaxParametersResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_MIXER_PARAMETERS, structure=MixerParametersStructure)
+@frame_handler(FrameType.RESPONSE_MIXER_PARAMETERS, contains=MixerParametersStructure)
 class MixerParametersResponse(Response):
     """Represents a mixer parameters response.
 
@@ -82,7 +80,7 @@ class PasswordResponse(Response):
         return {ATTR_PASSWORD: password}
 
 
-@frame_handler(FrameType.RESPONSE_PROGRAM_VERSION, structure=ProgramVersionStructure)
+@frame_handler(FrameType.RESPONSE_PROGRAM_VERSION, contains=ProgramVersionStructure)
 class ProgramVersionResponse(Response):
     """Represents a program version response.
 
@@ -93,7 +91,7 @@ class ProgramVersionResponse(Response):
 
 
 @frame_handler(
-    FrameType.RESPONSE_REGULATOR_DATA_SCHEMA, structure=RegulatorDataSchemaStructure
+    FrameType.RESPONSE_REGULATOR_DATA_SCHEMA, contains=RegulatorDataSchemaStructure
 )
 class RegulatorDataSchemaResponse(Response):
     """Represents a regulator data schema response.
@@ -105,7 +103,7 @@ class RegulatorDataSchemaResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_SCHEDULES, structure=SchedulesStructure)
+@frame_handler(FrameType.RESPONSE_SCHEDULES, contains=SchedulesStructure)
 class SchedulesResponse(Response):
     """Represents response to a device schedules request."""
 
@@ -146,7 +144,7 @@ class SetThermostatParameterResponse(Response):
 
 
 @frame_handler(
-    FrameType.RESPONSE_THERMOSTAT_PARAMETERS, structure=ThermostatParametersStructure
+    FrameType.RESPONSE_THERMOSTAT_PARAMETERS, contains=ThermostatParametersStructure
 )
 class ThermostatParametersResponse(Response):
     """Represents a thermostat parameters response.
@@ -157,7 +155,7 @@ class ThermostatParametersResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_UID, structure=ProductInfoStructure)
+@frame_handler(FrameType.RESPONSE_UID, contains=ProductInfoStructure)
 class UIDResponse(Response):
     """Represents an UID response.
 
