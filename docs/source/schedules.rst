@@ -115,7 +115,7 @@ Schedule Examples
 
     async def main():
         """Set a device schedule."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             async with conn.device("ecomax") as ecomax:
                 schedules = await ecomax.get("schedules")
                 heating_schedule = schedules["heating"]

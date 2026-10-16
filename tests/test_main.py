@@ -17,14 +17,12 @@ async def test_main(capsys) -> None:
     mock_connection.get.return_value = mock_device
     main_fn = mock_asyncio_run.call_args[0][0]
 
-    with patch(
-        "pyplumio.open_serial_connection", return_value=mock_connection
-    ) as mock_serial:
+    with patch("pyplumio.serial_for_url", return_value=mock_connection) as mock_serial:
         await main_fn
 
     assert main.__name__ == main_fn.__name__
     mock_asyncio_run.assert_called_once()
-    mock_serial.assert_called_with("/dev/ttyUSB0", 115200)
+    mock_serial.assert_called_with("/dev/ttyUSB0", baudrate=115200)
     mock_connection.__aenter__.assert_awaited_once()
     mock_connection.get.assert_awaited_once_with("ecomax")
     mock_device.get.assert_has_calls([call("sensors"), call("parameters")])

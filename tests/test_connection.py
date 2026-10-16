@@ -4,18 +4,13 @@ from __future__ import annotations
 
 from asyncio import StreamReader, StreamWriter
 import logging
-from typing import Final
+from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 from serialx import Parity, StopBits
 
-from pyplumio.connection import (
-    RECONNECT_AFTER_SECONDS,
-    Connection,
-    SerialConnection,
-    TcpConnection,
-)
+from pyplumio.connection import RECONNECT_AFTER_SECONDS, Connection, SerialConnection
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.exceptions import ConnectionFailedError
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
@@ -50,18 +45,6 @@ def serialx_open_serial_connection(
 def fixture_mock_protocol():
     """Return a mock protocol object."""
     return AsyncMock(spec=Protocol, autospec=True)
-
-
-@pytest.fixture(name="tcp_connection")
-def fixture_tcp_connection(mock_protocol) -> TcpConnection:
-    """Return at TCP connection object."""
-    return TcpConnection(host=HOST, port=PORT, timeout=10, protocol=mock_protocol)
-
-
-@pytest.fixture(name="serial_connection")
-def fixture_serial_connection(mock_protocol) -> SerialConnection:
-    """Return a serial connection object."""
-    return SerialConnection(url="/dev/ttyUSB0", timeout=10, protocol=mock_protocol)
 
 
 class DummyConnection(Connection):
@@ -172,52 +155,55 @@ class TestConnection:
         assert connection.some_method() == "called"
 
 
-HOST: Final = "localhost"
-PORT: Final = 8899
-
-
-class TestTcpConnection:
-    """Contains tests for TcpConnection class."""
-
-    async def test_connection(
-        self, tcp_connection: TcpConnection, serialx_open_serial_connection
-    ) -> None:
-        """Test TCP connection."""
-        await tcp_connection.connect()
-        serialx_open_serial_connection.assert_awaited_once_with(
-            f"socket://{HOST}:{PORT}", timeout=10
-        )
-
-    async def test_repr(self, tcp_connection: TcpConnection) -> None:
-        """Test serializable representation."""
-        assert (
-            repr(tcp_connection)
-            == f"TcpConnection(host={HOST}, port={PORT}, options={{'timeout': 10}})"
-        )
-
-
-URL: Final = "/dev/ttyUSB0"
-
-
 class TestSerialConnection:
     """Contains tests for SerialConnection class."""
 
+    @pytest.mark.parametrize(
+        ("url", "options", "expected_options"),
+        (
+            (
+                "/dev/ttyUSB0",
+                {},
+                {
+                    "baudrate": 115200,
+                    "byte_size": 8,
+                    "parity": Parity.NONE,
+                    "stopbits": StopBits.ONE,
+                },
+            ),
+            (
+                "/dev/ttyAMA0",
+                {"timeout": 15},
+                {
+                    "baudrate": 115200,
+                    "byte_size": 8,
+                    "parity": Parity.NONE,
+                    "stopbits": StopBits.ONE,
+                    "timeout": 15,
+                },
+            ),
+            ("socket://localhost:8899", {}, {}),
+            ("socket://localhost:8900", {"timeout": 10}, {"timeout": 10}),
+        ),
+    )
     async def test_connect(
-        self, serial_connection: SerialConnection, serialx_open_serial_connection
+        self,
+        url: str,
+        options: dict[str, Any],
+        expected_options: dict[str, Any],
+        serialx_open_serial_connection,
+        mock_protocol,
     ) -> None:
         """Test serial connect."""
+        serial_connection = SerialConnection(url=url, protocol=mock_protocol, **options)
         await serial_connection.connect()
-        serialx_open_serial_connection.assert_called_once_with(
-            URL,
-            baudrate=115200,
-            byte_size=8,
-            parity=Parity.NONE,
-            stopbits=StopBits.ONE,
-            timeout=10,
-        )
+        serialx_open_serial_connection.assert_called_once_with(url, **expected_options)
 
-    async def test_repr(self, serial_connection: SerialConnection) -> None:
+    def test_repr(self) -> None:
         """Test serializable representation."""
+        serial_connection = SerialConnection(url="/dev/ttyUSB0", timeout=10)
         assert repr(serial_connection) == (
-            f"SerialConnection(url={URL}, baudrate=115200, options={{'timeout': 10}})"
+            "SerialConnection(url=/dev/ttyUSB0, options={'baudrate': 115200, "
+            "'byte_size': 8, 'parity': <Parity.NONE: 'N'>, 'stopbits': "
+            "<StopBits.ONE: 1.0>, 'timeout': 10})"
         )

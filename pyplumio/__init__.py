@@ -5,7 +5,7 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
-from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.connection import SerialConnection
 from pyplumio.exceptions import (
     ChecksumError,
     ConnectionFailedError,
@@ -29,9 +29,8 @@ except PackageNotFoundError:  # pragma: no cover
 version = __version__
 
 
-def open_serial_connection(
+def serial_for_url(
     url: str,
-    baudrate: int = 115200,
     *,
     protocol: Protocol | None = None,
     reconnect_on_failure: bool = True,
@@ -39,10 +38,8 @@ def open_serial_connection(
 ) -> SerialConnection:
     r"""Create a serial connection.
 
-    :param url: Serial port device url. e. g. /dev/ttyUSB0
+    :param url: Serial port device url. e. g. /dev/ttyUSB0 or socket://localhost:8888
     :type url: str
-    :param baudrate: Serial port baud rate, defaults to 115200
-    :type baudrate: int, optional
     :param protocol: Protocol that will be used for communication with
         the ecoMAX controller, default to AsyncProtocol
     :type protocol: Protocol, optional
@@ -50,47 +47,12 @@ def open_serial_connection(
         reconnecting on failure, otherwise `False`, default to `True`
     :type reconnect_on_failure: bool, optional
     :param \**options: Additional arguments to be passed to
-        serial_asyncio.open_serial_connection()
+        serialx.open_serial_connection()
     :return: An instance of serial connection
     :rtype: SerialConnection
     """
     return SerialConnection(
         url,
-        baudrate,
-        protocol=protocol,
-        reconnect_on_failure=reconnect_on_failure,
-        **options,
-    )
-
-
-def open_tcp_connection(
-    host: str,
-    port: int,
-    *,
-    protocol: Protocol | None = None,
-    reconnect_on_failure: bool = True,
-    **options: Any,
-) -> TcpConnection:
-    r"""Create a TCP connection.
-
-    :param host: IP address or host name of the remote RS-485 server
-    :type host: str
-    :param port: Port that remote RS-485 server is listening to
-    :type port: int
-    :param protocol: Protocol that will be used for communication with
-        the ecoMAX controller, default to AsyncProtocol
-    :type protocol: Protocol, optional
-    :param reconnect_on_failure: `True` if PyPlumIO should try
-        reconnecting on failure, otherwise `False`, default to `True`
-    :type reconnect_on_failure: bool, optional
-    :param \**options: Additional arguments to be passed to
-        asyncio.open_connection()
-    :return: An instance of TCP connection
-    :rtype: TcpConnection
-    """
-    return TcpConnection(
-        host,
-        port,
         protocol=protocol,
         reconnect_on_failure=reconnect_on_failure,
         **options,
@@ -113,10 +75,8 @@ __all__ = [
     "ReadError",
     "RequestError",
     "SerialConnection",
-    "TcpConnection",
     "UnknownDeviceError",
     "UnknownFrameError",
     "WirelessParameters",
-    "open_serial_connection",
-    "open_tcp_connection",
+    "serial_for_url",
 ]
