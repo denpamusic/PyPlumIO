@@ -6,6 +6,7 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
 from pyplumio.connection import SerialConnection, TcpConnection
+from pyplumio.devices import Device, LogicalDevice, PhysicalDevice
 from pyplumio.exceptions import (
     ChecksumError,
     ConnectionFailedError,
@@ -103,10 +104,13 @@ __all__ = [
     "AsyncProtocol",
     "ChecksumError",
     "ConnectionFailedError",
+    "Device",
     "DummyProtocol",
     "EthernetParameters",
     "Frame",
     "FrameDataError",
+    "LogicalDevice",
+    "PhysicalDevice",
     "Protocol",
     "ProtocolError",
     "PyPlumIOError",
