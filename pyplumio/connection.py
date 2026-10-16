@@ -166,8 +166,8 @@ class SerialConnection(Connection):
     ) -> None:
         """Initialize a new serial connection."""
         super().__init__(protocol, reconnect_on_failure, **options)
-        self.url = url
-        if not url.startswith("socket://"):
+        self.url = url.strip()
+        if not self.url.startswith("socket://"):
             self._options = DEFAULT_OPTIONS | self._options
 
     def __repr__(self) -> str:
