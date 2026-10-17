@@ -69,7 +69,9 @@ DEFAULT_TOLERANCE: Final = 1e-6
 
 
 @overload
-def is_close(old: Parameter, new: Parameter) -> bool: ...
+def is_close(
+    old: Parameter, new: Parameter, *, tolerance: float = DEFAULT_TOLERANCE
+) -> bool: ...
 
 
 @overload
@@ -89,11 +91,20 @@ def is_close(
     if isinstance(new, Parameter) and new.update_pending.is_set():
         return False
 
+    if isinstance(old, Parameter) and isinstance(new, Parameter):
+        if (
+            tolerance
+            and isinstance(old, Number)
+            and isinstance(new, Number)
+            and old.values.min_value == new.values.min_value
+            and old.values.max_value == new.values.max_value
+        ):
+            return math.isclose(old, new, abs_tol=tolerance)
+
+        return old.values.__eq__(new.values)
+
     if tolerance and isinstance(old, SupportsFloat) and isinstance(new, SupportsFloat):
         return math.isclose(old, new, abs_tol=tolerance)
-
-    if isinstance(old, Parameter) and isinstance(new, Parameter):
-        return old.values.__eq__(new.values)
 
     return old.__eq__(new)
 
