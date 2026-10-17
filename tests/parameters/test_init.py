@@ -15,6 +15,8 @@ from pyplumio.frames import Request
 from pyplumio.parameters import (
     Number,
     NumberDescription,
+    OffsetNumber,
+    OffsetNumberDescription,
     Parameter,
     ParameterDescription,
     ParameterValues,
@@ -510,6 +512,40 @@ class TestNumber:
         Checks creating a number change request.
         """
         assert isinstance(await number.create_request(), Request)
+
+
+class TestOffsetNumber:
+    """Tests for OffsetNumber class.
+
+    Verifies value packing and unpacking with offset and step.
+    """
+
+    @pytest.mark.parametrize(
+        ("offset", "step", "raw", "value"),
+        [
+            (20, 1.0, 21, 1),
+            (20, 1.0, 0, -20),
+            (-30, 10.0, 95, 1250),
+            (-30, 10.0, 0, 300),
+            (100, 1.0, 101, 1),
+        ],
+    )
+    def test_pack_unpack(
+        self, ecomax: EcoMAX, offset: int, step: float, raw: int, value: int
+    ) -> None:
+        """Test pack and unpack.
+
+        Checks that packing is the inverse of unpacking.
+        """
+        number = OffsetNumber(
+            device=ecomax,
+            values=ParameterValues(value=raw, min_value=0, max_value=255),
+            description=OffsetNumberDescription(
+                name="test_offset_number", offset=offset, step=step
+            ),
+        )
+        assert number.value == value
+        assert number._pack_value(value) == raw
 
 
 class TestSwitch:

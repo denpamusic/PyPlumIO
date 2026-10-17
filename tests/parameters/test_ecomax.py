@@ -1,15 +1,25 @@
 """Contains tests for the ecoMAX parameter descriptors."""
 
-from pyplumio.const import ATTR_INDEX, ATTR_OFFSET, ATTR_SIZE, ATTR_VALUE, ProductType
+from pyplumio.const import (
+    ATTR_INDEX,
+    ATTR_OFFSET,
+    ATTR_SIZE,
+    ATTR_VALUE,
+    ProductType,
+    UnitOfMeasurement,
+)
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.requests import (
     EcomaxControlRequest,
+    SetEcomaxExtendedParameterRequest,
     SetEcomaxParameterRequest,
     SetThermostatParameterRequest,
 )
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
+    EXTENDED_PARAMETER_TYPES,
     PARAMETER_TYPES as ECOMAX_PARAMETER_TYPES,
+    EcomaxExtendedNumber,
     EcomaxNumber,
     EcomaxNumberDescription,
     EcomaxSwitch,
@@ -86,3 +96,30 @@ async def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert parameter_types_patched[120].name == "summer_mode_enable_temp"
     assert parameter_types_patched[121].name == "summer_mode_disable_temp"
     assert parameter_types_patched[127].name == "__unknown_parameter_1"
+
+
+async def test_ecomax_extended_number_create_request(ecomax: EcoMAX) -> None:
+    """Test create_request method for ecoMAX extended number."""
+    ecomax_extended_number = EcomaxExtendedNumber(
+        device=ecomax,
+        description=EcomaxNumberDescription(name="test_number"),
+        values=ParameterValues(value=1, min_value=0, max_value=2),
+        index=23,
+    )
+    request = await ecomax_extended_number.create_request()
+    assert isinstance(request, SetEcomaxExtendedParameterRequest)
+    assert request.data == {ATTR_INDEX: 23, ATTR_VALUE: 1}
+    assert request.message == bytes.fromhex("011701")
+
+
+def test_extended_parameter_types() -> None:
+    """Test ecoMAX extended parameter types."""
+    parameter_types = EXTENDED_PARAMETER_TYPES[(41, "ecoMAX 860P4-NM TOUCH")]
+    assert len(parameter_types) == 61
+    assert parameter_types[23].name == "control_mode"
+    assert parameter_types[11] == EcomaxNumberDescription(
+        name="fan_speed_30",
+        step=10.0,
+        offset=-30,
+        unit_of_measurement=UnitOfMeasurement.REVOLUTIONS_PER_MINUTE,
+    )
