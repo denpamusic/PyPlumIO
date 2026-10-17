@@ -215,6 +215,8 @@ class UnitOfMeasurement(Enum):
     SECONDS = "s"
     MINUTES = "min"
     DAYS = "days"
+    PASCAL = "Pa"
+    REVOLUTIONS_PER_MINUTE = "rpm"
 
 
 PERCENTAGE: Final = "%"

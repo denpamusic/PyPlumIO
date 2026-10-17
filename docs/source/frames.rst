@@ -112,6 +112,8 @@ changes.
 
 Parameters are represented in the same way as in :ref:`ecomaxparameters`.
 Raw parameters are available under the ``ecomax_extended_parameters`` key.
+Parameters with known meaning are also available by name for verified
+products only.
 
 Request
 ^^^^^^^
@@ -240,7 +242,7 @@ parameter per frame.
 In captures, after every panel write the controller increased the frame
 type 97 version in the regulator data frame version table within 1-3 seconds
 (6, 7, 8, 9, 10, 11 for five writes), so PyPlumIO re-reads the extended
-parameter table.
+parameter table and confirms the set from it.
 
 Request
 ^^^^^^^
