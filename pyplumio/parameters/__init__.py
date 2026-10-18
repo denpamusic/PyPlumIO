@@ -407,7 +407,7 @@ class OffsetNumber(Number):
 
     def _pack_value(self, value: Numeric) -> int:
         """Pack the parameter value."""
-        return super()._pack_value(value + self.description.offset)
+        return super()._pack_value(value) + self.description.offset
 
     def _unpack_value(self, value: int) -> Numeric:
         """Unpack the parameter value."""
