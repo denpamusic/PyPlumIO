@@ -141,56 +141,24 @@ class Connection(ABC, TaskManager):
         """Open the connection and return reader and writer objects."""
 
 
-class TcpConnection(Connection):
-    """Represents a TCP connection."""
-
-    __slots__ = ("host", "port")
-
-    host: str
-    port: int
-
-    def __init__(
-        self,
-        host: str,
-        port: int,
-        *,
-        protocol: Protocol | None = None,
-        reconnect_on_failure: bool = True,
-        **options: Any,
-    ) -> None:
-        """Initialize a new TCP connection."""
-        super().__init__(protocol, reconnect_on_failure, **options)
-        self.host = host
-        self.port = port
-
-    def __repr__(self) -> str:
-        """Return a serializable string representation."""
-        return (
-            f"TcpConnection(host={self.host}, port={self.port}, options={self.options})"
-        )
-
-    @timeout(TRY_CONNECT_FOR_SECONDS)
-    async def _open_connection(
-        self,
-    ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
-        """Open the connection and return reader and writer objects."""
-        return await serialx.open_serial_connection(
-            f"socket://{self.host}:{self.port}", **self.options
-        )
+DEFAULT_OPTIONS: dict[str, Any] = {
+    "baudrate": 115200,
+    "byte_size": 8,
+    "parity": Parity.NONE,
+    "stopbits": StopBits.ONE,
+}
 
 
 class SerialConnection(Connection):
     """Represents a serial connection."""
 
-    __slots__ = ("url", "baudrate")
+    __slots__ = ("url",)
 
     url: str
-    baudrate: int
 
     def __init__(
         self,
         url: str,
-        baudrate: int = 115200,
         *,
         protocol: Protocol | None = None,
         reconnect_on_failure: bool = True,
@@ -198,31 +166,20 @@ class SerialConnection(Connection):
     ) -> None:
         """Initialize a new serial connection."""
         super().__init__(protocol, reconnect_on_failure, **options)
-        self.url = url
-        self.baudrate = baudrate
+        self.url = url.strip()
+        if not self.url.startswith("socket://"):
+            self._options = DEFAULT_OPTIONS | self._options
 
     def __repr__(self) -> str:
         """Return a serializable string representation."""
-        return (
-            "SerialConnection("
-            f"url={self.url}, "
-            f"baudrate={self.baudrate}, "
-            f"options={self.options})"
-        )
+        return f"SerialConnection(url={self.url}, options={self.options})"
 
     @timeout(TRY_CONNECT_FOR_SECONDS)
     async def _open_connection(
         self,
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """Open the connection and return reader and writer objects."""
-        return await serialx.open_serial_connection(
-            self.url,
-            baudrate=self.baudrate,
-            byte_size=8,
-            parity=Parity.NONE,
-            stopbits=StopBits.ONE,
-            **self.options,
-        )
+        return await serialx.open_serial_connection(self.url, **self.options)
 
 
-__all__ = ["Connection", "TcpConnection", "SerialConnection"]
+__all__ = ["Connection", "SerialConnection"]

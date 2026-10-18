@@ -53,7 +53,7 @@ pip install pyplumio
 2. Connect to the ecoMAX controller:
 
 ```python
->>> connection = pyplumio.open_serial_connection("/dev/ttyUSB0")
+>>> connection = pyplumio.serial_for_url("/dev/ttyUSB0")
 >>> await connection.connect()
 >>> ecomax = await connection.get("ecomax")
 ```

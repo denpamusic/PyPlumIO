@@ -127,7 +127,7 @@ outputting the result to the terminal.
 
     async def main():
         """Turn on the controller and set target temperature."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             # Get the ecoMAX device.
             async with conn.device("ecomax") as ecomax:
                 # Turn on controller without waiting for the result.

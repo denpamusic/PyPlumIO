@@ -34,7 +34,7 @@ and close the connection.
 
     async def main():
         """Read the current heating temperature."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             # Get the ecoMAX device.
             async with conn.device("ecomax") as ecomax:
                 # Get the heating temperature.
@@ -119,7 +119,7 @@ to the terminal.
         """Read current temp, target temp and device state from
         the regdata.
         """
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             # Get the ecoMAX device.
             async with conn.device("ecomax") as ecomax:
                 # Get heating temperature, if it's available otherwise

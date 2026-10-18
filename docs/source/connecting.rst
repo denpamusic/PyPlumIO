@@ -4,30 +4,11 @@ Connecting
 Opening the connection
 ----------------------
 
-.. autofunction:: pyplumio.open_tcp_connection
+.. autofunction:: pyplumio.serial_for_url
 
-With this you can connect to the controller remotely via RS-485 to
-Ethernet/WiFi converters, which are readily available online or
-can be custom built using wired connection and ser2net software.
-
-.. code-block:: python
-    
-    import pyplumio
-
-    async with pyplumio.open_tcp_connection("localhost", port=8899) as conn:
-        ...
-
-
-.. note::
-
-    Although **async with** syntax is preferred, you can initiate connection without it.
-    See following :ref:`examples<Connection Examples>` for more information.
-
-.. autofunction:: pyplumio.open_serial_connection
-
-You can connect to the ecoMAX controller via wired connection through
+You can connect to the ecoMAX controller via physical connection through
 RS-485 to USB or RS-485 to TTL adapters, that are connected directly
-to the device running PyPlumIO.
+to the device running PyPlumIO or wirelessly through tcp socket.
 
 You MUST not connect RS-485 lines directly to the UART outputs of your
 PC or you'll risk damaging your PC/controller or the ecoMAX controller itself.
@@ -36,8 +17,16 @@ PC or you'll risk damaging your PC/controller or the ecoMAX controller itself.
     
     import pyplumio
 
-    async with pyplumio.open_serial_connection("/dev/ttyUSB0", baudrate=115200) as conn:
+    async with pyplumio.serial_for_url("/dev/ttyUSB0") as conn:
         ...
+        
+    async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
+        ...
+
+.. note::
+
+    Although **async with** syntax is preferred, you can initiate connection without it.
+    See following :ref:`examples<Connection Examples>` for more information.
 
 Protocols
 ---------
@@ -68,8 +57,7 @@ working with device classes and queues.
 
     async def main():
         """Open a connection and request alerts."""
-        async with pyplumio.open_tcp_connection(
-            host="localhost", port=8899, protocol=pyplumio.DummyProtocol()
+        async with pyplumio.serial_for_url("socket://localhost:8899", protocol=pyplumio.DummyProtocol()
         ) as conn:
             await conn.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
@@ -121,9 +109,8 @@ In the example below, we'll set both ethernet and wireless parameters.
 
     async def main():
         """Initialize a connection with network parameters."""
-        async with pyplumio.open_tcp_connection(
-            host="localhost",
-            port=8899,
+        async with pyplumio.serial_for_url(
+            "socket://localhost:8899",
             protocol=pyplumio.AsyncProtocol(
                 ethernet_parameters=pyplumio.EthernetParameters(
                     ip="10.10.1.100",
@@ -176,7 +163,7 @@ connection.
 
     async def main():
         """Print connection statistics."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             print(conn.statistics)
             ...
 
@@ -199,7 +186,7 @@ context manager.
 
     async def main():
         """Opens the connection and gets the ecoMAX device."""
-        async with pyplumio.open_tcp_connection("localhost", port=8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             try:
                 # Get the ecoMAX device within 10 seconds or timeout.
                 async with conn.device("ecomax", timeout=10) as ecomax:
@@ -228,7 +215,7 @@ using Python's context manager.
 
     async def main():
         """Opens the connection and gets the ecoMAX device."""
-        connection = pyplumio.open_tcp_connection("localhost", port=8899)
+        connection = pyplumio.serial_for_url("socket://localhost:8899")
 
         # Connect to the device.
         await connection.connect()

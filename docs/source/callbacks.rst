@@ -181,7 +181,7 @@ processing.
 
     async def main():
         """Subscribes callback to the current heating temperature."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             async with conn.device("ecomax") as ecomax:
                 # Await the callback on value change but no faster than
                 # once per 5 seconds.
@@ -211,7 +211,7 @@ current heating temperature on every SensorDataMessage.
 
     async def main():
         """Subscribes callback to the current heating temperature."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             async with conn.device("ecomax") as ecomax:
                 # Subscribe my_callback to heating_temp event.
                 ecomax.subscribe("heating_temp", my_callback)
@@ -244,7 +244,7 @@ when heating temperature will change more the 0.1 degrees Celsius.
 
     async def main():
         """Subscribes callback to the current heating temperature."""
-        async with pyplumio.open_tcp_connection("localhost", 8899) as conn:
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
             async with conn.device("ecomax") as ecomax:
                 # Subscribe my_callback to heating_target_temp event.
                 ecomax.subscribe_once("heating_target_temp", my_callback)
