@@ -45,7 +45,7 @@ Numbers are parameters that have numerical value associated with them.
 
 .. code-block:: python
 
-    from pyplumio.parameters import Number
+    from pyplumio import Number
 
     async with conn.device("ecomax") as ecomax:
         heating_target: Number = ecomax.get("heating_target_temp")
@@ -61,7 +61,7 @@ Please note, that both values are **inclusive**.
 
 .. code-block:: python
 
-    from pyplumio.parameters import Number
+    from pyplumio import Number
 
     async with conn.device("ecomax") as ecomax:
         target_temp: Number = await ecomax.get("heating_target_temp")
@@ -95,7 +95,7 @@ object.
 
 .. code-block:: python
 
-    from pyplumio.parameters import Switch
+    from pyplumio import Switch
 
     # Get an ecomax_control parameter and turn it on.
     ecomax_control: Switch = await ecomax.get("ecomax_control")

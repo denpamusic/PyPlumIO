@@ -32,7 +32,7 @@ get it's current_temp property and set it's target temperature to
 
 .. code-block:: python
 
-    from pyplumio.devices import Mixer
+    from pyplumio import Mixer
 
     async with conn.device("ecomax") as ecomax:
         # Get connected mixers.
@@ -56,7 +56,7 @@ degrees Celsius.
 
 .. code-block:: python
 
-    from pyplumio.device import Thermostat
+    from pyplumio import Thermostat
 
     async with conn.device("ecomax") as ecomax:
         # Get connected thermostats.

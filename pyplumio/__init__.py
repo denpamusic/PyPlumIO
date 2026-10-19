@@ -6,7 +6,24 @@ from importlib.metadata import PackageNotFoundError, version as _pkg_version
 from typing import Any
 
 from pyplumio.connection import SerialConnection
+from pyplumio.const import (
+    PERCENTAGE,
+    STATE_OFF,
+    STATE_ON,
+    AlertType,
+    DeviceState,
+    DeviceType,
+    EncryptionType,
+    FrameType,
+    LambdaState,
+    ProductType,
+    UnitOfMeasurement,
+)
 from pyplumio.devices import Device, LogicalDevice, PhysicalDevice
+from pyplumio.devices.ecomax import EcoMAX
+from pyplumio.devices.ecoster import EcoSTER
+from pyplumio.devices.mixer import Mixer
+from pyplumio.devices.thermostat import Thermostat
 from pyplumio.exceptions import (
     ChecksumError,
     ConnectionFailedError,
@@ -18,7 +35,8 @@ from pyplumio.exceptions import (
     UnknownDeviceError,
     UnknownFrameError,
 )
-from pyplumio.frames import Frame
+from pyplumio.frames import Frame, requests, responses
+from pyplumio.parameters import Number, Switch
 from pyplumio.protocol import AsyncProtocol, DummyProtocol, Protocol
 from pyplumio.structures.network_info import EthernetParameters, WirelessParameters
 
@@ -53,34 +71,50 @@ def serial_for_url(
     :rtype: SerialConnection
     """
     return SerialConnection(
-        url,
-        protocol=protocol,
-        reconnect_on_failure=reconnect_on_failure,
-        **options,
+        url, protocol=protocol, reconnect_on_failure=reconnect_on_failure, **options
     )
 
 
 __all__ = [
     "__version__",
     "version",
+    "AlertType",
     "AsyncProtocol",
     "ChecksumError",
     "ConnectionFailedError",
     "Device",
+    "DeviceState",
+    "DeviceType",
     "DummyProtocol",
+    "EcoMAX",
+    "EcoSTER",
+    "EncryptionType",
     "EthernetParameters",
     "Frame",
     "FrameDataError",
+    "FrameType",
+    "LambdaState",
     "LogicalDevice",
+    "Mixer",
+    "Number",
+    "PERCENTAGE",
     "PhysicalDevice",
+    "ProductType",
     "Protocol",
     "ProtocolError",
     "PyPlumIOError",
     "ReadError",
     "RequestError",
     "SerialConnection",
+    "STATE_OFF",
+    "STATE_ON",
+    "Switch",
+    "Thermostat",
+    "UnitOfMeasurement",
     "UnknownDeviceError",
     "UnknownFrameError",
     "WirelessParameters",
+    "responses",
+    "requests",
     "serial_for_url",
 ]

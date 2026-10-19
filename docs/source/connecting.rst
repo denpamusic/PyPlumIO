@@ -51,13 +51,12 @@ working with device classes and queues.
     import asyncio
 
     import pyplumio
-    from pyplumio.const import DeviceType
-    from pyplumio.frames import requests, responses
+    from pyplumio import DeviceType, DummyProtocol, requests, responses
 
 
     async def main():
         """Open a connection and request alerts."""
-        async with pyplumio.serial_for_url("socket://localhost:8899", protocol=pyplumio.DummyProtocol()
+        async with pyplumio.serial_for_url("socket://localhost:8899", protocol=DummyProtocol()
         ) as conn:
             await conn.writer.write(
                 requests.AlertsRequest(recipient=DeviceType.ECOMAX, start=0, count=5)
@@ -104,20 +103,25 @@ In the example below, we'll set both ethernet and wireless parameters.
 .. code-block:: python
 
     import pyplumio
-    from pyplumio.const import EncryptionType
+    from pyplumio import (
+        AsyncProtocol,
+        EthernetParameters,
+        WirelessParameters,
+        EncryptionType
+    )
 
 
     async def main():
         """Initialize a connection with network parameters."""
         async with pyplumio.serial_for_url(
             "socket://localhost:8899",
-            protocol=pyplumio.AsyncProtocol(
-                ethernet_parameters=pyplumio.EthernetParameters(
+            protocol=AsyncProtocol(
+                ethernet_parameters=EthernetParameters(
                     ip="10.10.1.100",
                     netmask="255.255.255.0",
                     gateway="10.10.1.1",
                 ),
-                wireless_parameters=pyplumio.WirelessParameters(
+                wireless_parameters=WirelessParameters(
                     ip="10.10.2.100",
                     netmask="255.255.255.0",
                     gateway="10.10.2.1",
