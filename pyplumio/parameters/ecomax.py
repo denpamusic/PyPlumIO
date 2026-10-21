@@ -861,6 +861,11 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             name="kindling_duration",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
+        25: EcomaxNumberDescription(
+            name="kindling_fuel_dose",
+            step=10.0,
+            unit_of_measurement=UnitOfMeasurement.GRAMS,
+        ),
         26: EcomaxNumberDescription(
             name="warming_up_duration",
             step=2.0,
@@ -894,10 +899,16 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             step=5.0,
             unit_of_measurement=UnitOfMeasurement.KILOGRAMS,
         ),
+        54: EcomaxNumberDescription(
+            name="fan_pi_gain",
+        ),
         55: EcomaxNumberDescription(
             name="fan_pi_integral",
         ),
         56: EcomaxNumberDescription(
+            name="exhaust_fan_pi_integral",
+        ),
+        57: EcomaxNumberDescription(
             name="exhaust_fan_pi_gain",
         ),
         59: _fan_speed("stabilization_fan_speed"),
@@ -928,6 +939,7 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             name="min_burning_off_duration",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
+        75: _fan_speed("glowing_fan_speed"),
         76: EcomaxNumberDescription(
             name="full_power_down_cycles",
         ),
@@ -950,17 +962,41 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             name="max_boiler_target_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
+        # 0 - off, 1 - priority, 2 - no priority.
+        90: EcomaxNumberDescription(
+            name="water_heater_pump_mode",
+        ),
         96: EcomaxNumberDescription(
             name="heating_pump_start_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        # 0 - no, 1 - yes.
+        100: EcomaxNumberDescription(
+            name="heat_exchanger",
         ),
         117: EcomaxNumberDescription(
             name="thermostat_decrease_boiler_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
+        143: EcomaxNumberDescription(
+            name="mixer_1_valve_opening_time",
+            unit_of_measurement=UnitOfMeasurement.SECONDS,
+        ),
         155: EcomaxNumberDescription(
             name="boiler_cooling_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        # 0 - off, 1 - universal.
+        157: EcomaxNumberDescription(
+            name="mixer_1_thermostat",
+        ),
+        162: EcomaxNumberDescription(
+            name="circulation_pump_pause_time",
+            unit_of_measurement=UnitOfMeasurement.MINUTES,
+        ),
+        163: EcomaxNumberDescription(
+            name="circulation_pump_work_time",
+            unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
         176: EcomaxNumberDescription(
             name="burner_cleaning_interval",
@@ -988,6 +1024,10 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             name="no_fuel_exhaust_temp",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
+        # 0 - no, 1 - yes.
+        205: EcomaxNumberDescription(
+            name="draft_sensor",
+        ),
         207: EcomaxNumberDescription(
             name="draft_correction",
             offset=100,
@@ -1001,9 +1041,29 @@ EXTENDED_PARAMETER_TYPES: dict[tuple[int, str], dict[int, EcomaxNumberDescriptio
             name="draft_alarm_max",
             unit_of_measurement=UnitOfMeasurement.PASCAL,
         ),
+        # 0 - off, 1 - 4D valve, 2 - 3D valve (by panel list order).
+        210: EcomaxNumberDescription(
+            name="return_protection",
+        ),
+        211: EcomaxNumberDescription(
+            name="min_return_target_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        212: EcomaxNumberDescription(
+            name="return_temp_hysteresis",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+        213: EcomaxNumberDescription(
+            name="return_valve_closing",
+            unit_of_measurement=PERCENTAGE,
+        ),
         214: EcomaxNumberDescription(
             name="max_fan_output",
             unit_of_measurement=PERCENTAGE,
+        ),
+        # 0 - reserve boiler, 1 - alarms, 2 - circulation pump.
+        215: EcomaxNumberDescription(
+            name="h_output_mode",
         ),
         220: EcomaxNumberDescription(
             name="fuel_correction",

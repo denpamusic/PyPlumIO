@@ -115,7 +115,7 @@ async def test_ecomax_extended_number_create_request(ecomax: EcoMAX) -> None:
 def test_extended_parameter_types() -> None:
     """Test ecoMAX extended parameter types."""
     parameter_types = EXTENDED_PARAMETER_TYPES[(41, "ecoMAX 860P4-NM TOUCH")]
-    assert len(parameter_types) == 61
+    assert len(parameter_types) == 77
     assert parameter_types[23].name == "control_mode"
     assert parameter_types[11] == EcomaxNumberDescription(
         name="fan_speed_30",

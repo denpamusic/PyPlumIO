@@ -20,6 +20,7 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
+    PERCENTAGE,
     STATE_OFF,
     STATE_ON,
     DeviceState,
@@ -392,6 +393,24 @@ async def test_ecomax_extended_parameters_event_listener(
         ("draft_correction", 1, -100, 100),
         ("fuel_correction", -20, -20, 20),
         ("airflow_correction", 0, -10, 10),
+        ("fan_pi_gain", 30, 0, 255),
+        ("fan_pi_integral", 10, 0, 255),
+        ("exhaust_fan_pi_gain", 25, 0, 255),
+        ("exhaust_fan_pi_integral", 5, 0, 255),
+        ("kindling_fuel_dose", 220, 10, 2550),
+        ("glowing_fan_speed", 1000, 300, 2850),
+        ("water_heater_pump_mode", 2, 0, 2),
+        ("draft_sensor", 1, 0, 1),
+        ("circulation_pump_pause_time", 30, 0, 255),
+        ("circulation_pump_work_time", 70, 0, 255),
+        ("heat_exchanger", 1, 0, 1),
+        ("mixer_1_thermostat", 0, 0, 1),
+        ("mixer_1_valve_opening_time", 140, 10, 255),
+        ("return_protection", 0, 0, 2),
+        ("min_return_target_temp", 45, 0, 80),
+        ("return_temp_hysteresis", 5, 1, 10),
+        ("return_valve_closing", 10, 0, 80),
+        ("h_output_mode", 0, 0, 2),
     ):
         parameter = ecomax.get_nowait(name)
         assert equal_parameter_value(parameter.value, value), name
@@ -405,6 +424,19 @@ async def test_ecomax_extended_parameters_event_listener(
     assert (
         ecomax.get_nowait("draft_100").unit_of_measurement == UnitOfMeasurement.PASCAL
     )
+    assert (
+        ecomax.get_nowait("kindling_fuel_dose").unit_of_measurement
+        == UnitOfMeasurement.GRAMS
+    )
+    for name, unit in (
+        ("circulation_pump_pause_time", UnitOfMeasurement.MINUTES),
+        ("circulation_pump_work_time", UnitOfMeasurement.SECONDS),
+        ("mixer_1_valve_opening_time", UnitOfMeasurement.SECONDS),
+        ("min_return_target_temp", UnitOfMeasurement.CELSIUS),
+        ("return_temp_hysteresis", UnitOfMeasurement.CELSIUS),
+        ("return_valve_closing", PERCENTAGE),
+    ):
+        assert ecomax.get_nowait(name).unit_of_measurement == unit, name
 
     # Test that parameter instance is not recreated on subsequent calls.
     fan_speed_100 = ecomax.get_nowait("fan_speed_100")
