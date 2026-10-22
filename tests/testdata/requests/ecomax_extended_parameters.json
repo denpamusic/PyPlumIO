@@ -1,0 +1,15 @@
+[
+  {
+    "id": "get_ecomax_extended_parameters_from_zero_no_limit",
+    "message": {
+      "items": [
+        "FF00"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "start": 0,
+      "count": 255
+    }
+  }
+]
