@@ -325,15 +325,22 @@ async def test_fuel_consumption_event_listener(
     frozen_time, caplog, ecomax: EcoMAX
 ) -> None:
     """Test event listener for fuel consumption."""
+    # First frame establishes baseline; no fuel burned is dispatched.
+    ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+    await ecomax.wait_until_done()
+    assert ecomax.get_nowait(ATTR_FUEL_BURNED) is None
+
+    # Second frame calculates fuel burned with trapezoidal rule:
+    # (3.6 + 3.6) / 2 * (10 / 3600) = 0.01 kg.
     frozen_time.tick(timedelta(seconds=10))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
     await ecomax.wait_until_done()
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
     assert equal_parameter_value(fuel_burned, 0.01)
 
-    # Test with outdated data.
+    # Test with outdated data (interval >= MAX_TIME_SINCE_LAST_FUEL_UPDATE).
     message = "Skipping outdated fuel consumption"
-    frozen_time.tick(timedelta(minutes=5, seconds=10))
+    frozen_time.tick(timedelta(seconds=16))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 1}))
     await ecomax.wait_until_done()
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
@@ -341,12 +348,30 @@ async def test_fuel_consumption_event_listener(
     assert message in caplog.text
     caplog.clear()
 
+    # Resumed frame after outdated data uses the outdated rate as baseline:
+    # (1.0 + 7.2) / 2 * (10 / 3600) = 0.011388... kg.
     frozen_time.tick(timedelta(seconds=10))
     ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 7.2}))
     await ecomax.wait_until_done()
     assert message not in caplog.text
     fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
-    assert equal_parameter_value(fuel_burned, 0.02)
+    assert equal_parameter_value(fuel_burned, (1.0 + 7.2) / 2 * (10 / 3600))
+
+    # Test resetting the fuel meter.
+    ecomax.reset_fuel_meter()
+    frozen_time.tick(timedelta(seconds=10))
+    ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+    await ecomax.wait_until_done()
+    # Baseline re-established, previous fuel burned value retained.
+    assert equal_parameter_value(
+        cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED)), (1.0 + 7.2) / 2 * (10 / 3600)
+    )
+
+    frozen_time.tick(timedelta(seconds=10))
+    ecomax.handle_frame(Response(data={ATTR_FUEL_CONSUMPTION: 3.6}))
+    await ecomax.wait_until_done()
+    fuel_burned = cast(float, ecomax.get_nowait(ATTR_FUEL_BURNED))
+    assert equal_parameter_value(fuel_burned, 0.01)
 
 
 @class_from_json(

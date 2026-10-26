@@ -65,34 +65,50 @@ ATTR_MIXERS: Final = "mixers"
 ATTR_THERMOSTATS: Final = "thermostats"
 ATTR_FUEL_BURNED: Final = "fuel_burned"
 
-MAX_TIME_SINCE_LAST_FUEL_UPDATE: Final = 5 * 60
+MAX_TIME_SINCE_LAST_FUEL_UPDATE: Final = 15
 
 
-class FuelMeter:
+class _FuelMeter:
     """Represents a fuel meter.
 
-    Calculates the fuel burned based on the time
-    elapsed since the last sensor message, which contains fuel
-    consumption data. If the elapsed time is within the acceptable
-    range, it returns the fuel burned data. Otherwise, it logs a
-    warning and returns None.
+    Calculates the fuel burned based on the time elapsed and average
+    consumption rate between sensor messages. If the elapsed time is
+    within the acceptable range, it returns the fuel burned data.
+    Otherwise, it logs a warning and returns None.
     """
 
-    __slots__ = ("_last_update_time",)
+    __slots__ = ("_last_fuel_consumption", "_last_update_time")
 
-    _last_update_time: float
+    _last_fuel_consumption: float | None
+    _last_update_time: float | None
 
     def __init__(self) -> None:
         """Initialize a new fuel meter."""
-        self._last_update_time = time.monotonic()
+        self._last_fuel_consumption = None
+        self._last_update_time = None
+
+    def reset(self) -> None:
+        """Reset the fuel meter baseline."""
+        self._last_fuel_consumption = None
+        self._last_update_time = None
 
     def calculate(self, fuel_consumption: float) -> float | None:
         """Calculate the amount of burned fuel since last update."""
         current_time = time.monotonic()
+        if self._last_update_time is None or self._last_fuel_consumption is None:
+            self._last_update_time = current_time
+            self._last_fuel_consumption = fuel_consumption
+            return None
+
         time_since_update = current_time - self._last_update_time
+        prev_consumption = self._last_fuel_consumption
         self._last_update_time = current_time
+        self._last_fuel_consumption = fuel_consumption
+
         if time_since_update < MAX_TIME_SINCE_LAST_FUEL_UPDATE:
-            return fuel_consumption * (time_since_update / 3600)
+            return ((prev_consumption + fuel_consumption) / 2) * (
+                time_since_update / 3600
+            )
 
         _LOGGER.warning(
             "Skipping outdated fuel consumption data (was %f seconds old)",
@@ -130,14 +146,18 @@ class EcoMAX(PhysicalDevice):
 
     __slots__ = ("_fuel_meter",)
 
-    _fuel_meter: FuelMeter
+    _fuel_meter: _FuelMeter
 
     def __init__(
         self, write_queue: asyncio.Queue[Frame], network_info: NetworkInfo
     ) -> None:
         """Initialize a new ecoMAX controller."""
         super().__init__(write_queue, network_info)
-        self._fuel_meter = FuelMeter()
+        self._fuel_meter = _FuelMeter()
+
+    def reset_fuel_meter(self) -> None:
+        """Reset the fuel meter baseline."""
+        self._fuel_meter.reset()
 
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the ecoMAX device."""
