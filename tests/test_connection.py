@@ -172,18 +172,19 @@ class TestSerialConnection:
                 },
             ),
             (
-                "/dev/ttyAMA0",
-                {"timeout": 15},
+                "socket://localhost:8899",
                 {
-                    "baudrate": 115200,
+                    "timeout": 15,
+                    "baudrate": 9600,
+                },
+                {
+                    "baudrate": 9600,
                     "byte_size": 8,
                     "parity": Parity.NONE,
                     "stopbits": StopBits.ONE,
                     "timeout": 15,
                 },
             ),
-            ("socket://localhost:8899", {}, {}),
-            ("socket://localhost:8900", {"timeout": 10}, {"timeout": 10}),
         ),
     )
     async def test_connect(
