@@ -7,6 +7,7 @@ from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.responses import (
     AlertsResponse,
     DeviceAvailableResponse,
+    EcomaxExtendedParametersResponse,
     EcomaxParametersResponse,
     MixerParametersResponse,
     PasswordResponse,
@@ -57,6 +58,16 @@ def test_ecomax_parameters_response(message, data) -> None:
     """Test a ecoMAX parameters response."""
     assert EcomaxParametersResponse(message=message).data == data
     assert not EcomaxParametersResponse(data=data).message
+
+
+@pytest.mark.parametrize(
+    ("message", "data"),
+    load_json_parameters("responses/ecomax_extended_parameters.json"),
+)
+def test_ecomax_extended_parameters_response(message, data) -> None:
+    """Test an ecoMAX extended parameters response."""
+    assert EcomaxExtendedParametersResponse(message=message).data == data
+    assert not EcomaxExtendedParametersResponse(data=data).message
 
 
 @pytest.mark.parametrize(

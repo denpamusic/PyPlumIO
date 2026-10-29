@@ -99,6 +99,60 @@ Handler
 
 .. autoclass:: pyplumio.structures.ecomax_parameters.EcomaxParametersStructure
 
+EcomaxExtendedParameters
+------------------------
+
+Get the ecoMAX controller editable parameters from the extended parameter
+table. Newer controllers, such as ecoMAX 860P4-NM TOUCH, keep part of their
+settings only in this table.
+
+PyPlumIO requests this table only if the controller announces frame type 97
+in the frame version table, and requests it again each time its version
+changes.
+
+Parameters are represented in the same way as in :ref:`ecomaxparameters`.
+Raw parameters are available under the ``ecomax_extended_parameters`` key.
+Parameters with known meaning are also available by name for verified
+products only.
+
+Request
+^^^^^^^
+
+.. autoattribute:: pyplumio.const.FrameType.REQUEST_ECOMAX_EXTENDED_PARAMETERS
+
+.. list-table::
+   :widths: 20 65 10
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Default
+   * - start
+     - Parameter index to start on.
+     - 0
+   * - count
+     - Number of parameters to request.
+     - 255
+
+Response
+^^^^^^^^
+
+.. autoattribute:: pyplumio.const.FrameType.RESPONSE_ECOMAX_EXTENDED_PARAMETERS
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Name
+     - Description
+   * - ecomax_extended_parameters
+     - Contains a list of ecomax extended parameters.
+
+Handler
+^^^^^^^
+
+.. autoclass:: pyplumio.structures.ecomax_extended_parameters.EcomaxExtendedParametersStructure
+
 MixerParameters
 ---------------
 
@@ -173,6 +227,46 @@ Response
 ^^^^^^^^
 
 .. autoattribute:: pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_PARAMETER
+
+SetEcomaxExtendedParameter
+--------------------------
+
+Set the editable parameter value in the extended parameter table.
+
+The message is the number of values, the index of the first parameter and
+the new raw values for consecutive indexes. In a panel capture, a single
+write was ``01 <index> <value>`` and one frame ``05 3b 47 16 1e 0a 46`` set
+indexes 0x3b to 0x3f to 71, 22, 30, 10 and 70. PyPlumIO always sets one
+parameter per frame.
+
+In captures, after every panel write the controller increased the frame
+type 97 version in the regulator data frame version table within 1-3 seconds
+(6, 7, 8, 9, 10, 11 for five writes), so PyPlumIO re-reads the extended
+parameter table and confirms the set from it.
+
+Request
+^^^^^^^
+
+.. autoattribute:: pyplumio.const.FrameType.REQUEST_SET_ECOMAX_EXTENDED_PARAMETER
+
+.. list-table::
+   :widths: 20 65 10
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Default
+   * - index
+     - Parameter index.
+     - 
+   * - value
+     - Value to set parameter to.
+     - 
+
+Response
+^^^^^^^^
+
+.. autoattribute:: pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_EXTENDED_PARAMETER
 
 SetMixerParameter
 -----------------

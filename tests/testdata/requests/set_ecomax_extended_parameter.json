@@ -1,0 +1,54 @@
+[
+  {
+    "id": "set_control_mode_to_0",
+    "message": {
+      "items": [
+        "011700"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 23,
+      "value": 0
+    }
+  },
+  {
+    "id": "set_control_mode_to_1",
+    "message": {
+      "items": [
+        "011701"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 23,
+      "value": 1
+    }
+  },
+  {
+    "id": "set_fuzzy_logic_a_to_6",
+    "message": {
+      "items": [
+        "010806"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 8,
+      "value": 6
+    }
+  },
+  {
+    "id": "set_fuzzy_logic_a_to_5",
+    "message": {
+      "items": [
+        "010805"
+      ],
+      "__bytearray__": true
+    },
+    "data": {
+      "index": 8,
+      "value": 5
+    }
+  }
+]
