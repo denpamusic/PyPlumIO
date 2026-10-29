@@ -132,9 +132,13 @@ async def test_ecomax_handle_frame(
 )
 @patch("asyncio.Queue.put_nowait")
 @class_from_json(SensorDataMessage, "messages/sensor_data.json", arguments=("message",))
+@class_from_json(
+    RegulatorDataMessage, "messages/regulator_data.json", arguments=("message",)
+)
 async def test_frame_versions_tracker(
     mock_put_nowait,
     ecomax: EcoMAX,
+    regulator_data: RegulatorDataMessage,
     sensor_data: SensorDataMessage,
     frame_type: FrameType,
     frame_request: Request,
@@ -159,6 +163,23 @@ async def test_frame_versions_tracker(
         await ecomax.wait_until_done()
 
     mock_put_nowait.assert_called_once_with(frame_request)
+
+    # Test with multiple source frames (sensors from before + regdata).
+    frame_versions_1 = ecomax.get_nowait(ATTR_FRAME_VERSIONS)
+    assert frame_versions_1 == {frame_type: 2}
+    ecomax.handle_frame(regulator_data)
+    await ecomax.wait_until_done()
+    frame_versions_2 = ecomax.get_nowait(ATTR_FRAME_VERSIONS)
+    assert frame_versions_2 == {
+        frame_type: 2,
+        FrameType.REQUEST_REGULATOR_DATA_SCHEMA: 0,
+        84: 0,
+        FrameType.REQUEST_ECOMAX_EXTENDED_PARAMETERS: 359,
+        FrameType.REQUEST_ALERTS: 53918,
+        FrameType.REQUEST_SCHEDULES: 1,
+        100: 1,
+        FrameType.REQUEST_PROGRAM_VERSION: 0,
+    }
 
 
 @patch("asyncio.Queue.put_nowait")

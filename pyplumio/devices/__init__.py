@@ -15,6 +15,7 @@ from pyplumio.filters import on_change
 from pyplumio.frames import Frame, Request, is_known_frame_type
 from pyplumio.helpers.event_manager import EventManager, event_listener
 from pyplumio.parameters import Numeric, Parameter
+from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
 from pyplumio.utils import create_instance, to_camelcase
 
@@ -149,7 +150,7 @@ class PhysicalDevice(Device, ABC):
         self._frame_versions = {}
 
     @event_listener(filter=on_change)
-    async def on_event_frame_versions(self, versions: dict[int, int]) -> None:
+    async def on_event_frame_versions(self, versions: dict[int, int]) -> dict[int, int]:
         """Check frame versions and update outdated frames."""
         _LOGGER.debug("Received frame version table")
         for frame_type, version in versions.items():
@@ -165,6 +166,8 @@ class PhysicalDevice(Device, ABC):
                 )
                 await self._request_frame_version(request_frame_type, version)
                 self._frame_versions[frame_type] = version
+
+        return self.get_nowait(ATTR_FRAME_VERSIONS, {}) | versions
 
     async def _request_frame_version(
         self, frame_type: FrameType | int, version: int

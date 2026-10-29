@@ -124,7 +124,8 @@ class TestPhysicalDevice:
     ) -> None:
         """Test event listener for frame versions."""
         assert physical_device.has_frame_version(frame_type, 1) is False
-        await physical_device.on_event_frame_versions({frame_type: 1})
+        frame_versions = await physical_device.on_event_frame_versions({frame_type: 1})
+        assert frame_versions == {frame_type: 1}
         mock_request_create.assert_awaited_once_with(
             requested_frame_type, recipient=DummyPhysicalDevice.address
         )
