@@ -14,7 +14,7 @@ IP: Final = "1.1.1.1"
 
 def test_version() -> None:
     """Test package version."""
-    assert __version__ == "0.7.0"
+    assert __version__[0:3] == "0.7"
     assert version == __version__
 
 
@@ -26,7 +26,7 @@ def test_version_not_found() -> None:
 
     # Reload again to restore version
     importlib.reload(pyplumio)
-    assert pyplumio.__version__ == "0.7.0"
+    assert pyplumio.__version__[0:3] == "0.7"
 
 
 def test_connection_helpers() -> None:

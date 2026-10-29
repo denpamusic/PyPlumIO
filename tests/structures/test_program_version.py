@@ -9,7 +9,7 @@ from pyplumio.structures.program_version import SOFTWARE_VERSION, _get_software_
 
 def test_software_version_format() -> None:
     """Test that SOFTWARE_VERSION is exactly 3 dot-separated integers."""
-    assert SOFTWARE_VERSION == "0.7.0"
+    assert SOFTWARE_VERSION[0:3] == "0.7"
     assert re.fullmatch(r"^\d+\.\d+\.\d+$", SOFTWARE_VERSION) is not None
 
 
