@@ -33,6 +33,8 @@ class CustomParameter:
 class CustomParameters:
     """Represents a custom parameters."""
 
+    __slots__ = ()
+
     signature: ClassVar[Signature]
     replacements: ClassVar[Sequence[CustomParameter]]
 

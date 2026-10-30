@@ -134,7 +134,7 @@ class PhysicalDevice(Device, ABC):
     logical devices associated with them via parent property.
     """
 
-    __slots__ = ("address", "_network_info", "_frame_versions")
+    __slots__ = ("_network_info", "_frame_versions")
 
     address: ClassVar[int]
 

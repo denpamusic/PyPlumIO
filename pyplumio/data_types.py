@@ -264,7 +264,7 @@ class VarString(DataType[str]):
 class BuiltInDataType(DataType[T], ABC):
     """Represents a data type that is supported by the struct module."""
 
-    __slots__ = ("_struct",)
+    __slots__ = ()
 
     _struct: ClassVar[struct.Struct]
 
