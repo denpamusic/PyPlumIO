@@ -191,9 +191,10 @@ class PhysicalDevice(Device, ABC):
     def handle_frame(self, frame: Frame) -> None:
         """Handle frame received from the device."""
         frame.assign_to(self)
-        if frame.data is not None:
-            for name, value in frame.data.items():
-                self.dispatch_nowait(name, value)
+        data = frame.data
+        _LOGGER.debug("Decoded frame: %s", frame)
+        for name, value in data.items():
+            self.dispatch_nowait(name, value)
 
     async def request(
         self, name: str, frame_type: FrameType, retries: int = 3, timeout: float = 3.0

@@ -9,7 +9,7 @@ import struct
 from typing import TYPE_CHECKING, Any, ClassVar, Final, TypeVar
 
 from pyplumio.const import DeviceType, FrameType
-from pyplumio.exceptions import UnknownFrameError
+from pyplumio.exceptions import FrameDataError, UnknownFrameError
 from pyplumio.utils import create_instance, to_camelcase
 
 if TYPE_CHECKING:
@@ -160,10 +160,17 @@ class Frame(ABC):
 
     @property
     def data(self) -> dict[str, Any]:
-        """Return the frame data."""
+        """Return the frame data.
+
+        :return: Decoded frame data
+        :rtype: dict[str, Any]
+        :raise FrameDataError: when frame message can't be decoded
+        """
         if self._data is None:
             self._data = (
-                self.decode_message(self._message) if self._message is not None else {}
+                self._decode_message_safe(self._message)
+                if self._message is not None
+                else {}
             )
 
         return self._data
@@ -173,6 +180,18 @@ class Frame(ABC):
         """Set the frame data."""
         self._data = data
         self._message = None
+
+    def _decode_message_safe(self, message: bytes) -> dict[str, Any]:
+        """Decode a frame message and wrap decoding errors."""
+        try:
+            return self.decode_message(message)
+        except (struct.error, IndexError, UnicodeDecodeError) as e:
+            raise FrameDataError(
+                f"Failed to decode {self.__class__.__name__} "
+                f"(econet_type={self.econet_type}, "
+                f"econet_version={self.econet_version}): {e}. "
+                f"Message: {message.hex()}"
+            ) from e
 
     @property
     def message(self) -> bytes:

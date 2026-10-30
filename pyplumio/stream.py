@@ -230,7 +230,14 @@ class FrameReader:
             econet_version=econet_version,
             message=payload_bytes[FRAME_TYPE_SIZE:],
         )
-        _LOGGER.debug("Received frame: %s, bytes: %s", frame, frame_bytes.hex())
+        # Log raw bytes only. Formatting the frame itself would decode
+        # it before it's assigned to the device and hide the bytes of
+        # frames that fail to decode.
+        _LOGGER.debug(
+            "Received frame: %s, bytes: %s",
+            frame.__class__.__name__,
+            frame_bytes.hex(),
+        )
 
         return frame
 

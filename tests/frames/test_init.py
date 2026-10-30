@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import struct
+
 import pytest
 from tests.conftest import RAISES
 
 from pyplumio.const import DeviceType, FrameType
-from pyplumio.exceptions import UnknownFrameError
+from pyplumio.exceptions import FrameDataError, UnknownFrameError
 from pyplumio.frames import (
     ECONET_TYPE,
     ECONET_VERSION,
@@ -17,7 +19,8 @@ from pyplumio.frames import (
     get_frame_handler,
     struct_header,
 )
-from pyplumio.frames.responses import ProgramVersionResponse
+from pyplumio.frames.messages import SensorDataMessage
+from pyplumio.frames.responses import PasswordResponse, ProgramVersionResponse
 from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.program_version import ATTR_VERSION, VersionInfo
 
@@ -160,6 +163,27 @@ def test_message_setter():
     assert frame.data[ATTR_VERSION].struct_version == 5
     frame.message = bytes.fromhex("ffff067a00000000000004000f0056")
     assert frame.data[ATTR_VERSION].struct_version == 6
+
+
+@pytest.mark.parametrize(
+    ("frame", "message"),
+    [
+        (SensorDataMessage(), "0010000000"),
+        (SensorDataMessage(), ""),
+        (PasswordResponse(), "00ff"),
+    ],
+    ids=["struct_error", "index_error", "unicode_decode_error"],
+)
+def test_data_decode_error(frame: Response, message: str) -> None:
+    """Test that decoding errors are raised as frame data errors."""
+    frame.message = bytes.fromhex(message)
+    with pytest.raises(FrameDataError, match=f"Message: {message}$") as exc_info:
+        _ = frame.data
+
+    assert frame.__class__.__name__ in str(exc_info.value)
+    assert isinstance(
+        exc_info.value.__cause__, (struct.error, IndexError, UnicodeDecodeError)
+    )
 
 
 def test_request_repr(request_frame: Request) -> None:

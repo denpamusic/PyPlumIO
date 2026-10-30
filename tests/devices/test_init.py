@@ -10,9 +10,10 @@ import pytest
 
 from pyplumio.const import ATTR_FRAME_ERRORS, DeviceType, FrameType
 from pyplumio.devices import Device, PhysicalDevice, device_handler, get_device_handler
-from pyplumio.exceptions import RequestError, UnknownDeviceError
+from pyplumio.exceptions import FrameDataError, RequestError, UnknownDeviceError
 from pyplumio.filters import on_change
 from pyplumio.frames import Response
+from pyplumio.frames.messages import SensorDataMessage
 from pyplumio.parameters import Parameter
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.network_info import NetworkInfo
@@ -157,6 +158,18 @@ class TestPhysicalDevice:
         physical_device.handle_frame(frame)
         mock_assign_to.assert_called_once_with(physical_device)
         mock_dispatch_nowait.assert_called_once_with("test", True)
+
+    @patch("pyplumio.devices.PhysicalDevice.dispatch_nowait")
+    async def test_handle_frame_with_decode_error(
+        self, mock_dispatch_nowait, physical_device: PhysicalDevice
+    ) -> None:
+        """Test that frame data error propagates and nothing is dispatched."""
+        frame = SensorDataMessage(message=b"")
+        with pytest.raises(FrameDataError, match="SensorDataMessage"):
+            physical_device.handle_frame(frame)
+
+        assert frame.handler is physical_device
+        mock_dispatch_nowait.assert_not_called()
 
     @patch("pyplumio.devices.PhysicalDevice.get")
     @patch("pyplumio.frames.Request.create", autospec=True)

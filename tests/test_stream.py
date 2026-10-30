@@ -358,6 +358,34 @@ class TestFrameReader:
         assert mock_readexactly.call_count == 2
         mock_readexactly.assert_has_calls([call(6), call(5)])
 
+    @patch("pyplumio.frames.Request.decode_message")
+    @patch("asyncio.StreamReader.read", return_value=(b"\x00\x68"))
+    @patch(
+        "asyncio.StreamReader.readexactly",
+        side_effect=(b"\x0c\x00\x00\x56\x30\x05", b"\x31\xff\x00\xc9\x16"),
+    )
+    async def test_read_does_not_decode(
+        self,
+        mock_readexactly,
+        mock_read,
+        mock_decode_message,
+        frame_reader: FrameReader,
+        caplog,
+    ) -> None:
+        """Test that reading a frame with debug logging doesn't decode it.
+
+        Frame must only be decoded after it's assigned to the device.
+        """
+        with caplog.at_level(logging.DEBUG):
+            frame = await frame_reader.read()
+
+        assert isinstance(frame, EcomaxParametersRequest)
+        mock_decode_message.assert_not_called()
+        assert (
+            "Received frame: EcomaxParametersRequest, bytes: 680c0000563005"
+            "31ff00c916" in caplog.text
+        )
+
     @patch("asyncio.StreamReader.read", return_value=False)
     async def test_broken_connection(
         self, mock_read, frame_reader: FrameReader
