@@ -214,16 +214,17 @@ def test_response_repr(response_frame: Response) -> None:
 
 def test_frame_handler() -> None:
     """Test frame type decorator."""
-    wrapper = frame_handler(
-        FrameType.RESPONSE_DEVICE_AVAILABLE, contains=NetworkInfoStructure
-    )
+    wrapper = frame_handler(FrameType.RESPONSE_DEVICE_AVAILABLE)
     response = wrapper(ResponseFrame)()
     assert response.frame_type == FrameType.RESPONSE_DEVICE_AVAILABLE
-    assert NetworkInfoStructure in response.structures
 
 
 def test_contains() -> None:
     """Test contains decorator."""
+    wrapper = contains(NetworkInfoStructure)
+    frame = wrapper(ResponseFrame)()
+    assert NetworkInfoStructure in frame.structures
+
     wrapper = contains(NetworkInfoStructure, container="wrap")
     frame = wrapper(ResponseFrame)()
     assert NetworkInfoStructure in frame.structures

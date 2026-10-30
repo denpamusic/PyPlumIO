@@ -262,17 +262,12 @@ class Frame(ABC):
         """Decode a frame message."""
 
 
-def frame_handler(
-    frame_type: FrameType, contains: type[Structure] | None = None
-) -> Callable[[type[_FrameT]], type[_FrameT]]:
+def frame_handler(frame_type: FrameType) -> Callable[[type[_FrameT]], type[_FrameT]]:
     """Specify frame type for the frame class."""
 
     def wrapper(cls: type[_FrameT]) -> type[_FrameT]:
         """Wrap the frame class."""
         setattr(cls, "frame_type", frame_type)
-        if contains and issubclass(cls, Response):
-            setattr(cls, "structures", (contains,))
-
         return cls
 
     return wrapper

@@ -141,7 +141,8 @@ through public factory functions (`throttle()`).
 ### 2.8. Adding protocol features
 
 2.8.1. New frame checklist: add a `FrameType` member, create the class
-decorated with `@frame_handler(FrameType.X)`, add
+decorated with `@frame_handler(FrameType.X)` (and `@contains(*structures)`
+for structured responses or messages), add
 `@expects_response(ResponseClass)` to requests, put decoding in a
 `structures/` module, dispatch results under `ATTR_*` keys, handle them
 in the device with `@event_listener`, then add JSON test data and
