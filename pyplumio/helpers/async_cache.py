@@ -24,7 +24,7 @@ class AsyncCache:
 
     async def get(self, key: str, coro: Callable[..., Awaitable[Any]]) -> Any:
         """Get a value from the cache or compute and store it."""
-        if key not in self.cache:
+        if key not in self._cache:
             self._cache[key] = await coro()
 
         return self._cache[key]
