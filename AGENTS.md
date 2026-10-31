@@ -209,7 +209,8 @@ plus a public factory function with a full reST docstring, added to
 ## 4. Testing & Quality Assurance
 
 4.1. Tooling: `uv` manages environments and dependencies, and `prek`
-runs git hooks (ruff-check, ruff-format, codespell, mypy, complexipy).
+runs git hooks (uv-sync, ruff-check, ruff-format, codespell, mypy,
+complexipy).
 
 4.2. Commands:
 4.2.1. Setup: `uv sync` and `prek install`.
