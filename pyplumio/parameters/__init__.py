@@ -42,7 +42,7 @@ def unpack_parameter(
 
 def is_valid_parameter(data: bytes) -> bool:
     """Check if parameter contains any bytes besides 0xFF."""
-    return any(x for x in data if x != BYTE_UNDEFINED)
+    return any(x != BYTE_UNDEFINED for x in data)
 
 
 @dataclass(slots=True, frozen=True)
