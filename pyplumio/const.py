@@ -26,6 +26,8 @@ ATTR_SIZE: Final = "size"
 # Bytes.
 BYTE_UNDEFINED: Final = 0xFF
 
+UNDEFINED: Final = object()
+
 
 @unique
 class EncryptionType(IntEnum):

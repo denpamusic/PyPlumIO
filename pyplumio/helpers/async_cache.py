@@ -7,6 +7,8 @@ from functools import wraps
 from types import MappingProxyType
 from typing import Any, ParamSpec, TypeVar, cast
 
+from pyplumio.const import UNDEFINED
+
 T = TypeVar("T")
 P = ParamSpec("P")
 
@@ -24,10 +26,11 @@ class AsyncCache:
 
     async def get(self, key: str, coro: Callable[..., Awaitable[Any]]) -> Any:
         """Get a value from the cache or compute and store it."""
-        if key not in self._cache:
-            self._cache[key] = await coro()
+        if (cached_value := self._cache.get(key, UNDEFINED)) is not UNDEFINED:
+            return cached_value
 
-        return self._cache[key]
+        self._cache[key] = cached_value = await coro()
+        return cached_value
 
     @property
     def cache(self) -> MappingProxyType[str, Any]:

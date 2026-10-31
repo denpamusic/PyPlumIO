@@ -255,5 +255,9 @@ create `requirements*.txt`.
 `typecheck.yml` run on 3.11. `deploy.yml` publishes to PyPI and creates
 a GitHub release on `vX.Y.Z*` tags.
 
-4.12. Commits by AI agents: subject prefixed with `[ai]`, at most 50
-characters, ending with a period. An extended body is allowed.
+4.12. Commits by AI agents: subject at most 50 characters, in
+imperative mood, ending with a period (no `[ai]` prefix). Commits must
+include Git trailers in the final paragraph separated by a blank line:
+`AI-Model: <model-id>` and `Co-authored-by: <agent> <email>` (e.g.
+`Co-authored-by: Antigravity <antigravity@denpa.pro>`). An extended body
+between the subject and trailers is encouraged.

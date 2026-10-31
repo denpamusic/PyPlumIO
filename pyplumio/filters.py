@@ -22,6 +22,7 @@ from typing import (
     runtime_checkable,
 )
 
+from pyplumio.const import UNDEFINED
 from pyplumio.helpers.event_manager import EventCallback
 from pyplumio.parameters import Number, Parameter
 
@@ -33,9 +34,6 @@ with suppress(ImportError):
 
     _LOGGER.info("Using numpy for improved float precision")
     numpy_installed = True
-
-
-UNDEFINED: Final = "undefined"
 
 
 @runtime_checkable
@@ -432,7 +430,7 @@ class ComparisonFilter(Filter):
 
     def is_undefined(self) -> bool:
         """Check if current value is undefined."""
-        return True if self._value == UNDEFINED else False
+        return self._value is UNDEFINED
 
     @property
     def value(self) -> Any:
