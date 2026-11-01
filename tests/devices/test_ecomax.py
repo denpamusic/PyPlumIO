@@ -20,7 +20,6 @@ from pyplumio.const import (
     ATTR_SWITCH,
     ATTR_TYPE,
     ATTR_VALUE,
-    PERCENTAGE,
     STATE_OFF,
     STATE_ON,
     DeviceState,
@@ -387,88 +386,20 @@ async def test_ecomax_extended_parameters_event_listener(
         assert isinstance(parameter, (EcomaxExtendedNumber, EcomaxExtendedSwitch))
         assert parameter.values == raw_parameters[index]
 
-    # Test plain numbers and numbers with step and offset.
-    for name, value, min_value, max_value in (
-        ("control_mode", 1, 0, 2),
-        ("fan_speed_100", 1700, 1360, 2850),
-        ("min_fan_speed", 700, 300, 2840),
-        ("kindling_fan_speed", 1000, 700, 2850),
-        ("stabilization_fan_speed", 1000, 700, 2850),
-        ("thermostat_decrease_boiler_temp", 0, 0, 30),
-        ("moving_grate_work_time", 27, 10, 250),
-        ("supervision_boiler_output", 2.8, 0.2, 51.0),
-        ("kindling_feeding_time", 0.5, 0.1, 3.0),
-        ("kindling_temp_delta", 5.0, 0.1, 6.0),
-        ("kindling_draft", 40, 6, 255),
-        ("stabilization_draft", 30, 6, 255),
-        ("burning_off_draft", 30, 6, 255),
-        ("supervision_draft", 10, 6, 255),
-        ("min_draft", 6, 0, 100),
-        ("draft_alarm_min", 0, 0, 200),
-        ("draft_alarm_max", 100, 0, 250),
-        ("burning_off_detection_start_temp", 100, 70, 130),
-        ("burning_off_detection_end_temp", 55, 30, 95),
-        ("burning_off_detection_delta_temp", 4, 1, 30),
-        ("warming_up_duration", 60, 2, 500),
-        ("hopper_capacity", 90, 5, 1275),
-        ("burner_cleaning_interval", 600, 15, 600),
-        ("draft_correction", 1, -100, 100),
-        ("fuel_correction", -20, -20, 20),
-        ("airflow_correction", 0, -10, 10),
-        ("fan_pi_gain", 30, 0, 255),
-        ("fan_pi_integral", 10, 0, 255),
-        ("exhaust_fan_pi_gain", 25, 0, 255),
-        ("exhaust_fan_pi_integral", 5, 0, 255),
-        ("kindling_fuel_dose", 220, 10, 2550),
-        ("glowing_fan_speed", 1000, 300, 2850),
-        ("water_heater_pump_mode", 2, 0, 2),
-        ("circulation_pump_pause_time", 30, 0, 255),
-        ("circulation_pump_work_time", 70, 0, 255),
-        ("mixer_1_valve_opening_time", 140, 10, 255),
-        ("return_protection", 0, 0, 2),
-        ("min_return_target_temp", 45, 0, 80),
-        ("return_temp_hysteresis", 5, 1, 10),
-        ("return_valve_closing", 10, 0, 80),
-        ("h_output_mode", 0, 0, 2),
-    ):
-        parameter = ecomax.get_nowait(name)
-        assert equal_parameter_value(parameter.value, value), name
-        assert equal_parameter_value(parameter.min_value, min_value), name
-        assert equal_parameter_value(parameter.max_value, max_value), name
+    # Test parameter with step and offset.
+    fan_speed_100 = ecomax.get_nowait("fan_speed_100")
+    assert isinstance(fan_speed_100, EcomaxExtendedNumber)
+    assert equal_parameter_value(fan_speed_100.value, 1700)
+    assert equal_parameter_value(fan_speed_100.min_value, 1360)
+    assert equal_parameter_value(fan_speed_100.max_value, 2850)
+    assert fan_speed_100.unit_of_measurement == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
 
-    # Test switches.
-    for name, state in (
-        ("draft_sensor", STATE_ON),
-        ("heat_exchanger", STATE_ON),
-        ("mixer_1_thermostat", STATE_OFF),
-    ):
-        switch = ecomax.get_nowait(name)
-        assert isinstance(switch, EcomaxExtendedSwitch), name
-        assert switch.value == state, name
-
-    assert (
-        ecomax.get_nowait("fan_speed_100").unit_of_measurement
-        == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
-    )
-    assert (
-        ecomax.get_nowait("draft_100").unit_of_measurement == UnitOfMeasurement.PASCAL
-    )
-    assert (
-        ecomax.get_nowait("kindling_fuel_dose").unit_of_measurement
-        == UnitOfMeasurement.GRAMS
-    )
-    for name, unit in (
-        ("circulation_pump_pause_time", UnitOfMeasurement.MINUTES),
-        ("circulation_pump_work_time", UnitOfMeasurement.SECONDS),
-        ("mixer_1_valve_opening_time", UnitOfMeasurement.SECONDS),
-        ("min_return_target_temp", UnitOfMeasurement.CELSIUS),
-        ("return_temp_hysteresis", UnitOfMeasurement.CELSIUS),
-        ("return_valve_closing", PERCENTAGE),
-    ):
-        assert ecomax.get_nowait(name).unit_of_measurement == unit, name
+    # Test switch parameter.
+    heat_exchanger = ecomax.get_nowait("heat_exchanger")
+    assert isinstance(heat_exchanger, EcomaxExtendedSwitch)
+    assert heat_exchanger.value == STATE_ON
 
     # Test that parameter instance is not recreated on subsequent calls.
-    fan_speed_100 = ecomax.get_nowait("fan_speed_100")
     ecomax.handle_frame(
         EcomaxExtendedParametersResponse(
             message=bytes(ecomax_extended_parameters_message)

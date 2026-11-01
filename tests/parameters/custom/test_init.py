@@ -20,13 +20,13 @@ from pyplumio.structures.product_info import ProductInfo
 
 
 class DummyEcoMAX(CustomParameters):
-    """Replacements for ecoMAX 860D3-HB."""
+    """Custom parameters for ecoMAX Dummy."""
 
     __slots__ = ()
 
     signature = Signature(model="ecoMAX Dummy", id=1)
 
-    replacements = (
+    overrides = (
         ParameterOverride(
             original="summer_mode_disable_temp",
             replacement=EcomaxNumberDescription(name="__test_replacement_1"),

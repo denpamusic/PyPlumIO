@@ -8,11 +8,11 @@ from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDesc
 
 
 class EcoMAX860D3HB(CustomParameters):
-    """Replacements for ecoMAX 860D3-HB."""
+    """Custom parameters for ecoMAX 860D3-HB."""
 
     signature = Signature(model="ecoMAX 860D3-HB", id=48)
 
-    replacements = (
+    overrides = (
         # Summer mode
         ParameterOverride(
             original="summer_mode_disable_temp",

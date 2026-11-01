@@ -37,7 +37,7 @@ class CustomParameters:
     __slots__ = ()
 
     signature: ClassVar[Signature]
-    replacements: ClassVar[Sequence[ParameterOverride]] = ()
+    overrides: ClassVar[Sequence[ParameterOverride]] = ()
     extended: ClassVar[dict[int, ParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
@@ -84,7 +84,7 @@ async def inject_custom_parameter_overrides(
     if custom_parameters := await _load_custom_parameters(product_info):
         if overrides := {
             override.original: override.replacement
-            for override in custom_parameters.replacements
+            for override in custom_parameters.overrides
         }:
             return cast(
                 list[_DescriptionT],

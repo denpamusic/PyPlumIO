@@ -151,6 +151,30 @@ tests.
 2.8.2. Controller firmware varies widely. Decode defensively and do not
 assume fixed payload lengths.
 
+### 2.9. Adding custom parameters for a device
+
+2.9.1. Per-device parameter overrides and extended parameter tables live
+in `pyplumio/parameters/custom/<model_slug>.py`, where `<model_slug>` is
+`model.replace("-", "_").replace(" ", "_").lower()` (for example,
+`"ecoMAX 860P4-NM TOUCH"` becomes `ecomax_860p4_nm_touch.py`).
+
+2.9.2. Define a `CustomParameters` subclass named
+`to_camelcase(model_slug).upper().replace("ECOMAX", "EcoMAX")` (for
+example, `EcoMAX860P4NMTOUCH` or `EcoMAX860D3HB`) with:
+2.9.2.1. `signature = Signature(model="<exact model>", id=<product_id>)`.
+2.9.2.2. `overrides`: a tuple of `ParameterOverride(original, replacement)`
+entries to replace standard `PARAMETER_TYPES` descriptors by name.
+2.9.2.3. `extended`: a `dict[int, ParameterDescription]` mapping extended
+parameter indices to `EcomaxNumberDescription` or
+`EcomaxSwitchDescription` instances.
+
+2.9.3. Every custom device module requires real captured frame data from
+the physical device in `tests/testdata/parameters/<model_slug>.json` and
+a matching test module in `tests/parameters/custom/test_<model_slug>.py`
+using `@class_from_json` and
+`@pytest.mark.parametrize(("name", "value", "min_value", "max_value", "unit_of_measurement"), [...])`
+to verify each parameter's class, value, bounds, and unit of measurement.
+
 ## 3. Reactive Event System & Filter Pipeline
 
 3.1. `EventManager` (`pyplumio/helpers/event_manager.py`) is the base of
