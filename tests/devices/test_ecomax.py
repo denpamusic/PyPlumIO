@@ -60,11 +60,12 @@ from pyplumio.frames.responses import (
     ThermostatParametersResponse,
 )
 from pyplumio.parameters.ecomax import (
-    EXTENDED_PARAMETER_TYPES,
     PARAMETER_TYPES,
     EcomaxExtendedNumber,
+    EcomaxExtendedSwitch,
     EcomaxNumber,
     EcomaxSwitch,
+    get_extended_parameter_types,
 )
 from pyplumio.structures.ecomax_extended_parameters import (
     ATTR_ECOMAX_EXTENDED_PARAMETERS,
@@ -380,10 +381,10 @@ async def test_ecomax_extended_parameters_event_listener(
     assert len(raw_parameters) == 231
 
     # Test that only described parameters are dispatched.
-    descriptions = EXTENDED_PARAMETER_TYPES[(41, "ecoMAX 860P4-NM TOUCH")]
+    descriptions = await get_extended_parameter_types(ECOMAX_860P4)
     for index, description in descriptions.items():
         parameter = ecomax.get_nowait(description.name)
-        assert isinstance(parameter, EcomaxExtendedNumber)
+        assert isinstance(parameter, (EcomaxExtendedNumber, EcomaxExtendedSwitch))
         assert parameter.values == raw_parameters[index]
 
     # Test plain numbers and numbers with step and offset.
@@ -421,11 +422,8 @@ async def test_ecomax_extended_parameters_event_listener(
         ("kindling_fuel_dose", 220, 10, 2550),
         ("glowing_fan_speed", 1000, 300, 2850),
         ("water_heater_pump_mode", 2, 0, 2),
-        ("draft_sensor", 1, 0, 1),
         ("circulation_pump_pause_time", 30, 0, 255),
         ("circulation_pump_work_time", 70, 0, 255),
-        ("heat_exchanger", 1, 0, 1),
-        ("mixer_1_thermostat", 0, 0, 1),
         ("mixer_1_valve_opening_time", 140, 10, 255),
         ("return_protection", 0, 0, 2),
         ("min_return_target_temp", 45, 0, 80),
@@ -437,6 +435,16 @@ async def test_ecomax_extended_parameters_event_listener(
         assert equal_parameter_value(parameter.value, value), name
         assert equal_parameter_value(parameter.min_value, min_value), name
         assert equal_parameter_value(parameter.max_value, max_value), name
+
+    # Test switches.
+    for name, state in (
+        ("draft_sensor", STATE_ON),
+        ("heat_exchanger", STATE_ON),
+        ("mixer_1_thermostat", STATE_OFF),
+    ):
+        switch = ecomax.get_nowait(name)
+        assert isinstance(switch, EcomaxExtendedSwitch), name
+        assert switch.value == state, name
 
     assert (
         ecomax.get_nowait("fan_speed_100").unit_of_measurement
@@ -556,13 +564,13 @@ async def test_name_collisions(ecomax: EcoMAX, sensor_data: SensorDataMessage) -
         for descriptions in PARAMETER_TYPES.values()
         for description in descriptions
     }
-    for extended_descriptions in EXTENDED_PARAMETER_TYPES.values():
-        collisions = [
-            description.name
-            for description in extended_descriptions.values()
-            if description.name in ecomax.data or description.name in legacy_names
-        ]
-        assert not collisions, f"found collisions: {collisions}"
+    extended_descriptions = await get_extended_parameter_types(ECOMAX_860P4)
+    collisions = [
+        description.name
+        for description in extended_descriptions.values()
+        if description.name in ecomax.data or description.name in legacy_names
+    ]
+    assert not collisions, f"found collisions: {collisions}"
 
 
 async def test_fuel_consumption_event_listener(

@@ -32,6 +32,7 @@ from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
     THERMOSTAT_PROFILE_PARAMETER,
     EcomaxExtendedNumber,
+    EcomaxExtendedSwitch,
     EcomaxNumber,
     EcomaxSwitch,
     EcomaxSwitchDescription,
@@ -322,7 +323,7 @@ class EcoMAX(PhysicalDevice):
         """
         _LOGGER.debug("Received device extended parameters")
         product_info = await self.get(ATTR_PRODUCT)
-        if not (parameter_types := get_extended_parameter_types(product_info)):
+        if not (parameter_types := await get_extended_parameter_types(product_info)):
             _LOGGER.debug(
                 "Encountered unknown ecoMAX extended parameter table. "
                 "Your device isn't fully compatible with this software "
@@ -332,21 +333,25 @@ class EcoMAX(PhysicalDevice):
             )
             return
 
-        await asyncio.gather(
-            *(
-                self.dispatch(
+        def _ecomax_extended_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
+            """Get dispatch calls for ecoMAX extended parameter events."""
+            for index, values in parameters:
+                if not (description := parameter_types.get(index, None)):
+                    continue
+
+                handler = (
+                    EcomaxExtendedSwitch
+                    if isinstance(description, EcomaxSwitchDescription)
+                    else EcomaxExtendedNumber
+                )
+                yield self.dispatch(
                     description.name,
-                    EcomaxExtendedNumber.create_or_update(
-                        device=self,
-                        description=description,
-                        values=values,
-                        index=index,
+                    handler.create_or_update(
+                        device=self, description=description, values=values, index=index
                     ),
                 )
-                for index, values in parameters
-                if (description := parameter_types.get(index))
-            )
-        )
+
+        await asyncio.gather(*_ecomax_extended_parameter_events())
 
     @event_listener
     async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:

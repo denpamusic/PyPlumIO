@@ -7,6 +7,7 @@ from dataclasses import dataclass
 import logging
 from typing import ClassVar, TypeVar, cast
 
+from pyplumio.helpers.async_cache import acache
 from pyplumio.parameters import ParameterDescription
 from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import create_instance, to_camelcase
@@ -23,8 +24,8 @@ class Signature:
 
 
 @dataclass(slots=True, kw_only=True)
-class CustomParameter:
-    """Represents a custom parameter."""
+class ParameterOverride:
+    """Represents a parameter override."""
 
     original: str
     replacement: ParameterDescription
@@ -36,7 +37,8 @@ class CustomParameters:
     __slots__ = ()
 
     signature: ClassVar[Signature]
-    replacements: ClassVar[Sequence[CustomParameter]]
+    replacements: ClassVar[Sequence[ParameterOverride]] = ()
+    extended: ClassVar[dict[int, ParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -46,9 +48,10 @@ class CustomParameters:
         )
 
 
+@acache
 async def _load_custom_parameters(
     product_info: ProductInfo,
-) -> dict[str, ParameterDescription] | None:
+) -> CustomParameters | None:
     """Load custom parameters."""
     module_name = product_info.model.replace("-", "_").replace(" ", "_").lower()
     module_path = f"parameters.custom.{module_name}"
@@ -67,40 +70,52 @@ async def _load_custom_parameters(
         _LOGGER.debug("No custom parameters found for %s", product_info.model)
         return None
 
-    return {
-        custom_parameter.original: custom_parameter.replacement
-        for custom_parameter in custom_parameters.replacements
-    }
+    _LOGGER.debug("Custom parameters loaded for %s", product_info.model)
+    return custom_parameters
 
 
 _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
 
 
-async def inject_custom_parameters(
+async def inject_custom_parameter_overrides(
     product_info: ProductInfo, parameter_types: list[_DescriptionT]
 ) -> list[_DescriptionT]:
     """Patch the parameter types based on the provided overrides."""
     if custom_parameters := await _load_custom_parameters(product_info):
-        _LOGGER.debug("Custom parameters found for %s", product_info.model)
-        return cast(
-            list[_DescriptionT],
-            [
-                replacement
-                if original.name in custom_parameters
-                and (replacement := custom_parameters[original.name])
-                and (base_class := original.__class__.__bases__[0])
-                and isinstance(replacement, base_class)
-                else original
-                for original in parameter_types
-            ],
-        )
+        if overrides := {
+            override.original: override.replacement
+            for override in custom_parameters.replacements
+        }:
+            return cast(
+                list[_DescriptionT],
+                [
+                    replacement
+                    if original.name in overrides
+                    and (replacement := overrides[original.name])
+                    and (base_class := original.__class__.__bases__[0])
+                    and isinstance(replacement, base_class)
+                    else original
+                    for original in parameter_types
+                ],
+            )
 
     return parameter_types
 
 
+async def get_custom_extended_parameter_types(
+    product_info: ProductInfo,
+) -> dict[int, ParameterDescription]:
+    """Get custom extended parameter types."""
+    if custom_parameters := await _load_custom_parameters(product_info):
+        return custom_parameters.extended
+
+    return {}
+
+
 __all__ = (
-    "inject_custom_parameters",
     "CustomParameters",
-    "CustomParameter",
+    "ParameterOverride",
     "Signature",
+    "get_custom_extended_parameter_types",
+    "inject_custom_parameter_overrides",
 )
