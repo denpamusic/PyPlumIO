@@ -35,9 +35,14 @@ class CustomParameters:
 
     __slots__ = ()
 
+    # Device signature.
     signature: ClassVar[Signature]
-    overrides: ClassVar[Sequence[ParameterOverride]] = ()
-    service: ClassVar[dict[int, ParameterDescription]] = {}
+
+    # Overrides descriptions in standard parameter table.
+    overrides: ClassVar[Sequence[ParameterOverride]] = []
+
+    # Service parameters descriptions.
+    descriptions: ClassVar[dict[int, ParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -76,6 +81,16 @@ async def _load_custom_parameters(
 _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
 
 
+async def get_custom_service_parameter_types(
+    product_info: ProductInfo,
+) -> dict[int, ParameterDescription]:
+    """Get custom service parameter types."""
+    if custom_parameters := await _load_custom_parameters(product_info):
+        return custom_parameters.descriptions
+
+    return {}
+
+
 async def inject_custom_parameter_overrides(
     product_info: ProductInfo, parameter_types: list[_DescriptionT]
 ) -> list[_DescriptionT]:
@@ -96,16 +111,6 @@ async def inject_custom_parameter_overrides(
             )
 
     return parameter_types
-
-
-async def get_custom_service_parameter_types(
-    product_info: ProductInfo,
-) -> dict[int, ParameterDescription]:
-    """Get custom service parameter types."""
-    if custom_parameters := await _load_custom_parameters(product_info):
-        return custom_parameters.service
-
-    return {}
 
 
 __all__ = (

@@ -33,7 +33,7 @@ class DummyEcoMAX(CustomParameters):
         ),
     )
 
-    service = {
+    descriptions = {
         0: EcomaxNumberDescription(name="__test_service_1"),
     }
 

@@ -22,7 +22,7 @@ class EcoMAX860P4NMTOUCH(CustomParameters):
 
     signature = Signature(model="ecoMAX 860P4-NM TOUCH", id=41)
 
-    service = {
+    descriptions = {
         0: EcomaxNumberDescription(
             name="max_boiler_output",
             unit_of_measurement=UnitOfMeasurement.KILO_WATT,

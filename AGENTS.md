@@ -164,7 +164,7 @@ example, `EcoMAX860P4NMTOUCH` or `EcoMAX860D3HB`) with:
 2.9.2.1. `signature = Signature(model="<exact model>", id=<product_id>)`.
 2.9.2.2. `overrides`: a tuple of `ParameterOverride(original, replacement)`
 entries to replace standard `PARAMETER_TYPES` descriptors by name.
-2.9.2.3. `service`: a `dict[int, ParameterDescription]` mapping service
+2.9.2.3. `descriptions`: a `dict[int, ParameterDescription]` mapping service
 parameter indices to `EcomaxNumberDescription` or
 `EcomaxSwitchDescription` instances.
 
