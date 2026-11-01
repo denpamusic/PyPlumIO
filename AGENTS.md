@@ -242,6 +242,8 @@ complexipy).
 through `addopts`.
 4.2.3. All checks: `prek run --all-files`.
 4.2.4. Docs: `uv run sphinx-build ./docs/source ./docs/build`.
+4.2.5. On Windows, always run `uv run pytest` and `prek run --all-files`
+outside the sandbox (`BypassSandbox: true`).
 
 4.3. Before finishing any task, both `uv run pytest` and
 `prek run --all-files` must pass.
