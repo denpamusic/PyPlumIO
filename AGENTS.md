@@ -258,6 +258,6 @@ a GitHub release on `vX.Y.Z*` tags.
 4.12. Commits by AI agents: subject at most 50 characters, in
 imperative mood, ending with a period (no `[ai]` prefix). Commits must
 include Git trailers in the final paragraph separated by a blank line:
-`AI-Model: <model-id>` and `Co-authored-by: <agent> <email>` (e.g.
-`Co-authored-by: Antigravity <antigravity@denpa.pro>`). An extended body
+`AI-Model: <model-id>` and `Co-Authored-By: <agent> <email>` (e.g.
+`Co-Authored-By: Antigravity <antigravity@denpa.pro>`). An extended body
 between the subject and trailers is encouraged.
