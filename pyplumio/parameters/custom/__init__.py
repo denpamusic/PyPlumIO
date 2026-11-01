@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
-from typing import ClassVar, TypeVar, cast
+from typing import ClassVar, NamedTuple, TypeVar, cast
 
 from pyplumio.helpers.async_cache import acache
 from pyplumio.parameters import ParameterDescription
@@ -23,8 +23,7 @@ class Signature:
     model: str
 
 
-@dataclass(slots=True, kw_only=True)
-class ParameterOverride:
+class ParameterOverride(NamedTuple):
     """Represents a parameter override."""
 
     original: str
@@ -82,10 +81,7 @@ async def inject_custom_parameter_overrides(
 ) -> list[_DescriptionT]:
     """Patch the parameter types based on the provided overrides."""
     if custom_parameters := await _load_custom_parameters(product_info):
-        if overrides := {
-            override.original: override.replacement
-            for override in custom_parameters.overrides
-        }:
+        if overrides := dict(custom_parameters.overrides):
             return cast(
                 list[_DescriptionT],
                 [
