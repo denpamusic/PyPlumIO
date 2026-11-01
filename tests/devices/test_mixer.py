@@ -115,4 +115,4 @@ async def test_mixer_parameters_event_listener_unknown_parameter(
 
     assert "unknown mixer parameter (14)" in caplog.text
     assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
-    assert "ecoMAX 350P2-ZF" in caplog.text
+    assert "ecoMAX Dummy" in caplog.text

@@ -179,11 +179,11 @@ async def fixture_ecomax() -> EcoMAX:
     ecomax = EcoMAX(asyncio.Queue(), network_info=NetworkInfo())
     product_info = ProductInfo(
         type=ProductType.ECOMAX_P,
-        id=90,
+        id=0,
         uid="TEST",
-        logo=23040,
-        image=2816,
-        model="ecoMAX 350P2-ZF",
+        logo=0,
+        image=0,
+        model="ecoMAX Dummy",
     )
     await ecomax.dispatch(ATTR_PRODUCT, product_info)
     return ecomax

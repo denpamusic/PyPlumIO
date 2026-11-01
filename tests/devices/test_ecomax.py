@@ -472,7 +472,7 @@ async def test_unknown_ecomax_parameter(
 
     assert "unknown ecoMAX parameter (139)" in caplog.text
     assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
-    assert "ecoMAX 350P2-ZF" in caplog.text
+    assert "ecoMAX Dummy" in caplog.text
 
 
 @class_from_json(SensorDataMessage, "messages/sensor_data.json", arguments=("message",))
