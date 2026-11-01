@@ -90,14 +90,12 @@ def is_close(
         return False
 
     if isinstance(old, Parameter) and isinstance(new, Parameter):
-        if (
-            tolerance
-            and isinstance(old, Number)
-            and isinstance(new, Number)
-            and old.values.min_value == new.values.min_value
-            and old.values.max_value == new.values.max_value
-        ):
-            return math.isclose(old, new, abs_tol=tolerance)
+        if tolerance and isinstance(old, Number) and isinstance(new, Number):
+            return (
+                old.values.min_value == new.values.min_value
+                and old.values.max_value == new.values.max_value
+                and math.isclose(old, new, abs_tol=tolerance)
+            )
 
         return old.values.__eq__(new.values)
 
