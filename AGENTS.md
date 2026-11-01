@@ -153,7 +153,7 @@ assume fixed payload lengths.
 
 ### 2.9. Adding custom parameters for a device
 
-2.9.1. Per-device parameter overrides and extended parameter tables live
+2.9.1. Per-device parameter overrides and service parameter tables live
 in `pyplumio/parameters/custom/<model_slug>.py`, where `<model_slug>` is
 `model.replace("-", "_").replace(" ", "_").lower()` (for example,
 `"ecoMAX 860P4-NM TOUCH"` becomes `ecomax_860p4_nm_touch.py`).
@@ -164,7 +164,7 @@ example, `EcoMAX860P4NMTOUCH` or `EcoMAX860D3HB`) with:
 2.9.2.1. `signature = Signature(model="<exact model>", id=<product_id>)`.
 2.9.2.2. `overrides`: a tuple of `ParameterOverride(original, replacement)`
 entries to replace standard `PARAMETER_TYPES` descriptors by name.
-2.9.2.3. `extended`: a `dict[int, ParameterDescription]` mapping extended
+2.9.2.3. `service`: a `dict[int, ParameterDescription]` mapping service
 parameter indices to `EcomaxNumberDescription` or
 `EcomaxSwitchDescription` instances.
 

@@ -9,7 +9,7 @@ from pyplumio.parameters.custom import (
     CustomParameters,
     ParameterOverride,
     Signature,
-    get_custom_extended_parameter_types,
+    get_custom_service_parameter_types,
     inject_custom_parameter_overrides,
 )
 from pyplumio.parameters.ecomax import (
@@ -33,8 +33,8 @@ class DummyEcoMAX(CustomParameters):
         ),
     )
 
-    extended = {
-        0: EcomaxNumberDescription(name="__test_extended_1"),
+    service = {
+        0: EcomaxNumberDescription(name="__test_service_1"),
     }
 
 
@@ -86,7 +86,7 @@ async def test_custom_parameters(
     expected_result: bool,
     module_name: str,
 ) -> None:
-    """Test custom parameter overrides and extended parameter types."""
+    """Test custom parameter overrides and service parameter types."""
     parameters = await inject_custom_parameter_overrides(
         product_info, parameter_types=ECOMAX_PARAMETER_TYPES[ProductType.ECOMAX_P]
     )
@@ -99,8 +99,8 @@ async def test_custom_parameters(
         f"Replacements {'not' if expected_result else ''} found: {parameters}"
     )
 
-    extended_parameters = await get_custom_extended_parameter_types(product_info)
-    assert bool(extended_parameters) is expected_result
+    service_parameters = await get_custom_service_parameter_types(product_info)
+    assert bool(service_parameters) is expected_result
     mock_create_instance.assert_called_once_with(
         f"parameters.custom.{module_name}", cls=CustomParameters
     )

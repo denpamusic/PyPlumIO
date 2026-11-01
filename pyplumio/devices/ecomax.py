@@ -31,13 +31,13 @@ from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
     THERMOSTAT_PROFILE_PARAMETER,
-    EcomaxExtendedNumber,
-    EcomaxExtendedSwitch,
     EcomaxNumber,
+    EcomaxServiceNumber,
+    EcomaxServiceSwitch,
     EcomaxSwitch,
     EcomaxSwitchDescription,
     get_ecomax_parameter_types,
-    get_extended_parameter_types,
+    get_service_parameter_types,
 )
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
@@ -314,18 +314,18 @@ class EcoMAX(PhysicalDevice):
         return True
 
     @event_listener
-    async def on_event_ecomax_extended_parameters(
+    async def on_event_ecomax_service_parameters(
         self, parameters: list[tuple[int, ParameterValues]]
     ) -> None:
-        """Update ecoMAX extended parameters and dispatch the events.
+        """Update ecoMAX service parameters and dispatch the events.
 
         Raw parameter values are kept under the original event name.
         """
-        _LOGGER.debug("Received device extended parameters")
+        _LOGGER.debug("Received device service parameters")
         product_info = await self.get(ATTR_PRODUCT)
-        if not (parameter_types := await get_extended_parameter_types(product_info)):
+        if not (parameter_types := await get_service_parameter_types(product_info)):
             _LOGGER.debug(
-                "Encountered unknown ecoMAX extended parameter table. "
+                "Encountered unknown ecoMAX service parameter table. "
                 "Your device isn't fully compatible with this software "
                 "and may not work properly. Please visit the issue tracker "
                 "and open a feature request to support %s",
@@ -333,16 +333,16 @@ class EcoMAX(PhysicalDevice):
             )
             return
 
-        def _ecomax_extended_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
-            """Get dispatch calls for ecoMAX extended parameter events."""
+        def _ecomax_service_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
+            """Get dispatch calls for ecoMAX service parameter events."""
             for index, values in parameters:
                 if not (description := parameter_types.get(index, None)):
                     continue
 
                 handler = (
-                    EcomaxExtendedSwitch
+                    EcomaxServiceSwitch
                     if isinstance(description, EcomaxSwitchDescription)
-                    else EcomaxExtendedNumber
+                    else EcomaxServiceNumber
                 )
                 yield self.dispatch(
                     description.name,
@@ -351,7 +351,7 @@ class EcoMAX(PhysicalDevice):
                     ),
                 )
 
-        await asyncio.gather(*_ecomax_extended_parameter_events())
+        await asyncio.gather(*_ecomax_service_parameter_events())
 
     @event_listener
     async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:

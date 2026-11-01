@@ -7,10 +7,10 @@ from typing import Any
 from pyplumio.const import ATTR_PASSWORD, FrameType
 from pyplumio.frames import Response, contains, frame_handler
 from pyplumio.structures.alerts import AlertsStructure
-from pyplumio.structures.ecomax_extended_parameters import (
-    EcomaxExtendedParametersStructure,
-)
 from pyplumio.structures.ecomax_parameters import EcomaxParametersStructure
+from pyplumio.structures.ecomax_service_parameters import (
+    EcomaxServiceParametersStructure,
+)
 from pyplumio.structures.mixer_parameters import MixerParametersStructure
 from pyplumio.structures.network_info import NetworkInfoStructure
 from pyplumio.structures.product_info import ProductInfoStructure
@@ -50,12 +50,12 @@ class EcomaxControlResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_ECOMAX_EXTENDED_PARAMETERS)
-@contains(EcomaxExtendedParametersStructure)
-class EcomaxExtendedParametersResponse(Response):
-    """Represents an ecoMAX extended parameters response.
+@frame_handler(FrameType.RESPONSE_ECOMAX_SERVICE_PARAMETERS)
+@contains(EcomaxServiceParametersStructure)
+class EcomaxServiceParametersResponse(Response):
+    """Represents an ecoMAX service parameters response.
 
-    Contains editable ecoMAX parameters from the extended parameter
+    Contains editable ecoMAX parameters from the service parameter
     table, that is used by newer controllers alongside the regular
     one.
     """
@@ -131,11 +131,11 @@ class SchedulesResponse(Response):
     __slots__ = ()
 
 
-@frame_handler(FrameType.RESPONSE_SET_ECOMAX_EXTENDED_PARAMETER)
-class SetEcomaxExtendedParameterResponse(Response):
-    """Represents response to a set ecoMAX extended parameter request.
+@frame_handler(FrameType.RESPONSE_SET_ECOMAX_SERVICE_PARAMETER)
+class SetEcomaxServiceParameterResponse(Response):
+    """Represents response to a set ecoMAX service parameter request.
 
-    Empty response acknowledges, that ecoMAX extended parameter was
+    Empty response acknowledges, that ecoMAX service parameter was
     successfully set.
     """
 
@@ -201,15 +201,15 @@ __all__ = [
     "AlertsResponse",
     "DeviceAvailableResponse",
     "EcomaxControlResponse",
-    "EcomaxExtendedParametersResponse",
     "EcomaxParametersResponse",
+    "EcomaxServiceParametersResponse",
     "MixerParametersResponse",
     "PasswordResponse",
     "ProgramVersionResponse",
     "RegulatorDataSchemaResponse",
     "SchedulesResponse",
-    "SetEcomaxExtendedParameterResponse",
     "SetEcomaxParameterResponse",
+    "SetEcomaxServiceParameterResponse",
     "SetMixerParameterResponse",
     "SetThermostatParameterResponse",
     "ThermostatParametersResponse",

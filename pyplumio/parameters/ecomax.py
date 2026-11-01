@@ -27,7 +27,7 @@ from pyplumio.parameters import (
     SwitchDescription,
 )
 from pyplumio.parameters.custom import (
-    get_custom_extended_parameter_types,
+    get_custom_service_parameter_types,
     inject_custom_parameter_overrides,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
@@ -103,28 +103,28 @@ class EcomaxSwitch(EcomaxParameter, Switch):
     description: EcomaxSwitchDescription
 
 
-class ExtendedParameter(EcomaxParameter):
-    """Represents an ecoMAX parameter from the extended table."""
+class ServiceParameter(EcomaxParameter):
+    """Represents an ecoMAX parameter from the service table."""
 
     __slots__ = ()
 
     async def create_request(self) -> Request:
         """Create a request to change the parameter."""
         return await Request.create(
-            FrameType.REQUEST_SET_ECOMAX_EXTENDED_PARAMETER,
+            FrameType.REQUEST_SET_ECOMAX_SERVICE_PARAMETER,
             recipient=self.device.address,
             data={ATTR_INDEX: self._index, ATTR_VALUE: self.values.value},
         )
 
 
-class EcomaxExtendedNumber(ExtendedParameter, EcomaxNumber):
-    """Represents an ecoMAX number from the extended parameter table."""
+class EcomaxServiceNumber(ServiceParameter, EcomaxNumber):
+    """Represents an ecoMAX number from the service parameter table."""
 
     __slots__ = ()
 
 
-class EcomaxExtendedSwitch(ExtendedParameter, EcomaxSwitch):
-    """Represents an ecoMAX switch from the extended parameter table."""
+class EcomaxServiceSwitch(ServiceParameter, EcomaxSwitch):
+    """Represents an ecoMAX switch from the service parameter table."""
 
     __slots__ = ()
 
@@ -831,26 +831,26 @@ async def get_ecomax_parameter_types(
 
 
 @acache
-async def get_extended_parameter_types(
+async def get_service_parameter_types(
     product_info: ProductInfo,
 ) -> dict[int, ParameterDescription]:
-    """Return extended ecoMAX parameter types for a specific product."""
-    return await get_custom_extended_parameter_types(product_info)
+    """Return service ecoMAX parameter types for a specific product."""
+    return await get_custom_service_parameter_types(product_info)
 
 
 __all__ = [
     "ATTR_ECOMAX_CONTROL",
     "PARAMETER_TYPES",
     "THERMOSTAT_PROFILE_PARAMETER",
-    "EcomaxExtendedNumber",
-    "EcomaxExtendedSwitch",
     "EcomaxNumber",
     "EcomaxNumberDescription",
     "EcomaxParameter",
     "EcomaxParameterDescription",
+    "EcomaxServiceNumber",
+    "EcomaxServiceSwitch",
     "EcomaxSwitch",
     "EcomaxSwitchDescription",
-    "ExtendedParameter",
+    "ServiceParameter",
     "get_ecomax_parameter_types",
-    "get_extended_parameter_types",
+    "get_service_parameter_types",
 ]

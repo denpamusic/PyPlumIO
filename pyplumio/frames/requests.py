@@ -82,10 +82,10 @@ class EcomaxParametersRequest(Request):
         return bytes([data.get(ATTR_COUNT, 255), data.get(ATTR_START, 0)])
 
 
-@frame_handler(FrameType.REQUEST_ECOMAX_EXTENDED_PARAMETERS)
-@expects_response(responses.EcomaxExtendedParametersResponse)
-class EcomaxExtendedParametersRequest(EcomaxParametersRequest):
-    """Represents an ecoMAX extended parameters request.
+@frame_handler(FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS)
+@expects_response(responses.EcomaxServiceParametersResponse)
+class EcomaxServiceParametersRequest(EcomaxParametersRequest):
+    """Represents an ecoMAX service parameters request.
 
     Contains number of parameters and index of the first parameter.
     """
@@ -159,10 +159,10 @@ class SetEcomaxParameterRequest(Request):
             raise FrameDataError from e
 
 
-@frame_handler(FrameType.REQUEST_SET_ECOMAX_EXTENDED_PARAMETER)
-@expects_response(responses.SetEcomaxExtendedParameterResponse)
-class SetEcomaxExtendedParameterRequest(Request):
-    """Represents a request to set an ecoMAX extended parameter.
+@frame_handler(FrameType.REQUEST_SET_ECOMAX_SERVICE_PARAMETER)
+@expects_response(responses.SetEcomaxServiceParameterResponse)
+class SetEcomaxServiceParameterRequest(Request):
+    """Represents a request to set an ecoMAX service parameter.
 
     Contains the number of values, the first parameter index and the
     new values for consecutive indexes. Only one value is sent.
@@ -299,15 +299,15 @@ __all__ = [
     "AlertsRequest",
     "CheckDeviceRequest",
     "EcomaxControlRequest",
-    "EcomaxExtendedParametersRequest",
     "EcomaxParametersRequest",
+    "EcomaxServiceParametersRequest",
     "MixerParametersRequest",
     "PasswordRequest",
     "ProgramVersionRequest",
     "RegulatorDataSchemaRequest",
     "SchedulesRequest",
-    "SetEcomaxExtendedParameterRequest",
     "SetEcomaxParameterRequest",
+    "SetEcomaxServiceParameterRequest",
     "SetMixerParameterRequest",
     "SetScheduleRequest",
     "SetThermostatParameterRequest",

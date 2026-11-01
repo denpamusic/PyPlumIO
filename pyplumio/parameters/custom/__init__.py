@@ -37,7 +37,7 @@ class CustomParameters:
 
     signature: ClassVar[Signature]
     overrides: ClassVar[Sequence[ParameterOverride]] = ()
-    extended: ClassVar[dict[int, ParameterDescription]] = {}
+    service: ClassVar[dict[int, ParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -98,12 +98,12 @@ async def inject_custom_parameter_overrides(
     return parameter_types
 
 
-async def get_custom_extended_parameter_types(
+async def get_custom_service_parameter_types(
     product_info: ProductInfo,
 ) -> dict[int, ParameterDescription]:
-    """Get custom extended parameter types."""
+    """Get custom service parameter types."""
     if custom_parameters := await _load_custom_parameters(product_info):
-        return custom_parameters.extended
+        return custom_parameters.service
 
     return {}
 
@@ -112,6 +112,6 @@ __all__ = (
     "CustomParameters",
     "ParameterOverride",
     "Signature",
-    "get_custom_extended_parameter_types",
+    "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
 )

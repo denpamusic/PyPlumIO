@@ -11,21 +11,21 @@ from pyplumio.const import (
 from pyplumio.devices.ecomax import EcoMAX
 from pyplumio.frames.requests import (
     EcomaxControlRequest,
-    SetEcomaxExtendedParameterRequest,
     SetEcomaxParameterRequest,
+    SetEcomaxServiceParameterRequest,
     SetThermostatParameterRequest,
 )
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES as ECOMAX_PARAMETER_TYPES,
-    EcomaxExtendedNumber,
-    EcomaxExtendedSwitch,
     EcomaxNumber,
     EcomaxNumberDescription,
+    EcomaxServiceNumber,
+    EcomaxServiceSwitch,
     EcomaxSwitch,
     EcomaxSwitchDescription,
     get_ecomax_parameter_types,
-    get_extended_parameter_types,
+    get_service_parameter_types,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.product_info import ProductInfo
@@ -99,34 +99,34 @@ async def test_get_ecomax_parameter_types(ecomax: EcoMAX) -> None:
     assert parameter_types_patched[127].name == "__unknown_parameter_1"
 
 
-async def test_ecomax_extended_parameter_create_request(ecomax: EcoMAX) -> None:
-    """Test create_request method for ecoMAX extended parameters."""
-    ecomax_extended_number = EcomaxExtendedNumber(
+async def test_ecomax_service_parameter_create_request(ecomax: EcoMAX) -> None:
+    """Test create_request method for ecoMAX service parameters."""
+    ecomax_service_number = EcomaxServiceNumber(
         device=ecomax,
         description=EcomaxNumberDescription(name="test_number"),
         values=ParameterValues(value=1, min_value=0, max_value=2),
         index=23,
     )
-    request = await ecomax_extended_number.create_request()
-    assert isinstance(request, SetEcomaxExtendedParameterRequest)
+    request = await ecomax_service_number.create_request()
+    assert isinstance(request, SetEcomaxServiceParameterRequest)
     assert request.data == {ATTR_INDEX: 23, ATTR_VALUE: 1}
     assert request.message == bytes.fromhex("011701")
 
-    ecomax_extended_switch = EcomaxExtendedSwitch(
+    ecomax_service_switch = EcomaxServiceSwitch(
         device=ecomax,
         description=EcomaxSwitchDescription(name="test_switch"),
         values=ParameterValues(value=1, min_value=0, max_value=1),
         index=100,
     )
-    switch_request = await ecomax_extended_switch.create_request()
-    assert isinstance(switch_request, SetEcomaxExtendedParameterRequest)
+    switch_request = await ecomax_service_switch.create_request()
+    assert isinstance(switch_request, SetEcomaxServiceParameterRequest)
     assert switch_request.data == {ATTR_INDEX: 100, ATTR_VALUE: 1}
     assert switch_request.message == bytes.fromhex("016401")
 
 
-async def test_get_extended_parameter_types(ecomax: EcoMAX) -> None:
-    """Test ecoMAX extended parameter types getter."""
-    assert await get_extended_parameter_types(ecomax.product) == {}
+async def test_get_service_parameter_types(ecomax: EcoMAX) -> None:
+    """Test ecoMAX service parameter types getter."""
+    assert await get_service_parameter_types(ecomax.product) == {}
 
     product_info = ProductInfo(
         type=ProductType.ECOMAX_P,
@@ -140,7 +140,7 @@ async def test_get_extended_parameter_types(ecomax: EcoMAX) -> None:
         await get_ecomax_parameter_types(product_info)
         == ECOMAX_PARAMETER_TYPES[ProductType.ECOMAX_P]
     )
-    parameter_types = await get_extended_parameter_types(product_info)
+    parameter_types = await get_service_parameter_types(product_info)
     assert len(parameter_types) == 77
     assert parameter_types[23].name == "control_mode"
     assert parameter_types[11] == EcomaxNumberDescription(

@@ -1,6 +1,6 @@
 [
   {
-    "id": "get_ecomax_extended_parameters_from_zero_no_limit",
+    "id": "get_ecomax_service_parameters_from_zero_no_limit",
     "message": {
       "items": [
         "FF00"

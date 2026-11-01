@@ -99,10 +99,10 @@ Handler
 
 .. autoclass:: pyplumio.structures.ecomax_parameters.EcomaxParametersStructure
 
-EcomaxExtendedParameters
-------------------------
+EcomaxServiceParameters
+-----------------------
 
-Get the ecoMAX controller editable parameters from the extended parameter
+Get the ecoMAX controller editable parameters from the service parameter
 table. Newer controllers, such as ecoMAX 860P4-NM TOUCH, keep part of their
 settings only in this table.
 
@@ -111,14 +111,14 @@ in the frame version table, and requests it again each time its version
 changes.
 
 Parameters are represented in the same way as in :ref:`ecomaxparameters`.
-Raw parameters are available under the ``ecomax_extended_parameters`` key.
+Raw parameters are available under the ``ecomax_service_parameters`` key.
 Parameters with known meaning are also available by name for verified
 products only.
 
 Request
 ^^^^^^^
 
-.. autoattribute:: pyplumio.const.FrameType.REQUEST_ECOMAX_EXTENDED_PARAMETERS
+.. autoattribute:: pyplumio.const.FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS
 
 .. list-table::
    :widths: 20 65 10
@@ -137,7 +137,7 @@ Request
 Response
 ^^^^^^^^
 
-.. autoattribute:: pyplumio.const.FrameType.RESPONSE_ECOMAX_EXTENDED_PARAMETERS
+.. autoattribute:: pyplumio.const.FrameType.RESPONSE_ECOMAX_SERVICE_PARAMETERS
 
 .. list-table::
    :widths: 50 50
@@ -145,13 +145,13 @@ Response
 
    * - Name
      - Description
-   * - ecomax_extended_parameters
-     - Contains a list of ecomax extended parameters.
+   * - ecomax_service_parameters
+     - Contains a list of ecomax service parameters.
 
 Handler
 ^^^^^^^
 
-.. autoclass:: pyplumio.structures.ecomax_extended_parameters.EcomaxExtendedParametersStructure
+.. autoclass:: pyplumio.structures.ecomax_service_parameters.EcomaxServiceParametersStructure
 
 MixerParameters
 ---------------
@@ -228,10 +228,10 @@ Response
 
 .. autoattribute:: pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_PARAMETER
 
-SetEcomaxExtendedParameter
---------------------------
+SetEcomaxServiceParameter
+-------------------------
 
-Set the editable parameter value in the extended parameter table.
+Set the editable parameter value in the service parameter table.
 
 The message is the number of values, the index of the first parameter and
 the new raw values for consecutive indexes. In a panel capture, a single
@@ -241,13 +241,13 @@ parameter per frame.
 
 In captures, after every panel write the controller increased the frame
 type 97 version in the regulator data frame version table within 1-3 seconds
-(6, 7, 8, 9, 10, 11 for five writes), so PyPlumIO re-reads the extended
+(6, 7, 8, 9, 10, 11 for five writes), so PyPlumIO re-reads the service
 parameter table and confirms the set from it.
 
 Request
 ^^^^^^^
 
-.. autoattribute:: pyplumio.const.FrameType.REQUEST_SET_ECOMAX_EXTENDED_PARAMETER
+.. autoattribute:: pyplumio.const.FrameType.REQUEST_SET_ECOMAX_SERVICE_PARAMETER
 
 .. list-table::
    :widths: 20 65 10
@@ -266,7 +266,7 @@ Request
 Response
 ^^^^^^^^
 
-.. autoattribute:: pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_EXTENDED_PARAMETER
+.. autoattribute:: pyplumio.const.FrameType.RESPONSE_SET_ECOMAX_SERVICE_PARAMETER
 
 SetMixerParameter
 -----------------

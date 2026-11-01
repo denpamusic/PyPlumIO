@@ -44,32 +44,30 @@ from pyplumio.frames.messages import RegulatorDataMessage, SensorDataMessage
 from pyplumio.frames.requests import (
     AlertsRequest,
     EcomaxControlRequest,
-    EcomaxExtendedParametersRequest,
     EcomaxParametersRequest,
-    SetEcomaxExtendedParameterRequest,
+    EcomaxServiceParametersRequest,
     SetEcomaxParameterRequest,
+    SetEcomaxServiceParameterRequest,
     SetScheduleRequest,
     SetThermostatParameterRequest,
 )
 from pyplumio.frames.responses import (
-    EcomaxExtendedParametersResponse,
     EcomaxParametersResponse,
+    EcomaxServiceParametersResponse,
     MixerParametersResponse,
     SchedulesResponse,
     ThermostatParametersResponse,
 )
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES,
-    EcomaxExtendedNumber,
-    EcomaxExtendedSwitch,
     EcomaxNumber,
+    EcomaxServiceNumber,
+    EcomaxServiceSwitch,
     EcomaxSwitch,
-    get_extended_parameter_types,
-)
-from pyplumio.structures.ecomax_extended_parameters import (
-    ATTR_ECOMAX_EXTENDED_PARAMETERS,
+    get_service_parameter_types,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
+from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
@@ -174,7 +172,7 @@ async def test_frame_versions_tracker(
         frame_type: 2,
         FrameType.REQUEST_REGULATOR_DATA_SCHEMA: 0,
         84: 0,
-        FrameType.REQUEST_ECOMAX_EXTENDED_PARAMETERS: 359,
+        FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS: 359,
         FrameType.REQUEST_ALERTS: 53918,
         FrameType.REQUEST_SCHEDULES: 1,
         100: 1,
@@ -183,12 +181,12 @@ async def test_frame_versions_tracker(
 
 
 @patch("asyncio.Queue.put_nowait")
-async def test_frame_versions_tracker_extended_parameters(
+async def test_frame_versions_tracker_service_parameters(
     mock_put_nowait, ecomax: EcoMAX
 ) -> None:
-    """Test frame version tracker with ecoMAX extended parameters."""
+    """Test frame version tracker with ecoMAX service parameters."""
     # Regulator data from ecoMAX 860P4-NM TOUCH, that announces version 6
-    # of the extended parameters frame.
+    # of the service parameters frame.
     regulator_data = RegulatorDataMessage(
         message=bytes.fromhex(
             "6264000109559c95547ac86106003d9dc8360100640100400f525625271a0000"
@@ -197,7 +195,7 @@ async def test_frame_versions_tracker_extended_parameters(
     ecomax.handle_frame(regulator_data)
     await ecomax.wait_until_done()
     mock_put_nowait.assert_any_call(
-        EcomaxExtendedParametersRequest(recipient=DeviceType.ECOMAX)
+        EcomaxServiceParametersRequest(recipient=DeviceType.ECOMAX)
     )
 
     # Test that same version is not requested again.
@@ -362,33 +360,33 @@ ECOMAX_860P4 = ProductInfo(
 
 
 @patch("asyncio.Queue.put_nowait")
-@json_test_data("responses/ecomax_extended_parameters.json", selector="message")
-async def test_ecomax_extended_parameters_event_listener(
-    mock_put_nowait, ecomax: EcoMAX, ecomax_extended_parameters_message: bytearray
+@json_test_data("responses/ecomax_service_parameters.json", selector="message")
+async def test_ecomax_service_parameters_event_listener(
+    mock_put_nowait, ecomax: EcoMAX, ecomax_service_parameters_message: bytearray
 ) -> None:
-    """Test event listener for ecoMAX extended parameters."""
+    """Test event listener for ecoMAX service parameters."""
     await ecomax.dispatch(ATTR_PRODUCT, ECOMAX_860P4)
     ecomax.handle_frame(
-        EcomaxExtendedParametersResponse(
-            message=bytes(ecomax_extended_parameters_message)
+        EcomaxServiceParametersResponse(
+            message=bytes(ecomax_service_parameters_message)
         )
     )
     await ecomax.wait_until_done()
 
     # Test that raw parameters are kept.
-    raw_parameters = dict(ecomax.get_nowait(ATTR_ECOMAX_EXTENDED_PARAMETERS))
+    raw_parameters = dict(ecomax.get_nowait(ATTR_ECOMAX_SERVICE_PARAMETERS))
     assert len(raw_parameters) == 231
 
     # Test that only described parameters are dispatched.
-    descriptions = await get_extended_parameter_types(ECOMAX_860P4)
+    descriptions = await get_service_parameter_types(ECOMAX_860P4)
     for index, description in descriptions.items():
         parameter = ecomax.get_nowait(description.name)
-        assert isinstance(parameter, (EcomaxExtendedNumber, EcomaxExtendedSwitch))
+        assert isinstance(parameter, (EcomaxServiceNumber, EcomaxServiceSwitch))
         assert parameter.values == raw_parameters[index]
 
     # Test parameter with step and offset.
     fan_speed_100 = ecomax.get_nowait("fan_speed_100")
-    assert isinstance(fan_speed_100, EcomaxExtendedNumber)
+    assert isinstance(fan_speed_100, EcomaxServiceNumber)
     assert equal_parameter_value(fan_speed_100.value, 1700)
     assert equal_parameter_value(fan_speed_100.min_value, 1360)
     assert equal_parameter_value(fan_speed_100.max_value, 2850)
@@ -396,13 +394,13 @@ async def test_ecomax_extended_parameters_event_listener(
 
     # Test switch parameter.
     heat_exchanger = ecomax.get_nowait("heat_exchanger")
-    assert isinstance(heat_exchanger, EcomaxExtendedSwitch)
+    assert isinstance(heat_exchanger, EcomaxServiceSwitch)
     assert heat_exchanger.value == STATE_ON
 
     # Test that parameter instance is not recreated on subsequent calls.
     ecomax.handle_frame(
-        EcomaxExtendedParametersResponse(
-            message=bytes(ecomax_extended_parameters_message)
+        EcomaxServiceParametersResponse(
+            message=bytes(ecomax_service_parameters_message)
         )
     )
     await ecomax.wait_until_done()
@@ -410,15 +408,15 @@ async def test_ecomax_extended_parameters_event_listener(
 
 
 @patch("asyncio.Queue.put_nowait")
-@json_test_data("responses/ecomax_extended_parameters.json", selector="message")
-async def test_set_ecomax_extended_parameter(
-    mock_put_nowait, ecomax: EcoMAX, ecomax_extended_parameters_message: bytearray
+@json_test_data("responses/ecomax_service_parameters.json", selector="message")
+async def test_set_ecomax_service_parameter(
+    mock_put_nowait, ecomax: EcoMAX, ecomax_service_parameters_message: bytearray
 ) -> None:
     """Test that set is confirmed by the updated parameter table."""
     await ecomax.dispatch(ATTR_PRODUCT, ECOMAX_860P4)
     ecomax.handle_frame(
-        EcomaxExtendedParametersResponse(
-            message=bytes(ecomax_extended_parameters_message)
+        EcomaxServiceParametersResponse(
+            message=bytes(ecomax_service_parameters_message)
         )
     )
     await ecomax.wait_until_done()
@@ -429,34 +427,34 @@ async def test_set_ecomax_extended_parameter(
     task = asyncio.create_task(ecomax.set("fuzzy_logic_a", 6))
     await asyncio.wait_for(fuzzy_logic_a.update_pending.wait(), timeout=1)
     request = mock_put_nowait.call_args[0][0]
-    assert isinstance(request, SetEcomaxExtendedParameterRequest)
+    assert isinstance(request, SetEcomaxServiceParameterRequest)
     assert request.message == bytes.fromhex("010806")
 
     # Controller sends the updated parameter table.
-    message = bytearray(ecomax_extended_parameters_message)
+    message = bytearray(ecomax_service_parameters_message)
     message[2 + 3 * 8] = 6
-    ecomax.handle_frame(EcomaxExtendedParametersResponse(message=bytes(message)))
+    ecomax.handle_frame(EcomaxServiceParametersResponse(message=bytes(message)))
     await ecomax.wait_until_done()
     assert await task is True
     assert fuzzy_logic_a.value == 6
 
 
-@json_test_data("responses/ecomax_extended_parameters.json", selector="message")
-async def test_ecomax_extended_parameters_unknown_product(
-    ecomax: EcoMAX, caplog, ecomax_extended_parameters_message: bytearray
+@json_test_data("responses/ecomax_service_parameters.json", selector="message")
+async def test_ecomax_service_parameters_unknown_product(
+    ecomax: EcoMAX, caplog, ecomax_service_parameters_message: bytearray
 ) -> None:
-    """Test ecoMAX extended parameters for product without descriptions."""
+    """Test ecoMAX service parameters for product without descriptions."""
     with caplog.at_level(logging.DEBUG):
         ecomax.handle_frame(
-            EcomaxExtendedParametersResponse(
-                message=bytes(ecomax_extended_parameters_message)
+            EcomaxServiceParametersResponse(
+                message=bytes(ecomax_service_parameters_message)
             )
         )
         await ecomax.wait_until_done()
 
-    assert len(ecomax.get_nowait(ATTR_ECOMAX_EXTENDED_PARAMETERS)) == 231
+    assert len(ecomax.get_nowait(ATTR_ECOMAX_SERVICE_PARAMETERS)) == 231
     assert "control_mode" not in ecomax.data
-    assert "Encountered unknown ecoMAX extended parameter table" in caplog.text
+    assert "Encountered unknown ecoMAX service parameter table" in caplog.text
 
 
 @class_from_json(
@@ -495,10 +493,10 @@ async def test_name_collisions(ecomax: EcoMAX, sensor_data: SensorDataMessage) -
         for descriptions in PARAMETER_TYPES.values()
         for description in descriptions
     }
-    extended_descriptions = await get_extended_parameter_types(ECOMAX_860P4)
+    service_descriptions = await get_service_parameter_types(ECOMAX_860P4)
     collisions = [
         description.name
-        for description in extended_descriptions.values()
+        for description in service_descriptions.values()
         if description.name in ecomax.data or description.name in legacy_names
     ]
     assert not collisions, f"found collisions: {collisions}"

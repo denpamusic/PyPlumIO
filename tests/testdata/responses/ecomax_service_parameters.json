@@ -1,6 +1,6 @@
 [
   {
-    "id": "EM860P4_extended_parameters",
+    "id": "EM860P4_service_parameters",
     "message": {
       "items": [
         "E7001210180907110606080E061202011E02011E16011E0F01FA0502085014780F004B5F2868",
@@ -26,7 +26,7 @@
       "__bytearray__": true
     },
     "data": {
-      "ecomax_extended_parameters": [
+      "ecomax_service_parameters": [
         {
           "items": [
             0,

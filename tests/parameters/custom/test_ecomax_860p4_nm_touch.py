@@ -15,12 +15,10 @@ from pyplumio.const import (
     UnitOfMeasurement,
 )
 from pyplumio.devices.ecomax import EcoMAX
-from pyplumio.frames.responses import EcomaxExtendedParametersResponse
+from pyplumio.frames.responses import EcomaxServiceParametersResponse
 from pyplumio.parameters import Numeric
-from pyplumio.parameters.ecomax import EcomaxExtendedNumber, EcomaxExtendedSwitch
-from pyplumio.structures.ecomax_extended_parameters import (
-    ATTR_ECOMAX_EXTENDED_PARAMETERS,
-)
+from pyplumio.parameters.ecomax import EcomaxServiceNumber, EcomaxServiceSwitch
+from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
 from tests.conftest import class_from_json, equal_parameter_value
 
@@ -110,12 +108,12 @@ RPM: Final = UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
     ],
 )
 @class_from_json(
-    EcomaxExtendedParametersResponse,
+    EcomaxServiceParametersResponse,
     "parameters/ecomax_860p4_nm_touch.json",
     arguments=("message",),
 )
 async def test_custom_parameters(
-    ecomax_860p4_nm_touch: EcomaxExtendedParametersResponse,
+    ecomax_860p4_nm_touch: EcomaxServiceParametersResponse,
     ecomax: EcoMAX,
     name: str,
     value: Numeric | State,
@@ -137,12 +135,12 @@ async def test_custom_parameters(
     )
     ecomax.handle_frame(ecomax_860p4_nm_touch)
     await ecomax.wait_until_done()
-    assert len(ecomax.data[ATTR_ECOMAX_EXTENDED_PARAMETERS]) == 231
+    assert len(ecomax.data[ATTR_ECOMAX_SERVICE_PARAMETERS]) == 231
 
     parameter = ecomax.get_nowait(name)
     assert isinstance(
         parameter,
-        EcomaxExtendedSwitch if isinstance(value, str) else EcomaxExtendedNumber,
+        EcomaxServiceSwitch if isinstance(value, str) else EcomaxServiceNumber,
     )
     assert equal_parameter_value(parameter.value, value)
     assert equal_parameter_value(parameter.min_value, min_value)
