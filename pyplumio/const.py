@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import Enum, IntEnum, unique
+from enum import IntEnum, StrEnum, unique
 from typing import Any, Final, Literal, TypeAlias
 
 # General attributes.
@@ -205,7 +205,7 @@ class FrameType(IntEnum):
 
 
 @unique
-class UnitOfMeasurement(Enum):
+class UnitOfMeasurement(StrEnum):
     """Contains units of measurement."""
 
     CELSIUS = "°C"
