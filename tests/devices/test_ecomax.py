@@ -504,17 +504,20 @@ async def test_set_ecomax_extended_parameter(
 
 @json_test_data("responses/ecomax_extended_parameters.json", selector="message")
 async def test_ecomax_extended_parameters_unknown_product(
-    ecomax: EcoMAX, ecomax_extended_parameters_message: bytearray
+    ecomax: EcoMAX, caplog, ecomax_extended_parameters_message: bytearray
 ) -> None:
     """Test ecoMAX extended parameters for product without descriptions."""
-    ecomax.handle_frame(
-        EcomaxExtendedParametersResponse(
-            message=bytes(ecomax_extended_parameters_message)
+    with caplog.at_level(logging.DEBUG):
+        ecomax.handle_frame(
+            EcomaxExtendedParametersResponse(
+                message=bytes(ecomax_extended_parameters_message)
+            )
         )
-    )
-    await ecomax.wait_until_done()
+        await ecomax.wait_until_done()
+
     assert len(ecomax.get_nowait(ATTR_ECOMAX_EXTENDED_PARAMETERS)) == 231
     assert "control_mode" not in ecomax.data
+    assert "Encountered unknown ecoMAX extended parameter table" in caplog.text
 
 
 @class_from_json(

@@ -1110,6 +1110,13 @@ async def get_ecomax_parameter_types(
     )
 
 
+def get_extended_parameter_types(
+    product_info: ProductInfo,
+) -> dict[int, EcomaxNumberDescription]:
+    """Return extended ecoMAX parameter types for specific product."""
+    return EXTENDED_PARAMETER_TYPES.get((product_info.id, product_info.model), {})
+
+
 __all__ = [
     "ATTR_ECOMAX_CONTROL",
     "EcomaxExtendedNumber",
@@ -1121,6 +1128,7 @@ __all__ = [
     "EcomaxSwitchDescription",
     "EXTENDED_PARAMETER_TYPES",
     "get_ecomax_parameter_types",
+    "get_extended_parameter_types",
     "PARAMETER_TYPES",
     "THERMOSTAT_PROFILE_PARAMETER",
 ]

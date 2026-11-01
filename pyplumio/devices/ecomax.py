@@ -30,13 +30,13 @@ from pyplumio.helpers.event_manager import event_listener
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import (
     ECOMAX_CONTROL_PARAMETER,
-    EXTENDED_PARAMETER_TYPES,
     THERMOSTAT_PROFILE_PARAMETER,
     EcomaxExtendedNumber,
     EcomaxNumber,
     EcomaxSwitch,
     EcomaxSwitchDescription,
     get_ecomax_parameter_types,
+    get_extended_parameter_types,
 )
 from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
 from pyplumio.structures.ecomax_parameters import (
@@ -322,15 +322,25 @@ class EcoMAX(PhysicalDevice):
         """
         _LOGGER.debug("Received device extended parameters")
         product_info = await self.get(ATTR_PRODUCT)
-        parameter_types = EXTENDED_PARAMETER_TYPES.get(
-            (product_info.id, product_info.model), {}
-        )
+        if not (parameter_types := get_extended_parameter_types(product_info)):
+            _LOGGER.debug(
+                "Encountered unknown ecoMAX extended parameter table. "
+                "Your device isn't fully compatible with this software "
+                "and may not work properly. Please visit the issue tracker "
+                "and open a feature request to support %s",
+                product_info.model,
+            )
+            return
+
         await asyncio.gather(
             *(
                 self.dispatch(
                     description.name,
                     EcomaxExtendedNumber.create_or_update(
-                        device=self, description=description, values=values, index=index
+                        device=self,
+                        description=description,
+                        values=values,
+                        index=index,
                     ),
                 )
                 for index, values in parameters
