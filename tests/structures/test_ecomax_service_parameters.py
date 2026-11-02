@@ -25,13 +25,13 @@ class TestEcomaxServiceParametersStructure:
         self, ecomax_service_parameters_structure: EcomaxServiceParametersStructure
     ) -> None:
         """Test decoding of ecoMAX service parameters structure."""
-        message = bytes.fromhex("030a020103ffffffff00ff")
+        message = bytes.fromhex("030a020103ffffff000001")
         data: dict[str, Any] = {}
         ecomax_service_parameters_structure.decode(message, data)
         assert data == {
             ATTR_ECOMAX_SERVICE_PARAMETERS: [
                 (10, ParameterValues(value=2, min_value=1, max_value=3)),
-                (12, ParameterValues(value=255, min_value=0, max_value=255)),
+                (12, ParameterValues(value=0, min_value=0, max_value=1)),
             ]
         }
         assert ecomax_service_parameters_structure.offset == 11

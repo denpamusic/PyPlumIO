@@ -135,7 +135,7 @@ async def test_custom_parameters(
     )
     ecomax.handle_frame(ecomax_860p4_nm_touch)
     await ecomax.wait_until_done()
-    assert len(ecomax.data[ATTR_ECOMAX_SERVICE_PARAMETERS]) == 231
+    assert len(ecomax.data[ATTR_ECOMAX_SERVICE_PARAMETERS]) == 230
 
     parameter = ecomax.get_nowait(name)
     assert isinstance(

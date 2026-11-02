@@ -375,7 +375,7 @@ async def test_ecomax_service_parameters_event_listener(
 
     # Test that raw parameters are kept.
     raw_parameters = dict(ecomax.get_nowait(ATTR_ECOMAX_SERVICE_PARAMETERS))
-    assert len(raw_parameters) == 231
+    assert len(raw_parameters) == 230
 
     # Test that only described parameters are dispatched.
     descriptions = await get_service_parameter_types(ECOMAX_860P4)
@@ -452,7 +452,7 @@ async def test_ecomax_service_parameters_unknown_product(
         )
         await ecomax.wait_until_done()
 
-    assert len(ecomax.get_nowait(ATTR_ECOMAX_SERVICE_PARAMETERS)) == 231
+    assert len(ecomax.get_nowait(ATTR_ECOMAX_SERVICE_PARAMETERS)) == 230
     assert "control_mode" not in ecomax.data
     assert "Encountered unknown ecoMAX service parameter table" in caplog.text
 

@@ -58,8 +58,10 @@ def fixture_switch(ecomax: EcoMAX) -> Switch:
     ("data", "expected_result"),
     [
         (bytes([BYTE_UNDEFINED, 0xFE, BYTE_UNDEFINED, BYTE_UNDEFINED]), True),
+        (bytes([0, 0, 1]), True),
+        (bytes([0, 0, BYTE_UNDEFINED]), False),
         (bytes([BYTE_UNDEFINED] * 4), False),
-        (b"\0" * 4, True),
+        (b"\0" * 4, False),
     ],
 )
 def test_is_valid_parameter(data: bytes, expected_result: bool) -> None:

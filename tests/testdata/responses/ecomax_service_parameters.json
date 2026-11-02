@@ -2655,19 +2655,6 @@
         },
         {
           "items": [
-            202,
-            {
-              "value": 255,
-              "min_value": 0,
-              "max_value": 255,
-              "__module__": "pyplumio.parameters",
-              "__class__": "ParameterValues"
-            }
-          ],
-          "__tuple__": true
-        },
-        {
-          "items": [
             203,
             {
               "value": 63,
