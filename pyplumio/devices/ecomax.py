@@ -44,6 +44,7 @@ from pyplumio.structures.ecomax_parameters import (
     ATTR_ECOMAX_CONTROL,
     ATTR_ECOMAX_PARAMETERS,
 )
+from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT
@@ -131,6 +132,9 @@ REQUIRED_KEYS: tuple[DataKey, ...] = (
     DataKey(ATTR_PRODUCT, FrameType.REQUEST_UID),
     DataKey(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
     DataKey(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+    DataKey(
+        ATTR_ECOMAX_SERVICE_PARAMETERS, FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS
+    ),
     DataKey(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
     DataKey(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
     DataKey(ATTR_MIXER_PARAMETERS, FrameType.REQUEST_MIXER_PARAMETERS),
