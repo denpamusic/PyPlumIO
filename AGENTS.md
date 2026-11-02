@@ -156,11 +156,11 @@ assume fixed payload lengths.
 2.9.1. Per-device parameter overrides and service parameter tables live
 in `pyplumio/parameters/custom/<model_slug>.py`, where `<model_slug>` is
 `model.replace("-", "_").replace(" ", "_").lower()` (for example,
-`"ecoMAX 860P4-NM TOUCH"` becomes `ecomax_860p4_nm_touch.py`).
+`"ecoMAX 350P2-ZF"` becomes `ecomax_350p2_zf.py`).
 
 2.9.2. Define a `CustomParameters` subclass named
 `to_camelcase(model_slug).upper().replace("ECOMAX", "EcoMAX")` (for
-example, `EcoMAX860P4NMTOUCH` or `EcoMAX860D3HB`) with:
+example, `EcoMAX350P2ZF` or `EcoMAX860P4NMTOUCH`) with:
 2.9.2.1. `signature = Signature(model="<exact model>", id=<product_id>)`.
 2.9.2.2. `overrides`: a tuple of `ParameterOverride(original, replacement)`
 entries to replace standard `PARAMETER_TYPES` descriptors by name.
@@ -174,6 +174,10 @@ a matching test module in `tests/parameters/custom/test_<model_slug>.py`
 using `@class_from_json` and
 `@pytest.mark.parametrize(("name", "value", "min_value", "max_value", "unit_of_measurement"), [...])`
 to verify each parameter's class, value, bounds, and unit of measurement.
+
+2.9.4. See `pyplumio/parameters/custom/ecomax_350p2_zf.py` and
+`tests/parameters/custom/test_ecomax_350p2_zf.py` for reference
+implementations.
 
 ## 3. Reactive Event System & Filter Pipeline
 
