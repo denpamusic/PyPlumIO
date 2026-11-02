@@ -21,22 +21,22 @@ class EcoMAX350P2ZF(CustomParameters):
         13: EcomaxNumberDescription(name="fuzzy_logic_parameter_b"),
         14: EcomaxNumberDescription(name="fuzzy_logic_parameter_c"),
         16: EcomaxNumberDescription(
-            name="ignition_fan_power", unit_of_measurement=PERCENTAGE
+            name="kindling_fan_power", unit_of_measurement=PERCENTAGE
         ),
         17: EcomaxNumberDescription(
-            name="ignition_fuel_detection_time",
+            name="kindling_fuel_detection_time",
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
         19: EcomaxNumberDescription(
-            name="ignition_fuel_dose",
+            name="kindling_fuel_dose",
             step=10,
             unit_of_measurement=UnitOfMeasurement.GRAMS,
         ),
         20: EcomaxNumberDescription(
-            name="ignition_flue_gas_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+            name="kindling_flue_gas_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
         21: EcomaxNumberDescription(
-            name="ignition_low_power_time",
+            name="kindling_low_power_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
         22: EcomaxNumberDescription(
