@@ -28,7 +28,9 @@ class EcoMAX350P2ZF(CustomParameters):
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
         19: EcomaxNumberDescription(
-            name="ignition_fuel_dose", unit_of_measurement=UnitOfMeasurement.GRAMS
+            name="ignition_fuel_dose",
+            step=10,
+            unit_of_measurement=UnitOfMeasurement.GRAMS,
         ),
         20: EcomaxNumberDescription(
             name="ignition_flue_gas_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
@@ -53,18 +55,20 @@ class EcoMAX350P2ZF(CustomParameters):
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         28: EcomaxNumberDescription(
-            name="minimum_allowed_fan_power", unit_of_measurement=PERCENTAGE
+            name="min_fan_power", unit_of_measurement=PERCENTAGE
         ),
         39: EcomaxNumberDescription(name="feeder_coefficient", step=0.1),
         41: EcomaxNumberDescription(
-            name="hopper_capacity", unit_of_measurement=UnitOfMeasurement.KILOGRAMS
+            name="hopper_capacity",
+            step=2,
+            unit_of_measurement=UnitOfMeasurement.KILOGRAMS,
         ),
         47: EcomaxNumberDescription(
             name="lower_heating_temp_from_thermostat",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
         86: EcomaxNumberDescription(
-            name="boiler_cooling_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+            name="boiler_alert_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
         87: EcomaxSwitchDescription(name="thermostat_mode_switch"),
         111: EcomaxNumberDescription(
@@ -72,5 +76,5 @@ class EcoMAX350P2ZF(CustomParameters):
             unit_of_measurement=UnitOfMeasurement.SECONDS,
         ),
         # 0 - pellets, 1 - wood
-        113: EcomaxNumberDescription(name="fuel_selector"),
+        113: EcomaxNumberDescription(name="fuel_type"),
     }

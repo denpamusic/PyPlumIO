@@ -30,16 +30,16 @@ from tests.conftest import class_from_json, equal_parameter_value
         ("fuzzy_logic_parameter_c", 50, 0, 75, None),
         ("ignition_fan_power", 30, 30, 50, PERCENTAGE),
         ("ignition_fuel_detection_time", 10, 10, 240, UnitOfMeasurement.SECONDS),
-        ("ignition_fuel_dose", 61, 10, 100, UnitOfMeasurement.GRAMS),
+        ("ignition_fuel_dose", 610, 100, 1000, UnitOfMeasurement.GRAMS),
         ("ignition_flue_gas_temp", 45, 40, 150, UnitOfMeasurement.CELSIUS),
         ("ignition_low_power_time", 2, 1, 15, UnitOfMeasurement.MINUTES),
         ("stabilization_fan_power", 40, 30, 60, PERCENTAGE),
         ("stabilization_min_flue_gas_temp", 70, 50, 150, UnitOfMeasurement.CELSIUS),
         ("stabilization_fan_work_time", 3, 1, 10, UnitOfMeasurement.MINUTES),
         ("stabilization_temp_delta", 10, 0, 50, UnitOfMeasurement.CELSIUS),
-        ("minimum_allowed_fan_power", 31, 30, 50, PERCENTAGE),
+        ("min_fan_power", 31, 30, 50, PERCENTAGE),
         ("feeder_coefficient", 0.8, 0.1, 2.0, None),
-        ("hopper_capacity", 50, 1, 250, UnitOfMeasurement.KILOGRAMS),
+        ("hopper_capacity", 100, 2, 500, UnitOfMeasurement.KILOGRAMS),
         (
             "lower_heating_temp_from_thermostat",
             5,
@@ -47,7 +47,7 @@ from tests.conftest import class_from_json, equal_parameter_value
             30,
             UnitOfMeasurement.CELSIUS,
         ),
-        ("boiler_cooling_temp", 90, 85, 95, UnitOfMeasurement.CELSIUS),
+        ("boiler_alert_temp", 90, 85, 95, UnitOfMeasurement.CELSIUS),
         ("thermostat_mode_switch", STATE_ON, STATE_OFF, STATE_ON, None),
         (
             "feeder2_work_time_extension",
@@ -56,7 +56,7 @@ from tests.conftest import class_from_json, equal_parameter_value
             250,
             UnitOfMeasurement.SECONDS,
         ),
-        ("fuel_selector", 0, 0, 1, None),
+        ("fuel_type", 0, 0, 1, None),
     ],
 )
 @class_from_json(
