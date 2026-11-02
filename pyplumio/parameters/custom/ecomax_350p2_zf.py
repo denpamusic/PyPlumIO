@@ -70,7 +70,7 @@ class EcoMAX350P2ZF(CustomParameters):
         86: EcomaxNumberDescription(
             name="boiler_alert_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
         ),
-        87: EcomaxSwitchDescription(name="thermostat_mode_switch"),
+        87: EcomaxSwitchDescription(name="thermostat_mode"),
         111: EcomaxNumberDescription(
             name="feeder2_work_time_extension",
             unit_of_measurement=UnitOfMeasurement.SECONDS,

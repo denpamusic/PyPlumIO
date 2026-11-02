@@ -48,7 +48,7 @@ from tests.conftest import class_from_json, equal_parameter_value
             UnitOfMeasurement.CELSIUS,
         ),
         ("boiler_alert_temp", 90, 85, 95, UnitOfMeasurement.CELSIUS),
-        ("thermostat_mode_switch", STATE_ON, STATE_OFF, STATE_ON, None),
+        ("thermostat_mode", STATE_ON, STATE_OFF, STATE_ON, None),
         (
             "feeder2_work_time_extension",
             4,
