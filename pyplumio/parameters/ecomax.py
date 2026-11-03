@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from functools import partial
+import logging
 from typing import TYPE_CHECKING
 
 from pyplumio.const import (
@@ -27,6 +28,7 @@ from pyplumio.parameters import (
     SwitchDescription,
 )
 from pyplumio.parameters.custom import (
+    ParameterOverload,
     get_custom_service_parameter_types,
     inject_custom_parameter_overrides,
 )
@@ -36,6 +38,8 @@ from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PROFILE
 
 if TYPE_CHECKING:
     from pyplumio.devices.ecomax import EcoMAX
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(slots=True)
@@ -835,7 +839,27 @@ async def get_service_parameter_types(
     product_info: ProductInfo,
 ) -> dict[int, ParameterDescription]:
     """Return service ecoMAX parameter types for a specific product."""
-    return await get_custom_service_parameter_types(product_info)
+    descriptions = await get_custom_service_parameter_types(product_info)
+    parameter_types = {
+        parameter.name: parameter for parameter in PARAMETER_TYPES[product_info.type]
+    }
+    service_parameter_types: dict[int, ParameterDescription] = {}
+    for index, description in descriptions.items():
+        if isinstance(description, ParameterOverload):
+            if not (overloaded := parameter_types.get(description.name)):
+                _LOGGER.warning(
+                    "Unable to overload parameter '%s' for %s: "
+                    "not found in standard parameter table",
+                    description.name,
+                    product_info.model,
+                )
+                continue
+
+            service_parameter_types[index] = overloaded
+        else:
+            service_parameter_types[index] = description
+
+    return service_parameter_types
 
 
 __all__ = [

@@ -30,6 +30,18 @@ class ParameterOverride(NamedTuple):
     replacement: ParameterDescription
 
 
+@dataclass(frozen=True, slots=True)
+class ParameterOverload:
+    """Represents a parameter overload."""
+
+    name: str
+
+
+def overload(name: str) -> ParameterOverload:
+    """Mark that parameter overloads the standard one with same name."""
+    return ParameterOverload(name)
+
+
 class CustomParameters:
     """Represents a custom parameters."""
 
@@ -42,7 +54,7 @@ class CustomParameters:
     overrides: ClassVar[Sequence[ParameterOverride]] = []
 
     # Service parameters descriptions.
-    descriptions: ClassVar[dict[int, ParameterDescription]] = {}
+    descriptions: ClassVar[dict[int, ParameterDescription | ParameterOverload]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -83,7 +95,7 @@ _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
 
 async def get_custom_service_parameter_types(
     product_info: ProductInfo,
-) -> dict[int, ParameterDescription]:
+) -> dict[int, ParameterDescription | ParameterOverload]:
     """Get custom service parameter types."""
     if custom_parameters := await _load_custom_parameters(product_info):
         return custom_parameters.descriptions
@@ -116,7 +128,9 @@ async def inject_custom_parameter_overrides(
 __all__ = (
     "CustomParameters",
     "ParameterOverride",
+    "ParameterOverload",
     "Signature",
+    "overload",
     "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
 )

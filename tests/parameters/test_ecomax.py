@@ -1,5 +1,10 @@
 """Contains tests for the ecoMAX parameter descriptors."""
 
+import logging
+from unittest.mock import patch
+
+import pytest
+
 from pyplumio.const import (
     ATTR_INDEX,
     ATTR_OFFSET,
@@ -16,6 +21,7 @@ from pyplumio.frames.requests import (
     SetThermostatParameterRequest,
 )
 from pyplumio.parameters import ParameterValues
+from pyplumio.parameters.custom import overload
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES as ECOMAX_PARAMETER_TYPES,
     EcomaxNumber,
@@ -124,7 +130,9 @@ async def test_ecomax_service_parameter_create_request(ecomax: EcoMAX) -> None:
     assert switch_request.message == bytes.fromhex("016401")
 
 
-async def test_get_service_parameter_types(ecomax: EcoMAX) -> None:
+async def test_get_service_parameter_types(
+    ecomax: EcoMAX, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test ecoMAX service parameter types getter."""
     assert await get_service_parameter_types(ecomax.product) == {}
 
@@ -149,3 +157,34 @@ async def test_get_service_parameter_types(ecomax: EcoMAX) -> None:
         offset=-30,
         unit_of_measurement=UnitOfMeasurement.REVOLUTIONS_PER_MINUTE,
     )
+
+    dummy_product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=99,
+        uid="**REDACTED**",
+        logo=0,
+        image=0,
+        model="ecoMAX Overload Test",
+    )
+    with (
+        patch(
+            "pyplumio.parameters.ecomax.get_custom_service_parameter_types",
+            return_value={
+                0: overload("boiler_alert_temp"),
+                1: overload("non_existent_parameter"),
+            },
+        ),
+        caplog.at_level(logging.WARNING),
+    ):
+        overloaded_types = await get_service_parameter_types(dummy_product_info)
+
+    assert overloaded_types == {
+        0: EcomaxNumberDescription(
+            name="boiler_alert_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        )
+    }
+    assert (
+        "Unable to overload parameter 'non_existent_parameter' "
+        "for ecoMAX Overload Test: not found in standard parameter table"
+    ) in caplog.text

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
-from pyplumio.parameters.custom import CustomParameters, Signature
+from pyplumio.parameters.custom import CustomParameters, Signature, overload
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
 
 
@@ -67,9 +67,7 @@ class EcoMAX350P2ZF(CustomParameters):
             name="lower_heating_temp_from_thermostat",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        86: EcomaxNumberDescription(
-            name="boiler_alert_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
-        ),
+        86: overload("boiler_alert_temp"),
         87: EcomaxSwitchDescription(name="thermostat_mode"),
         111: EcomaxNumberDescription(
             name="feeder2_work_time_extension",
