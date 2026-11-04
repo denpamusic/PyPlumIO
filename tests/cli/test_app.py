@@ -579,6 +579,13 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
         _save_files(state)
         assert "Error saving files: Disk full" in state.status
 
+    with patch(
+        "pyplumio.cli.app.generate_all_files",
+        side_effect=ValueError("Invalid parameter"),
+    ):
+        _save_files(state)
+        assert "Error saving files: Invalid parameter" in state.status
+
 
 def test_format_value_with_unit() -> None:
     """Test formatting values with units of measurement."""
@@ -1247,3 +1254,95 @@ async def test_run_app_error(capsys: pytest.CaptureFixture[str]) -> None:
         assert ret == 1
         captured = capsys.readouterr()
         assert "Error: Connection refused" in captured.err
+
+
+def test_create_app_returns_tuple() -> None:
+    """Test create_app returns a tuple of Application and AppState."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    app, state = create_app(session, table, Path.cwd(), output=DummyOutput())
+    assert isinstance(app, Application)
+    assert isinstance(state, AppState)
+    assert state.application is app
+    assert state.session is session
+    assert state.table is table
+
+
+async def test_run_app_disconnect_status(tmp_path: Path) -> None:
+    """Test run_app disconnect callback sets status and invalidates app."""
+    args = argparse.Namespace(
+        url="socket://localhost:8899",
+        output=str(tmp_path),
+        interval=1.0,
+        baudrate=115200,
+    )
+    product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=90,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 350P2-ZF",
+    )
+    created_sessions: list[Session] = []
+    created_states: list[AppState] = []
+    orig_init = Session.__init__
+    orig_create_app = create_app
+
+    def track_init(self: Session, *a: Any, **kw: Any) -> None:
+        orig_init(self, *a, **kw)
+        created_sessions.append(self)
+
+    def track_create_app(*a: Any, **kw: Any) -> tuple[Application[None], AppState]:
+        app, state = orig_create_app(*a, **kw)
+        created_states.append(state)
+        return app, state
+
+    with (
+        create_pipe_input() as pipe_input,
+        create_app_session(input=pipe_input, output=DummyOutput()),
+        patch.object(Session, "__init__", track_init),
+        patch("pyplumio.cli.app.create_app", side_effect=track_create_app),
+        patch(
+            "pyplumio.cli.session.Session.connect", new_callable=AsyncMock
+        ) as mock_connect,
+        patch(
+            "prompt_toolkit.application.Application.run_async",
+            new_callable=AsyncMock,
+        ) as mock_run,
+        patch(
+            "pyplumio.cli.session.Session.close", new_callable=AsyncMock
+        ) as mock_close,
+    ):
+
+        async def fake_run_async(*_args: Any, **_kwargs: Any) -> None:
+            sess = created_sessions[0]
+            sess.product_info = product_info
+            sess.last_frame_message = b"\x00" * 40
+            sess.last_parameters = [
+                (0, ParameterValues(value=10, min_value=0, max_value=20))
+            ]
+            if sess._on_update:
+                sess._on_update(
+                    [(0, ParameterValues(value=10, min_value=0, max_value=20))],
+                    b"\x00" * 40,
+                )
+            created_states[0].table.set_description(
+                0, EcomaxNumberDescription(name="boiler_temp")
+            )
+            if sess._on_disconnect:
+                sess._on_disconnect("Serial port lost")
+
+        mock_connect.return_value = product_info
+        mock_run.side_effect = fake_run_async
+
+        ret = await run_app(args)
+        assert ret == 0
+        mock_close.assert_awaited_once()
+        state = created_states[0]
+        assert state.status == (
+            "Connection lost: Serial port lost. "
+            "Ctrl+S still saves the last received frame, Ctrl+Q quits."
+        )
+        _save_files(state)
+        assert state.status == f"Files saved to {tmp_path}."

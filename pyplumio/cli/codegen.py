@@ -177,13 +177,13 @@ def _collect_module_imports(
 
     modules: dict[str, set[str]] = {}
     for description in all_descriptions:
-        mod = _get_description_module(description)
-        modules.setdefault(mod, set()).add(type(description).__name__)
+        module_name = _get_description_module(description)
+        modules.setdefault(module_name, set()).add(type(description).__name__)
 
-    for mod in SUPPORTED_DESCRIPTION_MODULES:
-        if mod in modules:
-            class_names = sorted(modules[mod])
-            lines.append(f"from {mod} import {', '.join(class_names)}")
+    for module_name in SUPPORTED_DESCRIPTION_MODULES:
+        if module_name in modules:
+            class_names = sorted(modules[module_name])
+            lines.append(f"from {module_name} import {', '.join(class_names)}")
     return lines
 
 

@@ -339,6 +339,8 @@ def test_codegen_with_overrides_and_switches() -> None:
         "a_very_long_parameter_name_that_forces_multi_line_wrapping_in_test_row"
         in test_content
     )
+    compile(module_content, "<ecomax_860p>", "exec")
+    compile(test_content, "<test_ecomax_860p>", "exec")
 
 
 def test_codegen_empty_descriptions() -> None:
@@ -355,6 +357,7 @@ def test_codegen_empty_descriptions() -> None:
         product_info, descriptions={}, overrides=()
     )
     assert "descriptions = {}" in module_content
+    compile(module_content, "<empty>", "exec")
 
 
 def test_codegen_empty_test_rows_raises_value_error() -> None:

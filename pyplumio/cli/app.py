@@ -132,7 +132,7 @@ async def prompt_connection_url(
     """Prompt user for connection details and return the connection URL."""
     session = prompt_session or PromptSession()
     type_validator = Validator.from_callable(
-        lambda t: t.strip().lower() in ("tcp", "serial"),
+        lambda text: text.strip().lower() in ("tcp", "serial"),
         error_message="Must be 'tcp' or 'serial'",
     )
     connection_type = (
@@ -148,12 +148,13 @@ async def prompt_connection_url(
     )
     if connection_type == "tcp":
         host_validator = Validator.from_callable(
-            lambda t: bool(t.strip()), error_message="Host cannot be empty"
+            lambda text: bool(text.strip()), error_message="Host cannot be empty"
         )
         host = (await session.prompt_async("Host: ", validator=host_validator)).strip()
         port_validator = Validator.from_callable(
-            lambda t: (
-                not t.strip() or (t.strip().isdigit() and 1 <= int(t) <= MAX_PORT)
+            lambda text: (
+                not text.strip()
+                or (text.strip().isdigit() and 1 <= int(text) <= MAX_PORT)
             ),
             error_message=f"Port must be 1-{MAX_PORT}",
         )
@@ -165,7 +166,7 @@ async def prompt_connection_url(
         return f"socket://{host}:{int(port) if port else DEFAULT_PORT}"
 
     url_validator = Validator.from_callable(
-        lambda t: bool(t.strip()), error_message="URL cannot be empty"
+        lambda text: bool(text.strip()), error_message="URL cannot be empty"
     )
     return (
         await session.prompt_async(

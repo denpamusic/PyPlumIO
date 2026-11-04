@@ -219,7 +219,9 @@ async def test_session_read_readerror_disconnect() -> None:
     on_disconnect.assert_called_once_with("Incomplete frame read")
 
 
-async def test_session_write_oserror_disconnect_and_sleep() -> None:
+async def test_session_write_oserror_disconnect_and_sleep(
+    skip_asyncio_sleep: AsyncMock,
+) -> None:
     """Test _poll_loop sleeping after failed write and notifying disconnect."""
     mock_connection = AsyncMock()
     mock_writer = AsyncMock()
@@ -233,11 +235,10 @@ async def test_session_write_oserror_disconnect_and_sleep() -> None:
     session._connection = mock_connection
     session.connected = True
 
-    with patch("asyncio.sleep") as mock_sleep:
-        await session._poll_loop()
-        assert not session.connected
-        on_disconnect.assert_called_once_with("Broken pipe")
-        mock_sleep.assert_called_once_with(1.5)
+    await session._poll_loop()
+    assert not session.connected
+    on_disconnect.assert_called_once_with("Broken pipe")
+    skip_asyncio_sleep.assert_called_once_with(1.5)
 
 
 async def test_session_read_recoverable_errors_skipped() -> None:
