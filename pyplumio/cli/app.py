@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from contextlib import suppress
+from dataclasses import dataclass
+from enum import Enum, unique
+import logging
 from pathlib import Path
 import re
 import sys
@@ -38,7 +41,11 @@ from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import model_slug
-from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+from pyplumio.parameters.ecomax import (
+    PARAMETER_TYPES,
+    EcomaxNumberDescription,
+    EcomaxSwitchDescription,
+)
 
 DEFAULT_PORT: Final = 8899
 MAX_PORT: Final = 65535
@@ -46,7 +53,7 @@ NAME_REGEX: Final = re.compile(r"^[a-z][a-z0-9_]*$")
 PAGE_SIZE: Final = 25
 SCROLL_PAGE: Final = 20
 INDEX_PROMPT: Final = "Enter parameter index to edit: "
-UNIT_WORDS: Final = tuple(u.value for u in UnitOfMeasurement) + (PERCENTAGE,)
+UNIT_WORDS: Final = tuple(unit.value for unit in UnitOfMeasurement) + (PERCENTAGE,)
 UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"]]] = {
     "%": PERCENTAGE,
     "percent": PERCENTAGE,
@@ -68,7 +75,10 @@ UNIT_COMPLETER: Final = WordCompleter(
     ignore_case=True,
     match_middle=True,
     meta_dict={
-        **{u.value: u.name.replace("_", " ").lower() for u in UnitOfMeasurement},
+        **{
+            unit.value: unit.name.replace("_", " ").lower()
+            for unit in UnitOfMeasurement
+        },
         PERCENTAGE: "percentage",
     },
 )
@@ -80,47 +90,86 @@ TABLE_SEPARATOR: Final = f"{'-' * 5}  {'-' * 36}  {'-' * 10}  {'-' * 10}  {'-' *
 PREVIEW_BOX_WIDTH: Final = 78
 
 
+@unique
+class WizardStep(Enum):
+    """Represents steps in the parameter wizard."""
+
+    INDEX = "INDEX"
+    NAME = "NAME"
+    CONFIRM_STANDARD_NAME = "CONFIRM_STANDARD_NAME"
+    TYPE = "TYPE"
+    OFFSET = "OFFSET"
+    STEP = "STEP"
+    UNIT = "UNIT"
+    CONFIRM = "CONFIRM"
+    OVERWRITE = "OVERWRITE"
+
+
+@dataclass(slots=True)
+class WizardData:
+    """Holds working data for the parameter wizard."""
+
+    index: int | None = None
+    name: str | None = None
+    default_type: str = "number"
+    offset: int = 0
+    step: float | int = 1
+    description: EcomaxNumberDescription | EcomaxSwitchDescription | None = None
+
+    def reset(self) -> None:
+        """Reset wizard data fields to defaults."""
+        self.index = None
+        self.name = None
+        self.default_type = "number"
+        self.offset = 0
+        self.step = 1
+        self.description = None
+
+
 async def prompt_connection_url(
     prompt_session: PromptSession[str] | None = None,
 ) -> str:
     """Prompt user for connection details and return the connection URL."""
     session = prompt_session or PromptSession()
-    type_val = Validator.from_callable(
+    type_validator = Validator.from_callable(
         lambda t: t.strip().lower() in ("tcp", "serial"),
         error_message="Must be 'tcp' or 'serial'",
     )
-    conn = (
+    connection_type = (
         (
             await session.prompt_async(
                 "Connection type (tcp/serial): ",
                 completer=WordCompleter(["tcp", "serial"]),
-                validator=type_val,
+                validator=type_validator,
             )
         )
         .strip()
         .lower()
     )
-    if conn == "tcp":
-        host_val = Validator.from_callable(
+    if connection_type == "tcp":
+        host_validator = Validator.from_callable(
             lambda t: bool(t.strip()), error_message="Host cannot be empty"
         )
-        host = (await session.prompt_async("Host: ", validator=host_val)).strip()
-        port_val = Validator.from_callable(
+        host = (await session.prompt_async("Host: ", validator=host_validator)).strip()
+        port_validator = Validator.from_callable(
             lambda t: (
                 not t.strip() or (t.strip().isdigit() and 1 <= int(t) <= MAX_PORT)
             ),
             error_message=f"Port must be 1-{MAX_PORT}",
         )
         port = (
-            await session.prompt_async(f"Port [{DEFAULT_PORT}]: ", validator=port_val)
+            await session.prompt_async(
+                f"Port [{DEFAULT_PORT}]: ", validator=port_validator
+            )
         ).strip()
         return f"socket://{host}:{int(port) if port else DEFAULT_PORT}"
-    url_val = Validator.from_callable(
+
+    url_validator = Validator.from_callable(
         lambda t: bool(t.strip()), error_message="URL cannot be empty"
     )
     return (
         await session.prompt_async(
-            "Device URL (e.g. /dev/ttyUSB0, COM3): ", validator=url_val
+            "Device URL (e.g. /dev/ttyUSB0, COM3): ", validator=url_validator
         )
     ).strip()
 
@@ -134,10 +183,11 @@ class AppState:
         "prompt",
         "scroll_offset",
         "session",
-        "state",
         "status",
         "table",
         "wizard_data",
+        "_handlers",
+        "_step",
     )
 
     application: Application[None] | None
@@ -145,46 +195,113 @@ class AppState:
     prompt: str
     scroll_offset: int
     session: Session
-    state: str
     status: str
+    _step: WizardStep
     table: ParameterTable
-    wizard_data: dict[str, Any]
+    wizard_data: WizardData
+    _handlers: dict[WizardStep, Callable[[str, Buffer], None]]
 
     def __init__(
         self, session: Session, table: ParameterTable, output_dir: Path
     ) -> None:
         """Initialize application state."""
-        self.session, self.table, self.output_dir = session, table, output_dir
-        self.state, self.prompt, self.status = "INDEX", INDEX_PROMPT, ""
-        self.scroll_offset, self.wizard_data, self.application = 0, {}, None
+        self.session = session
+        self.table = table
+        self.output_dir = output_dir
+        self._step = WizardStep.INDEX
+        self.prompt = INDEX_PROMPT
+        self.status = ""
+        self.scroll_offset = 0
+        self.wizard_data = WizardData()
+        self.application = None
+        self._handlers = {
+            WizardStep.INDEX: self.step_index,
+            WizardStep.NAME: self.step_name,
+            WizardStep.CONFIRM_STANDARD_NAME: self.step_confirm_standard_name,
+            WizardStep.TYPE: self.step_type,
+            WizardStep.OFFSET: self.step_offset,
+            WizardStep.STEP: self.step_step,
+            WizardStep.UNIT: self.step_unit,
+            WizardStep.CONFIRM: self.step_confirm,
+            WizardStep.OVERWRITE: self.step_overwrite,
+        }
+
+    @property
+    def step(self) -> WizardStep:
+        """Return the current wizard step."""
+        return self._step
+
+    @step.setter
+    def step(self, value: WizardStep) -> None:
+        """Set the current wizard step."""
+        self._step = value
+
+    @property
+    def state(self) -> str:
+        """Return step value string for compatibility."""
+        return self.step.value
 
     @property
     def max_scroll_offset(self) -> int:
         """Return maximum scroll offset."""
         return max(0, len(self.table) - PAGE_SIZE)
 
-    def _set_state(
-        self, state: str, prompt: str, buffer: Buffer, text: str = "", status: str = ""
+    def set_step(
+        self,
+        step: WizardStep,
+        prompt: str,
+        buffer: Buffer,
+        text: str = "",
+        status: str = "",
     ) -> None:
-        """Update wizard state and prompt buffer."""
-        self.state, self.prompt, buffer.text, self.status = state, prompt, text, status
+        """Update wizard step and prompt buffer."""
+        self.step = step
+        self.prompt = prompt
+        buffer.text = text
+        self.status = status
 
-    def reset_wizard(self, buffer: Buffer) -> None:
+    def reset_wizard(self, buffer: Buffer, status: str | None = None) -> None:
         """Reset wizard back to index prompt."""
-        self.state, self.prompt, buffer.text = "INDEX", INDEX_PROMPT, ""
-        self.wizard_data.clear()
+        self.table.unfreeze()
+        self.set_step(
+            WizardStep.INDEX,
+            INDEX_PROMPT,
+            buffer,
+            status=self.status if status is None else status,
+        )
+        self.wizard_data.reset()
 
     def step_index(self, text: str, buffer: Buffer) -> None:
         """Handle index step."""
         if text.isdigit() and (row := self.table.get(index := int(text))):
             self.table.clear_changed(index)
-            self.wizard_data["index"] = index
-            self._set_state("NAME", "Name: ", buffer, text=row.name)
+            self.table.freeze()
+            self.wizard_data.index = index
+            self.set_step(WizardStep.NAME, "Name: ", buffer, text=row.name)
             buffer.cursor_position = len(row.name)
         else:
-            self._set_state(
-                "INDEX", INDEX_PROMPT, buffer, status="Index must exist in table."
+            self.set_step(
+                WizardStep.INDEX,
+                INDEX_PROMPT,
+                buffer,
+                status="Index must exist in table.",
             )
+
+    def _advance_to_type(self, buffer: Buffer) -> None:
+        """Advance wizard to type selection step."""
+        row = self.table.get(
+            self.wizard_data.index if self.wizard_data.index is not None else -1
+        )
+        is_switch = (
+            row is not None and row.values.min_value == 0 and row.values.max_value == 1
+        )
+        default_type = "switch" if is_switch else "number"
+        self.wizard_data.default_type = default_type
+        self.set_step(
+            WizardStep.TYPE,
+            f"Parameter type (number, switch) [{default_type}]: ",
+            buffer,
+        )
 
     def step_name(self, text: str, buffer: Buffer) -> None:
         """Handle name step."""
@@ -194,41 +311,58 @@ class AppState:
                 "lowercase letters, numbers, and underscores."
             )
             return
-        self.wizard_data["name"] = text
-        row = self.table.get(self.wizard_data["index"])
-        is_switch = (
-            row is not None and row.values.min_value == 0 and row.values.max_value == 1
-        )
-        default_type = "switch" if is_switch else "number"
-        self.wizard_data["default_type"] = default_type
-        self._set_state(
-            "TYPE", f"Parameter type (number, switch) [{default_type}]: ", buffer
-        )
+
+        for index, description in self.table.descriptions.items():
+            if index != self.wizard_data.index and description.name == text:
+                self.status = f"Name '{text}' is already used by index {index}."
+                return
+
+        self.wizard_data.name = text
+
+        product_info = self.session.product_info
+        if product_info and (
+            standard_parameters := PARAMETER_TYPES.get(product_info.type)
+        ):
+            if any(param.name == text for param in standard_parameters):
+                prompt = (
+                    f"'{text}' is also a standard parameter; both will share one "
+                    "event name. Continue? [y/N]: "
+                )
+                self.set_step(WizardStep.CONFIRM_STANDARD_NAME, prompt, buffer)
+                return
+
+        self._advance_to_type(buffer)
+
+    def step_confirm_standard_name(self, text: str, buffer: Buffer) -> None:
+        """Handle confirm standard parameter name step."""
+        if text.lower() in ("y", "yes"):
+            self._advance_to_type(buffer)
+        else:
+            self.set_step(
+                WizardStep.NAME,
+                "Name: ",
+                buffer,
+                text=self.wizard_data.name or "",
+            )
+            buffer.cursor_position = len(buffer.text)
 
     def step_type(self, text: str, buffer: Buffer) -> None:
         """Handle type step."""
-        row = self.table.get(self.wizard_data.get("index", -1))
-        is_switch = (
-            row is not None and row.values.min_value == 0 and row.values.max_value == 1
-        )
-        default_type = self.wizard_data.get(
-            "default_type", "switch" if is_switch else "number"
-        )
-        choice = text.lower() or default_type
+        choice = text.lower() or self.wizard_data.default_type
         if choice == "switch":
             self.setup_confirm(
-                EcomaxSwitchDescription(name=self.wizard_data["name"]), buffer
+                EcomaxSwitchDescription(name=self.wizard_data.name or ""), buffer
             )
         elif choice == "number":
-            self._set_state("OFFSET", "Offset [0]: ", buffer)
+            self.set_step(WizardStep.OFFSET, "Offset [0]: ", buffer)
         else:
             self.status = "Type must be 'number' or 'switch'."
 
     def step_offset(self, text: str, buffer: Buffer) -> None:
         """Handle offset step."""
         try:
-            self.wizard_data["offset"] = int(text) if text else 0
-            self._set_state("STEP", "Step [1]: ", buffer)
+            self.wizard_data.offset = int(text) if text else 0
+            self.set_step(WizardStep.STEP, "Step [1]: ", buffer)
         except ValueError:
             self.status = "Offset must be an integer."
 
@@ -237,10 +371,10 @@ class AppState:
         try:
             if (step := float(text) if text else 1.0) <= 0:
                 raise ValueError
-            self.wizard_data["step"] = int(step) if step.is_integer() else step
+            self.wizard_data.step = int(step) if step.is_integer() else step
             units_display = ", ".join(UNIT_WORDS)
-            self._set_state(
-                "UNIT",
+            self.set_step(
+                WizardStep.UNIT,
                 "Unit [none]: ",
                 buffer,
                 status=f"Available units: {units_display}",
@@ -257,9 +391,9 @@ class AppState:
             return
         self.setup_confirm(
             EcomaxNumberDescription(
-                name=self.wizard_data["name"],
-                step=self.wizard_data["step"],
-                offset=self.wizard_data["offset"],
+                name=self.wizard_data.name or "",
+                step=self.wizard_data.step,
+                offset=self.wizard_data.offset,
                 unit_of_measurement=unit,
             ),
             buffer,
@@ -271,46 +405,68 @@ class AppState:
         buffer: Buffer,
     ) -> None:
         """Set up confirm prompt."""
-        row = self.table.get(self.wizard_data["index"])
+        row = self.table.get(
+            self.wizard_data.index if self.wizard_data.index is not None else -1
+        )
         preview = Row(0, row.values, description=description) if row else None
-        val, min_val, max_val = (
+        value, min_value, max_value = (
             (preview.value, preview.min_value, preview.max_value)
             if preview
             else ("", "", "")
         )
         unit = getattr(description, "unit_of_measurement", None)
-        u_str = f"{unit}" if unit == PERCENTAGE else f" {unit}" if unit else ""
-        self.wizard_data["description"] = description
-        name = self.wizard_data["name"]
+        unit_string = f"{unit}" if unit == PERCENTAGE else f" {unit}" if unit else ""
+        self.wizard_data.description = description
+        name = self.wizard_data.name
         prompt = (
-            f"{name}: {val}{u_str} ({min_val}-{max_val}{u_str}). "
+            f"{name}: {value}{unit_string} ({min_value}-{max_value}{unit_string}). "
             "Does this match your device? [y/N]: "
         )
-        self._set_state("CONFIRM", prompt, buffer)
+        self.set_step(WizardStep.CONFIRM, prompt, buffer)
 
     def step_confirm(self, text: str, buffer: Buffer) -> None:
         """Handle confirm step."""
-        if text.lower() in ("y", "yes"):
+        if text.lower() in ("y", "yes") and self.wizard_data.index is not None:
             self.table.set_description(
-                self.wizard_data["index"], self.wizard_data["description"]
+                self.wizard_data.index, self.wizard_data.description
             )
-            self.status = f"Stored parameter {self.wizard_data['index']}."
+            status = f"Stored parameter {self.wizard_data.index}."
         else:
-            self.status = "Discarded."
-        self.reset_wizard(buffer)
+            status = "Discarded."
+        self.reset_wizard(buffer, status=status)
 
     def step_overwrite(self, text: str, buffer: Buffer) -> None:
         """Handle overwrite step."""
         if text.lower() in ("y", "yes"):
             _save_files(self)
+            status = self.status
         else:
-            self.status = "Save cancelled."
-        self.reset_wizard(buffer)
+            status = "Save cancelled."
+        self.reset_wizard(buffer, status=status)
 
     def dispatch_enter(self, buffer: Buffer) -> None:
         """Dispatch enter key press to current step handler."""
-        if handler := getattr(self, f"step_{self.state.lower()}", None):
+        if handler := self._handlers.get(self.step):
             handler(buffer.text.strip(), buffer)
+
+
+class StatusLogHandler(logging.Handler):
+    """Log handler routing warning and higher logs to app status."""
+
+    __slots__ = ("_state",)
+
+    _state: AppState
+
+    def __init__(self, state: AppState) -> None:
+        """Initialize the status log handler."""
+        super().__init__(level=logging.WARNING)
+        self._state = state
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Emit log message to app status."""
+        self._state.status = self.format(record)
+        if self._state.application:
+            self._state.application.invalidate()
 
 
 def _parse_unit(
@@ -333,26 +489,24 @@ def _parse_unit(
 
 def _save_files(state: AppState) -> None:
     """Save parameter files to disk."""
-    info, msg, params = (
-        state.session.product_info,
-        state.session.last_frame_message,
-        state.session.last_parameters,
-    )
-    if not info or not msg or not params:
+    product_info = state.session.product_info
+    frame_message = state.session.last_frame_message
+    parameters = state.session.last_parameters
+    if not product_info or not frame_message or not parameters:
         state.status = "Error: no data received yet."
         return
     try:
         files = generate_all_files(
-            info,
+            product_info,
             state.table.descriptions,
             state.table.overrides,
-            msg,
-            params,
+            frame_message,
+            parameters,
             state.output_dir,
         )
         write_files(files)
         state.status = f"Files saved to {state.output_dir}."
-    except Exception as err:
+    except (OSError, ValueError) as err:
         state.status = f"Error saving files: {err}"
 
 
@@ -389,11 +543,12 @@ def _get_table_text(state: AppState) -> StyleAndTextTuples:
     lines: StyleAndTextTuples = [("bold", TABLE_HEADER), ("bold", TABLE_SEPARATOR)]
     offset = min(state.scroll_offset, state.max_scroll_offset)
     for row in state.table.rows()[offset : offset + PAGE_SIZE]:
-        val = _format_value_with_unit(row.value, row.description)
-        min_val = _format_value_with_unit(row.min_value, row.description)
-        max_val = _format_value_with_unit(row.max_value, row.description)
+        value = _format_value_with_unit(row.value, row.description)
+        min_value = _format_value_with_unit(row.min_value, row.description)
+        max_value = _format_value_with_unit(row.max_value, row.description)
         row_text = (
-            f"{row.index:>5}  {row.name:<36}  {val:<10}  {min_val:<10}  {max_val:<10}\n"
+            f"{row.index:>5}  {row.name:<36}  {value:<10}  {min_value:<10}  "
+            f"{max_value:<10}\n"
         )
         lines.append(("reverse", row_text) if row.changed else ("", row_text))
     return lines
@@ -407,9 +562,9 @@ def _format_field(label: str, value: Any, active: bool) -> str:
 
 def _resolve_preview_row(state: AppState, text: str) -> Row | None:
     """Return the Row currently being previewed."""
-    if "index" in state.wizard_data:
-        return state.table.get(state.wizard_data["index"])
-    if state.state == "INDEX" and text.isdigit():
+    if state.wizard_data.index is not None:
+        return state.table.get(state.wizard_data.index)
+    if state.step == WizardStep.INDEX and text.isdigit():
         return state.table.get(int(text))
     return None
 
@@ -418,19 +573,19 @@ def _resolve_live_number_params(
     state: AppState, text: str
 ) -> tuple[int, float | int, UnitOfMeasurement | Literal["%"] | None]:
     """Return live (offset, step, unit) from wizard data and current buffer."""
-    offset: int = state.wizard_data.get("offset", 0)
-    if state.state == "OFFSET" and text:
+    offset: int = state.wizard_data.offset
+    if state.step == WizardStep.OFFSET and text:
         with suppress(ValueError):
             offset = int(text)
 
-    step: float | int = state.wizard_data.get("step", 1)
-    if state.state == "STEP" and text:
+    step: float | int = state.wizard_data.step
+    if state.step == WizardStep.STEP and text:
         with suppress(ValueError):
             if (parsed := float(text)) > 0:
                 step = int(parsed) if parsed.is_integer() else parsed
 
     unit: UnitOfMeasurement | Literal["%"] | None = None
-    if state.state == "UNIT":
+    if state.step == WizardStep.UNIT:
         parsed_unit = _parse_unit(text)
         unit = None if parsed_unit is False else parsed_unit
     return offset, step, unit
@@ -440,20 +595,28 @@ def _build_live_description(
     state: AppState, row: Row, text: str
 ) -> EcomaxNumberDescription | EcomaxSwitchDescription | None:
     """Build transient description for live preview."""
-    if state.state == "INDEX":
+    if state.step == WizardStep.INDEX:
         return row.description
-    if state.state in ("CONFIRM", "OVERWRITE"):
-        return state.wizard_data.get("description", row.description)
-    name = text if state.state == "NAME" else state.wizard_data.get("name", row.name)
+    if state.step in (WizardStep.CONFIRM, WizardStep.OVERWRITE):
+        return state.wizard_data.description or row.description
+    name = (
+        text
+        if state.step in (WizardStep.NAME, WizardStep.CONFIRM_STANDARD_NAME)
+        else state.wizard_data.name or row.name
+    )
     name = name or "<unnamed>"
     if (
-        state.state == "NAME"
+        state.step == WizardStep.NAME
         and isinstance(row.description, EcomaxSwitchDescription)
-        or state.state == "TYPE"
-        and (text.lower() or state.wizard_data.get("default_type")) == "switch"
+        or state.step == WizardStep.TYPE
+        and (text.lower() or state.wizard_data.default_type) == "switch"
     ):
         return EcomaxSwitchDescription(name=name)
-    if state.state in ("NAME", "TYPE"):
+    if state.step in (
+        WizardStep.NAME,
+        WizardStep.CONFIRM_STANDARD_NAME,
+        WizardStep.TYPE,
+    ):
         return EcomaxNumberDescription(name=name)
     offset, step, unit = _resolve_live_number_params(state, text)
     return EcomaxNumberDescription(
@@ -468,43 +631,49 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     inner_width = PREVIEW_BOX_WIDTH - 4
     if row is None:
         top = f"┌─ Live Preview {'─' * (PREVIEW_BOX_WIDTH - 17)}┐\n"
-        msg = (
+        message = (
             "Enter a parameter index below to preview raw values and live calculations."
         )
-        mid1 = f"│ {msg:<{inner_width}} │\n"
+        mid1 = f"│ {message:<{inner_width}} │\n"
         mid2 = f"│ {'':<{inner_width}} │\n"
         bot = f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
         return [("", top + mid1 + mid2 + bot)]
 
-    desc = _build_live_description(state, row, text)
-    preview = Row(row.index, row.values, description=desc)
-    is_switch = isinstance(desc, EcomaxSwitchDescription)
-    type_str = "switch" if is_switch else "number"
-    offset_val = getattr(desc, "offset", 0)
-    step_val = getattr(desc, "step", 1)
-    unit_val = getattr(desc, "unit_of_measurement", None)
-    u_str = (
+    description = _build_live_description(state, row, text)
+    preview = Row(row.index, row.values, description=description)
+    is_switch = isinstance(description, EcomaxSwitchDescription)
+    type_string = "switch" if is_switch else "number"
+    offset_val = getattr(description, "offset", 0)
+    step_val = getattr(description, "step", 1)
+    unit_val = getattr(description, "unit_of_measurement", None)
+    unit_string = (
         f"{unit_val}" if unit_val == PERCENTAGE else f" {unit_val}" if unit_val else ""
     )
 
     fields = [
-        _format_field("Name", preview.name or "<unnamed>", state.state == "NAME"),
-        _format_field("Type", type_str, state.state == "TYPE"),
+        _format_field(
+            "Name",
+            preview.name or "<unnamed>",
+            state.step in (WizardStep.NAME, WizardStep.CONFIRM_STANDARD_NAME),
+        ),
+        _format_field("Type", type_string, state.step == WizardStep.TYPE),
     ]
     if not is_switch:
         fields.extend(
             [
-                _format_field("Offset", offset_val, state.state == "OFFSET"),
-                _format_field("Step", step_val, state.state == "STEP"),
-                _format_field("Unit", unit_val or "none", state.state == "UNIT"),
+                _format_field("Offset", offset_val, state.step == WizardStep.OFFSET),
+                _format_field("Step", step_val, state.step == WizardStep.STEP),
+                _format_field(
+                    "Unit", unit_val or "none", state.step == WizardStep.UNIT
+                ),
             ]
         )
     line1_content = "  ".join(fields)[:inner_width]
     raw = row.values
-    preview_range = f"{preview.min_value}-{preview.max_value}{u_str}"
+    preview_range = f"{preview.min_value}-{preview.max_value}{unit_string}"
     line2_content = (
         f"Raw: {raw.value} (min: {raw.min_value}, max: {raw.max_value})  ──►  "
-        f"Preview: {preview.value}{u_str} ({preview_range})"
+        f"Preview: {preview.value}{unit_string} ({preview_range})"
     )[:inner_width]
     header_title = f"─ Live Preview (Index #{row.index}) "
     top = f"┌{header_title}{'─' * max(0, PREVIEW_BOX_WIDTH - 2 - len(header_title))}┐\n"
@@ -514,36 +683,39 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     return [("", top + mid1 + mid2 + bot)]
 
 
-def create_app(
-    session: Session,
-    table: ParameterTable,
-    output_dir: Path,
-    input: Input | None = None,
-    output: Output | None = None,
-) -> Application[None]:
-    """Create prompt_toolkit Application instance."""
-    state, kb = AppState(session, table, output_dir), KeyBindings()
+def _get_completer(state: AppState) -> WordCompleter | None:
+    """Return completer for current wizard step."""
+    if state.step == WizardStep.TYPE:
+        return TYPE_COMPLETER
+    if state.step == WizardStep.UNIT:
+        return UNIT_COMPLETER
+    return None
 
-    def _get_completer() -> WordCompleter | None:
-        if state.state == "TYPE":
-            return TYPE_COMPLETER
-        if state.state == "UNIT":
-            return UNIT_COMPLETER
-        return None
 
-    buffer = Buffer(
-        completer=DynamicCompleter(_get_completer),
-        complete_while_typing=True,
-    )
+def _create_key_bindings(
+    state: AppState, buffer: Buffer, output_dir: Path
+) -> KeyBindings:
+    """Create key bindings for application."""
+    key_bindings = KeyBindings()
 
-    @kb.add("c-q")
+    @key_bindings.add("c-q")
     def _exit(event: KeyPressEvent) -> None:
         event.app.exit()
 
-    @kb.add("c-s")
+    @key_bindings.add("c-s")
     def _save(_event: KeyPressEvent) -> None:
         if not (product := state.session.product_info):
             state.status = "No connection or product info yet."
+            return
+        mapped_descriptions = [
+            description
+            for description in state.table.descriptions.values()
+            if isinstance(
+                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
+            )
+        ]
+        if not mapped_descriptions:
+            state.status = "Nothing to save: map at least one parameter first."
             return
         slug = model_slug(product.model)
         module_path = output_dir / f"pyplumio/parameters/custom/{slug}.py"
@@ -551,63 +723,80 @@ def create_app(
             prompt = (
                 f"Overwrite existing {module_path.name}? Comments will be lost [y/N]: "
             )
-            state._set_state("OVERWRITE", prompt, buffer)
+            state.set_step(WizardStep.OVERWRITE, prompt, buffer)
         else:
             _save_files(state)
 
-    @kb.add("escape", filter=has_completions)
+    @key_bindings.add("escape", filter=has_completions)
     def _cancel_completion(_event: KeyPressEvent) -> None:
         buffer.cancel_completion()
 
-    @kb.add("escape", filter=~has_completions)
+    @key_bindings.add("escape", filter=~has_completions)
     def _cancel(_event: KeyPressEvent) -> None:
         state.reset_wizard(buffer)
         state.status = "Cancelled."
 
-    @kb.add("pageup")
+    @key_bindings.add("pageup")
     def _pageup(_event: KeyPressEvent) -> None:
         state.scroll_offset = max(0, state.scroll_offset - SCROLL_PAGE)
 
-    @kb.add("pagedown")
+    @key_bindings.add("pagedown")
     def _pagedown(_event: KeyPressEvent) -> None:
         state.scroll_offset = min(
             state.max_scroll_offset, state.scroll_offset + SCROLL_PAGE
         )
 
-    @kb.add("up", filter=has_completions)
+    @key_bindings.add("up", filter=has_completions)
     def _up_completion(_event: KeyPressEvent) -> None:
         buffer.complete_previous()
 
-    @kb.add("down", filter=has_completions)
+    @key_bindings.add("down", filter=has_completions)
     def _down_completion(_event: KeyPressEvent) -> None:
         buffer.complete_next()
 
-    @kb.add("tab")
+    @key_bindings.add("tab")
     def _tab(_event: KeyPressEvent) -> None:
         if buffer.complete_state:
             buffer.complete_next()
         else:
             buffer.start_completion(select_first=False)
 
-    @kb.add("s-tab")
+    @key_bindings.add("s-tab")
     def _s_tab(_event: KeyPressEvent) -> None:
         if buffer.complete_state:
             buffer.complete_previous()
 
-    @kb.add("up", filter=~has_completions)
+    @key_bindings.add("up", filter=~has_completions)
     def _up(_event: KeyPressEvent) -> None:
         state.scroll_offset = min(
             state.max_scroll_offset, max(0, state.scroll_offset - 1)
         )
 
-    @kb.add("down", filter=~has_completions)
+    @key_bindings.add("down", filter=~has_completions)
     def _down(_event: KeyPressEvent) -> None:
         state.scroll_offset = min(state.max_scroll_offset, state.scroll_offset + 1)
 
-    @kb.add("enter")
+    @key_bindings.add("enter")
     def _enter(_event: KeyPressEvent) -> None:
         state.dispatch_enter(buffer)
 
+    return key_bindings
+
+
+def create_app(
+    session: Session,
+    table: ParameterTable,
+    output_dir: Path,
+    input: Input | None = None,
+    output: Output | None = None,
+) -> tuple[Application[None], AppState]:
+    """Create prompt_toolkit Application instance and AppState."""
+    state = AppState(session, table, output_dir)
+    buffer = Buffer(
+        completer=DynamicCompleter(lambda: _get_completer(state)),
+        complete_while_typing=True,
+    )
+    key_bindings = _create_key_bindings(state, buffer, output_dir)
     body = HSplit(
         [
             Window(FormattedTextControl(lambda: _get_header_text(state)), height=2),
@@ -639,16 +828,15 @@ def create_app(
             )
         ],
     )
-    app: Application[None] = Application(
+    application: Application[None] = Application(
         layout=Layout(root),
-        key_bindings=kb,
+        key_bindings=key_bindings,
         full_screen=True,
         input=input,
         output=output,
     )
-    state.application = app
-    app.state = state  # type: ignore[attr-defined]
-    return app
+    state.application = application
+    return application, state
 
 
 async def run_app(args: argparse.Namespace) -> int:
@@ -656,6 +844,7 @@ async def run_app(args: argparse.Namespace) -> int:
     url = args.url or await prompt_connection_url()
     output_dir, table = Path(args.output), ParameterTable()
     app: Application[None] | None = None
+    state: AppState | None = None
 
     def on_update(
         parameters: Sequence[tuple[int, ParameterValues]], message: bytes
@@ -664,18 +853,43 @@ async def run_app(args: argparse.Namespace) -> int:
         if app:
             app.invalidate()
 
+    def on_disconnect(reason: str) -> None:
+        if state:
+            state.status = (
+                f"Connection lost: {reason}. "
+                "Ctrl+S still saves the last received frame, Ctrl+Q quits."
+            )
+        if app:
+            app.invalidate()
+
     session = Session(
-        url=url, baudrate=args.baudrate, interval=args.interval, on_update=on_update
+        url=url,
+        baudrate=args.baudrate,
+        interval=args.interval,
+        on_update=on_update,
+        on_disconnect=on_disconnect,
     )
     try:
         product_info = await session.connect()
         descriptions, overrides = load_custom_parameters(product_info.model, output_dir)
-        for index, desc in descriptions.items():
-            if isinstance(desc, (EcomaxNumberDescription, EcomaxSwitchDescription)):
-                table.set_description(index, desc)
+        for index, description in descriptions.items():
+            if isinstance(
+                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
+            ):
+                table.set_description(index, description)
         table.overrides = overrides
-        app = create_app(session, table, output_dir)
-        await app.run_async()
+        app, state = create_app(session, table, output_dir)
+        status_handler = StatusLogHandler(state)
+        pyplumio_logger = logging.getLogger("pyplumio")
+        original_handlers = pyplumio_logger.handlers[:]
+        original_propagate = pyplumio_logger.propagate
+        pyplumio_logger.handlers = [status_handler]
+        pyplumio_logger.propagate = False
+        try:
+            await app.run_async()
+        finally:
+            pyplumio_logger.handlers = original_handlers
+            pyplumio_logger.propagate = original_propagate
     except (PyPlumIOError, ValueError) as err:
         print(f"Error: {err}", file=sys.stderr)  # noqa: T201
         return 1
@@ -686,6 +900,8 @@ async def run_app(args: argparse.Namespace) -> int:
 
 __all__ = (
     "AppState",
+    "WizardData",
+    "WizardStep",
     "create_app",
     "prompt_connection_url",
     "run_app",

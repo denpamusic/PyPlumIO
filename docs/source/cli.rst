@@ -71,8 +71,10 @@ Interactive Wizard
 
 At the bottom of the screen, a wizard guides you through naming and configuring each parameter:
 
-1. **Index**: Enter the parameter index from the table.
-2. **Name**: Enter a unique snake_case name (e.g. ``heating_temp``).
+1. **Index**: Enter the parameter index from the table. While navigating the wizard past this step, table row ordering is frozen to prevent rows from jumping while typing.
+2. **Name**: Enter a unique snake_case name (e.g. ``heating_temp``):
+   - If the name is already used by another parameter index, it is rejected.
+   - If the name matches a standard ecoMAX parameter for the connected product type, you will be prompted for confirmation (``'<name>' is also a standard parameter; both will share one event name. Continue? [y/N]``) to allow sharing the event name.
 3. **Type**: Select ``number`` or ``switch`` (defaults to ``switch`` if minimum is 0 and maximum is 1, otherwise ``number``).
 4. **Number Settings**: If configuring a number:
    - **Offset**: Raw offset to subtract (default: ``0``).
@@ -81,11 +83,27 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
 5. **Confirm**: Confirm the decoded value and range match your controller display (``[y/N]``).
 6. Press ``Esc`` at any point to cancel the wizard.
 
+Connection Resilience
+---------------------
+
+If the serial connection or TCP bridge drops during a session, the CLI automatically stops background polling and notifies you via the status line:
+
+.. code-block:: text
+
+    Connection lost: <reason>. Ctrl+S still saves the last received frame, Ctrl+Q quits.
+
+Even when disconnected, the application remains fully responsive. You can review mapped parameters, continue editing, and press ``Ctrl+S`` to save the files from the last received frame.
+
 Saving & Output Files
 ---------------------
 
-Press ``Ctrl+S`` to save generated files. If files already exist in the target directory,
-you will be prompted to confirm overwrite.
+Press ``Ctrl+S`` to save generated files. At least one parameter must be mapped; attempting to save with no mapped parameters will show:
+
+.. code-block:: text
+
+    Nothing to save: map at least one parameter first.
+
+If generated files already exist in the target directory, you will be prompted to confirm overwrite (``[y/N]``).
 
 The utility produces three files in the output directory:
 
