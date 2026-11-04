@@ -335,7 +335,11 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     # 2c. c-s with product info and existing file
     bindings["c-s"](mock_event)
     assert state.state == "OVERWRITE"
-    assert "Overwrite existing" in state.prompt
+    assert (
+        state.prompt
+        == "Overwrite existing ecomax_350p2_zf.py? Comments will be lost [y/N]: "
+    )
+    assert str(tmp_path) not in state.prompt
 
     # 3. escape
     bindings["escape"](mock_event)
@@ -347,6 +351,18 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     bindings["pagedown"](mock_event)
     assert state.scroll_offset == 20
     bindings["pageup"](mock_event)
+    assert state.scroll_offset == 0
+
+    # 4b. down & up
+    bindings["down"](mock_event)
+    assert state.scroll_offset == 1
+    bindings["down"](mock_event)
+    assert state.scroll_offset == 2
+    bindings["up"](mock_event)
+    assert state.scroll_offset == 1
+    bindings["up"](mock_event)
+    assert state.scroll_offset == 0
+    bindings["up"](mock_event)
     assert state.scroll_offset == 0
 
     # 5. enter

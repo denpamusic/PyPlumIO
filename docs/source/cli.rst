@@ -63,7 +63,7 @@ The interface consists of:
 
 - **Header**: Shows connected controller model, product ID, connection URL, last update timestamp, and keyboard shortcuts.
 - **Table**: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Values changed in the latest response are prefixed with an asterisk (``*``).
-- **Navigation**: Use ``PageUp`` and ``PageDown`` to scroll through the parameters list.
+- **Navigation**: Use Up/Down arrow keys or ``PageUp`` and ``PageDown`` to scroll through the parameters list.
 
 Interactive Wizard
 ~~~~~~~~~~~~~~~~~~

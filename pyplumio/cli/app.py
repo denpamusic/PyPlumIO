@@ -331,7 +331,9 @@ def create_app(
         slug = model_slug(product.model)
         module_path = output_dir / f"pyplumio/parameters/custom/{slug}.py"
         if module_path.is_file():
-            prompt = f"Overwrite existing {module_path}? Comments will be lost [y/N]: "
+            prompt = (
+                f"Overwrite existing {module_path.name}? Comments will be lost [y/N]: "
+            )
             state._set_state("OVERWRITE", prompt, buffer)
         else:
             _save_files(state)
@@ -348,6 +350,14 @@ def create_app(
     @kb.add("pagedown")
     def _pagedown(_event: KeyPressEvent) -> None:
         state.scroll_offset += 20
+
+    @kb.add("up")
+    def _up(_event: KeyPressEvent) -> None:
+        state.scroll_offset = max(0, state.scroll_offset - 1)
+
+    @kb.add("down")
+    def _down(_event: KeyPressEvent) -> None:
+        state.scroll_offset += 1
 
     @kb.add("enter")
     def _enter(_event: KeyPressEvent) -> None:
