@@ -22,7 +22,10 @@ import pytest
 from pyplumio.cli.app import (
     INDEX_PROMPT,
     PREVIEW_BOX_WIDTH,
+    TABLE_HEADER,
+    TABLE_SEPARATOR,
     AppState,
+    _format_value_with_unit,
     _get_header_text,
     _get_preview_text,
     _get_table_text,
@@ -437,6 +440,44 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
         assert "Error saving files: Disk full" in state.status
 
 
+def test_format_value_with_unit() -> None:
+    """Test formatting values with units of measurement."""
+    # Unknown or None description
+    assert _format_value_with_unit(10, None) == "10"
+
+    # Number with None unit
+    desc_no_unit = EcomaxNumberDescription(name="untyped")
+    assert _format_value_with_unit(10, desc_no_unit) == "10"
+
+    # Number with PERCENTAGE constant
+    desc_pct = EcomaxNumberDescription(name="fan_power", unit_of_measurement=PERCENTAGE)
+    assert _format_value_with_unit(50, desc_pct) == "50%"
+
+    # Number with "%" literal
+    desc_pct_lit = EcomaxNumberDescription(name="fan_power", unit_of_measurement="%")
+    assert _format_value_with_unit(100, desc_pct_lit) == "100%"
+
+    # Number with UnitOfMeasurement
+    desc_celsius = EcomaxNumberDescription(
+        name="boiler_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+    )
+    assert _format_value_with_unit(75.5, desc_celsius) == "75.5 °C"
+
+    desc_kw = EcomaxNumberDescription(
+        name="boiler_power", unit_of_measurement=UnitOfMeasurement.KILO_WATT
+    )
+    assert _format_value_with_unit(16, desc_kw) == "16 kW"
+
+    # Switch description ignores any unit
+    switch_desc = EcomaxSwitchDescription(name="heating_pump")
+    assert _format_value_with_unit("on", switch_desc) == "on"
+    assert _format_value_with_unit("off", switch_desc) == "off"
+
+    # Zero and negative values
+    assert _format_value_with_unit(0, desc_pct) == "0%"
+    assert _format_value_with_unit(-10, desc_celsius) == "-10 °C"
+
+
 def test_ui_header_and_table_text(tmp_path: Path) -> None:
     """Test header and table formatting functions."""
     session = Session(url="socket://localhost:8899")
@@ -462,7 +503,7 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     assert "Model: ecoMAX 350P2-ZF (ID: 90)" in header[0][1]
     assert "Updated: 12:00:00" in header[0][1]
 
-    # Table text
+    # Table text without description
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
     lines = _get_table_text(state)
     assert len(lines) >= 3
@@ -475,6 +516,52 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     assert lines[2][0] == "reverse"
     assert "15" in lines[2][1]
     assert "*" not in lines[2][1]
+
+    # Table text with units and column alignment verification
+    table.set_description(
+        0,
+        EcomaxNumberDescription(
+            name="boiler_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+        ),
+    )
+    table.update(
+        [
+            (0, ParameterValues(value=75, min_value=10, max_value=85)),
+            (1, ParameterValues(value=1, min_value=0, max_value=1)),
+            (2, ParameterValues(value=50, min_value=0, max_value=100)),
+        ]
+    )
+    table.set_description(1, EcomaxSwitchDescription(name="heating_pump"))
+    table.set_description(
+        2,
+        EcomaxNumberDescription(name="fan_power", unit_of_measurement=PERCENTAGE),
+    )
+    lines = _get_table_text(state)
+
+    # Check header and separator lines
+    assert lines[0] == ("bold", TABLE_HEADER)
+    assert lines[1] == ("bold", TABLE_SEPARATOR)
+    assert TABLE_HEADER == (
+        "Index  Name                                  Value       Min         Max\n"
+    )
+    assert (
+        f"{'-' * 5}  {'-' * 36}  {'-' * 10}  {'-' * 10}  {'-' * 10}\n"
+    ) == TABLE_SEPARATOR
+
+    # Verify column alignment across rows
+    rows_by_index = {int(line[1].split()[0]): line[1] for line in lines[2:]}
+    assert (
+        rows_by_index[0]
+        == f"{0:>5}  {'boiler_temp':<36}  {'75 °C':<10}  {'10 °C':<10}  {'85 °C':<10}\n"
+    )
+    assert (
+        rows_by_index[1]
+        == f"{1:>5}  {'heating_pump':<36}  {'on':<10}  {'off':<10}  {'on':<10}\n"
+    )
+    assert (
+        rows_by_index[2]
+        == f"{2:>5}  {'fan_power':<36}  {'50%':<10}  {'0%':<10}  {'100%':<10}\n"
+    )
 
 
 def test_live_preview_box_index(tmp_path: Path) -> None:

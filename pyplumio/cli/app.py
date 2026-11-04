@@ -74,9 +74,9 @@ UNIT_COMPLETER: Final = WordCompleter(
 )
 TYPE_COMPLETER: Final = WordCompleter(["number", "switch"])
 TABLE_HEADER: Final = (
-    "Index  Name                                  Value     Min       Max\n"
+    "Index  Name                                  Value       Min         Max\n"
 )
-TABLE_SEPARATOR: Final = f"{'-' * 5}  {'-' * 36}  {'-' * 8}  {'-' * 8}  {'-' * 8}\n"
+TABLE_SEPARATOR: Final = f"{'-' * 5}  {'-' * 36}  {'-' * 10}  {'-' * 10}  {'-' * 10}\n"
 PREVIEW_BOX_WIDTH: Final = 78
 
 
@@ -370,14 +370,30 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
     ]
 
 
+def _format_value_with_unit(
+    value: Any,
+    description: EcomaxNumberDescription | EcomaxSwitchDescription | None,
+) -> str:
+    """Format parameter value with unit of measurement if available."""
+    if isinstance(description, EcomaxSwitchDescription) or not (
+        unit := getattr(description, "unit_of_measurement", None)
+    ):
+        return str(value)
+    if unit == PERCENTAGE:
+        return f"{value}%"
+    return f"{value} {unit}"
+
+
 def _get_table_text(state: AppState) -> StyleAndTextTuples:
     """Return formatted table text."""
     lines: StyleAndTextTuples = [("bold", TABLE_HEADER), ("bold", TABLE_SEPARATOR)]
     offset = min(state.scroll_offset, state.max_scroll_offset)
     for row in state.table.rows()[offset : offset + PAGE_SIZE]:
+        val = _format_value_with_unit(row.value, row.description)
+        min_val = _format_value_with_unit(row.min_value, row.description)
+        max_val = _format_value_with_unit(row.max_value, row.description)
         row_text = (
-            f"{row.index:>5}  {row.name:<36}  {str(row.value):<8}  "
-            f"{str(row.min_value):<8}  {str(row.max_value):<8}\n"
+            f"{row.index:>5}  {row.name:<36}  {val:<10}  {min_val:<10}  {max_val:<10}\n"
         )
         lines.append(("reverse", row_text) if row.changed else ("", row_text))
     return lines
