@@ -25,7 +25,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=Path.cwd(), help="output root")
     parser.add_argument("--interval", type=float, default=2.0, help="poll interval")
     parser.add_argument("--baudrate", type=int, default=115200, help="baudrate")
-    return asyncio.run(run_app(parser.parse_args(argv)))
+    try:
+        return asyncio.run(run_app(parser.parse_args(argv)))
+    except KeyboardInterrupt:
+        return 130
+    except EOFError:
+        return 1
 
 
 __all__ = ("main",)

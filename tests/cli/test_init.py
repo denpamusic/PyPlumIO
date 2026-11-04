@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -24,8 +25,13 @@ def test_main_missing_dependencies(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_main_with_arguments() -> None:
     """Test main with command-line arguments."""
+
+    def fake_run(coro: Any) -> int:
+        coro.close()
+        return 0
+
     with (
-        patch("asyncio.run", return_value=0) as mock_asyncio_run,
+        patch("asyncio.run", side_effect=fake_run) as mock_asyncio_run,
         patch("pyplumio.cli.app.run_app", new_callable=MagicMock) as mock_run_app,
     ):
         result = main(
@@ -48,3 +54,27 @@ def test_main_with_arguments() -> None:
         assert args.output == Path("test_output")
         assert args.interval == 1.5
         assert args.baudrate == 9600
+
+
+def test_main_keyboard_interrupt() -> None:
+    """Test main catches KeyboardInterrupt and returns 130."""
+
+    def fake_run(coro: Any) -> int:
+        coro.close()
+        raise KeyboardInterrupt
+
+    with patch("asyncio.run", side_effect=fake_run):
+        result = main([])
+        assert result == 130
+
+
+def test_main_eof_error() -> None:
+    """Test main catches EOFError and returns 1."""
+
+    def fake_run(coro: Any) -> int:
+        coro.close()
+        raise EOFError
+
+    with patch("asyncio.run", side_effect=fake_run):
+        result = main([])
+        assert result == 1
