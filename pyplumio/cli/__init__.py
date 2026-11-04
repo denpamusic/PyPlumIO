@@ -14,9 +14,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         from pyplumio.cli.app import run_app  # noqa: PLC0415
     except ImportError:
-        print(  # noqa: T201
-            'PyPlumIO CLI requires extra dependencies: pip install "pyplumio[cli]"',
-            file=sys.stderr,
+        sys.stderr.write(
+            'PyPlumIO CLI requires extra dependencies: pip install "pyplumio[cli]"\n'
         )
         return 1
 
