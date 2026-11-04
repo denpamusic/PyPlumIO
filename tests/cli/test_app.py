@@ -19,9 +19,11 @@ from prompt_toolkit.validation import ValidationError
 import pytest
 
 from pyplumio.cli.app import (
+    INDEX_PROMPT,
     AppState,
     _get_header_text,
     _get_table_text,
+    _parse_unit,
     _save_files,
     create_app,
     prompt_connection_url,
@@ -29,7 +31,7 @@ from pyplumio.cli.app import (
 )
 from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
-from pyplumio.const import PERCENTAGE, ProductType
+from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import EcomaxNumberDescription
@@ -98,6 +100,7 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
     state = AppState(session, table, tmp_path)
     buff = Buffer()
+    assert state.prompt == INDEX_PROMPT
 
     # Step 1: Index
     buff.text = "0"
@@ -109,6 +112,7 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     buff.text = "boiler_temp"
     state.dispatch_enter(buff)
     assert state.state == "TYPE"
+    assert state.prompt == "Parameter type (number, switch) [number]: "
     assert state.wizard_data["name"] == "boiler_temp"
 
     # Step 3: Type number
@@ -127,21 +131,56 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     assert state.state == "UNIT"
     assert state.wizard_data["offset"] == 0
+    assert "Available units:" in state.status
 
     # Step 6: Unit
     buff.text = "%"
     state.dispatch_enter(buff)
     assert state.state == "PREVIEW"
+    assert (
+        state.prompt
+        == "boiler_temp: 20% (10-30%). Does this match your device? [y/N]: "
+    )
 
     # Step 7: Preview confirm
     buff.text = "y"
     state.dispatch_enter(buff)
     assert state.state == "INDEX"
+    assert state.prompt == INDEX_PROMPT
+    assert state.status == "Stored parameter 0."
     assert 0 in table.descriptions
     desc = table.descriptions[0]
     assert isinstance(desc, EcomaxNumberDescription)
     assert desc.name == "boiler_temp"
     assert desc.unit_of_measurement == PERCENTAGE
+
+
+async def test_app_state_wizard_preview_kw(tmp_path: Path) -> None:
+    """Test preview prompt format with kW unit of measurement."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update([(2, ParameterValues(value=16, min_value=11, max_value=16))])
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    buff.text = "2"
+    state.dispatch_enter(buff)
+    buff.text = "boiler_power"
+    state.dispatch_enter(buff)
+    buff.text = ""  # Default to number
+    state.dispatch_enter(buff)
+    assert state.state == "STEP"
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "kW"
+    state.dispatch_enter(buff)
+    assert state.state == "PREVIEW"
+    assert (
+        state.prompt
+        == "boiler_power: 16 kW (11-16 kW). Does this match your device? [y/N]: "
+    )
 
 
 async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
@@ -155,6 +194,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Index invalid
     state.dispatch_enter(buff)
     assert state.status == "Index must exist in table."
+    assert state.prompt == INDEX_PROMPT
 
     buff.text = "0"
     state.dispatch_enter(buff)
@@ -162,7 +202,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Name invalid
     buff.text = "123_invalid"
     state.dispatch_enter(buff)
-    assert "Name must match" in state.status
+    assert "Name must start with a lowercase letter" in state.status
 
     buff.text = "boiler_temp"
     state.dispatch_enter(buff)
@@ -170,7 +210,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Type invalid
     buff.text = "unknown"
     state.dispatch_enter(buff)
-    assert "Type must be" in state.status
+    assert "Type must be 'number' or 'switch'." in state.status
 
     buff.text = "number"
     state.dispatch_enter(buff)
@@ -178,7 +218,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Step invalid
     buff.text = "-5"
     state.dispatch_enter(buff)
-    assert "Step must be a positive number" in state.status
+    assert "Step must be a positive number." in state.status
 
     buff.text = "1"
     state.dispatch_enter(buff)
@@ -186,7 +226,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Offset invalid
     buff.text = "abc"
     state.dispatch_enter(buff)
-    assert "Offset must be an integer" in state.status
+    assert "Offset must be an integer." in state.status
 
     buff.text = "0"
     state.dispatch_enter(buff)
@@ -194,7 +234,22 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     # Unit invalid
     buff.text = "invalid_unit"
     state.dispatch_enter(buff)
-    assert "Unknown unit" in state.status
+    assert "Unknown unit of measurement." in state.status
+
+
+def test_parse_unit() -> None:
+    """Test parsing of unit strings."""
+    assert _parse_unit("") is None
+    assert _parse_unit("none") is None
+    assert _parse_unit("None") is None
+    assert _parse_unit("%") == PERCENTAGE
+    assert _parse_unit("rpm") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
+    assert _parse_unit("RPM") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
+    assert _parse_unit("kw") == UnitOfMeasurement.KILO_WATT
+    assert _parse_unit("kW") == UnitOfMeasurement.KILO_WATT
+    assert _parse_unit("°c") == UnitOfMeasurement.CELSIUS
+    assert _parse_unit("CELSIUS") == UnitOfMeasurement.CELSIUS
+    assert _parse_unit("invalid") is False
 
 
 async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
@@ -213,10 +268,15 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     buff.text = "switch"
     state.dispatch_enter(buff)
     assert state.state == "PREVIEW"
+    assert (
+        state.prompt
+        == "heating_switch: on (off-on). Does this match your device? [y/N]: "
+    )
 
     buff.text = "n"
     state.dispatch_enter(buff)
     assert state.state == "INDEX"
+    assert state.prompt == INDEX_PROMPT
     assert state.status == "Discarded."
     assert 1 not in table.descriptions
 
@@ -247,7 +307,7 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
     ]
 
     _save_files(state)
-    assert "Saved:" in state.status
+    assert state.status == f"Files saved to {tmp_path}."
 
     # Test overwrite declined
     state.step_overwrite("n", buff)
@@ -255,7 +315,7 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
 
     # Test overwrite accepted
     state.step_overwrite("y", buff)
-    assert "Saved:" in state.status
+    assert state.status == f"Files saved to {tmp_path}."
 
     # Test error during save
     with patch("pyplumio.cli.app.write_files", side_effect=OSError("Disk full")):
@@ -330,7 +390,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
         (0, ParameterValues(value=10, min_value=0, max_value=20))
     ]
     bindings["c-s"](mock_event)
-    assert "Saved:" in state.status
+    assert state.status == f"Files saved to {tmp_path}."
 
     # 2c. c-s with product info and existing file
     bindings["c-s"](mock_event)
@@ -346,14 +406,52 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert state.state == "INDEX"
     assert state.status == "Cancelled."
 
-    # 4. pagedown & pageup
+    # 4. completer checks
+    buffer_ctrl = app.layout.container.content.children[4].children[1]  # type: ignore[attr-defined]
+    app_buffer = buffer_ctrl.content.buffer
+    assert app_buffer.completer is not None
+    assert list(app_buffer.completer.get_completions(Document(""), None)) == []
+    state.state = "TYPE"
+    assert [
+        c.text for c in app_buffer.completer.get_completions(Document("num"), None)
+    ] == ["number"]
+    state.state = "UNIT"
+    assert [
+        c.text for c in app_buffer.completer.get_completions(Document("rp"), None)
+    ] == ["rpm"]
+
+    # 5. enter
+    with patch.object(AppState, "dispatch_enter") as mock_dispatch:
+        bindings["c-m"](mock_event)
+        mock_dispatch.assert_called_once()
+
+
+def test_app_scrolling(tmp_path: Path) -> None:
+    """Test table scrolling behavior and bounds capping."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update(
+        [(i, ParameterValues(value=i, min_value=0, max_value=100)) for i in range(50)]
+    )
+    app = create_app(session, table, tmp_path, output=DummyOutput())
+    state = getattr(app, "state")
+    bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}  # type: ignore[union-attr]
+    mock_event = MagicMock(spec=KeyPressEvent)
+
+    # pagedown & pageup with capping (50 rows, PAGE_SIZE 25 -> max offset 25)
     assert state.scroll_offset == 0
     bindings["pagedown"](mock_event)
     assert state.scroll_offset == 20
+    bindings["pagedown"](mock_event)
+    assert state.scroll_offset == 25
+    bindings["pagedown"](mock_event)
+    assert state.scroll_offset == 25
+    bindings["pageup"](mock_event)
+    assert state.scroll_offset == 5
     bindings["pageup"](mock_event)
     assert state.scroll_offset == 0
 
-    # 4b. down & up
+    # down & up with capping
     bindings["down"](mock_event)
     assert state.scroll_offset == 1
     bindings["down"](mock_event)
@@ -365,10 +463,9 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     bindings["up"](mock_event)
     assert state.scroll_offset == 0
 
-    # 5. enter
-    with patch.object(AppState, "dispatch_enter") as mock_dispatch:
-        bindings["c-m"](mock_event)
-        mock_dispatch.assert_called_once()
+    # empty table cannot scroll
+    empty_state = AppState(session, ParameterTable(), tmp_path)
+    assert empty_state.max_scroll_offset == 0
 
 
 async def test_run_app(tmp_path: Path) -> None:

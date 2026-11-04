@@ -16,9 +16,16 @@ from prompt_toolkit.completion import DynamicCompleter, WordCompleter
 from prompt_toolkit.formatted_text import StyleAndTextTuples
 from prompt_toolkit.input import Input
 from prompt_toolkit.key_binding import KeyBindings, KeyPressEvent
-from prompt_toolkit.layout.containers import HSplit, VSplit, Window
+from prompt_toolkit.layout.containers import (
+    Float,
+    FloatContainer,
+    HSplit,
+    VSplit,
+    Window,
+)
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.layout import Layout
+from prompt_toolkit.layout.menus import CompletionsMenu
 from prompt_toolkit.output import Output
 from prompt_toolkit.shortcuts import PromptSession
 from prompt_toolkit.validation import Validator
@@ -35,7 +42,19 @@ from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDesc
 DEFAULT_PORT: Final = 8899
 MAX_PORT: Final = 65535
 NAME_REGEX: Final = re.compile(r"^[a-z][a-z0-9_]*$")
-UNIT_COMPLETER: Final = WordCompleter([u.name for u in UnitOfMeasurement] + ["%"])
+PAGE_SIZE: Final = 25
+SCROLL_PAGE: Final = 20
+INDEX_PROMPT: Final = "Enter parameter index to edit: "
+UNIT_WORDS: Final = tuple(u.value for u in UnitOfMeasurement) + (PERCENTAGE,)
+UNIT_COMPLETER: Final = WordCompleter(
+    list(UNIT_WORDS),
+    ignore_case=True,
+    meta_dict={
+        **{u.value: u.name.replace("_", " ").lower() for u in UnitOfMeasurement},
+        PERCENTAGE: "percentage",
+    },
+)
+TYPE_COMPLETER: Final = WordCompleter(["number", "switch"])
 TABLE_HEADER: Final = (
     "Index  Name                                  Value     Min       Max\n"
 )
@@ -117,8 +136,13 @@ class AppState:
     ) -> None:
         """Initialize application state."""
         self.session, self.table, self.output_dir = session, table, output_dir
-        self.state, self.prompt, self.status = "INDEX", "Index: ", ""
+        self.state, self.prompt, self.status = "INDEX", INDEX_PROMPT, ""
         self.scroll_offset, self.wizard_data, self.application = 0, {}, None
+
+    @property
+    def max_scroll_offset(self) -> int:
+        """Return maximum scroll offset."""
+        return max(0, len(self.table.rows()) - PAGE_SIZE)
 
     def _set_state(
         self, state: str, prompt: str, buffer: Buffer, text: str = "", status: str = ""
@@ -128,7 +152,7 @@ class AppState:
 
     def reset_wizard(self, buffer: Buffer) -> None:
         """Reset wizard back to index prompt."""
-        self.state, self.prompt, buffer.text = "INDEX", "Index: ", ""
+        self.state, self.prompt, buffer.text = "INDEX", INDEX_PROMPT, ""
         self.wizard_data.clear()
 
     def step_index(self, text: str, buffer: Buffer) -> None:
@@ -139,16 +163,19 @@ class AppState:
             buffer.cursor_position = len(row.name)
         else:
             self._set_state(
-                "INDEX", "Index: ", buffer, status="Index must exist in table."
+                "INDEX", INDEX_PROMPT, buffer, status="Index must exist in table."
             )
 
     def step_name(self, text: str, buffer: Buffer) -> None:
         """Handle name step."""
         if not NAME_REGEX.match(text):
-            self.status = "Name must match ^[a-z][a-z0-9_]*$"
+            self.status = (
+                "Name must start with a lowercase letter and contain only "
+                "lowercase letters, numbers, and underscores."
+            )
             return
         self.wizard_data["name"] = text
-        self._set_state("TYPE", "Type [number/switch]: ", buffer)
+        self._set_state("TYPE", "Parameter type (number, switch) [number]: ", buffer)
 
     def step_type(self, text: str, buffer: Buffer) -> None:
         """Handle type step."""
@@ -160,7 +187,7 @@ class AppState:
         elif choice == "number":
             self._set_state("STEP", "Step [1]: ", buffer)
         else:
-            self.status = "Type must be 'number' or 'switch'"
+            self.status = "Type must be 'number' or 'switch'."
 
     def step_step(self, text: str, buffer: Buffer) -> None:
         """Handle step step."""
@@ -176,23 +203,22 @@ class AppState:
         """Handle offset step."""
         try:
             self.wizard_data["offset"] = int(text) if text else 0
-            self._set_state("UNIT", "Unit [none]: ", buffer)
+            units_display = ", ".join(UNIT_WORDS)
+            self._set_state(
+                "UNIT",
+                "Unit [none]: ",
+                buffer,
+                status=f"Available units: {units_display}",
+            )
         except ValueError:
             self.status = "Offset must be an integer."
 
     def step_unit(self, text: str, buffer: Buffer) -> None:
         """Handle unit step."""
-        unit: UnitOfMeasurement | Literal["%"] | None = None
-        if text == "%":
-            unit = PERCENTAGE
-        elif text and text.lower() != "none":
-            with suppress(ValueError):
-                unit = UnitOfMeasurement.__members__.get(
-                    text.upper()
-                ) or UnitOfMeasurement(text)
-            if unit is None:
-                self.status = "Unknown unit of measurement."
-                return
+        unit = _parse_unit(text)
+        if unit is False:
+            self.status = "Unknown unit of measurement."
+            return
         self.setup_preview(
             EcomaxNumberDescription(
                 name=self.wizard_data["name"],
@@ -217,10 +243,11 @@ class AppState:
             else ("", "", "")
         )
         unit = getattr(description, "unit_of_measurement", None)
-        u_str = f" {unit}" if unit else ""
+        u_str = f"{unit}" if unit == PERCENTAGE else f" {unit}" if unit else ""
         self.wizard_data["description"] = description
+        name = self.wizard_data["name"]
         prompt = (
-            f"value={val}, min={min_val}, max={max_val}{u_str}. "
+            f"{name}: {val}{u_str} ({min_val}-{max_val}{u_str}). "
             "Does this match your device? [y/N]: "
         )
         self._set_state("PREVIEW", prompt, buffer)
@@ -250,6 +277,24 @@ class AppState:
             handler(buffer.text.strip(), buffer)
 
 
+def _parse_unit(
+    text: str,
+) -> UnitOfMeasurement | Literal["%"] | None | Literal[False]:
+    """Parse unit of measurement from user input."""
+    if not text or text.lower() == "none":
+        return None
+    if text == "%":
+        return PERCENTAGE
+    with suppress(ValueError):
+        return UnitOfMeasurement(text)
+    for unit in UnitOfMeasurement:
+        if unit.value.lower() == text.lower():
+            return unit
+    with suppress(KeyError):
+        return UnitOfMeasurement[text.upper()]
+    return False
+
+
 def _save_files(state: AppState) -> None:
     """Save parameter files to disk."""
     info, msg, params = (
@@ -270,7 +315,7 @@ def _save_files(state: AppState) -> None:
             state.output_dir,
         )
         write_files(files)
-        state.status = f"Saved: {', '.join(str(path) for path in files)}"
+        state.status = f"Files saved to {state.output_dir}."
     except Exception as err:
         state.status = f"Error saving files: {err}"
 
@@ -292,7 +337,8 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
 def _get_table_text(state: AppState) -> StyleAndTextTuples:
     """Return formatted table text."""
     lines: StyleAndTextTuples = [("bold", TABLE_HEADER), ("bold", TABLE_SEPARATOR)]
-    for row in state.table.rows()[state.scroll_offset : state.scroll_offset + 25]:
+    offset = min(state.scroll_offset, state.max_scroll_offset)
+    for row in state.table.rows()[offset : offset + PAGE_SIZE]:
         val = f"{'*' if row.changed else ' '}{row.value}"
         lines.append(
             (
@@ -313,10 +359,17 @@ def create_app(
 ) -> Application[None]:
     """Create prompt_toolkit Application instance."""
     state, kb = AppState(session, table, output_dir), KeyBindings()
+
+    def _get_completer() -> WordCompleter | None:
+        if state.state == "TYPE":
+            return TYPE_COMPLETER
+        if state.state == "UNIT":
+            return UNIT_COMPLETER
+        return None
+
     buffer = Buffer(
-        completer=DynamicCompleter(
-            lambda: UNIT_COMPLETER if state.state == "UNIT" else None
-        )
+        completer=DynamicCompleter(_get_completer),
+        complete_while_typing=True,
     )
 
     @kb.add("c-q")
@@ -345,28 +398,33 @@ def create_app(
 
     @kb.add("pageup")
     def _pageup(_event: KeyPressEvent) -> None:
-        state.scroll_offset = max(0, state.scroll_offset - 20)
+        state.scroll_offset = max(0, state.scroll_offset - SCROLL_PAGE)
 
     @kb.add("pagedown")
     def _pagedown(_event: KeyPressEvent) -> None:
-        state.scroll_offset += 20
+        state.scroll_offset = min(
+            state.max_scroll_offset, state.scroll_offset + SCROLL_PAGE
+        )
 
     @kb.add("up")
     def _up(_event: KeyPressEvent) -> None:
-        state.scroll_offset = max(0, state.scroll_offset - 1)
+        state.scroll_offset = min(
+            state.max_scroll_offset, max(0, state.scroll_offset - 1)
+        )
 
     @kb.add("down")
     def _down(_event: KeyPressEvent) -> None:
-        state.scroll_offset += 1
+        state.scroll_offset = min(state.max_scroll_offset, state.scroll_offset + 1)
 
     @kb.add("enter")
     def _enter(_event: KeyPressEvent) -> None:
         state.dispatch_enter(buffer)
 
-    root = HSplit(
+    body = HSplit(
         [
             Window(FormattedTextControl(lambda: _get_header_text(state)), height=2),
             Window(FormattedTextControl(lambda: _get_table_text(state))),
+            Window(height=1),
             Window(FormattedTextControl(lambda: f" {state.status}"), height=1),
             VSplit(
                 [
@@ -378,6 +436,16 @@ def create_app(
                 ]
             ),
         ]
+    )
+    root = FloatContainer(
+        content=body,
+        floats=[
+            Float(
+                content=CompletionsMenu(max_height=6),
+                xcursor=True,
+                ycursor=True,
+            )
+        ],
     )
     app: Application[None] = Application(
         layout=Layout(root),

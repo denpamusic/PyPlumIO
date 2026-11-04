@@ -76,7 +76,7 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
 4. **Number Settings**: If configuring a number:
    - **Step**: Multiplier/step (e.g. ``1``, ``0.1``, ``10``).
    - **Offset**: Raw offset to subtract (default: ``0``).
-   - **Unit**: Physical unit of measurement (supports autocompletion for units such as ``CELSIUS``, ``PERCENTAGE``, etc.).
+   - **Unit**: Physical unit of measurement (supports autocompletion for unit values such as ``°C``, ``kW``, ``rpm``, ``%``, etc., or enter ``none``).
 5. **Preview**: Confirm the decoded value and range match your controller display (``[y/N]``).
 6. Press ``Esc`` at any point to cancel the wizard.
 
