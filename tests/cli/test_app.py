@@ -243,12 +243,22 @@ def test_parse_unit() -> None:
     assert _parse_unit("none") is None
     assert _parse_unit("None") is None
     assert _parse_unit("%") == PERCENTAGE
+    assert _parse_unit("percent") == PERCENTAGE
+    assert _parse_unit("percentage") == PERCENTAGE
+    assert _parse_unit("c") == UnitOfMeasurement.CELSIUS
+    assert _parse_unit("degc") == UnitOfMeasurement.CELSIUS
+    assert _parse_unit("d") == UnitOfMeasurement.DAYS
+    assert _parse_unit("day") == UnitOfMeasurement.DAYS
+    assert _parse_unit("sec") == UnitOfMeasurement.SECONDS
+    assert _parse_unit("second") == UnitOfMeasurement.SECONDS
+    assert _parse_unit("minute") == UnitOfMeasurement.MINUTES
     assert _parse_unit("rpm") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
     assert _parse_unit("RPM") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
     assert _parse_unit("kw") == UnitOfMeasurement.KILO_WATT
     assert _parse_unit("kW") == UnitOfMeasurement.KILO_WATT
     assert _parse_unit("°c") == UnitOfMeasurement.CELSIUS
     assert _parse_unit("CELSIUS") == UnitOfMeasurement.CELSIUS
+    assert _parse_unit("  kW  ") == UnitOfMeasurement.KILO_WATT
     assert _parse_unit("invalid") is False
 
 
@@ -279,6 +289,51 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Discarded."
     assert 1 not in table.descriptions
+
+
+async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
+    """Test AppState wizard confirming preview and overwrite with 'yes'."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # Preview with 'yes'
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "test_param"
+    state.dispatch_enter(buff)
+    buff.text = "number"
+    state.dispatch_enter(buff)
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "none"
+    state.dispatch_enter(buff)
+    assert state.state == "PREVIEW"
+
+    buff.text = "yes"
+    state.dispatch_enter(buff)
+    assert state.state == "INDEX"
+    assert state.status == "Stored parameter 0."
+
+    # Overwrite with 'yes'
+    session.product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=90,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 350P2-ZF",
+    )
+    session.last_frame_message = b"\x00" * 40
+    session.last_parameters = [
+        (0, ParameterValues(value=10, min_value=0, max_value=20))
+    ]
+    state.step_overwrite("yes", buff)
+    assert state.status == f"Files saved to {tmp_path}."
 
 
 async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
@@ -419,11 +474,57 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert [
         c.text for c in app_buffer.completer.get_completions(Document("rp"), None)
     ] == ["rpm"]
+    assert [
+        c.text for c in app_buffer.completer.get_completions(Document("c"), None)
+    ] == ["°C"]
 
     # 5. enter
     with patch.object(AppState, "dispatch_enter") as mock_dispatch:
         bindings["c-m"](mock_event)
         mock_dispatch.assert_called_once()
+
+
+def test_app_completion_keybindings(tmp_path: Path) -> None:
+    """Test completion-specific keybindings."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    app = create_app(session, table, tmp_path, output=DummyOutput())
+    mock_event = MagicMock(spec=KeyPressEvent)
+
+    buffer_ctrl = app.layout.container.content.children[4].children[1]  # type: ignore[attr-defined]
+    app_buffer = buffer_ctrl.content.buffer
+    assert app.key_bindings is not None
+    named_bindings = {b.handler.__name__: b.handler for b in app.key_bindings.bindings}
+
+    with patch.object(app_buffer, "cancel_completion") as mock_cancel:
+        named_bindings["_cancel_completion"](mock_event)
+        mock_cancel.assert_called_once()
+
+    with patch.object(app_buffer, "complete_previous") as mock_prev:
+        named_bindings["_up_completion"](mock_event)
+        mock_prev.assert_called_once()
+
+    with patch.object(app_buffer, "complete_next") as mock_next:
+        named_bindings["_down_completion"](mock_event)
+        mock_next.assert_called_once()
+
+    with patch.object(app_buffer, "start_completion") as mock_start:
+        app_buffer.complete_state = None
+        named_bindings["_tab"](mock_event)
+        mock_start.assert_called_once_with(select_first=False)
+
+    with patch.object(app_buffer, "complete_next") as mock_next:
+        app_buffer.complete_state = MagicMock()
+        named_bindings["_tab"](mock_event)
+        mock_next.assert_called_once()
+
+    with patch.object(app_buffer, "complete_previous") as mock_prev:
+        app_buffer.complete_state = MagicMock()
+        named_bindings["_s_tab"](mock_event)
+        mock_prev.assert_called_once()
+
+    app_buffer.complete_state = None
+    named_bindings["_s_tab"](mock_event)
 
 
 def test_app_scrolling(tmp_path: Path) -> None:

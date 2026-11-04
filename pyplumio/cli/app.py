@@ -13,6 +13,7 @@ from typing import Any, Final, Literal
 from prompt_toolkit.application import Application
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import DynamicCompleter, WordCompleter
+from prompt_toolkit.filters import has_completions
 from prompt_toolkit.formatted_text import StyleAndTextTuples
 from prompt_toolkit.input import Input
 from prompt_toolkit.key_binding import KeyBindings, KeyPressEvent
@@ -46,9 +47,26 @@ PAGE_SIZE: Final = 25
 SCROLL_PAGE: Final = 20
 INDEX_PROMPT: Final = "Enter parameter index to edit: "
 UNIT_WORDS: Final = tuple(u.value for u in UnitOfMeasurement) + (PERCENTAGE,)
+UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"]]] = {
+    "%": PERCENTAGE,
+    "percent": PERCENTAGE,
+    "percentage": PERCENTAGE,
+    "c": UnitOfMeasurement.CELSIUS,
+    "degc": UnitOfMeasurement.CELSIUS,
+    "d": UnitOfMeasurement.DAYS,
+    "day": UnitOfMeasurement.DAYS,
+    "days": UnitOfMeasurement.DAYS,
+    "sec": UnitOfMeasurement.SECONDS,
+    "second": UnitOfMeasurement.SECONDS,
+    "seconds": UnitOfMeasurement.SECONDS,
+    "min": UnitOfMeasurement.MINUTES,
+    "minute": UnitOfMeasurement.MINUTES,
+    "minutes": UnitOfMeasurement.MINUTES,
+}
 UNIT_COMPLETER: Final = WordCompleter(
     list(UNIT_WORDS),
     ignore_case=True,
+    match_middle=True,
     meta_dict={
         **{u.value: u.name.replace("_", " ").lower() for u in UnitOfMeasurement},
         PERCENTAGE: "percentage",
@@ -217,7 +235,8 @@ class AppState:
         """Handle unit step."""
         unit = _parse_unit(text)
         if unit is False:
-            self.status = "Unknown unit of measurement."
+            units_display = ", ".join(UNIT_WORDS)
+            self.status = f"Unknown unit of measurement. Available: {units_display}"
             return
         self.setup_preview(
             EcomaxNumberDescription(
@@ -254,7 +273,7 @@ class AppState:
 
     def step_preview(self, text: str, buffer: Buffer) -> None:
         """Handle preview step."""
-        if text.lower() == "y":
+        if text.lower() in ("y", "yes"):
             self.table.set_description(
                 self.wizard_data["index"], self.wizard_data["description"]
             )
@@ -265,7 +284,7 @@ class AppState:
 
     def step_overwrite(self, text: str, buffer: Buffer) -> None:
         """Handle overwrite step."""
-        if text.lower() == "y":
+        if text.lower() in ("y", "yes"):
             _save_files(self)
         else:
             self.status = "Save cancelled."
@@ -281,10 +300,10 @@ def _parse_unit(
     text: str,
 ) -> UnitOfMeasurement | Literal["%"] | None | Literal[False]:
     """Parse unit of measurement from user input."""
-    if not text or text.lower() == "none":
+    if not (text := text.strip()) or text.lower() == "none":
         return None
-    if text == "%":
-        return PERCENTAGE
+    if text.lower() in UNIT_ALIASES:
+        return UNIT_ALIASES[text.lower()]
     with suppress(ValueError):
         return UnitOfMeasurement(text)
     for unit in UnitOfMeasurement:
@@ -391,7 +410,11 @@ def create_app(
         else:
             _save_files(state)
 
-    @kb.add("escape")
+    @kb.add("escape", filter=has_completions)
+    def _cancel_completion(_event: KeyPressEvent) -> None:
+        buffer.cancel_completion()
+
+    @kb.add("escape", filter=~has_completions)
     def _cancel(_event: KeyPressEvent) -> None:
         state.reset_wizard(buffer)
         state.status = "Cancelled."
@@ -406,13 +429,33 @@ def create_app(
             state.max_scroll_offset, state.scroll_offset + SCROLL_PAGE
         )
 
-    @kb.add("up")
+    @kb.add("up", filter=has_completions)
+    def _up_completion(_event: KeyPressEvent) -> None:
+        buffer.complete_previous()
+
+    @kb.add("down", filter=has_completions)
+    def _down_completion(_event: KeyPressEvent) -> None:
+        buffer.complete_next()
+
+    @kb.add("tab")
+    def _tab(_event: KeyPressEvent) -> None:
+        if buffer.complete_state:
+            buffer.complete_next()
+        else:
+            buffer.start_completion(select_first=False)
+
+    @kb.add("s-tab")
+    def _s_tab(_event: KeyPressEvent) -> None:
+        if buffer.complete_state:
+            buffer.complete_previous()
+
+    @kb.add("up", filter=~has_completions)
     def _up(_event: KeyPressEvent) -> None:
         state.scroll_offset = min(
             state.max_scroll_offset, max(0, state.scroll_offset - 1)
         )
 
-    @kb.add("down")
+    @kb.add("down", filter=~has_completions)
     def _down(_event: KeyPressEvent) -> None:
         state.scroll_offset = min(state.max_scroll_offset, state.scroll_offset + 1)
 
