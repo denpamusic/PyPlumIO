@@ -181,4 +181,4 @@ class SerialConnection(Connection):
         return await serialx.open_serial_connection(self.url, **self.options)
 
 
-__all__ = ["Connection", "SerialConnection"]
+__all__ = ("Connection", "SerialConnection")

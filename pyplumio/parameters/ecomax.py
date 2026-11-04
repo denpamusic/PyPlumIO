@@ -838,7 +838,7 @@ async def get_service_parameter_types(
     return await get_custom_service_parameter_types(product_info)
 
 
-__all__ = [
+__all__ = (
     "ATTR_ECOMAX_CONTROL",
     "PARAMETER_TYPES",
     "THERMOSTAT_PROFILE_PARAMETER",
@@ -853,4 +853,4 @@ __all__ = [
     "ServiceParameter",
     "get_ecomax_parameter_types",
     "get_service_parameter_types",
-]
+)

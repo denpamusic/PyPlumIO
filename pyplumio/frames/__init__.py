@@ -400,7 +400,7 @@ def contains(
     return wrapper
 
 
-__all__ = [
+__all__ = (
     "Frame",
     "Request",
     "Response",
@@ -411,4 +411,4 @@ __all__ = [
     "frame_handler",
     "get_frame_handler",
     "is_known_frame_type",
-]
+)

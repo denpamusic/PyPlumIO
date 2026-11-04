@@ -105,4 +105,4 @@ class AlertsStructure(StructureDecoder):
         data[ATTR_TOTAL_ALERTS] = total_alerts
 
 
-__all__ = ["AlertsStructure", "Alert", "ATTR_ALERTS", "ATTR_TOTAL_ALERTS"]
+__all__ = ("AlertsStructure", "Alert", "ATTR_ALERTS", "ATTR_TOTAL_ALERTS")

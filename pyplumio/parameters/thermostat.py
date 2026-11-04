@@ -184,7 +184,7 @@ def get_thermostat_parameter_types() -> list[ThermostatParameterDescription]:
     return PARAMETER_TYPES
 
 
-__all__ = [
+__all__ = (
     "get_thermostat_parameter_types",
     "PARAMETER_TYPES",
     "ThermostatNumber",
@@ -193,4 +193,4 @@ __all__ = [
     "ThermostatParameterDescription",
     "ThermostatSwitch",
     "ThermostatSwitchDescription",
-]
+)

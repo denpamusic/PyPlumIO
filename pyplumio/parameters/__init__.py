@@ -505,7 +505,7 @@ class Switch(Parameter):
         return STATE_ON
 
 
-__all__ = [
+__all__ = (
     "Number",
     "NumberDescription",
     "Numeric",
@@ -517,4 +517,4 @@ __all__ = [
     "State",
     "Switch",
     "SwitchDescription",
-]
+)

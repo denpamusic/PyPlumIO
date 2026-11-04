@@ -84,4 +84,4 @@ class ProgramVersionStructure(Structure):
         )
 
 
-__all__ = ["ATTR_VERSION", "VersionInfo", "ProgramVersionStructure"]
+__all__ = ("ATTR_VERSION", "VersionInfo", "ProgramVersionStructure")

@@ -54,4 +54,4 @@ def acache(func: Callable[P, Awaitable[T]]) -> Callable[P, Coroutine[Any, Any, T
     return wrapper
 
 
-__all__ = ["acache", "async_cache"]
+__all__ = ("acache", "async_cache")

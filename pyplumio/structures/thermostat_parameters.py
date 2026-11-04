@@ -66,8 +66,8 @@ class ThermostatParametersStructure(StructureDecoder):
         )
 
 
-__all__ = [
+__all__ = (
     "ATTR_THERMOSTAT_PROFILE",
     "ATTR_THERMOSTAT_PARAMETERS",
     "ThermostatParametersStructure",
-]
+)

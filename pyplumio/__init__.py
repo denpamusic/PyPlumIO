@@ -75,7 +75,7 @@ def serial_for_url(
     )
 
 
-__all__ = [
+__all__ = (
     "__version__",
     "version",
     "AlertType",
@@ -117,4 +117,4 @@ __all__ = [
     "responses",
     "requests",
     "serial_for_url",
-]
+)

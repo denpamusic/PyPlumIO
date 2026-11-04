@@ -13,4 +13,4 @@ class EcoSTER(PhysicalDevice):
     __slots__ = ()
 
 
-__all__ = ["EcoSTER"]
+__all__ = ("EcoSTER",)

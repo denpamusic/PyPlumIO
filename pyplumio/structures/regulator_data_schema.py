@@ -30,4 +30,4 @@ class RegulatorDataSchemaStructure(StructureDecoder):
             ]
 
 
-__all__ = ["ATTR_REGDATA_SCHEMA", "RegulatorDataSchemaStructure"]
+__all__ = ("ATTR_REGDATA_SCHEMA", "RegulatorDataSchemaStructure")

@@ -197,7 +197,7 @@ class UIDResponse(Response):
     __slots__ = ()
 
 
-__all__ = [
+__all__ = (
     "AlertsResponse",
     "DeviceAvailableResponse",
     "EcomaxControlResponse",
@@ -214,4 +214,4 @@ __all__ = [
     "SetThermostatParameterResponse",
     "ThermostatParametersResponse",
     "UIDResponse",
-]
+)

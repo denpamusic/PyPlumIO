@@ -49,4 +49,4 @@ class StructureDecoder(Structure, ABC):
         """Decode message into data."""
 
 
-__all__ = ["Structure", "StructureDecoder"]
+__all__ = ("Structure", "StructureDecoder")

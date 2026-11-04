@@ -35,4 +35,4 @@ class EcomaxParametersStructure(StructureDecoder):
         data[ATTR_ECOMAX_PARAMETERS] = list(self._ecomax_parameter(message, start, end))
 
 
-__all__ = ["ATTR_ECOMAX_PARAMETERS", "EcomaxParametersStructure"]
+__all__ = ("ATTR_ECOMAX_PARAMETERS", "EcomaxParametersStructure")

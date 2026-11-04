@@ -258,11 +258,11 @@ def device_handler(
     return wrapper
 
 
-__all__ = [
+__all__ = (
     "Device",
     "PhysicalDevice",
     "LogicalDevice",
     "device_hander",
     "get_device_handler",
     "is_known_device_type",
-]
+)

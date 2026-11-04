@@ -35,4 +35,4 @@ class FrameVersionsStructure(StructureDecoder):
         )
 
 
-__all__ = ["ATTR_FRAME_VERSIONS", "FrameVersionsStructure"]
+__all__ = ("ATTR_FRAME_VERSIONS", "FrameVersionsStructure")

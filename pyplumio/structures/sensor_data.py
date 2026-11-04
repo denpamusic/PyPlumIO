@@ -391,7 +391,7 @@ class SensorDataStructure(StructureDecoder):
         self._decode_mixer_sensors(message, data)
 
 
-__all__ = [
+__all__ = (
     "ATTR_AIR_IN_TEMP",
     "ATTR_AIR_OUT_TEMP",
     "ATTR_ALARM",
@@ -468,4 +468,4 @@ __all__ = [
     "SensorDataStructure",
     "STATUSES",
     "TEMPERATURES",
-]
+)
