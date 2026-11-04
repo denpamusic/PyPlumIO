@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from dataclasses import fields
 import json
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 from pyplumio.cli.model import Row
 from pyplumio.const import PERCENTAGE, STATE_ON, UnitOfMeasurement
@@ -16,19 +17,24 @@ from pyplumio.structures.product_info import ProductInfo
 
 CHUNK_SIZE: Final = 40
 MAX_LINE_LENGTH: Final = 88
+SUPPORTED_DESCRIPTION_MODULES: Final = (
+    "pyplumio.parameters.ecomax",
+    "pyplumio.parameters.mixer",
+    "pyplumio.parameters.thermostat",
+)
 
 MODULE_TEMPLATE: Final = (
     '"""Contains patch for {model}."""\n\nfrom __future__ import annotations\n\n'
     "{imports}\n\n\nclass {class_name}(CustomParameters):\n"
     '    """Custom parameters for {model}."""\n\n'
     '    signature = Signature(model="{model}", id={product_id})\n\n'
-    "{override_block}    descriptions = {{\n{description_lines}\n    }}\n"
+    "{override_block}{description_block}"
 )
 
 TEST_TEMPLATE: Final = (
     '"""Contains test for {model} custom parameters."""\n\n'
     "from __future__ import annotations\n\nimport pytest\n\n"
-    "from pyplumio.const import (\n{const_str}\n)\n"
+    "{const_import}\n"
     "from pyplumio.devices.ecomax import EcoMAX\n"
     "from pyplumio.frames.responses import EcomaxServiceParametersResponse\n"
     "from pyplumio.parameters import Numeric\n"
@@ -75,26 +81,31 @@ def generate_json_data(message: bytes) -> str:
     return f"{json.dumps(data, indent=2)}\n"
 
 
+def _format_field_value(field_name: str, value: Any) -> str:
+    """Format single field value for code generation."""
+    if field_name == "unit_of_measurement":
+        if value in (PERCENTAGE, "%"):
+            return "PERCENTAGE"
+        return f"UnitOfMeasurement.{UnitOfMeasurement(value).name}"
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    if isinstance(value, str):
+        return f'"{value}"'
+    return str(value)
+
+
 def _format_description(
     description: ParameterDescription,
 ) -> tuple[str, list[str]]:
-    """Format description class name and arguments."""
-    args = [f'name="{description.name}"']
-    if isinstance(description, EcomaxSwitchDescription):
-        return "EcomaxSwitchDescription", args
-    if (step := getattr(description, "step", 1)) not in (1, 1.0):
-        step_val = int(step) if float(step).is_integer() else step
-        args.append(f"step={step_val}")
-    if (offset := getattr(description, "offset", 0)) != 0:
-        args.append(f"offset={offset}")
-    if (unit := getattr(description, "unit_of_measurement", None)) is not None:
-        unit_name = (
-            "PERCENTAGE"
-            if unit in (PERCENTAGE, "%")
-            else f"UnitOfMeasurement.{UnitOfMeasurement(unit).name}"
-        )
-        args.append(f"unit_of_measurement={unit_name}")
-    return "EcomaxNumberDescription", args
+    """Format description class name and non-default arguments."""
+    arguments = [f'name="{description.name}"']
+    for field in fields(description):
+        if field.name == "name":
+            continue
+        value = getattr(description, field.name)
+        if value != field.default:
+            arguments.append(f"{field.name}={_format_field_value(field.name, value)}")
+    return type(description).__name__, arguments
 
 
 def _format_dict_entry(index: int, description: ParameterDescription) -> str:
@@ -111,19 +122,30 @@ def _format_dict_entry(index: int, description: ParameterDescription) -> str:
 def _format_override_entry(override: ParameterOverride) -> str:
     """Format single override entry with 88-column wrapping."""
     class_name, arguments = _format_description(override.replacement)
-    single_repl = f"{class_name}({', '.join(arguments)})"
+    single_replacement = f"{class_name}({', '.join(arguments)})"
     prefix = f'        ParameterOverride(original="{override.original}", replacement='
-    if len(prefix) + len(single_repl) + 2 <= MAX_LINE_LENGTH:
-        return f"{prefix}{single_repl}),"
+    if len(prefix) + len(single_replacement) + 2 <= MAX_LINE_LENGTH:
+        return f"{prefix}{single_replacement}),"
     body = "\n".join(f"                {arg}," for arg in arguments)
-    repl = (
-        f"            replacement={single_repl},"
-        if len(f"            replacement={single_repl},") <= MAX_LINE_LENGTH
+    replacement = (
+        f"            replacement={single_replacement},"
+        if len(f"            replacement={single_replacement},") <= MAX_LINE_LENGTH
         else f"            replacement={class_name}(\n{body}\n            ),"
     )
     return (
         f'        ParameterOverride(\n            original="{override.original}",\n'
-        f"{repl}\n        ),"
+        f"{replacement}\n        ),"
+    )
+
+
+def _get_description_module(description: ParameterDescription) -> str:
+    """Return the module path for a description, validating it is supported."""
+    module = type(description).__module__
+    if module in SUPPORTED_DESCRIPTION_MODULES:
+        return module
+    raise ValueError(
+        f"Unsupported parameter description class '{type(description).__name__}' "
+        f"from module '{module}'"
     )
 
 
@@ -132,31 +154,36 @@ def _collect_module_imports(
     overrides: Sequence[ParameterOverride],
 ) -> list[str]:
     """Collect required module imports."""
-    all_desc = list(descriptions.values()) + [o.replacement for o in overrides]
-    units = {getattr(d, "unit_of_measurement", None) for d in all_desc}
-    has_pct = any(u in (PERCENTAGE, "%") for u in units)
-    has_uom = any(u not in (None, PERCENTAGE, "%") for u in units)
+    all_descriptions = list(descriptions.values()) + [
+        override.replacement for override in overrides
+    ]
+    units = {
+        getattr(description, "unit_of_measurement", None)
+        for description in all_descriptions
+    }
+    has_percentage = any(unit in (PERCENTAGE, "%") for unit in units)
+    has_unit_of_measurement = any(unit not in (None, PERCENTAGE, "%") for unit in units)
     consts = [
-        *(["PERCENTAGE"] if has_pct else []),
-        *(["UnitOfMeasurement"] if has_uom else []),
+        *(["PERCENTAGE"] if has_percentage else []),
+        *(["UnitOfMeasurement"] if has_unit_of_measurement else []),
     ]
     lines = [f"from pyplumio.const import {', '.join(consts)}"] if consts else []
-    custom = [
+    custom_imports = [
         "CustomParameters",
         *(["ParameterOverride"] if overrides else []),
         "Signature",
     ]
-    lines.append(f"from pyplumio.parameters.custom import {', '.join(custom)}")
-    ecomax = [
-        name
-        for name, cls in (
-            ("EcomaxNumberDescription", EcomaxNumberDescription),
-            ("EcomaxSwitchDescription", EcomaxSwitchDescription),
-        )
-        if any(isinstance(d, cls) for d in all_desc)
-    ]
-    if ecomax:
-        lines.append(f"from pyplumio.parameters.ecomax import {', '.join(ecomax)}")
+    lines.append(f"from pyplumio.parameters.custom import {', '.join(custom_imports)}")
+
+    modules: dict[str, set[str]] = {}
+    for description in all_descriptions:
+        mod = _get_description_module(description)
+        modules.setdefault(mod, set()).add(type(description).__name__)
+
+    for mod in SUPPORTED_DESCRIPTION_MODULES:
+        if mod in modules:
+            class_names = sorted(modules[mod])
+            lines.append(f"from {mod} import {', '.join(class_names)}")
     return lines
 
 
@@ -166,20 +193,32 @@ def generate_custom_parameter_module(
     overrides: Sequence[ParameterOverride] | None = None,
 ) -> str:
     """Generate the custom parameter module file content."""
-    slug, ovs = model_slug(product_info.model), overrides or ()
-    ov_lines = "\n".join(_format_override_entry(o) for o in ovs)
-    desc_lines = "\n".join(
-        _format_dict_entry(index, desc)
-        for index, desc in sorted(descriptions.items())
-        if isinstance(desc, (EcomaxNumberDescription, EcomaxSwitchDescription))
+    slug = model_slug(product_info.model)
+    parameter_overrides = overrides or ()
+    override_lines = "\n".join(
+        _format_override_entry(override) for override in parameter_overrides
+    )
+    description_lines = "\n".join(
+        _format_dict_entry(index, description)
+        for index, description in sorted(descriptions.items())
+        if isinstance(description, (EcomaxNumberDescription, EcomaxSwitchDescription))
+    )
+    description_block = (
+        f"    descriptions = {{\n{description_lines}\n    }}\n"
+        if description_lines
+        else "    descriptions = {}\n"
     )
     return MODULE_TEMPLATE.format(
         model=product_info.model,
         product_id=product_info.id,
         class_name=custom_class_name(slug),
-        imports="\n".join(_collect_module_imports(descriptions, ovs)),
-        override_block=f"    overrides = (\n{ov_lines}\n    )\n\n" if ovs else "",
-        description_lines=desc_lines,
+        imports="\n".join(_collect_module_imports(descriptions, parameter_overrides)),
+        override_block=(
+            f"    overrides = (\n{override_lines}\n    )\n\n"
+            if parameter_overrides
+            else ""
+        ),
+        description_block=description_block,
     )
 
 
@@ -189,34 +228,40 @@ def _build_test_row(
 ) -> tuple[str, bool, bool]:
     """Build single parametrize row and flag unit/switch usage."""
     row = Row(0, values, description=description)
-    is_sw = isinstance(description, EcomaxSwitchDescription)
-    val = (
+    is_switch = isinstance(description, EcomaxSwitchDescription)
+    value = (
         ("STATE_ON" if row.value == STATE_ON else "STATE_OFF")
-        if is_sw
+        if is_switch
         else str(row.value)
     )
-    mn, mx = (
-        ("STATE_OFF", "STATE_ON") if is_sw else (str(row.min_value), str(row.max_value))
+    min_value, max_value = (
+        ("STATE_OFF", "STATE_ON")
+        if is_switch
+        else (str(row.min_value), str(row.max_value))
     )
     unit = getattr(description, "unit_of_measurement", None)
-    is_pct = unit in (PERCENTAGE, "%")
-    u_str = (
+    is_percentage = unit in (PERCENTAGE, "%")
+    unit_string = (
         "None"
         if unit is None
         else (
             "PERCENTAGE"
-            if is_pct
+            if is_percentage
             else f"UnitOfMeasurement.{UnitOfMeasurement(unit).name}"
         )
     )
-    single = f'        ("{description.name}", {val}, {mn}, {mx}, {u_str}),'
-    if len(single) <= MAX_LINE_LENGTH:
-        return single, is_pct, is_sw
+    single_line = (
+        f'        ("{description.name}", {value}, {min_value}, {max_value},'
+        f" {unit_string}),"
+    )
+    if len(single_line) <= MAX_LINE_LENGTH:
+        return single_line, is_percentage, is_switch
     return (
-        f'        (\n            "{description.name}",\n            {val},\n'
-        f"            {mn},\n            {mx},\n            {u_str},\n        ),",
-        is_pct,
-        is_sw,
+        f'        (\n            "{description.name}",\n            {value},\n'
+        f"            {min_value},\n            {max_value},\n"
+        f"            {unit_string},\n        ),",
+        is_percentage,
+        is_switch,
     )
 
 
@@ -226,22 +271,36 @@ def generate_test_module(
     frame_parameters: Sequence[tuple[int, ParameterValues]],
 ) -> str:
     """Generate the custom parameter test module content."""
-    slug, values_map = model_slug(product_info.model), dict(frame_parameters)
+    slug = model_slug(product_info.model)
+    values_map = dict(frame_parameters)
     rows: list[str] = []
     has_percentage = has_switch = False
-    for index, desc in sorted(descriptions.items()):
+    for index, description in sorted(descriptions.items()):
         if index in values_map and isinstance(
-            desc, (EcomaxNumberDescription, EcomaxSwitchDescription)
+            description, (EcomaxNumberDescription, EcomaxSwitchDescription)
         ):
-            row_str, p_flag, sw_flag = _build_test_row(desc, values_map[index])
-            rows.append(row_str)
-            has_percentage = has_percentage or p_flag
-            has_switch = has_switch or sw_flag
+            row_string, percentage_flag, switch_flag = _build_test_row(
+                description, values_map[index]
+            )
+            rows.append(row_string)
+            has_percentage = has_percentage or percentage_flag
+            has_switch = has_switch or switch_flag
+
+    if not rows:
+        raise ValueError("No mapped parameters to generate tests for.")
 
     consts = (
         (["PERCENTAGE"] if has_percentage else [])
         + (["STATE_OFF", "STATE_ON"] if has_switch else [])
         + ["ProductType", "State", "UnitOfMeasurement"]
+    )
+    single_const = f"from pyplumio.const import {', '.join(consts)}"
+    const_import = (
+        single_const
+        if len(single_const) <= MAX_LINE_LENGTH
+        else "from pyplumio.const import (\n"
+        + "\n".join(f"    {item}," for item in consts)
+        + "\n)"
     )
     return TEST_TEMPLATE.format(
         model=product_info.model,
@@ -249,7 +308,7 @@ def generate_test_module(
         product_id=product_info.id,
         slug=slug,
         parameter_count=len(frame_parameters),
-        const_str="\n".join(f"    {item}," for item in consts),
+        const_import=const_import,
         rows_str="\n".join(rows),
     )
 
