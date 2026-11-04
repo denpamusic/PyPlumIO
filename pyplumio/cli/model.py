@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from contextlib import suppress
 from dataclasses import dataclass
 import importlib.util
+import logging
 from pathlib import Path
 from typing import Final
 
@@ -13,6 +14,8 @@ from pyplumio.const import STATE_OFF, STATE_ON, State
 from pyplumio.parameters import Numeric, ParameterDescription, ParameterValues
 from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+
+_LOGGER = logging.getLogger(__name__)
 
 CHANGED_ROW_INTERVALS: Final = 5
 
@@ -24,10 +27,14 @@ def unpack_parameter_value(
     if isinstance(description, EcomaxSwitchDescription):
         return STATE_ON if raw_value == 1 else STATE_OFF
     if isinstance(description, EcomaxNumberDescription):
-        val = round(
+        unpacked_value = round(
             (raw_value - description.offset) * description.step, description.precision
         )
-        return int(val) if float(description.step).is_integer() else val
+        return (
+            int(unpacked_value)
+            if float(description.step).is_integer()
+            else unpacked_value
+        )
     return raw_value
 
 
@@ -87,6 +94,7 @@ class ParameterTable:
         "descriptions",
         "overrides",
         "_change_counter",
+        "_frozen_order",
         "_has_previous",
         "_rows",
     )
@@ -94,6 +102,7 @@ class ParameterTable:
     descriptions: dict[int, ParameterDescription]
     overrides: tuple[ParameterOverride, ...]
     _change_counter: int
+    _frozen_order: list[int] | None
     _has_previous: bool
     _rows: dict[int, Row]
 
@@ -106,6 +115,20 @@ class ParameterTable:
         self.descriptions = dict(descriptions or {})
         self.overrides = tuple(overrides or ())
         self._rows, self._has_previous, self._change_counter = {}, False, 0
+        self._frozen_order = None
+
+    def freeze(self) -> None:
+        """Freeze row display order."""
+        self._frozen_order = [row.index for row in self.rows()]
+
+    def unfreeze(self) -> None:
+        """Unfreeze row display order."""
+        self._frozen_order = None
+
+    @property
+    def is_frozen(self) -> bool:
+        """Return whether row order is frozen."""
+        return self._frozen_order is not None
 
     def _update_row(self, index: int, values: ParameterValues) -> bool:
         """Update existing row or create a new one, returning True if changed."""
@@ -116,13 +139,15 @@ class ParameterTable:
             row.values = values
             return changed
 
-        desc = self.descriptions.get(index)
-        typed_desc = (
-            desc
-            if isinstance(desc, (EcomaxNumberDescription, EcomaxSwitchDescription))
+        description = self.descriptions.get(index)
+        typed_description = (
+            description
+            if isinstance(
+                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
+            )
             else None
         )
-        self._rows[index] = Row(index, values, description=typed_desc)
+        self._rows[index] = Row(index, values, description=typed_description)
         return False
 
     def _decrement_intervals(self, changed_indices: set[int]) -> None:
@@ -151,6 +176,17 @@ class ParameterTable:
 
     def rows(self) -> list[Row]:
         """Return sorted rows, with changed rows stacked at the top."""
+        if self._frozen_order is not None:
+            seen_indices = set(self._frozen_order)
+            frozen_rows = [
+                self._rows[index] for index in self._frozen_order if index in self._rows
+            ]
+            extra_rows = [
+                row for row in self._rows.values() if row.index not in seen_indices
+            ]
+            return frozen_rows + sorted(
+                extra_rows, key=lambda row: (-row.change_order, row.index)
+            )
         return sorted(
             self._rows.values(), key=lambda row: (-row.change_order, row.index)
         )
@@ -189,9 +225,14 @@ def load_custom_parameters(
         spec := importlib.util.spec_from_file_location(f"_custom_{slug}", module_file)
     ):
         if spec.loader:
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-            custom_class = getattr(module, class_name, None)
+            try:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                custom_class = getattr(module, class_name, None)
+            except Exception as err:
+                _LOGGER.warning(
+                    "Failed to load custom parameters from %s: %s", module_file, err
+                )
 
     if custom_class is None:
         with suppress(ImportError, AttributeError):

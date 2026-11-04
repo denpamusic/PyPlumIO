@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -39,38 +40,38 @@ def test_unpack_parameter_value_number(
     raw: int, step: float, offset: int, expected: float | int
 ) -> None:
     """Test unpack_parameter_value with number descriptions."""
-    desc = EcomaxNumberDescription(name="test", step=step, offset=offset)
-    result = unpack_parameter_value(raw, desc)
+    description = EcomaxNumberDescription(name="test", step=step, offset=offset)
+    result = unpack_parameter_value(raw, description)
     assert result == expected
     assert type(result) is type(expected)
 
     # Parity check with EcomaxServiceNumber
-    service_num = EcomaxServiceNumber(
+    service_number = EcomaxServiceNumber(
         device=MagicMock(),
-        description=desc,
+        description=description,
         values=ParameterValues(value=raw, min_value=0, max_value=100),
     )
-    assert service_num.value == result
+    assert service_number.value == result
 
 
 def test_unpack_parameter_value_switch() -> None:
     """Test unpack_parameter_value with switch descriptions."""
-    desc = EcomaxSwitchDescription(name="switch_test")
-    assert unpack_parameter_value(1, desc) == STATE_ON
-    assert unpack_parameter_value(0, desc) == STATE_OFF
+    description = EcomaxSwitchDescription(name="switch_test")
+    assert unpack_parameter_value(1, description) == STATE_ON
+    assert unpack_parameter_value(0, description) == STATE_OFF
     assert unpack_parameter_value(42, None) == 42
 
 
 def test_row_properties() -> None:
     """Test Row properties and formatting."""
-    desc = EcomaxNumberDescription(
+    description = EcomaxNumberDescription(
         name="temp",
         step=1,
         offset=0,
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     )
     values = ParameterValues(value=20, min_value=10, max_value=30)
-    row = Row(index=1, values=values, remaining_updates=5, description=desc)
+    row = Row(index=1, values=values, remaining_updates=5, description=description)
 
     assert row.name == "temp"
     assert row.value == 20
@@ -103,12 +104,12 @@ def test_row_properties() -> None:
 
 def test_parameter_table() -> None:
     """Test ParameterTable basic behavior and descriptions."""
-    desc = EcomaxNumberDescription(name="temp")
-    ov = ParameterOverride(original="foo", replacement=desc)
-    table = ParameterTable(descriptions={1: desc}, overrides=[ov])
+    description = EcomaxNumberDescription(name="temp")
+    override = ParameterOverride(original="foo", replacement=description)
+    table = ParameterTable(descriptions={1: description}, overrides=[override])
 
-    assert table.descriptions == {1: desc}
-    assert table.overrides == (ov,)
+    assert table.descriptions == {1: description}
+    assert table.overrides == (override,)
     assert len(table) == 0
     assert table.rows() == []
 
@@ -152,11 +153,11 @@ def test_parameter_table() -> None:
     assert table.get(99) is None
 
     # Set and remove description
-    new_desc = EcomaxSwitchDescription(name="mode")
-    table.set_description(0, new_desc)
-    assert table.descriptions[0] == new_desc
+    new_description = EcomaxSwitchDescription(name="mode")
+    table.set_description(0, new_description)
+    assert table.descriptions[0] == new_description
     row0 = table.get(0)
-    assert row0 is not None and row0.description == new_desc
+    assert row0 is not None and row0.description == new_description
 
     table.set_description(0, None)
     assert 0 not in table.descriptions
@@ -177,16 +178,16 @@ def test_parameter_table_change_countdown() -> None:
     for expected_remaining in (4, 3, 2, 1):
         table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
         assert row1.remaining_updates == expected_remaining
-        assert bool(row1.changed) is True
+        assert bool(row1.changed)
 
     # 5th update without changes -> expires
     table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
     assert row1.remaining_updates == 0
-    assert bool(row1.changed) is False
+    assert not bool(row1.changed)
 
     # Check that a new change resets countdown back to 5
     table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
-    assert bool(row1.changed) is True
+    assert bool(row1.changed)
     assert row1.remaining_updates == 5
     table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
     assert row1.remaining_updates == 4
@@ -207,8 +208,8 @@ def test_parameter_table_multi_row_updates() -> None:
     row0 = table.get(0)
     row1 = table.get(1)
     assert row0 is not None and row1 is not None
-    assert bool(row0.changed) is False
-    assert bool(row1.changed) is False
+    assert not bool(row0.changed)
+    assert not bool(row1.changed)
 
     # Both change
     table.update(
@@ -217,8 +218,8 @@ def test_parameter_table_multi_row_updates() -> None:
             (1, ParameterValues(value=25, min_value=0, max_value=50)),
         ]
     )
-    assert bool(row0.changed) is True and row0.remaining_updates == 5
-    assert bool(row1.changed) is True and row1.remaining_updates == 5
+    assert bool(row0.changed) and row0.remaining_updates == 5
+    assert bool(row1.changed) and row1.remaining_updates == 5
 
     # Row 0 unchanged (counts down to 4), row 1 changes again (resets to 5)
     table.update(
@@ -293,11 +294,47 @@ def test_parameter_table_rows_stack_sorting() -> None:
     assert [row.index for row in table.rows()] == [1, 3, 0, 4, 2, 5]
 
 
+def test_parameter_table_frozen_order() -> None:
+    """Test freezing and unfreezing ParameterTable row display order."""
+    table = ParameterTable()
+    table.update(
+        [
+            (0, ParameterValues(value=10, min_value=0, max_value=100)),
+            (1, ParameterValues(value=20, min_value=0, max_value=100)),
+            (2, ParameterValues(value=30, min_value=0, max_value=100)),
+        ]
+    )
+    assert [row.index for row in table.rows()] == [0, 1, 2]
+    assert not bool(table.is_frozen)
+
+    # Freeze order
+    table.freeze()
+    assert bool(table.is_frozen)
+
+    # Parameter 2 changes while frozen: row values update, but order remains frozen
+    table.update([(2, ParameterValues(value=35, min_value=0, max_value=100))])
+    row2 = table.get(2)
+    assert row2 is not None and row2.value == 35
+    assert row2.changed
+    assert [row.index for row in table.rows()] == [0, 1, 2]
+
+    # New parameter 3 arrives while frozen: appended at the end
+    table.update([(3, ParameterValues(value=40, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [0, 1, 2, 3]
+
+    # Unfreeze order: stack sorting is restored (2 was changed, moves to top)
+    table.unfreeze()
+    assert not bool(table.is_frozen)
+    assert [row.index for row in table.rows()] == [2, 0, 1, 3]
+
+
 def test_load_custom_parameters_from_package() -> None:
     """Test loading custom parameters from installed package."""
-    descs, overrides = load_custom_parameters("ecoMAX 350P2-ZF", Path("nonexistent"))
-    assert 8 in descs
-    assert descs[8].name == "heating_cycle_time"
+    descriptions, overrides = load_custom_parameters(
+        "ecoMAX 350P2-ZF", Path("nonexistent")
+    )
+    assert 8 in descriptions
+    assert descriptions[8].name == "heating_cycle_time"
     assert isinstance(overrides, tuple)
 
 
@@ -315,14 +352,32 @@ def test_load_custom_parameters_from_output_dir(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    descs, overrides = load_custom_parameters("ecoMAX Dummy", tmp_path)
-    assert 1 in descs
-    assert descs[1].name == "dummy_switch"
+    descriptions, overrides = load_custom_parameters("ecoMAX Dummy", tmp_path)
+    assert 1 in descriptions
+    assert descriptions[1].name == "dummy_switch"
     assert overrides == ()
+
+
+def test_load_custom_parameters_syntax_error(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test loading custom parameter file with syntax error falls back cleanly."""
+    custom_dir = tmp_path / "pyplumio" / "parameters" / "custom"
+    custom_dir.mkdir(parents=True)
+    # Write invalid Python syntax
+    custom_file = custom_dir / "ecomax_350p2_zf.py"
+    custom_file.write_text("def invalid_syntax(:", encoding="utf-8")
+
+    with caplog.at_level(logging.WARNING):
+        descriptions, overrides = load_custom_parameters("ecoMAX 350P2-ZF", tmp_path)
+        # Successfully fell back to installed package module!
+        assert 8 in descriptions
+        assert descriptions[8].name == "heating_cycle_time"
+        assert "Failed to load custom parameters" in caplog.text
 
 
 def test_load_custom_parameters_missing(tmp_path: Path) -> None:
     """Test loading non-existent custom parameters."""
-    descs, overrides = load_custom_parameters("ecoMAX Unknown Model", tmp_path)
-    assert descs == {}
+    descriptions, overrides = load_custom_parameters("ecoMAX Unknown Model", tmp_path)
+    assert descriptions == {}
     assert overrides == ()
