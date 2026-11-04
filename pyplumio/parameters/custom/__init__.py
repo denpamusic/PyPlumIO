@@ -52,14 +52,36 @@ class CustomParameters:
         )
 
 
+def model_slug(model: str) -> str:
+    """Return model slug from model name.
+
+    :param model: The product model name.
+    :type model: str
+    :return: The normalized model slug.
+    :rtype: str
+    """
+    return model.replace("-", "_").replace(" ", "_").lower()
+
+
+def custom_class_name(slug: str) -> str:
+    """Return custom parameter class name from model slug.
+
+    :param slug: The model slug.
+    :type slug: str
+    :return: The custom parameter class name.
+    :rtype: str
+    """
+    return to_camelcase(slug).upper().replace("ECOMAX", "EcoMAX")
+
+
 @acache
 async def _load_custom_parameters(
     product_info: ProductInfo,
 ) -> CustomParameters | None:
     """Load custom parameters."""
-    module_name = product_info.model.replace("-", "_").replace(" ", "_").lower()
+    module_name = model_slug(product_info.model)
     module_path = f"parameters.custom.{module_name}"
-    class_name = to_camelcase(module_name).upper().replace("ECOMAX", "EcoMAX")
+    class_name = custom_class_name(module_name)
     class_path = f"{module_path}.{class_name}"
     try:
         _LOGGER.debug(
@@ -117,6 +139,8 @@ __all__ = (
     "CustomParameters",
     "ParameterOverride",
     "Signature",
+    "custom_class_name",
     "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
+    "model_slug",
 )

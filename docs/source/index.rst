@@ -55,6 +55,7 @@ Documentation
    schedules
    protocol
    frames
+   cli
 
 .. autosummary::
    :toctree: _autosummary
