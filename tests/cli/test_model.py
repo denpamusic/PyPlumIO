@@ -70,19 +70,34 @@ def test_row_properties() -> None:
         unit_of_measurement=UnitOfMeasurement.CELSIUS,
     )
     values = ParameterValues(value=20, min_value=10, max_value=30)
-    row = Row(index=1, values=values, changed=True, description=desc)
+    row = Row(index=1, values=values, remaining_updates=5, description=desc)
 
     assert row.name == "temp"
     assert row.value == 20
     assert row.min_value == 10
     assert row.max_value == 30
-    assert row.changed is True
+    assert bool(row.changed) is True
+    assert row.remaining_updates == 5
+
+    row.clear_changed()
+    assert bool(row.changed) is False
+    assert row.remaining_updates == 0
+
+    row.changed = True
+    assert bool(row.changed) is True
+    assert row.remaining_updates == 5
+
+    row.changed = False
+    assert bool(row.changed) is False
+    assert row.remaining_updates == 0
 
     empty_row = Row(index=2, values=values)
     assert empty_row.name == ""
     assert empty_row.value == 20
     assert empty_row.min_value == 10
     assert empty_row.max_value == 30
+    assert bool(empty_row.changed) is False
+    assert empty_row.remaining_updates == 0
 
 
 def test_parameter_table() -> None:
@@ -98,18 +113,43 @@ def test_parameter_table() -> None:
     table.update([(1, ParameterValues(value=10, min_value=0, max_value=50))])
     row = table.get(1)
     assert row is not None
-    assert row.changed is False
+    assert bool(row.changed) is False
+    assert row.remaining_updates == 0
     assert row.value == 10
 
     # Second update: same values -> changed is False
     table.update([(1, ParameterValues(value=10, min_value=0, max_value=50))])
     row1 = table.get(1)
-    assert row1 is not None and row1.changed is False
+    assert row1 is not None and bool(row1.changed) is False
+    assert row1.remaining_updates == 0
 
-    # Third update: changed values -> changed is True
+    # Third update: changed values -> changed is True with 5 intervals
     table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
     row1 = table.get(1)
-    assert row1 is not None and row1.changed is True
+    assert row1 is not None and bool(row1.changed) is True
+    assert row1.remaining_updates == 5
+
+    # Check 5 update intervals countdown
+    for expected_remaining in (4, 3, 2, 1):
+        table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
+        assert row1.remaining_updates == expected_remaining
+        assert bool(row1.changed) is True
+
+    # 5th update without changes -> expires
+    table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
+    assert row1.remaining_updates == 0
+    assert bool(row1.changed) is False
+
+    # Check clearing changed state
+    table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
+    assert bool(row1.changed) is True
+    assert row1.remaining_updates == 5
+    table.clear_changed(1)
+    assert bool(row1.changed) is False
+    assert row1.remaining_updates == 0
+
+    # Check clearing non-existent row does not error
+    table.clear_changed(999)
 
     # Check rows sorting
     table.update([(0, ParameterValues(value=5, min_value=0, max_value=10))])

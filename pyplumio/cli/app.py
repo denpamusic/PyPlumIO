@@ -176,6 +176,7 @@ class AppState:
     def step_index(self, text: str, buffer: Buffer) -> None:
         """Handle index step."""
         if text.isdigit() and (row := self.table.get(index := int(text))):
+            self.table.clear_changed(index)
             self.wizard_data["index"] = index
             self._set_state("NAME", "Name: ", buffer, text=row.name)
             buffer.cursor_position = len(row.name)
@@ -193,11 +194,26 @@ class AppState:
             )
             return
         self.wizard_data["name"] = text
-        self._set_state("TYPE", "Parameter type (number, switch) [number]: ", buffer)
+        row = self.table.get(self.wizard_data["index"])
+        is_switch = (
+            row is not None and row.values.min_value == 0 and row.values.max_value == 1
+        )
+        default_type = "switch" if is_switch else "number"
+        self.wizard_data["default_type"] = default_type
+        self._set_state(
+            "TYPE", f"Parameter type (number, switch) [{default_type}]: ", buffer
+        )
 
     def step_type(self, text: str, buffer: Buffer) -> None:
         """Handle type step."""
-        choice = text.lower() or "number"
+        row = self.table.get(self.wizard_data.get("index", -1))
+        is_switch = (
+            row is not None and row.values.min_value == 0 and row.values.max_value == 1
+        )
+        default_type = self.wizard_data.get(
+            "default_type", "switch" if is_switch else "number"
+        )
+        choice = text.lower() or default_type
         if choice == "switch":
             self.setup_preview(
                 EcomaxSwitchDescription(name=self.wizard_data["name"]), buffer
@@ -358,14 +374,11 @@ def _get_table_text(state: AppState) -> StyleAndTextTuples:
     lines: StyleAndTextTuples = [("bold", TABLE_HEADER), ("bold", TABLE_SEPARATOR)]
     offset = min(state.scroll_offset, state.max_scroll_offset)
     for row in state.table.rows()[offset : offset + PAGE_SIZE]:
-        val = f"{'*' if row.changed else ' '}{row.value}"
-        lines.append(
-            (
-                "",
-                f"{row.index:>5}  {row.name:<36}  {val:<8}  "
-                f"{str(row.min_value):<8}  {str(row.max_value):<8}\n",
-            )
+        row_text = (
+            f"{row.index:>5}  {row.name:<36}  {str(row.value):<8}  "
+            f"{str(row.min_value):<8}  {str(row.max_value):<8}\n"
         )
+        lines.append(("reverse", row_text) if row.changed else ("", row_text))
     return lines
 
 

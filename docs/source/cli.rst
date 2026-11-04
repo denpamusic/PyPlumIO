@@ -62,7 +62,7 @@ polls service parameters.
 The interface consists of:
 
 - **Header**: Shows connected controller model, product ID, connection URL, last update timestamp, and keyboard shortcuts.
-- **Table**: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Values changed in the latest response are prefixed with an asterisk (``*``).
+- **Table**: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Recently changed parameters are highlighted with inverted colors.
 - **Navigation**: Use Up/Down arrow keys or ``PageUp`` and ``PageDown`` to scroll through the parameters list.
 
 Interactive Wizard
@@ -72,7 +72,7 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
 
 1. **Index**: Enter the parameter index from the table.
 2. **Name**: Enter a unique snake_case name (e.g. ``heating_temp``).
-3. **Type**: Select ``number`` (default) or ``switch``.
+3. **Type**: Select ``number`` or ``switch`` (defaults to ``switch`` if minimum is 0 and maximum is 1, otherwise ``number``).
 4. **Number Settings**: If configuring a number:
    - **Step**: Multiplier/step (e.g. ``1``, ``0.1``, ``10``).
    - **Offset**: Raw offset to subtract (default: ``0``).

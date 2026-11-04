@@ -115,8 +115,8 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [number]: "
     assert state.wizard_data["name"] == "boiler_temp"
 
-    # Step 3: Type number
-    buff.text = "number"
+    # Step 3: Type default (number)
+    buff.text = ""
     state.dispatch_enter(buff)
     assert state.state == "STEP"
 
@@ -275,7 +275,9 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "heating_switch"
     state.dispatch_enter(buff)
-    buff.text = "switch"
+    assert state.state == "TYPE"
+    assert state.prompt == "Parameter type (number, switch) [switch]: "
+    buff.text = ""  # Default to switch
     state.dispatch_enter(buff)
     assert state.state == "PREVIEW"
     assert (
@@ -289,6 +291,58 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Discarded."
     assert 1 not in table.descriptions
+
+
+async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
+    """Test overriding default parameter type suggestion."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update(
+        [
+            (0, ParameterValues(value=0, min_value=0, max_value=1)),
+            (1, ParameterValues(value=20, min_value=10, max_value=30)),
+        ]
+    )
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # Switch default overridden with number
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "binary_num"
+    state.dispatch_enter(buff)
+    assert state.prompt == "Parameter type (number, switch) [switch]: "
+    buff.text = "number"
+    state.dispatch_enter(buff)
+    assert state.state == "STEP"
+    state.reset_wizard(buff)
+
+    # Number default overridden with switch
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    buff.text = "temp_switch"
+    state.dispatch_enter(buff)
+    assert state.prompt == "Parameter type (number, switch) [number]: "
+    buff.text = "switch"
+    state.dispatch_enter(buff)
+    assert state.state == "PREVIEW"
+
+
+async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
+    """Test that selecting an index in the wizard clears changed state."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
+    table.update([(0, ParameterValues(value=15, min_value=0, max_value=20))])
+    row = table.get(0)
+    assert row is not None and bool(row.changed) is True
+
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    assert bool(row.changed) is False
+    assert row.remaining_updates == 0
 
 
 async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
@@ -405,10 +459,17 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
 
     # Table text
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
+    lines = _get_table_text(state)
+    assert len(lines) >= 3
+    assert lines[2][0] == ""
+    assert "10" in lines[2][1]
+
     table.update([(0, ParameterValues(value=15, min_value=0, max_value=20))])
     lines = _get_table_text(state)
     assert len(lines) >= 3
-    assert "*15" in lines[2][1]
+    assert lines[2][0] == "reverse"
+    assert "15" in lines[2][1]
+    assert "*" not in lines[2][1]
 
 
 def test_app_keybindings_and_layout(tmp_path: Path) -> None:
