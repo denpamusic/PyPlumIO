@@ -101,7 +101,7 @@ def test_row_properties() -> None:
 
 
 def test_parameter_table() -> None:
-    """Test ParameterTable behavior and update change tracking."""
+    """Test ParameterTable basic behavior and descriptions."""
     desc = EcomaxNumberDescription(name="temp")
     ov = ParameterOverride(original="foo", replacement=desc)
     table = ParameterTable(descriptions={1: desc}, overrides=[ov])
@@ -129,21 +129,7 @@ def test_parameter_table() -> None:
     assert row1 is not None and bool(row1.changed) is True
     assert row1.remaining_updates == 5
 
-    # Check 5 update intervals countdown
-    for expected_remaining in (4, 3, 2, 1):
-        table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
-        assert row1.remaining_updates == expected_remaining
-        assert bool(row1.changed) is True
-
-    # 5th update without changes -> expires
-    table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
-    assert row1.remaining_updates == 0
-    assert bool(row1.changed) is False
-
     # Check clearing changed state
-    table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
-    assert bool(row1.changed) is True
-    assert row1.remaining_updates == 5
     table.clear_changed(1)
     assert bool(row1.changed) is False
     assert row1.remaining_updates == 0
@@ -172,6 +158,73 @@ def test_parameter_table() -> None:
     assert 0 not in table.descriptions
     row0 = table.get(0)
     assert row0 is not None and row0.description is None
+
+
+def test_parameter_table_change_countdown() -> None:
+    """Test ParameterTable 5-interval countdown and reset on re-change."""
+    table = ParameterTable()
+    table.update([(1, ParameterValues(value=10, min_value=0, max_value=50))])
+    table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
+    row1 = table.get(1)
+    assert row1 is not None and bool(row1.changed) is True
+    assert row1.remaining_updates == 5
+
+    # Check 5 update intervals countdown
+    for expected_remaining in (4, 3, 2, 1):
+        table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
+        assert row1.remaining_updates == expected_remaining
+        assert bool(row1.changed) is True
+
+    # 5th update without changes -> expires
+    table.update([(1, ParameterValues(value=15, min_value=0, max_value=50))])
+    assert row1.remaining_updates == 0
+    assert bool(row1.changed) is False
+
+    # Check that a new change resets countdown back to 5
+    table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
+    assert bool(row1.changed) is True
+    assert row1.remaining_updates == 5
+    table.update([(1, ParameterValues(value=20, min_value=0, max_value=50))])
+    assert row1.remaining_updates == 4
+    # Change again before expiry: resets to 5
+    table.update([(1, ParameterValues(value=25, min_value=0, max_value=50))])
+    assert row1.remaining_updates == 5
+
+
+def test_parameter_table_multi_row_updates() -> None:
+    """Test ParameterTable multi-row updates and independent countdowns."""
+    table = ParameterTable()
+    table.update(
+        [
+            (0, ParameterValues(value=5, min_value=0, max_value=10)),
+            (1, ParameterValues(value=20, min_value=0, max_value=50)),
+        ]
+    )
+    row0 = table.get(0)
+    row1 = table.get(1)
+    assert row0 is not None and row1 is not None
+    assert bool(row0.changed) is False
+    assert bool(row1.changed) is False
+
+    # Both change
+    table.update(
+        [
+            (0, ParameterValues(value=6, min_value=0, max_value=10)),
+            (1, ParameterValues(value=25, min_value=0, max_value=50)),
+        ]
+    )
+    assert bool(row0.changed) is True and row0.remaining_updates == 5
+    assert bool(row1.changed) is True and row1.remaining_updates == 5
+
+    # Row 0 unchanged (counts down to 4), row 1 changes again (resets to 5)
+    table.update(
+        [
+            (0, ParameterValues(value=6, min_value=0, max_value=10)),
+            (1, ParameterValues(value=30, min_value=0, max_value=50)),
+        ]
+    )
+    assert row0.remaining_updates == 4
+    assert row1.remaining_updates == 5
 
 
 def test_load_custom_parameters_from_package() -> None:
