@@ -98,6 +98,7 @@ def test_row_properties() -> None:
     assert empty_row.max_value == 30
     assert bool(empty_row.changed) is False
     assert empty_row.remaining_updates == 0
+    assert empty_row.change_order == 0
 
 
 def test_parameter_table() -> None:
@@ -108,9 +109,12 @@ def test_parameter_table() -> None:
 
     assert table.descriptions == {1: desc}
     assert table.overrides == (ov,)
+    assert len(table) == 0
+    assert table.rows() == []
 
     # First update: changed flag should be False for all
     table.update([(1, ParameterValues(value=10, min_value=0, max_value=50))])
+    assert len(table) == 1
     row = table.get(1)
     assert row is not None
     assert bool(row.changed) is False
@@ -137,12 +141,12 @@ def test_parameter_table() -> None:
     # Check clearing non-existent row does not error
     table.clear_changed(999)
 
-    # Check rows sorting
+    # Check rows sorting: row 1 was changed, so stays stacked at the top
     table.update([(0, ParameterValues(value=5, min_value=0, max_value=10))])
     rows = table.rows()
     assert len(rows) == 2
-    assert rows[0].index == 0
-    assert rows[1].index == 1
+    assert rows[0].index == 1
+    assert rows[1].index == 0
 
     # Check non-existent row
     assert table.get(99) is None
@@ -225,6 +229,68 @@ def test_parameter_table_multi_row_updates() -> None:
     )
     assert row0.remaining_updates == 4
     assert row1.remaining_updates == 5
+
+
+def test_parameter_table_rows_stack_sorting() -> None:
+    """Test ParameterTable rows sorting in stack order on updates."""
+    table = ParameterTable()
+    # Initial load of 5 parameters: all unchanged, sorted by index ascending
+    table.update(
+        [
+            (i, ParameterValues(value=10 * i, min_value=0, max_value=100))
+            for i in range(5)
+        ]
+    )
+    assert [row.index for row in table.rows()] == [0, 1, 2, 3, 4]
+
+    # Parameter 3 changes -> pushed to top of stack
+    table.update([(3, ParameterValues(value=35, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [3, 0, 1, 2, 4]
+    row3 = table.get(3)
+    assert row3 is not None
+    assert bool(row3.changed) is True
+
+    # Parameter 1 changes -> pushed to top of stack (above 3)
+    table.update([(1, ParameterValues(value=15, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [1, 3, 0, 2, 4]
+    row1 = table.get(1)
+    assert row1 is not None
+    assert bool(row1.changed) is True
+
+    # Parameters 0 and 4 change in the same update -> pushed to top, ordered by index
+    table.update(
+        [
+            (0, ParameterValues(value=5, min_value=0, max_value=100)),
+            (4, ParameterValues(value=45, min_value=0, max_value=100)),
+        ]
+    )
+    assert [row.index for row in table.rows()] == [0, 4, 1, 3, 2]
+
+    # 5 update intervals pass without changes -> highlights expire,
+    # but stack order is preserved
+    for _ in range(5):
+        table.update([])
+    assert [row.index for row in table.rows()] == [0, 4, 1, 3, 2]
+    assert all(not row.changed for row in table.rows())
+
+    # Parameter 3 changes again -> moves back to the very top of stack
+    table.update([(3, ParameterValues(value=38, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [3, 0, 4, 1, 2]
+
+    # Clearing changed state does not reset stack position
+    table.clear_changed(3)
+    row3_cleared = table.get(3)
+    assert row3_cleared is not None
+    assert bool(row3_cleared.changed) is False
+    assert [row.index for row in table.rows()] == [3, 0, 4, 1, 2]
+
+    # Newly discovered parameter 5 arrives -> stays with unchanged parameters
+    table.update([(5, ParameterValues(value=50, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [3, 0, 4, 1, 2, 5]
+
+    # Parameter 1 changes again -> moves above 3 to the very top
+    table.update([(1, ParameterValues(value=18, min_value=0, max_value=100))])
+    assert [row.index for row in table.rows()] == [1, 3, 0, 4, 2, 5]
 
 
 def test_load_custom_parameters_from_package() -> None:

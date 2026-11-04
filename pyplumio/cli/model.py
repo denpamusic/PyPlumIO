@@ -39,6 +39,7 @@ class Row:
     values: ParameterValues
     remaining_updates: int = 0
     description: EcomaxNumberDescription | EcomaxSwitchDescription | None = None
+    change_order: int = 0
 
     @property
     def changed(self) -> bool:
@@ -82,10 +83,17 @@ class Row:
 class ParameterTable:
     """Represents a table of ecoMAX parameters."""
 
-    __slots__ = ("descriptions", "overrides", "_has_previous", "_rows")
+    __slots__ = (
+        "descriptions",
+        "overrides",
+        "_change_counter",
+        "_has_previous",
+        "_rows",
+    )
 
     descriptions: dict[int, ParameterDescription]
     overrides: tuple[ParameterOverride, ...]
+    _change_counter: int
     _has_previous: bool
     _rows: dict[int, Row]
 
@@ -97,7 +105,7 @@ class ParameterTable:
         """Initialize the parameter table."""
         self.descriptions = dict(descriptions or {})
         self.overrides = tuple(overrides or ())
-        self._rows, self._has_previous = {}, False
+        self._rows, self._has_previous, self._change_counter = {}, False, 0
 
     def _update_row(self, index: int, values: ParameterValues) -> bool:
         """Update existing row or create a new one, returning True if changed."""
@@ -130,12 +138,22 @@ class ParameterTable:
         changed_indices = {
             index for index, values in parameters if self._update_row(index, values)
         }
+        if changed_indices:
+            self._change_counter += 1
+            for index in changed_indices:
+                self._rows[index].change_order = self._change_counter
         self._decrement_intervals(changed_indices)
         self._has_previous = True
 
+    def __len__(self) -> int:
+        """Return number of rows in the table."""
+        return len(self._rows)
+
     def rows(self) -> list[Row]:
-        """Return sorted rows."""
-        return sorted(self._rows.values(), key=lambda row: row.index)
+        """Return sorted rows, with changed rows stacked at the top."""
+        return sorted(
+            self._rows.values(), key=lambda row: (-row.change_order, row.index)
+        )
 
     def get(self, index: int) -> Row | None:
         """Get row by index."""

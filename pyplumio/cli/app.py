@@ -160,7 +160,7 @@ class AppState:
     @property
     def max_scroll_offset(self) -> int:
         """Return maximum scroll offset."""
-        return max(0, len(self.table.rows()) - PAGE_SIZE)
+        return max(0, len(self.table) - PAGE_SIZE)
 
     def _set_state(
         self, state: str, prompt: str, buffer: Buffer, text: str = "", status: str = ""

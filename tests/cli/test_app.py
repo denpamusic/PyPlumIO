@@ -11,6 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from prompt_toolkit.application import create_app_session
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import OneStyleAndTextTuple
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.key_binding import KeyPressEvent
 from prompt_toolkit.output import DummyOutput
@@ -470,6 +471,71 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     assert lines[2][0] == "reverse"
     assert "15" in lines[2][1]
     assert "*" not in lines[2][1]
+
+
+def _assert_table_row(line: OneStyleAndTextTuple, index: int, style: str) -> None:
+    """Assert formatted table row index and style."""
+    assert f"    {index}  " in line[1]
+    assert line[0] == style
+
+
+def test_table_text_stack_order(tmp_path: Path) -> None:
+    """Test table text ordering reflects stack order of changes."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    state = AppState(session, table, tmp_path)
+
+    # Initial update with three parameters: ordered by index
+    table.update(
+        [
+            (0, ParameterValues(value=10, min_value=0, max_value=20)),
+            (1, ParameterValues(value=20, min_value=0, max_value=30)),
+            (2, ParameterValues(value=30, min_value=0, max_value=40)),
+        ]
+    )
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 0, "")
+    _assert_table_row(lines[3], 1, "")
+    _assert_table_row(lines[4], 2, "")
+
+    # Parameter 2 changes: pushed to top with reverse style
+    table.update([(2, ParameterValues(value=35, min_value=0, max_value=40))])
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 2, "reverse")
+    _assert_table_row(lines[3], 0, "")
+    _assert_table_row(lines[4], 1, "")
+
+    # Parameter 1 changes: pushed above parameter 2
+    table.update([(1, ParameterValues(value=25, min_value=0, max_value=30))])
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 1, "reverse")
+    _assert_table_row(lines[3], 2, "reverse")
+    _assert_table_row(lines[4], 0, "")
+
+    # Clear changed on parameter 1 via wizard selection:
+    # stays at top, reverse style removed
+    buff = Buffer()
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 1, "")
+    _assert_table_row(lines[3], 2, "reverse")
+    _assert_table_row(lines[4], 0, "")
+
+    # Parameter 2 changes again: moves back above parameter 1
+    table.update([(2, ParameterValues(value=38, min_value=0, max_value=40))])
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 2, "reverse")
+    _assert_table_row(lines[3], 1, "")
+    _assert_table_row(lines[4], 0, "")
+
+    # After 5 intervals without changes: reverse style expires, stack order holds
+    for _ in range(5):
+        table.update([])
+    lines = _get_table_text(state)
+    _assert_table_row(lines[2], 2, "")
+    _assert_table_row(lines[3], 1, "")
+    _assert_table_row(lines[4], 0, "")
 
 
 def test_app_keybindings_and_layout(tmp_path: Path) -> None:
