@@ -597,7 +597,7 @@ def on_change(callback: EventCallback) -> _OnChange:
     return _OnChange(callback)
 
 
-__all__ = [
+__all__ = (
     "Filter",
     "ComparisonFilter",
     "numeric_only",
@@ -609,4 +609,4 @@ __all__ = [
     "delta",
     "on_change",
     "throttle",
-]
+)

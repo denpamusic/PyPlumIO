@@ -47,7 +47,7 @@ class MixerParametersStructure(StructureDecoder):
         )
 
 
-__all__ = [
+__all__ = (
     "ATTR_MIXER_PARAMETERS",
     "MixerParametersStructure",
-]
+)

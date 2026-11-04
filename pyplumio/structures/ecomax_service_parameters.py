@@ -38,4 +38,4 @@ class EcomaxServiceParametersStructure(StructureDecoder):
         )
 
 
-__all__ = ["ATTR_ECOMAX_SERVICE_PARAMETERS", "EcomaxServiceParametersStructure"]
+__all__ = ("ATTR_ECOMAX_SERVICE_PARAMETERS", "EcomaxServiceParametersStructure")

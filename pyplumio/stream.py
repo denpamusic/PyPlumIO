@@ -242,4 +242,4 @@ class FrameReader:
         return frame
 
 
-__all__ = ["FrameReader", "FrameWriter"]
+__all__ = ("FrameReader", "FrameWriter")

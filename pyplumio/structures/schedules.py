@@ -348,7 +348,7 @@ class SchedulesStructure(StructureDecoder):
         data[ATTR_SCHEDULE_PARAMETERS] = parameters
 
 
-__all__ = [
+__all__ = (
     "ATTR_SCHEDULES",
     "ATTR_SCHEDULE_PARAMETERS",
     "ATTR_SCHEDULE_SWITCH",
@@ -364,4 +364,4 @@ __all__ = [
     "SCHEDULE_PARAMETERS",
     "collect_schedule_data",
     "SchedulesStructure",
-]
+)

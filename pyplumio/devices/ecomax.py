@@ -515,4 +515,4 @@ class EcoMAX(PhysicalDevice):
         )
 
 
-__all__ = ["ATTR_MIXERS", "ATTR_THERMOSTATS", "ATTR_FUEL_BURNED", "EcoMAX"]
+__all__ = ("ATTR_MIXERS", "ATTR_THERMOSTATS", "ATTR_FUEL_BURNED", "EcoMAX")

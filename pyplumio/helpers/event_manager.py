@@ -271,10 +271,10 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         return MappingProxyType(self._data)
 
 
-__all__ = [
+__all__ = (
     "event_listener",
     "EventCallback",
     "EventManager",
     "StopPropagation",
     "StopPropagationType",
-]
+)

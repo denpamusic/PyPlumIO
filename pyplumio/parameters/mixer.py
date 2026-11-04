@@ -226,7 +226,7 @@ def get_mixer_parameter_types(
     return PARAMETER_TYPES[product_info.type]
 
 
-__all__ = [
+__all__ = (
     "get_mixer_parameter_types",
     "MixerNumber",
     "MixerNumberDescription",
@@ -235,4 +235,4 @@ __all__ = [
     "MixerSwitch",
     "MixerSwitchDescription",
     "PARAMETER_TYPES",
-]
+)

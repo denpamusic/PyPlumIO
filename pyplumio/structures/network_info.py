@@ -111,7 +111,7 @@ class NetworkInfoStructure(Structure):
         )
 
 
-__all__ = [
+__all__ = (
     "EthernetParameters",
     "WirelessParameters",
     "NetworkInfo",
@@ -119,4 +119,4 @@ __all__ = [
     "ATTR_NETWORK_INFO",
     "DEFAULT_IP",
     "DEFAULT_NETMASK",
-]
+)

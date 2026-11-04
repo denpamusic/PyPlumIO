@@ -66,4 +66,4 @@ class Thermostat(LogicalDevice):
         return True
 
 
-__all__ = ["Thermostat"]
+__all__ = ("Thermostat",)

@@ -102,4 +102,4 @@ class ProductInfoStructure(StructureDecoder):
         )
 
 
-__all__ = ["ATTR_PRODUCT", "ProductInfo", "ProductInfoStructure"]
+__all__ = ("ATTR_PRODUCT", "ProductInfo", "ProductInfoStructure")

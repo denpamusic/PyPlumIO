@@ -196,10 +196,10 @@ def fixture_frozen_time():
         yield frozen_time
 
 
-__all__ = [
+__all__ = (
     "class_from_json",
     "equal_parameter_value",
     "json_test_data",
     "load_json_parameters",
     "load_json_test_data",
-]
+)

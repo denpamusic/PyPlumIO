@@ -327,10 +327,10 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         return self._network_info
 
 
-__all__ = [
+__all__ = (
     "Protocol",
     "DummyProtocol",
     "AsyncProtocol",
     "Statistics",
     "ConnectionLostCallback",
-]
+)

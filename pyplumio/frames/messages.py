@@ -25,4 +25,4 @@ class SensorDataMessage(Message):
     __slots__ = ()
 
 
-__all__ = ["RegulatorDataMessage", "SensorDataMessage"]
+__all__ = ("RegulatorDataMessage", "SensorDataMessage")

@@ -295,7 +295,7 @@ class UIDRequest(Request):
     __slots__ = ()
 
 
-__all__ = [
+__all__ = (
     "AlertsRequest",
     "CheckDeviceRequest",
     "EcomaxControlRequest",
@@ -315,4 +315,4 @@ __all__ = [
     "StopMasterRequest",
     "ThermostatParametersRequest",
     "UIDRequest",
-]
+)

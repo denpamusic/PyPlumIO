@@ -77,4 +77,4 @@ class Mixer(LogicalDevice):
         return True
 
 
-__all__ = ["Mixer"]
+__all__ = ("Mixer",)

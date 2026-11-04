@@ -107,7 +107,7 @@ async def create_instance(class_path: str, /, cls: type[T], **kwargs: Any) -> T:
     return instance
 
 
-__all__ = [
+__all__ = (
     "create_instance",
     "import_module",
     "is_divisible",
@@ -115,4 +115,4 @@ __all__ = [
     "split_byte",
     "timeout",
     "to_camelcase",
-]
+)

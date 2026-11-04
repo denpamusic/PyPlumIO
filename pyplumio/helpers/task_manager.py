@@ -42,4 +42,4 @@ class TaskManager:
         return self._tasks
 
 
-__all__ = ["TaskManager"]
+__all__ = ("TaskManager",)

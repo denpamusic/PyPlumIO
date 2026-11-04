@@ -38,7 +38,8 @@ packed as three unsigned shorts. It must always be `X.Y.Z` integers.
 Use lazy `%s` arguments, never f-strings, in log calls. No `print()`
 outside `pyplumio/__main__.py`.
 
-2.1.4. Declare public names in `__all__` at the bottom of the module.
+2.1.4. Declare public names in a tuple `__all__ = (...)` at the bottom
+of the module.
 
 2.1.5. Cognitive complexity must be at most 15 per function
 (complexipy). Extract private helpers instead of suppressing.
