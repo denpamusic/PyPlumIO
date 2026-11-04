@@ -77,6 +77,7 @@ TABLE_HEADER: Final = (
     "Index  Name                                  Value     Min       Max\n"
 )
 TABLE_SEPARATOR: Final = f"{'-' * 5}  {'-' * 36}  {'-' * 8}  {'-' * 8}  {'-' * 8}\n"
+PREVIEW_BOX_WIDTH: Final = 78
 
 
 async def prompt_connection_url(
@@ -215,13 +216,21 @@ class AppState:
         )
         choice = text.lower() or default_type
         if choice == "switch":
-            self.setup_preview(
+            self.setup_confirm(
                 EcomaxSwitchDescription(name=self.wizard_data["name"]), buffer
             )
         elif choice == "number":
-            self._set_state("STEP", "Step [1]: ", buffer)
+            self._set_state("OFFSET", "Offset [0]: ", buffer)
         else:
             self.status = "Type must be 'number' or 'switch'."
+
+    def step_offset(self, text: str, buffer: Buffer) -> None:
+        """Handle offset step."""
+        try:
+            self.wizard_data["offset"] = int(text) if text else 0
+            self._set_state("STEP", "Step [1]: ", buffer)
+        except ValueError:
+            self.status = "Offset must be an integer."
 
     def step_step(self, text: str, buffer: Buffer) -> None:
         """Handle step step."""
@@ -229,14 +238,6 @@ class AppState:
             if (step := float(text) if text else 1.0) <= 0:
                 raise ValueError
             self.wizard_data["step"] = int(step) if step.is_integer() else step
-            self._set_state("OFFSET", "Offset [0]: ", buffer)
-        except ValueError:
-            self.status = "Step must be a positive number."
-
-    def step_offset(self, text: str, buffer: Buffer) -> None:
-        """Handle offset step."""
-        try:
-            self.wizard_data["offset"] = int(text) if text else 0
             units_display = ", ".join(UNIT_WORDS)
             self._set_state(
                 "UNIT",
@@ -245,7 +246,7 @@ class AppState:
                 status=f"Available units: {units_display}",
             )
         except ValueError:
-            self.status = "Offset must be an integer."
+            self.status = "Step must be a positive number."
 
     def step_unit(self, text: str, buffer: Buffer) -> None:
         """Handle unit step."""
@@ -254,7 +255,7 @@ class AppState:
             units_display = ", ".join(UNIT_WORDS)
             self.status = f"Unknown unit of measurement. Available: {units_display}"
             return
-        self.setup_preview(
+        self.setup_confirm(
             EcomaxNumberDescription(
                 name=self.wizard_data["name"],
                 step=self.wizard_data["step"],
@@ -264,12 +265,12 @@ class AppState:
             buffer,
         )
 
-    def setup_preview(
+    def setup_confirm(
         self,
         description: EcomaxNumberDescription | EcomaxSwitchDescription,
         buffer: Buffer,
     ) -> None:
-        """Set up preview prompt."""
+        """Set up confirm prompt."""
         row = self.table.get(self.wizard_data["index"])
         preview = Row(0, row.values, description=description) if row else None
         val, min_val, max_val = (
@@ -285,10 +286,10 @@ class AppState:
             f"{name}: {val}{u_str} ({min_val}-{max_val}{u_str}). "
             "Does this match your device? [y/N]: "
         )
-        self._set_state("PREVIEW", prompt, buffer)
+        self._set_state("CONFIRM", prompt, buffer)
 
-    def step_preview(self, text: str, buffer: Buffer) -> None:
-        """Handle preview step."""
+    def step_confirm(self, text: str, buffer: Buffer) -> None:
+        """Handle confirm step."""
         if text.lower() in ("y", "yes"):
             self.table.set_description(
                 self.wizard_data["index"], self.wizard_data["description"]
@@ -380,6 +381,121 @@ def _get_table_text(state: AppState) -> StyleAndTextTuples:
         )
         lines.append(("reverse", row_text) if row.changed else ("", row_text))
     return lines
+
+
+def _format_field(label: str, value: Any, active: bool) -> str:
+    """Format a single preview field, bracketing it when active."""
+    text = f"{label}: {value}"
+    return f"[{text}]" if active else text
+
+
+def _resolve_preview_row(state: AppState, text: str) -> Row | None:
+    """Return the Row currently being previewed."""
+    if "index" in state.wizard_data:
+        return state.table.get(state.wizard_data["index"])
+    if state.state == "INDEX" and text.isdigit():
+        return state.table.get(int(text))
+    return None
+
+
+def _resolve_live_number_params(
+    state: AppState, text: str
+) -> tuple[int, float | int, UnitOfMeasurement | Literal["%"] | None]:
+    """Return live (offset, step, unit) from wizard data and current buffer."""
+    offset: int = state.wizard_data.get("offset", 0)
+    if state.state == "OFFSET" and text:
+        with suppress(ValueError):
+            offset = int(text)
+
+    step: float | int = state.wizard_data.get("step", 1)
+    if state.state == "STEP" and text:
+        with suppress(ValueError):
+            if (parsed := float(text)) > 0:
+                step = int(parsed) if parsed.is_integer() else parsed
+
+    unit: UnitOfMeasurement | Literal["%"] | None = None
+    if state.state == "UNIT":
+        parsed_unit = _parse_unit(text)
+        unit = None if parsed_unit is False else parsed_unit
+    return offset, step, unit
+
+
+def _build_live_description(
+    state: AppState, row: Row, text: str
+) -> EcomaxNumberDescription | EcomaxSwitchDescription | None:
+    """Build transient description for live preview."""
+    if state.state == "INDEX":
+        return row.description
+    if state.state in ("CONFIRM", "OVERWRITE"):
+        return state.wizard_data.get("description", row.description)
+    name = text if state.state == "NAME" else state.wizard_data.get("name", row.name)
+    name = name or "<unnamed>"
+    if (
+        state.state == "NAME"
+        and isinstance(row.description, EcomaxSwitchDescription)
+        or state.state == "TYPE"
+        and (text.lower() or state.wizard_data.get("default_type")) == "switch"
+    ):
+        return EcomaxSwitchDescription(name=name)
+    if state.state in ("NAME", "TYPE"):
+        return EcomaxNumberDescription(name=name)
+    offset, step, unit = _resolve_live_number_params(state, text)
+    return EcomaxNumberDescription(
+        name=name, step=step, offset=offset, unit_of_measurement=unit
+    )
+
+
+def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
+    """Return formatted 4-line live preview box."""
+    text = buffer.text.strip()
+    row = _resolve_preview_row(state, text)
+    inner_width = PREVIEW_BOX_WIDTH - 4
+    if row is None:
+        top = f"┌─ Live Preview {'─' * (PREVIEW_BOX_WIDTH - 17)}┐\n"
+        msg = (
+            "Enter a parameter index below to preview raw values and live calculations."
+        )
+        mid1 = f"│ {msg:<{inner_width}} │\n"
+        mid2 = f"│ {'':<{inner_width}} │\n"
+        bot = f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
+        return [("", top + mid1 + mid2 + bot)]
+
+    desc = _build_live_description(state, row, text)
+    preview = Row(row.index, row.values, description=desc)
+    is_switch = isinstance(desc, EcomaxSwitchDescription)
+    type_str = "switch" if is_switch else "number"
+    offset_val = getattr(desc, "offset", 0)
+    step_val = getattr(desc, "step", 1)
+    unit_val = getattr(desc, "unit_of_measurement", None)
+    u_str = (
+        f"{unit_val}" if unit_val == PERCENTAGE else f" {unit_val}" if unit_val else ""
+    )
+
+    fields = [
+        _format_field("Name", preview.name or "<unnamed>", state.state == "NAME"),
+        _format_field("Type", type_str, state.state == "TYPE"),
+    ]
+    if not is_switch:
+        fields.extend(
+            [
+                _format_field("Offset", offset_val, state.state == "OFFSET"),
+                _format_field("Step", step_val, state.state == "STEP"),
+                _format_field("Unit", unit_val or "none", state.state == "UNIT"),
+            ]
+        )
+    line1_content = "  ".join(fields)[:inner_width]
+    raw = row.values
+    preview_range = f"{preview.min_value}-{preview.max_value}{u_str}"
+    line2_content = (
+        f"Raw: {raw.value} (min: {raw.min_value}, max: {raw.max_value})  ──►  "
+        f"Preview: {preview.value}{u_str} ({preview_range})"
+    )[:inner_width]
+    header_title = f"─ Live Preview (Index #{row.index}) "
+    top = f"┌{header_title}{'─' * max(0, PREVIEW_BOX_WIDTH - 2 - len(header_title))}┐\n"
+    mid1 = f"│ {line1_content:<{inner_width}} │\n"
+    mid2 = f"│ {line2_content:<{inner_width}} │\n"
+    bot = f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
+    return [("", top + mid1 + mid2 + bot)]
 
 
 def create_app(
@@ -481,6 +597,10 @@ def create_app(
             Window(FormattedTextControl(lambda: _get_header_text(state)), height=2),
             Window(FormattedTextControl(lambda: _get_table_text(state))),
             Window(height=1),
+            Window(
+                FormattedTextControl(lambda: _get_preview_text(state, buffer)),
+                height=4,
+            ),
             Window(FormattedTextControl(lambda: f" {state.status}"), height=1),
             VSplit(
                 [

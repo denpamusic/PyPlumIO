@@ -21,8 +21,10 @@ import pytest
 
 from pyplumio.cli.app import (
     INDEX_PROMPT,
+    PREVIEW_BOX_WIDTH,
     AppState,
     _get_header_text,
+    _get_preview_text,
     _get_table_text,
     _parse_unit,
     _save_files,
@@ -35,7 +37,7 @@ from pyplumio.cli.session import Session
 from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.ecomax import EcomaxNumberDescription
+from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
 from pyplumio.structures.product_info import ProductInfo
 
 
@@ -119,31 +121,31 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     # Step 3: Type default (number)
     buff.text = ""
     state.dispatch_enter(buff)
-    assert state.state == "STEP"
-
-    # Step 4: Step
-    buff.text = "1"
-    state.dispatch_enter(buff)
     assert state.state == "OFFSET"
-    assert state.wizard_data["step"] == 1
 
-    # Step 5: Offset
+    # Step 4: Offset
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert state.state == "UNIT"
+    assert state.state == "STEP"
     assert state.wizard_data["offset"] == 0
+
+    # Step 5: Step
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    assert state.state == "UNIT"
+    assert state.wizard_data["step"] == 1
     assert "Available units:" in state.status
 
     # Step 6: Unit
     buff.text = "%"
     state.dispatch_enter(buff)
-    assert state.state == "PREVIEW"
+    assert state.state == "CONFIRM"
     assert (
         state.prompt
         == "boiler_temp: 20% (10-30%). Does this match your device? [y/N]: "
     )
 
-    # Step 7: Preview confirm
+    # Step 7: Confirm
     buff.text = "y"
     state.dispatch_enter(buff)
     assert state.state == "INDEX"
@@ -170,14 +172,16 @@ async def test_app_state_wizard_preview_kw(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = ""  # Default to number
     state.dispatch_enter(buff)
+    assert state.state == "OFFSET"
+    buff.text = "0"
+    state.dispatch_enter(buff)
     assert state.state == "STEP"
     buff.text = "1"
     state.dispatch_enter(buff)
-    buff.text = "0"
-    state.dispatch_enter(buff)
+    assert state.state == "UNIT"
     buff.text = "kW"
     state.dispatch_enter(buff)
-    assert state.state == "PREVIEW"
+    assert state.state == "CONFIRM"
     assert (
         state.prompt
         == "boiler_power: 16 kW (11-16 kW). Does this match your device? [y/N]: "
@@ -216,20 +220,20 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     buff.text = "number"
     state.dispatch_enter(buff)
 
-    # Step invalid
-    buff.text = "-5"
-    state.dispatch_enter(buff)
-    assert "Step must be a positive number." in state.status
-
-    buff.text = "1"
-    state.dispatch_enter(buff)
-
     # Offset invalid
     buff.text = "abc"
     state.dispatch_enter(buff)
     assert "Offset must be an integer." in state.status
 
     buff.text = "0"
+    state.dispatch_enter(buff)
+
+    # Step invalid
+    buff.text = "-5"
+    state.dispatch_enter(buff)
+    assert "Step must be a positive number." in state.status
+
+    buff.text = "1"
     state.dispatch_enter(buff)
 
     # Unit invalid
@@ -264,14 +268,14 @@ def test_parse_unit() -> None:
 
 
 async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
-    """Test AppState wizard with switch and declining preview."""
+    """Test AppState wizard with switch and declining confirm."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(1, ParameterValues(value=1, min_value=0, max_value=1))])
     state = AppState(session, table, tmp_path)
     buff = Buffer()
 
-    # Index -> Name -> Type switch -> Preview -> Decline
+    # Index -> Name -> Type switch -> Confirm -> Decline
     buff.text = "1"
     state.dispatch_enter(buff)
     buff.text = "heating_switch"
@@ -280,7 +284,7 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = ""  # Default to switch
     state.dispatch_enter(buff)
-    assert state.state == "PREVIEW"
+    assert state.state == "CONFIRM"
     assert (
         state.prompt
         == "heating_switch: on (off-on). Does this match your device? [y/N]: "
@@ -315,7 +319,7 @@ async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = "number"
     state.dispatch_enter(buff)
-    assert state.state == "STEP"
+    assert state.state == "OFFSET"
     state.reset_wizard(buff)
 
     # Number default overridden with switch
@@ -326,7 +330,7 @@ async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [number]: "
     buff.text = "switch"
     state.dispatch_enter(buff)
-    assert state.state == "PREVIEW"
+    assert state.state == "CONFIRM"
 
 
 async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
@@ -347,27 +351,27 @@ async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
 
 
 async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
-    """Test AppState wizard confirming preview and overwrite with 'yes'."""
+    """Test AppState wizard confirming parameter and overwrite with 'yes'."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
     state = AppState(session, table, tmp_path)
     buff = Buffer()
 
-    # Preview with 'yes'
+    # Confirm with 'yes'
     buff.text = "0"
     state.dispatch_enter(buff)
     buff.text = "test_param"
     state.dispatch_enter(buff)
     buff.text = "number"
     state.dispatch_enter(buff)
-    buff.text = "1"
-    state.dispatch_enter(buff)
     buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "1"
     state.dispatch_enter(buff)
     buff.text = "none"
     state.dispatch_enter(buff)
-    assert state.state == "PREVIEW"
+    assert state.state == "CONFIRM"
 
     buff.text = "yes"
     state.dispatch_enter(buff)
@@ -471,6 +475,214 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     assert lines[2][0] == "reverse"
     assert "15" in lines[2][1]
     assert "*" not in lines[2][1]
+
+
+def test_live_preview_box_index(tmp_path: Path) -> None:
+    """Test live preview box in INDEX state."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update(
+        [
+            (0, ParameterValues(value=20, min_value=10, max_value=30)),
+            (1, ParameterValues(value=1, min_value=0, max_value=1)),
+        ]
+    )
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # 1. INDEX state - empty buffer (shows placeholder box)
+    buff.text = ""
+    lines = _get_preview_text(state, buff)
+    assert len(lines) == 1
+    content = lines[0][1]
+    assert "┌─ Live Preview" in content
+    assert "Enter a parameter index below to preview raw values" in content
+    assert len(content.splitlines()) == 4
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in content.splitlines())
+
+    # 1b. INDEX state - non-digit or non-existent index (shows placeholder box)
+    buff.text = "abc"
+    assert "Enter a parameter index below" in _get_preview_text(state, buff)[0][1]
+    buff.text = "99"
+    assert "Enter a parameter index below" in _get_preview_text(state, buff)[0][1]
+
+    # 1c. INDEX state - existing index typed before enter
+    buff.text = "0"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "Live Preview (Index #0)" in content
+    assert "Name: <unnamed>" in content
+    assert "Type: number" in content
+    assert "Offset: 0" in content
+    assert "Step: 1" in content
+    assert "Unit: none" in content
+    assert "Raw: 20 (min: 10, max: 30)  ──►  Preview: 20 (10-30)" in content
+    assert len(content.splitlines()) == 4
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in content.splitlines())
+
+    # 1d. INDEX state - index with existing description
+    table.set_description(
+        0,
+        EcomaxNumberDescription(
+            name="existing_temp",
+            unit_of_measurement=UnitOfMeasurement.CELSIUS,
+        ),
+    )
+    content = _get_preview_text(state, buff)[0][1]
+    assert "Name: existing_temp" in content
+    assert "Unit: °C" in content
+    assert "Preview: 20 °C (10-30 °C)" in content
+
+
+def test_live_preview_box_name(tmp_path: Path) -> None:
+    """Test live preview box in NAME state."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update(
+        [
+            (0, ParameterValues(value=20, min_value=10, max_value=30)),
+            (1, ParameterValues(value=1, min_value=0, max_value=1)),
+        ]
+    )
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # 2. NAME state
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    assert state.state == "NAME"
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: <unnamed>]" in content
+
+    buff.text = "boiler_power"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power]" in content
+    assert "Type: number" in content
+
+    # 2b. NAME state with switch row
+    state.reset_wizard(buff)
+    table.set_description(1, EcomaxSwitchDescription(name="old_switch"))
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    buff.text = "heating_switch"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: heating_switch]" in content
+    assert "Type: switch" in content
+    assert "Offset" not in content
+
+
+def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
+    """Test live preview box through type, offset, and step states."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # Enter wizard and advance to TYPE
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "boiler_power"
+    state.dispatch_enter(buff)
+    assert state.state == "TYPE"
+
+    # Default type (number) when text is empty
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Type: number]" in content
+    assert "Offset: 0" in content
+
+    # Preview as switch
+    buff.text = "switch"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Type: switch]" in content
+    assert "Offset" not in content
+    assert "Preview: off (off-on)" in content
+
+    # Advance to OFFSET state
+    buff.text = "number"
+    state.dispatch_enter(buff)
+    assert state.state == "OFFSET"
+
+    buff.text = ""
+    assert "[Offset: 0]" in _get_preview_text(state, buff)[0][1]
+    buff.text = "-50"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Offset: -50]" in content
+    assert "Preview: 70 (60-80)" in content
+    buff.text = "abc"
+    assert "[Offset: 0]" in _get_preview_text(state, buff)[0][1]
+
+    # Advance to STEP state
+    buff.text = "5"
+    state.dispatch_enter(buff)
+    assert state.state == "STEP"
+    assert state.wizard_data["offset"] == 5
+
+    buff.text = ""
+    assert "[Step: 1]" in _get_preview_text(state, buff)[0][1]
+    buff.text = "0.1"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Step: 0.1]" in content
+    assert "Preview: 1.5 (0.5-2.5)" in content
+    buff.text = "10"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Step: 10]" in content
+    assert "Preview: 150 (50-250)" in content
+    buff.text = "-1"
+    assert "[Step: 1]" in _get_preview_text(state, buff)[0][1]
+    buff.text = "abc"
+    assert "[Step: 1]" in _get_preview_text(state, buff)[0][1]
+
+
+def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
+    """Test live preview box through unit, confirm, and overwrite states."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
+    state = AppState(session, table, tmp_path)
+    state.wizard_data.update(
+        {"index": 0, "name": "boiler_power", "offset": 5, "step": 0.5}
+    )
+    state.state = "UNIT"
+    buff = Buffer()
+
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Unit: none]" in content
+    assert "Preview: 7.5 (2.5-12.5)" in content
+    buff.text = "kW"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Unit: kW]" in content
+    assert "Preview: 7.5 kW (2.5-12.5 kW)" in content
+    buff.text = "%"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Unit: %]" in content
+    assert "Preview: 7.5% (2.5-12.5%)" in content
+    buff.text = "invalid_unit"
+    assert "[Unit: none]" in _get_preview_text(state, buff)[0][1]
+
+    # Advance to CONFIRM state
+    buff.text = "°C"
+    state.dispatch_enter(buff)
+    assert state.state == "CONFIRM"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "Name: boiler_power" in content
+    assert "Type: number" in content
+    assert "Offset: 5" in content
+    assert "Step: 0.5" in content
+    assert "Unit: °C" in content
+    assert "Preview: 7.5 °C (2.5-12.5 °C)" in content
+
+    # OVERWRITE state
+    state.state = "OVERWRITE"
+    assert "Live Preview (Index #0)" in _get_preview_text(state, buff)[0][1]
+
+    # Parameter with exceptionally long name clamps to PREVIEW_BOX_WIDTH
+    state.wizard_data["name"] = "a" * 80
+    long_content = _get_preview_text(state, buff)[0][1]
+    assert len(long_content.splitlines()) == 4
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in long_content.splitlines())
 
 
 def _assert_table_row(line: OneStyleAndTextTuple, index: int, style: str) -> None:
@@ -588,8 +800,14 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert state.state == "INDEX"
     assert state.status == "Cancelled."
 
-    # 4. completer checks
-    buffer_ctrl = app.layout.container.content.children[4].children[1]  # type: ignore[attr-defined]
+    # 4. live preview container check
+    preview_win = app.layout.container.content.children[3]  # type: ignore[attr-defined]
+    assert preview_win.height == 4
+    preview_output = preview_win.content.text()
+    assert "Live Preview" in preview_output[0][1]
+
+    # 5. completer checks
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app_buffer.completer is not None
     assert list(app_buffer.completer.get_completions(Document(""), None)) == []
@@ -618,7 +836,7 @@ def test_app_completion_keybindings(tmp_path: Path) -> None:
     app = create_app(session, table, tmp_path, output=DummyOutput())
     mock_event = MagicMock(spec=KeyPressEvent)
 
-    buffer_ctrl = app.layout.container.content.children[4].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app.key_bindings is not None
     named_bindings = {b.handler.__name__: b.handler for b in app.key_bindings.bindings}

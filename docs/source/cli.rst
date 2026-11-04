@@ -63,6 +63,7 @@ The interface consists of:
 
 - **Header**: Shows connected controller model, product ID, connection URL, last update timestamp, and keyboard shortcuts.
 - **Table**: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Recently changed parameters are highlighted with inverted colors.
+- **Live Preview**: Real-time 4-line framed box docked above the input bar displaying active parameter fields, raw values, and live calculations.
 - **Navigation**: Use Up/Down arrow keys or ``PageUp`` and ``PageDown`` to scroll through the parameters list.
 
 Interactive Wizard
@@ -74,10 +75,10 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
 2. **Name**: Enter a unique snake_case name (e.g. ``heating_temp``).
 3. **Type**: Select ``number`` or ``switch`` (defaults to ``switch`` if minimum is 0 and maximum is 1, otherwise ``number``).
 4. **Number Settings**: If configuring a number:
-   - **Step**: Multiplier/step (e.g. ``1``, ``0.1``, ``10``).
    - **Offset**: Raw offset to subtract (default: ``0``).
+   - **Step**: Multiplier/step (e.g. ``1``, ``0.1``, ``10``).
    - **Unit**: Physical unit of measurement (supports autocompletion for unit values such as ``°C``, ``kW``, ``rpm``, ``%``, etc., or enter ``none``).
-5. **Preview**: Confirm the decoded value and range match your controller display (``[y/N]``).
+5. **Confirm**: Confirm the decoded value and range match your controller display (``[y/N]``).
 6. Press ``Esc`` at any point to cancel the wizard.
 
 Saving & Output Files
