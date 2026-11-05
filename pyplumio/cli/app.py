@@ -586,12 +586,14 @@ def _build_live_description(
         return state.data.description or row.description
     name = (
         text
-        if state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME)
+        if state.step == AppStep.NAME
+        else state.data.name
+        if state.step == AppStep.CONFIRM_STANDARD_NAME
         else state.data.name or row.name
     )
     name = name or "<unnamed>"
     if (
-        state.step == AppStep.NAME
+        state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME)
         and isinstance(row.description, EcomaxSwitchDescription)
         or state.step == AppStep.TYPE
         and (text.lower() or state.data.default_type) == "switch"

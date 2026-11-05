@@ -805,6 +805,101 @@ def test_live_preview_box_name(tmp_path: Path) -> None:
     assert "Offset" not in content
 
 
+def test_live_preview_box_confirm_standard_name(tmp_path: Path) -> None:
+    """Test live preview box in CONFIRM_STANDARD_NAME state for number row."""
+    session = Session(url="socket://localhost:8899")
+    session.product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=90,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 350P2-ZF",
+    )
+    table = ParameterTable()
+    table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # Enter editing for index 0 and enter standard parameter name
+    buff.text = "0"
+    state.dispatch_enter(buff)
+    buff.text = "boiler_power_100"
+    state.dispatch_enter(buff)
+    assert _step(state) == AppStep.CONFIRM_STANDARD_NAME
+
+    # Live preview with empty buffer
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power_100]" in content
+    assert "<unnamed>" not in content
+
+    # Live preview with confirmation response typed
+    buff.text = "y"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power_100]" in content
+    assert "[Name: y]" not in content
+
+
+def test_live_preview_box_confirm_standard_name_switch(tmp_path: Path) -> None:
+    """Test live preview box in CONFIRM_STANDARD_NAME state for switch row."""
+    session = Session(url="socket://localhost:8899")
+    session.product_info = ProductInfo(
+        type=ProductType.ECOMAX_P,
+        id=90,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 350P2-ZF",
+    )
+    table = ParameterTable()
+    table.update([(1, ParameterValues(value=1, min_value=0, max_value=1))])
+    table.set_description(1, EcomaxSwitchDescription(name="old_switch"))
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+
+    # Switch row in CONFIRM_STANDARD_NAME preserves switch type
+    buff.text = "1"
+    state.dispatch_enter(buff)
+    buff.text = "boiler_power_100"
+    state.dispatch_enter(buff)
+    assert _step(state) == AppStep.CONFIRM_STANDARD_NAME
+
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power_100]" in content
+    assert "Type: switch" in content
+    assert "Offset" not in content
+
+    # Switch row preserves switch type with confirmation response typed
+    buff.text = "y"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power_100]" in content
+    assert "Type: switch" in content
+    assert "[Name: y]" not in content
+
+    # Null state.data.name during confirmation defaults to <unnamed>
+    state.data.name = None
+    buff.text = ""
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: <unnamed>]" in content
+    assert "old_switch" not in content
+
+    # Decline confirmation returns to NAME step and reflects live editing
+    state.data.name = "boiler_power_100"
+    buff.text = "n"
+    state.dispatch_enter(buff)
+    assert _step(state) == AppStep.NAME
+    assert buff.text == "boiler_power_100"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: boiler_power_100]" in content
+
+    buff.text = "custom_switch"
+    content = _get_preview_text(state, buff)[0][1]
+    assert "[Name: custom_switch]" in content
+    assert "Type: switch" in content
+
+
 def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     """Test live preview box through type, offset, and step states."""
     session = Session(url="socket://localhost:8899")
