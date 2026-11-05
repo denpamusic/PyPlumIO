@@ -6,7 +6,7 @@ import argparse
 from collections.abc import Callable, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
-from enum import Enum, unique
+from enum import StrEnum, unique
 import logging
 from pathlib import Path
 import re
@@ -91,23 +91,23 @@ PREVIEW_BOX_WIDTH: Final = 78
 
 
 @unique
-class WizardStep(Enum):
-    """Represents steps in the parameter wizard."""
+class AppStep(StrEnum):
+    """Represents application steps."""
 
-    INDEX = "INDEX"
-    NAME = "NAME"
-    CONFIRM_STANDARD_NAME = "CONFIRM_STANDARD_NAME"
-    TYPE = "TYPE"
-    OFFSET = "OFFSET"
-    STEP = "STEP"
-    UNIT = "UNIT"
-    CONFIRM = "CONFIRM"
-    OVERWRITE = "OVERWRITE"
+    INDEX = "index"
+    NAME = "name"
+    CONFIRM_STANDARD_NAME = "confirm_standard_name"
+    TYPE = "type"
+    OFFSET = "offset"
+    STEP = "step"
+    UNIT = "unit"
+    CONFIRM = "confirm"
+    OVERWRITE = "overwrite"
 
 
 @dataclass(slots=True)
-class WizardData:
-    """Holds working data for the parameter wizard."""
+class AppData:
+    """Holds working data for the application."""
 
     index: int | None = None
     name: str | None = None
@@ -117,7 +117,7 @@ class WizardData:
     description: EcomaxNumberDescription | EcomaxSwitchDescription | None = None
 
     def reset(self) -> None:
-        """Reset wizard data fields to defaults."""
+        """Reset app data fields to defaults."""
         self.index = None
         self.name = None
         self.default_type = "number"
@@ -176,31 +176,31 @@ async def prompt_connection_url(
 
 
 class AppState:
-    """Represents application UI and wizard state."""
+    """Represents application UI and state."""
 
     __slots__ = (
         "application",
+        "data",
         "output_dir",
         "prompt",
         "scroll_offset",
         "session",
         "status",
+        "step",
         "table",
-        "wizard_data",
         "_handlers",
-        "_step",
     )
 
     application: Application[None] | None
+    data: AppData
     output_dir: Path
     prompt: str
     scroll_offset: int
     session: Session
     status: str
-    _step: WizardStep
+    step: AppStep
     table: ParameterTable
-    wizard_data: WizardData
-    _handlers: dict[WizardStep, Callable[[str, Buffer], None]]
+    _handlers: dict[AppStep, Callable[[str, Buffer], None]]
 
     def __init__(
         self, session: Session, table: ParameterTable, output_dir: Path
@@ -209,33 +209,23 @@ class AppState:
         self.session = session
         self.table = table
         self.output_dir = output_dir
-        self._step = WizardStep.INDEX
+        self.step = AppStep.INDEX
         self.prompt = INDEX_PROMPT
         self.status = ""
         self.scroll_offset = 0
-        self.wizard_data = WizardData()
+        self.data = AppData()
         self.application = None
         self._handlers = {
-            WizardStep.INDEX: self.step_index,
-            WizardStep.NAME: self.step_name,
-            WizardStep.CONFIRM_STANDARD_NAME: self.step_confirm_standard_name,
-            WizardStep.TYPE: self.step_type,
-            WizardStep.OFFSET: self.step_offset,
-            WizardStep.STEP: self.step_step,
-            WizardStep.UNIT: self.step_unit,
-            WizardStep.CONFIRM: self.step_confirm,
-            WizardStep.OVERWRITE: self.step_overwrite,
+            AppStep.INDEX: self.step_index,
+            AppStep.NAME: self.step_name,
+            AppStep.CONFIRM_STANDARD_NAME: self.step_confirm_standard_name,
+            AppStep.TYPE: self.step_type,
+            AppStep.OFFSET: self.step_offset,
+            AppStep.STEP: self.step_step,
+            AppStep.UNIT: self.step_unit,
+            AppStep.CONFIRM: self.step_confirm,
+            AppStep.OVERWRITE: self.step_overwrite,
         }
-
-    @property
-    def step(self) -> WizardStep:
-        """Return the current wizard step."""
-        return self._step
-
-    @step.setter
-    def step(self, value: WizardStep) -> None:
-        """Set the current wizard step."""
-        self._step = value
 
     @property
     def state(self) -> str:
@@ -249,57 +239,55 @@ class AppState:
 
     def set_step(
         self,
-        step: WizardStep,
+        step: AppStep,
         prompt: str,
         buffer: Buffer,
         text: str = "",
         status: str = "",
     ) -> None:
-        """Update wizard step and prompt buffer."""
+        """Update app step and prompt buffer."""
         self.step = step
         self.prompt = prompt
         buffer.text = text
         self.status = status
 
-    def reset_wizard(self, buffer: Buffer, status: str | None = None) -> None:
-        """Reset wizard back to index prompt."""
+    def reset_app(self, buffer: Buffer, status: str | None = None) -> None:
+        """Reset app back to index prompt."""
         self.table.unfreeze()
         self.set_step(
-            WizardStep.INDEX,
+            AppStep.INDEX,
             INDEX_PROMPT,
             buffer,
             status=self.status if status is None else status,
         )
-        self.wizard_data.reset()
+        self.data.reset()
 
     def step_index(self, text: str, buffer: Buffer) -> None:
         """Handle index step."""
         if text.isdigit() and (row := self.table.get(index := int(text))):
             self.table.clear_changed(index)
             self.table.freeze()
-            self.wizard_data.index = index
-            self.set_step(WizardStep.NAME, "Name: ", buffer, text=row.name)
+            self.data.index = index
+            self.set_step(AppStep.NAME, "Name: ", buffer, text=row.name)
             buffer.cursor_position = len(row.name)
         else:
             self.set_step(
-                WizardStep.INDEX,
+                AppStep.INDEX,
                 INDEX_PROMPT,
                 buffer,
                 status="Index must exist in table.",
             )
 
     def _advance_to_type(self, buffer: Buffer) -> None:
-        """Advance wizard to type selection step."""
-        row = self.table.get(
-            self.wizard_data.index if self.wizard_data.index is not None else -1
-        )
+        """Advance app to type selection step."""
+        row = self.table.get(self.data.index if self.data.index is not None else -1)
         is_switch = (
             row is not None and row.values.min_value == 0 and row.values.max_value == 1
         )
         default_type = "switch" if is_switch else "number"
-        self.wizard_data.default_type = default_type
+        self.data.default_type = default_type
         self.set_step(
-            WizardStep.TYPE,
+            AppStep.TYPE,
             f"Parameter type (number, switch) [{default_type}]: ",
             buffer,
         )
@@ -314,11 +302,11 @@ class AppState:
             return
 
         for index, description in self.table.descriptions.items():
-            if index != self.wizard_data.index and description.name == text:
+            if index != self.data.index and description.name == text:
                 self.status = f"Name '{text}' is already used by index {index}."
                 return
 
-        self.wizard_data.name = text
+        self.data.name = text
 
         product_info = self.session.product_info
         if product_info and (
@@ -329,7 +317,7 @@ class AppState:
                     f"'{text}' is also a standard parameter; both will share one "
                     "event name. Continue? [y/N]: "
                 )
-                self.set_step(WizardStep.CONFIRM_STANDARD_NAME, prompt, buffer)
+                self.set_step(AppStep.CONFIRM_STANDARD_NAME, prompt, buffer)
                 return
 
         self._advance_to_type(buffer)
@@ -340,30 +328,30 @@ class AppState:
             self._advance_to_type(buffer)
         else:
             self.set_step(
-                WizardStep.NAME,
+                AppStep.NAME,
                 "Name: ",
                 buffer,
-                text=self.wizard_data.name or "",
+                text=self.data.name or "",
             )
             buffer.cursor_position = len(buffer.text)
 
     def step_type(self, text: str, buffer: Buffer) -> None:
         """Handle type step."""
-        choice = text.lower() or self.wizard_data.default_type
+        choice = text.lower() or self.data.default_type
         if choice == "switch":
             self.setup_confirm(
-                EcomaxSwitchDescription(name=self.wizard_data.name or ""), buffer
+                EcomaxSwitchDescription(name=self.data.name or ""), buffer
             )
         elif choice == "number":
-            self.set_step(WizardStep.OFFSET, "Offset [0]: ", buffer)
+            self.set_step(AppStep.OFFSET, "Offset [0]: ", buffer)
         else:
             self.status = "Type must be 'number' or 'switch'."
 
     def step_offset(self, text: str, buffer: Buffer) -> None:
         """Handle offset step."""
         try:
-            self.wizard_data.offset = int(text) if text else 0
-            self.set_step(WizardStep.STEP, "Step [1]: ", buffer)
+            self.data.offset = int(text) if text else 0
+            self.set_step(AppStep.STEP, "Step [1]: ", buffer)
         except ValueError:
             self.status = "Offset must be an integer."
 
@@ -372,10 +360,10 @@ class AppState:
         try:
             if (step := float(text) if text else 1.0) <= 0:
                 raise ValueError
-            self.wizard_data.step = int(step) if step.is_integer() else step
+            self.data.step = int(step) if step.is_integer() else step
             units_display = ", ".join(UNIT_WORDS)
             self.set_step(
-                WizardStep.UNIT,
+                AppStep.UNIT,
                 "Unit [none]: ",
                 buffer,
                 status=f"Available units: {units_display}",
@@ -392,9 +380,9 @@ class AppState:
             return
         self.setup_confirm(
             EcomaxNumberDescription(
-                name=self.wizard_data.name or "",
-                step=self.wizard_data.step,
-                offset=self.wizard_data.offset,
+                name=self.data.name or "",
+                step=self.data.step,
+                offset=self.data.offset,
                 unit_of_measurement=unit,
             ),
             buffer,
@@ -406,9 +394,7 @@ class AppState:
         buffer: Buffer,
     ) -> None:
         """Set up confirm prompt."""
-        row = self.table.get(
-            self.wizard_data.index if self.wizard_data.index is not None else -1
-        )
+        row = self.table.get(self.data.index if self.data.index is not None else -1)
         preview = Row(0, row.values, description=description) if row else None
         value, min_value, max_value = (
             (preview.value, preview.min_value, preview.max_value)
@@ -417,24 +403,22 @@ class AppState:
         )
         unit = getattr(description, "unit_of_measurement", None)
         unit_string = f"{unit}" if unit == PERCENTAGE else f" {unit}" if unit else ""
-        self.wizard_data.description = description
-        name = self.wizard_data.name
+        self.data.description = description
+        name = self.data.name
         prompt = (
             f"{name}: {value}{unit_string} ({min_value}-{max_value}{unit_string}). "
             "Does this match your device? [y/N]: "
         )
-        self.set_step(WizardStep.CONFIRM, prompt, buffer)
+        self.set_step(AppStep.CONFIRM, prompt, buffer)
 
     def step_confirm(self, text: str, buffer: Buffer) -> None:
         """Handle confirm step."""
-        if text.lower() in ("y", "yes") and self.wizard_data.index is not None:
-            self.table.set_description(
-                self.wizard_data.index, self.wizard_data.description
-            )
-            status = f"Stored parameter {self.wizard_data.index}."
+        if text.lower() in ("y", "yes") and self.data.index is not None:
+            self.table.set_description(self.data.index, self.data.description)
+            status = f"Stored parameter {self.data.index}."
         else:
             status = "Discarded."
-        self.reset_wizard(buffer, status=status)
+        self.reset_app(buffer, status=status)
 
     def step_overwrite(self, text: str, buffer: Buffer) -> None:
         """Handle overwrite step."""
@@ -443,7 +427,7 @@ class AppState:
             status = self.status
         else:
             status = "Save cancelled."
-        self.reset_wizard(buffer, status=status)
+        self.reset_app(buffer, status=status)
 
     def dispatch_enter(self, buffer: Buffer) -> None:
         """Dispatch enter key press to current step handler."""
@@ -563,9 +547,9 @@ def _format_field(label: str, value: Any, active: bool) -> str:
 
 def _resolve_preview_row(state: AppState, text: str) -> Row | None:
     """Return the Row currently being previewed."""
-    if state.wizard_data.index is not None:
-        return state.table.get(state.wizard_data.index)
-    if state.step == WizardStep.INDEX and text.isdigit():
+    if state.data.index is not None:
+        return state.table.get(state.data.index)
+    if state.step == AppStep.INDEX and text.isdigit():
         return state.table.get(int(text))
     return None
 
@@ -573,20 +557,20 @@ def _resolve_preview_row(state: AppState, text: str) -> Row | None:
 def _resolve_live_number_params(
     state: AppState, text: str
 ) -> tuple[int, float | int, UnitOfMeasurement | Literal["%"] | None]:
-    """Return live (offset, step, unit) from wizard data and current buffer."""
-    offset: int = state.wizard_data.offset
-    if state.step == WizardStep.OFFSET and text:
+    """Return live (offset, step, unit) from app data and current buffer."""
+    offset: int = state.data.offset
+    if state.step == AppStep.OFFSET and text:
         with suppress(ValueError):
             offset = int(text)
 
-    step: float | int = state.wizard_data.step
-    if state.step == WizardStep.STEP and text:
+    step: float | int = state.data.step
+    if state.step == AppStep.STEP and text:
         with suppress(ValueError):
             if (parsed := float(text)) > 0:
                 step = int(parsed) if parsed.is_integer() else parsed
 
     unit: UnitOfMeasurement | Literal["%"] | None = None
-    if state.step == WizardStep.UNIT:
+    if state.step == AppStep.UNIT:
         parsed_unit = _parse_unit(text)
         unit = None if parsed_unit is False else parsed_unit
     return offset, step, unit
@@ -596,27 +580,27 @@ def _build_live_description(
     state: AppState, row: Row, text: str
 ) -> EcomaxNumberDescription | EcomaxSwitchDescription | None:
     """Build transient description for live preview."""
-    if state.step == WizardStep.INDEX:
+    if state.step == AppStep.INDEX:
         return row.description
-    if state.step in (WizardStep.CONFIRM, WizardStep.OVERWRITE):
-        return state.wizard_data.description or row.description
+    if state.step in (AppStep.CONFIRM, AppStep.OVERWRITE):
+        return state.data.description or row.description
     name = (
         text
-        if state.step in (WizardStep.NAME, WizardStep.CONFIRM_STANDARD_NAME)
-        else state.wizard_data.name or row.name
+        if state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME)
+        else state.data.name or row.name
     )
     name = name or "<unnamed>"
     if (
-        state.step == WizardStep.NAME
+        state.step == AppStep.NAME
         and isinstance(row.description, EcomaxSwitchDescription)
-        or state.step == WizardStep.TYPE
-        and (text.lower() or state.wizard_data.default_type) == "switch"
+        or state.step == AppStep.TYPE
+        and (text.lower() or state.data.default_type) == "switch"
     ):
         return EcomaxSwitchDescription(name=name)
     if state.step in (
-        WizardStep.NAME,
-        WizardStep.CONFIRM_STANDARD_NAME,
-        WizardStep.TYPE,
+        AppStep.NAME,
+        AppStep.CONFIRM_STANDARD_NAME,
+        AppStep.TYPE,
     ):
         return EcomaxNumberDescription(name=name)
     offset, step, unit = _resolve_live_number_params(state, text)
@@ -655,18 +639,16 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
         _format_field(
             "Name",
             preview.name or "<unnamed>",
-            state.step in (WizardStep.NAME, WizardStep.CONFIRM_STANDARD_NAME),
+            state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME),
         ),
-        _format_field("Type", type_string, state.step == WizardStep.TYPE),
+        _format_field("Type", type_string, state.step == AppStep.TYPE),
     ]
     if not is_switch:
         fields.extend(
             [
-                _format_field("Offset", offset_val, state.step == WizardStep.OFFSET),
-                _format_field("Step", step_val, state.step == WizardStep.STEP),
-                _format_field(
-                    "Unit", unit_val or "none", state.step == WizardStep.UNIT
-                ),
+                _format_field("Offset", offset_val, state.step == AppStep.OFFSET),
+                _format_field("Step", step_val, state.step == AppStep.STEP),
+                _format_field("Unit", unit_val or "none", state.step == AppStep.UNIT),
             ]
         )
     line1_content = "  ".join(fields)[:inner_width]
@@ -685,10 +667,10 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
 
 
 def _get_completer(state: AppState) -> WordCompleter | None:
-    """Return completer for current wizard step."""
-    if state.step == WizardStep.TYPE:
+    """Return completer for current app step."""
+    if state.step == AppStep.TYPE:
         return TYPE_COMPLETER
-    if state.step == WizardStep.UNIT:
+    if state.step == AppStep.UNIT:
         return UNIT_COMPLETER
     return None
 
@@ -724,7 +706,7 @@ def _create_key_bindings(
             prompt = (
                 f"Overwrite existing {module_path.name}? Comments will be lost [y/N]: "
             )
-            state.set_step(WizardStep.OVERWRITE, prompt, buffer)
+            state.set_step(AppStep.OVERWRITE, prompt, buffer)
         else:
             _save_files(state)
 
@@ -734,7 +716,7 @@ def _create_key_bindings(
 
     @key_bindings.add("escape", filter=~has_completions)
     def _cancel(_event: KeyPressEvent) -> None:
-        state.reset_wizard(buffer)
+        state.reset_app(buffer)
         state.status = "Cancelled."
 
     @key_bindings.add("pageup")
@@ -900,9 +882,9 @@ async def run_app(args: argparse.Namespace) -> int:
 
 
 __all__ = (
+    "AppData",
     "AppState",
-    "WizardData",
-    "WizardStep",
+    "AppStep",
     "create_app",
     "prompt_connection_url",
     "run_app",

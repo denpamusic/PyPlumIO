@@ -26,8 +26,8 @@ from pyplumio.cli.app import (
     TABLE_HEADER,
     TABLE_SEPARATOR,
     AppState,
+    AppStep,
     StatusLogHandler,
-    WizardStep,
     _format_value_with_unit,
     _get_header_text,
     _get_preview_text,
@@ -47,8 +47,8 @@ from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDesc
 from pyplumio.structures.product_info import ProductInfo
 
 
-def _step(state: AppState) -> WizardStep:
-    """Return wizard step without triggering mypy attribute narrowing."""
+def _step(state: AppState) -> AppStep:
+    """Return app step without triggering mypy attribute narrowing."""
     return state.step
 
 
@@ -107,51 +107,51 @@ async def test_prompt_connection_url_serial() -> None:
         url_validator.validate(Document(""))
 
 
-async def test_app_state_wizard_number(tmp_path: Path) -> None:
-    """Test AppState wizard navigation and parameter assignment."""
+async def test_app_state_number(tmp_path: Path) -> None:
+    """Test AppState navigation and parameter assignment."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
     state = AppState(session, table, tmp_path)
     buff = Buffer()
     assert state.prompt == INDEX_PROMPT
-    assert state.state == "INDEX"
+    assert state.state == "index"
 
     # Step 1: Index
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.NAME
-    assert state.wizard_data.index == 0
+    assert _step(state) == AppStep.NAME
+    assert state.data.index == 0
 
     # Step 2: Name
     buff.text = "boiler_temp"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.TYPE
+    assert _step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [number]: "
-    assert state.wizard_data.name == "boiler_temp"
+    assert state.data.name == "boiler_temp"
 
     # Step 3: Type default (number)
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.OFFSET
+    assert _step(state) == AppStep.OFFSET
 
     # Step 4: Offset
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.STEP
-    assert state.wizard_data.offset == 0
+    assert _step(state) == AppStep.STEP
+    assert state.data.offset == 0
 
     # Step 5: Step
     buff.text = "1"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.UNIT
-    assert state.wizard_data.step == 1
+    assert _step(state) == AppStep.UNIT
+    assert state.data.step == 1
     assert "Available units:" in state.status
 
     # Step 6: Unit
     buff.text = "%"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
     assert (
         state.prompt
         == "boiler_temp: 20% (10-30%). Does this match your device? [y/N]: "
@@ -160,7 +160,7 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     # Step 7: Confirm
     buff.text = "y"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.INDEX
+    assert _step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Stored parameter 0."
     assert 0 in table.descriptions
@@ -170,7 +170,7 @@ async def test_app_state_wizard_number(tmp_path: Path) -> None:
     assert desc.unit_of_measurement == PERCENTAGE
 
 
-async def test_app_state_wizard_preview_kw(tmp_path: Path) -> None:
+async def test_app_state_preview_kw(tmp_path: Path) -> None:
     """Test preview prompt format with kW unit of measurement."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
@@ -184,24 +184,24 @@ async def test_app_state_wizard_preview_kw(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.OFFSET
+    assert _step(state) == AppStep.OFFSET
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.STEP
+    assert _step(state) == AppStep.STEP
     buff.text = "1"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.UNIT
+    assert _step(state) == AppStep.UNIT
     buff.text = "kW"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
     assert (
         state.prompt
         == "boiler_power: 16 kW (11-16 kW). Does this match your device? [y/N]: "
     )
 
 
-async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
-    """Test AppState wizard validation error handling."""
+async def test_app_state_validation_errors(tmp_path: Path) -> None:
+    """Test AppState validation error handling."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
@@ -254,7 +254,7 @@ async def test_app_state_wizard_validation_errors(tmp_path: Path) -> None:
     assert "Unknown unit of measurement." in state.status
 
 
-async def test_app_state_wizard_name_already_used(tmp_path: Path) -> None:
+async def test_app_state_name_already_used(tmp_path: Path) -> None:
     """Test rejecting parameter name already used by another index."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
@@ -274,18 +274,18 @@ async def test_app_state_wizard_name_already_used(tmp_path: Path) -> None:
     buff.text = "fan_power"
     state.dispatch_enter(buff)
     assert state.status == "Name 'fan_power' is already used by index 1."
-    assert _step(state) == WizardStep.NAME
+    assert _step(state) == AppStep.NAME
 
     # Selecting index 1 and keeping "fan_power" is allowed
-    state.reset_wizard(buff)
+    state.reset_app(buff)
     buff.text = "1"
     state.dispatch_enter(buff)
     buff.text = "fan_power"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.TYPE
+    assert _step(state) == AppStep.TYPE
 
 
-async def test_app_state_wizard_standard_parameter_confirmation(
+async def test_app_state_standard_parameter_confirmation(
     tmp_path: Path,
 ) -> None:
     """Test confirmation when parameter name matches standard ecoMAX parameter."""
@@ -309,7 +309,7 @@ async def test_app_state_wizard_standard_parameter_confirmation(
     buff.text = "boiler_power_100"
     state.dispatch_enter(buff)
 
-    assert _step(state) == WizardStep.CONFIRM_STANDARD_NAME
+    assert _step(state) == AppStep.CONFIRM_STANDARD_NAME
     assert (
         state.prompt
         == "'boiler_power_100' is also a standard parameter; both will share one "
@@ -319,15 +319,15 @@ async def test_app_state_wizard_standard_parameter_confirmation(
     # Decline confirmation: returns to NAME step with previous text
     buff.text = "n"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.NAME
+    assert _step(state) == AppStep.NAME
     assert buff.text == "boiler_power_100"
 
     # Accept confirmation: advances to TYPE step
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM_STANDARD_NAME
+    assert _step(state) == AppStep.CONFIRM_STANDARD_NAME
     buff.text = "y"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.TYPE
+    assert _step(state) == AppStep.TYPE
 
 
 async def test_app_state_save_nothing_mapped(tmp_path: Path) -> None:
@@ -355,8 +355,8 @@ async def test_app_state_save_nothing_mapped(tmp_path: Path) -> None:
     assert state.status == "Nothing to save: map at least one parameter first."
 
 
-async def test_app_state_table_freeze_during_wizard(tmp_path: Path) -> None:
-    """Test freezing and unfreezing table rows during wizard."""
+async def test_app_state_table_freeze(tmp_path: Path) -> None:
+    """Test freezing and unfreezing table rows."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update(
@@ -369,7 +369,7 @@ async def test_app_state_table_freeze_during_wizard(tmp_path: Path) -> None:
     buff = Buffer()
     assert not bool(table.is_frozen)
 
-    # Enter wizard
+    # Enter editing
     buff.text = "0"
     state.dispatch_enter(buff)
     assert bool(table.is_frozen)
@@ -378,8 +378,8 @@ async def test_app_state_table_freeze_during_wizard(tmp_path: Path) -> None:
     table.update([(1, ParameterValues(value=25, min_value=0, max_value=30))])
     assert [row.index for row in table.rows()] == [0, 1]
 
-    # Reset wizard: table unfreezes
-    state.reset_wizard(buff)
+    # Reset app: table unfreezes
+    state.reset_app(buff)
     assert not bool(table.is_frozen)
     assert [row.index for row in table.rows()] == [1, 0]
 
@@ -410,7 +410,7 @@ def test_parse_unit() -> None:
 
 
 async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
-    """Test AppState wizard with switch and declining confirm."""
+    """Test AppState with switch and declining confirm."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(1, ParameterValues(value=1, min_value=0, max_value=1))])
@@ -422,11 +422,11 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "heating_switch"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.TYPE
+    assert _step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
     assert (
         state.prompt
         == "heating_switch: on (off-on). Does this match your device? [y/N]: "
@@ -434,13 +434,13 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
 
     buff.text = "n"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.INDEX
+    assert _step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Discarded."
     assert 1 not in table.descriptions
 
 
-async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
+async def test_app_state_type_override(tmp_path: Path) -> None:
     """Test overriding default parameter type suggestion."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
@@ -461,8 +461,8 @@ async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = "number"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.OFFSET
-    state.reset_wizard(buff)
+    assert _step(state) == AppStep.OFFSET
+    state.reset_app(buff)
 
     # Number default overridden with switch
     buff.text = "1"
@@ -472,11 +472,11 @@ async def test_app_state_wizard_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [number]: "
     buff.text = "switch"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
 
 
 async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
-    """Test that selecting an index in the wizard clears changed state."""
+    """Test that selecting an index clears changed state."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
@@ -493,7 +493,7 @@ async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
 
 
 async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
-    """Test AppState wizard confirming parameter and overwrite with 'yes'."""
+    """Test AppState confirming parameter and overwrite with 'yes'."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
@@ -513,11 +513,11 @@ async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "none"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
 
     buff.text = "yes"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.INDEX
+    assert _step(state) == AppStep.INDEX
     assert state.status == "Stored parameter 0."
 
     # Overwrite with 'yes'
@@ -783,7 +783,7 @@ def test_live_preview_box_name(tmp_path: Path) -> None:
     # 2. NAME state
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.NAME
+    assert _step(state) == AppStep.NAME
     buff.text = ""
     content = _get_preview_text(state, buff)[0][1]
     assert "[Name: <unnamed>]" in content
@@ -794,7 +794,7 @@ def test_live_preview_box_name(tmp_path: Path) -> None:
     assert "Type: number" in content
 
     # 2b. NAME state with switch row
-    state.reset_wizard(buff)
+    state.reset_app(buff)
     table.set_description(1, EcomaxSwitchDescription(name="old_switch"))
     buff.text = "1"
     state.dispatch_enter(buff)
@@ -813,12 +813,12 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     state = AppState(session, table, tmp_path)
     buff = Buffer()
 
-    # Enter wizard and advance to TYPE
+    # Enter editing and advance to TYPE
     buff.text = "0"
     state.dispatch_enter(buff)
     buff.text = "boiler_power"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.TYPE
+    assert _step(state) == AppStep.TYPE
 
     # Default type (number) when text is empty
     buff.text = ""
@@ -836,7 +836,7 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     # Advance to OFFSET state
     buff.text = "number"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.OFFSET
+    assert _step(state) == AppStep.OFFSET
 
     buff.text = ""
     assert "[Offset: 0]" in _get_preview_text(state, buff)[0][1]
@@ -850,8 +850,8 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     # Advance to STEP state
     buff.text = "5"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.STEP
-    assert state.wizard_data.offset == 5
+    assert _step(state) == AppStep.STEP
+    assert state.data.offset == 5
 
     buff.text = ""
     assert "[Step: 1]" in _get_preview_text(state, buff)[0][1]
@@ -875,11 +875,11 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
     table = ParameterTable()
     table.update([(0, ParameterValues(value=20, min_value=10, max_value=30))])
     state = AppState(session, table, tmp_path)
-    state.wizard_data.index = 0
-    state.wizard_data.name = "boiler_power"
-    state.wizard_data.offset = 5
-    state.wizard_data.step = 0.5
-    state.step = WizardStep.UNIT
+    state.data.index = 0
+    state.data.name = "boiler_power"
+    state.data.offset = 5
+    state.data.step = 0.5
+    state.step = AppStep.UNIT
     buff = Buffer()
 
     buff.text = ""
@@ -900,7 +900,7 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
     # Advance to CONFIRM state
     buff.text = "°C"
     state.dispatch_enter(buff)
-    assert _step(state) == WizardStep.CONFIRM
+    assert _step(state) == AppStep.CONFIRM
     content = _get_preview_text(state, buff)[0][1]
     assert "Name: boiler_power" in content
     assert "Type: number" in content
@@ -910,11 +910,11 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
     assert "Preview: 7.5 °C (2.5-12.5 °C)" in content
 
     # OVERWRITE state
-    state.step = WizardStep.OVERWRITE
+    state.step = AppStep.OVERWRITE
     assert "Live Preview (Index #0)" in _get_preview_text(state, buff)[0][1]
 
     # Clamping long names
-    state.wizard_data.name = "a" * 80
+    state.data.name = "a" * 80
     long_content = _get_preview_text(state, buff)[0][1]
     assert len(long_content.splitlines()) == 4
     assert all(len(line) == PREVIEW_BOX_WIDTH for line in long_content.splitlines())
@@ -959,7 +959,7 @@ def test_table_text_stack_order(tmp_path: Path) -> None:
     _assert_table_row(lines[3], 2, "reverse")
     _assert_table_row(lines[4], 0, "")
 
-    # Clear changed on parameter 1 via wizard selection
+    # Clear changed on parameter 1 via app selection
     buff = Buffer()
     buff.text = "1"
     state.dispatch_enter(buff)
@@ -968,7 +968,7 @@ def test_table_text_stack_order(tmp_path: Path) -> None:
     _assert_table_row(lines[3], 2, "reverse")
     _assert_table_row(lines[4], 0, "")
 
-    state.reset_wizard(buff)
+    state.reset_app(buff)
 
     # Parameter 2 changes again: moves back above parameter 1
     table.update([(2, ParameterValues(value=38, min_value=0, max_value=40))])
@@ -1028,7 +1028,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
 
     # 2d. c-s with product info and existing file
     bindings["c-s"](mock_event)
-    assert _step(state) == WizardStep.OVERWRITE
+    assert _step(state) == AppStep.OVERWRITE
     assert (
         state.prompt
         == "Overwrite existing ecomax_350p2_zf.py? Comments will be lost [y/N]: "
@@ -1037,7 +1037,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
 
     # 3. escape
     bindings["escape"](mock_event)
-    assert _step(state) == WizardStep.INDEX
+    assert _step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
 
     # 4. live preview container check
@@ -1051,11 +1051,11 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     app_buffer = buffer_ctrl.content.buffer
     assert app_buffer.completer is not None
     assert list(app_buffer.completer.get_completions(Document(""), None)) == []
-    state.step = WizardStep.TYPE
+    state.step = AppStep.TYPE
     assert [
         c.text for c in app_buffer.completer.get_completions(Document("num"), None)
     ] == ["number"]
-    state.step = WizardStep.UNIT
+    state.step = AppStep.UNIT
     assert [
         c.text for c in app_buffer.completer.get_completions(Document("rp"), None)
     ] == ["rpm"]
