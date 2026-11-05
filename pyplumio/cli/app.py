@@ -402,7 +402,7 @@ class AppState:
             else ("", "", "")
         )
         unit = getattr(description, "unit_of_measurement", None)
-        unit_string = f"{unit}" if unit == PERCENTAGE else f" {unit}" if unit else ""
+        unit_string = f" {unit}" if unit else ""
         self.data.description = description
         name = self.data.name
         prompt = (
@@ -518,8 +518,6 @@ def _format_value_with_unit(
         unit := getattr(description, "unit_of_measurement", None)
     ):
         return str(value)
-    if unit == PERCENTAGE:
-        return f"{value}%"
     return f"{value} {unit}"
 
 
@@ -633,9 +631,7 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     offset_val = getattr(description, "offset", 0)
     step_val = getattr(description, "step", 1)
     unit_val = getattr(description, "unit_of_measurement", None)
-    unit_string = (
-        f"{unit_val}" if unit_val == PERCENTAGE else f" {unit_val}" if unit_val else ""
-    )
+    unit_string = f" {unit_val}" if unit_val else ""
 
     fields = [
         _format_field(
@@ -876,7 +872,7 @@ async def run_app(args: argparse.Namespace) -> int:
             pyplumio_logger.handlers = original_handlers
             pyplumio_logger.propagate = original_propagate
     except (PyPlumIOError, ValueError) as err:
-        print(f"Error: {err}", file=sys.stderr)  # noqa: T201
+        sys.stderr.write(f"Error: {err}\n")
         return 1
     finally:
         await session.close()

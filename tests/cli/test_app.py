@@ -154,7 +154,7 @@ async def test_app_state_number(tmp_path: Path) -> None:
     assert _step(state) == AppStep.CONFIRM
     assert (
         state.prompt
-        == "boiler_temp: 20% (10-30%). Does this match your device? [y/N]: "
+        == "boiler_temp: 20 % (10-30 %). Does this match your device? [y/N]: "
     )
 
     # Step 7: Confirm
@@ -598,11 +598,11 @@ def test_format_value_with_unit() -> None:
 
     # Number with PERCENTAGE constant
     desc_pct = EcomaxNumberDescription(name="fan_power", unit_of_measurement=PERCENTAGE)
-    assert _format_value_with_unit(50, desc_pct) == "50%"
+    assert _format_value_with_unit(50, desc_pct) == "50 %"
 
     # Number with "%" literal
     desc_pct_lit = EcomaxNumberDescription(name="fan_power", unit_of_measurement="%")
-    assert _format_value_with_unit(100, desc_pct_lit) == "100%"
+    assert _format_value_with_unit(100, desc_pct_lit) == "100 %"
 
     # Number with UnitOfMeasurement
     desc_celsius = EcomaxNumberDescription(
@@ -621,7 +621,7 @@ def test_format_value_with_unit() -> None:
     assert _format_value_with_unit("off", switch_desc) == "off"
 
     # Zero and negative values
-    assert _format_value_with_unit(0, desc_pct) == "0%"
+    assert _format_value_with_unit(0, desc_pct) == "0 %"
     assert _format_value_with_unit(-10, desc_celsius) == "-10 °C"
 
 
@@ -707,7 +707,7 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     )
     assert (
         rows_by_index[2]
-        == f"{2:>5}  {'fan_power':<36}  {'50%':<10}  {'0%':<10}  {'100%':<10}\n"
+        == f"{2:>5}  {'fan_power':<36}  {'50 %':<10}  {'0 %':<10}  {'100 %':<10}\n"
     )
 
 
@@ -988,7 +988,7 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
     buff.text = "%"
     content = _get_preview_text(state, buff)[0][1]
     assert "[Unit: %]" in content
-    assert "Preview: 7.5% (2.5-12.5%)" in content
+    assert "Preview: 7.5 % (2.5-12.5 %)" in content
     buff.text = "invalid_unit"
     assert "[Unit: none]" in _get_preview_text(state, buff)[0][1]
 

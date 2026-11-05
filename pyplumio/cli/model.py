@@ -11,9 +11,13 @@ from pathlib import Path
 from typing import Final
 
 from pyplumio.const import STATE_OFF, STATE_ON, State
-from pyplumio.parameters import Numeric, ParameterDescription, ParameterValues
+from pyplumio.parameters import Numeric, ParameterValues
 from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
-from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+from pyplumio.parameters.ecomax import (
+    EcomaxNumberDescription,
+    EcomaxParameterDescription,
+    EcomaxSwitchDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +25,7 @@ CHANGED_ROW_INTERVALS: Final = 5
 
 
 def unpack_parameter_value(
-    raw_value: int, description: ParameterDescription | None
+    raw_value: int, description: EcomaxParameterDescription | None
 ) -> Numeric | State:
     """Unpack parameter value matching library logic."""
     if isinstance(description, EcomaxSwitchDescription):
@@ -99,7 +103,7 @@ class ParameterTable:
         "_rows",
     )
 
-    descriptions: dict[int, ParameterDescription]
+    descriptions: dict[int, EcomaxParameterDescription]
     overrides: tuple[ParameterOverride, ...]
     _change_counter: int
     _frozen_order: list[int] | None
@@ -108,7 +112,7 @@ class ParameterTable:
 
     def __init__(
         self,
-        descriptions: dict[int, ParameterDescription] | None = None,
+        descriptions: dict[int, EcomaxParameterDescription] | None = None,
         overrides: Sequence[ParameterOverride] | None = None,
     ) -> None:
         """Initialize the parameter table."""
@@ -216,7 +220,7 @@ class ParameterTable:
 
 def load_custom_parameters(
     model: str, output_dir: Path
-) -> tuple[dict[int, ParameterDescription], tuple[ParameterOverride, ...]]:
+) -> tuple[dict[int, EcomaxParameterDescription], tuple[ParameterOverride, ...]]:
     """Load existing custom parameters for a model."""
     slug, class_name = model_slug(model), custom_class_name(model_slug(model))
     module_file = output_dir / "pyplumio" / "parameters" / "custom" / f"{slug}.py"

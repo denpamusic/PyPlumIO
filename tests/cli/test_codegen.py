@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
 from pathlib import Path
 import subprocess
@@ -19,11 +18,10 @@ from pyplumio.cli.codegen import (
 )
 from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.frames.responses import EcomaxServiceParametersResponse
-from pyplumio.parameters import ParameterDescription, ParameterValues
+from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride
 from pyplumio.parameters.custom.ecomax_350p2_zf import EcoMAX350P2ZF
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
-from pyplumio.parameters.mixer import MixerNumberDescription
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.product_info import ProductInfo
 
@@ -175,8 +173,8 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
     }
     overrides = [
         ParameterOverride(
-            original="mixer_temp",
-            replacement=MixerNumberDescription(name="mixer_temp", step=1, offset=5),
+            original="max_temp",
+            replacement=EcomaxNumberDescription(name="max_temp", step=1, offset=5),
         )
     ]
     frame_parameters = [
@@ -200,8 +198,9 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
     assert "precision=2" in module_content
     assert "offset=-10" in module_content
     assert (
-        "from pyplumio.parameters.mixer import MixerNumberDescription" in module_content
-    )
+        "from pyplumio.parameters.ecomax import "
+        "EcomaxNumberDescription, EcomaxSwitchDescription"
+    ) in module_content
 
     # Exec module and verify exact dataclass equality
     code_obj = compile(module_content, "<ecomax_860p>", "exec")
@@ -372,30 +371,6 @@ def test_codegen_empty_test_rows_raises_value_error() -> None:
     )
     with pytest.raises(ValueError, match="No mapped parameters to generate tests for."):
         generate_test_module(product_info, descriptions={}, frame_parameters=[])
-
-
-def test_codegen_unsupported_description_module_raises() -> None:
-    """Test description from unsupported module raises ValueError."""
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=1,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 100",
-    )
-
-    @dataclass(slots=True)
-    class CustomExternalDescription(ParameterDescription):
-        """Unsupported custom description."""
-
-    CustomExternalDescription.__module__ = "unknown.custom.module"
-
-    with pytest.raises(ValueError, match="Unsupported parameter description class"):
-        generate_custom_parameter_module(
-            product_info,
-            descriptions={0: CustomExternalDescription(name="unsupported")},
-        )
 
 
 def test_format_field_value() -> None:

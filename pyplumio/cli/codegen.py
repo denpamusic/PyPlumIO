@@ -10,18 +10,17 @@ from typing import Any, Final
 
 from pyplumio.cli.model import Row
 from pyplumio.const import PERCENTAGE, STATE_ON, UnitOfMeasurement
-from pyplumio.parameters import ParameterDescription, ParameterValues
+from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
-from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+from pyplumio.parameters.ecomax import (
+    EcomaxNumberDescription,
+    EcomaxParameterDescription,
+    EcomaxSwitchDescription,
+)
 from pyplumio.structures.product_info import ProductInfo
 
 CHUNK_SIZE: Final = 40
 MAX_LINE_LENGTH: Final = 88
-SUPPORTED_DESCRIPTION_MODULES: Final = (
-    "pyplumio.parameters.ecomax",
-    "pyplumio.parameters.mixer",
-    "pyplumio.parameters.thermostat",
-)
 
 MODULE_TEMPLATE: Final = (
     '"""Contains patch for {model}."""\n\nfrom __future__ import annotations\n\n'
@@ -95,7 +94,7 @@ def _format_field_value(field_name: str, value: Any) -> str:
 
 
 def _format_description(
-    description: ParameterDescription,
+    description: EcomaxParameterDescription,
 ) -> tuple[str, list[str]]:
     """Format description class name and non-default arguments."""
     arguments = [f'name="{description.name}"']
@@ -108,7 +107,7 @@ def _format_description(
     return type(description).__name__, arguments
 
 
-def _format_dict_entry(index: int, description: ParameterDescription) -> str:
+def _format_dict_entry(index: int, description: EcomaxParameterDescription) -> str:
     """Format single descriptions dict entry with 88-column wrapping."""
     class_name, arguments = _format_description(description)
     prefix = f"        {index}: "
@@ -138,19 +137,8 @@ def _format_override_entry(override: ParameterOverride) -> str:
     )
 
 
-def _get_description_module(description: ParameterDescription) -> str:
-    """Return the module path for a description, validating it is supported."""
-    module = type(description).__module__
-    if module in SUPPORTED_DESCRIPTION_MODULES:
-        return module
-    raise ValueError(
-        f"Unsupported parameter description class '{type(description).__name__}' "
-        f"from module '{module}'"
-    )
-
-
 def _collect_module_imports(
-    descriptions: Mapping[int, ParameterDescription],
+    descriptions: Mapping[int, EcomaxParameterDescription],
     overrides: Sequence[ParameterOverride],
 ) -> list[str]:
     """Collect required module imports."""
@@ -175,21 +163,14 @@ def _collect_module_imports(
     ]
     lines.append(f"from pyplumio.parameters.custom import {', '.join(custom_imports)}")
 
-    modules: dict[str, set[str]] = {}
-    for description in all_descriptions:
-        module_name = _get_description_module(description)
-        modules.setdefault(module_name, set()).add(type(description).__name__)
-
-    for module_name in SUPPORTED_DESCRIPTION_MODULES:
-        if module_name in modules:
-            class_names = sorted(modules[module_name])
-            lines.append(f"from {module_name} import {', '.join(class_names)}")
+    if classes := sorted({type(desc).__name__ for desc in all_descriptions}):
+        lines.append(f"from pyplumio.parameters.ecomax import {', '.join(classes)}")
     return lines
 
 
 def generate_custom_parameter_module(
     product_info: ProductInfo,
-    descriptions: Mapping[int, ParameterDescription],
+    descriptions: Mapping[int, EcomaxParameterDescription],
     overrides: Sequence[ParameterOverride] | None = None,
 ) -> str:
     """Generate the custom parameter module file content."""
@@ -267,7 +248,7 @@ def _build_test_row(
 
 def generate_test_module(
     product_info: ProductInfo,
-    descriptions: Mapping[int, ParameterDescription],
+    descriptions: Mapping[int, EcomaxParameterDescription],
     frame_parameters: Sequence[tuple[int, ParameterValues]],
 ) -> str:
     """Generate the custom parameter test module content."""
@@ -315,7 +296,7 @@ def generate_test_module(
 
 def generate_all_files(
     product_info: ProductInfo,
-    descriptions: Mapping[int, ParameterDescription],
+    descriptions: Mapping[int, EcomaxParameterDescription],
     overrides: Sequence[ParameterOverride] | None,
     frame_message: bytes,
     frame_parameters: Sequence[tuple[int, ParameterValues]],
