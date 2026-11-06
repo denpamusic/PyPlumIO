@@ -18,7 +18,7 @@ from pyplumio.parameters.ecomax import (
 )
 from pyplumio.structures.product_info import ProductInfo
 
-CHUNK_SIZE: Final = 40
+CHUNK_SIZE: Final = 77
 MAX_LINE_LENGTH: Final = 88
 
 MODULE_TEMPLATE: Final = (
