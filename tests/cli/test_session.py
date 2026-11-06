@@ -181,7 +181,7 @@ async def test_session_frames_and_polling() -> None:
     async def dummy() -> None:
         await asyncio.Event().wait()
 
-    session._tasks.add(asyncio.create_task(dummy()))
+    session.create_task(dummy())
     await session.close()
 
 
@@ -222,11 +222,11 @@ async def test_session_read_readerror_disconnect() -> None:
 async def test_session_write_oserror_disconnect_and_sleep(
     skip_asyncio_sleep: AsyncMock,
 ) -> None:
-    """Test _poll_loop sleeping after failed write and notifying disconnect."""
+    """Test _poll_loop sleeping after write and notifying disconnect on error."""
     mock_connection = AsyncMock()
     mock_writer = AsyncMock()
     mock_connection.writer = mock_writer
-    mock_writer.write.side_effect = OSError("Broken pipe")
+    mock_writer.write.side_effect = [None, OSError("Broken pipe")]
 
     on_disconnect = MagicMock()
     session = Session(
@@ -291,7 +291,7 @@ async def test_session_poll_cancellation_propagating() -> None:
 
 
 async def test_session_handle_disconnect_idempotent() -> None:
-    """Test _handle_disconnect cancels other tasks and is idempotent."""
+    """Test _handle_disconnect cancels tasks and is idempotent."""
     on_disconnect = MagicMock()
     session = Session(url="socket://localhost:8899", on_disconnect=on_disconnect)
     session.connected = True
@@ -299,8 +299,7 @@ async def test_session_handle_disconnect_idempotent() -> None:
     async def dummy() -> None:
         await asyncio.Event().wait()
 
-    task1 = asyncio.create_task(dummy())
-    session._tasks.add(task1)
+    task1 = session.create_task(dummy())
 
     session._handle_disconnect("Device disconnected")
     assert not session.connected
@@ -310,6 +309,4 @@ async def test_session_handle_disconnect_idempotent() -> None:
     # Calling again when connected is False does nothing
     session._handle_disconnect("Already disconnected")
     assert on_disconnect.call_count == 1
-    task1.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task1
+    await session.wait_until_done()

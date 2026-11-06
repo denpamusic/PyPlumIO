@@ -21,6 +21,7 @@ from pyplumio.exceptions import (
     UnknownFrameError,
 )
 from pyplumio.frames import requests, responses
+from pyplumio.helpers.task_manager import TaskManager
 from pyplumio.parameters import ParameterValues
 from pyplumio.protocol import DummyProtocol
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
@@ -32,7 +33,7 @@ DEFAULT_RETRIES: Final = 3
 DEFAULT_TIMEOUT: Final = 5.0
 
 
-class Session:
+class Session(TaskManager):
     """Manages connection and communication with ecoMAX controller."""
 
     __slots__ = (
@@ -47,7 +48,6 @@ class Session:
         "_interval",
         "_on_disconnect",
         "_on_update",
-        "_tasks",
     )
 
     baudrate: int
@@ -61,7 +61,6 @@ class Session:
     _interval: float
     _on_disconnect: Callable[[str], None] | None
     _on_update: Callable[[list[tuple[int, ParameterValues]], bytes], None] | None
-    _tasks: set[asyncio.Task[None]]
 
     def __init__(
         self,
@@ -74,6 +73,7 @@ class Session:
         on_disconnect: Callable[[str], None] | None = None,
     ) -> None:
         """Initialize the session."""
+        super().__init__()
         self.url, self.baudrate = url, baudrate
         self.connected = False
         self.last_frame_message = self.last_parameters = self.last_update_time = None
@@ -81,16 +81,13 @@ class Session:
         self._interval = interval
         self._on_update = on_update
         self._on_disconnect = on_disconnect
-        self._tasks = set()
 
     def _handle_disconnect(self, reason: str) -> None:
         """Handle connection disconnect."""
         if not self.connected:
             return
         self.connected = False
-        for task in list(self._tasks):
-            if task is not asyncio.current_task():
-                task.cancel()
+        self.cancel_tasks()
         if self._on_disconnect:
             self._on_disconnect(reason)
 
@@ -107,7 +104,8 @@ class Session:
         await self._connection.connect()
         self.product_info = await self._fetch_product_info(retries, timeout)
         self.connected = True
-        self._start_tasks()
+        self.create_task(self._poll_loop())
+        self.create_task(self._read_loop())
         return self.product_info
 
     async def _read_uid(self, timeout: float) -> ProductInfo | None:
@@ -144,13 +142,6 @@ class Session:
             _LOGGER.warning("UID attempt %d/%d timed out", attempt + 1, retries)
         raise PyPlumIOError(f"Failed to retrieve product info after {retries} retries")
 
-    def _start_tasks(self) -> None:
-        """Start polling and reading background tasks."""
-        for coro in (self._poll_loop(), self._read_loop()):
-            task = asyncio.create_task(coro)
-            self._tasks.add(task)
-            task.add_done_callback(self._tasks.discard)
-
     async def _poll_loop(self) -> None:
         """Periodically send service parameters request."""
         request = requests.EcomaxServiceParametersRequest(
@@ -162,8 +153,7 @@ class Session:
             except (OSError, ReadError) as err:
                 self._handle_disconnect(str(err) or "Connection lost")
                 break
-            finally:
-                await asyncio.sleep(self._interval)
+            await asyncio.sleep(self._interval)
 
     def _handle_frame(self, frame: Any) -> None:
         """Handle incoming frame if service parameters response."""
@@ -196,11 +186,8 @@ class Session:
     async def close(self) -> None:
         """Close connection and stop all running tasks."""
         self.connected = False
-        for task in list(self._tasks):
-            task.cancel()
-        if self._tasks:
-            await asyncio.gather(*self._tasks, return_exceptions=True)
-            self._tasks.clear()
+        self.cancel_tasks()
+        await self.wait_until_done()
         if self._connection:
             await self._connection.close()
             self._connection = None
