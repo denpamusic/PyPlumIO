@@ -84,14 +84,6 @@ def test_row_properties() -> None:
     assert bool(row.changed) is False
     assert row.remaining_updates == 0
 
-    row.changed = True
-    assert bool(row.changed) is True
-    assert row.remaining_updates == 5
-
-    row.changed = False
-    assert bool(row.changed) is False
-    assert row.remaining_updates == 0
-
     empty_row = Row(index=2, values=values)
     assert empty_row.name == ""
     assert empty_row.value == 20

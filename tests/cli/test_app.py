@@ -115,7 +115,7 @@ async def test_app_state_number(tmp_path: Path) -> None:
     state = AppState(session, table, tmp_path)
     buff = Buffer()
     assert state.prompt == INDEX_PROMPT
-    assert state.state == "index"
+    assert state.step == AppStep.INDEX
 
     # Step 1: Index
     buff.text = "0"

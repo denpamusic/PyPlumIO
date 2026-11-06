@@ -49,18 +49,13 @@ class Row:
     index: int
     values: ParameterValues
     remaining_updates: int = 0
-    description: EcomaxNumberDescription | EcomaxSwitchDescription | None = None
+    description: EcomaxParameterDescription | None = None
     change_order: int = 0
 
     @property
     def changed(self) -> bool:
         """Return whether row was recently changed."""
         return self.remaining_updates > 0
-
-    @changed.setter
-    def changed(self, value: bool) -> None:
-        """Set whether row was recently changed."""
-        self.remaining_updates = CHANGED_ROW_INTERVALS if value else 0
 
     def clear_changed(self) -> None:
         """Clear changed state."""
@@ -143,15 +138,7 @@ class ParameterTable:
             row.values = values
             return changed
 
-        description = self.descriptions.get(index)
-        typed_description = (
-            description
-            if isinstance(
-                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
-            )
-            else None
-        )
-        self._rows[index] = Row(index, values, description=typed_description)
+        self._rows[index] = Row(index, values, description=self.descriptions.get(index))
         return False
 
     def _decrement_intervals(self, changed_indices: set[int]) -> None:
@@ -207,7 +194,7 @@ class ParameterTable:
     def set_description(
         self,
         index: int,
-        description: EcomaxNumberDescription | EcomaxSwitchDescription | None,
+        description: EcomaxParameterDescription | None,
     ) -> None:
         """Set or remove description for a parameter index."""
         if description is not None:
@@ -222,7 +209,8 @@ def load_custom_parameters(
     model: str, output_dir: Path
 ) -> tuple[dict[int, EcomaxParameterDescription], tuple[ParameterOverride, ...]]:
     """Load existing custom parameters for a model."""
-    slug, class_name = model_slug(model), custom_class_name(model_slug(model))
+    slug = model_slug(model)
+    class_name = custom_class_name(slug)
     module_file = output_dir / "pyplumio" / "parameters" / "custom" / f"{slug}.py"
     custom_class: type | None = None
     if module_file.is_file() and (

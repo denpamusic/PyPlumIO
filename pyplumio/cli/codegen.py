@@ -13,7 +13,6 @@ from pyplumio.const import PERCENTAGE, STATE_ON, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
 from pyplumio.parameters.ecomax import (
-    EcomaxNumberDescription,
     EcomaxParameterDescription,
     EcomaxSwitchDescription,
 )
@@ -83,7 +82,7 @@ def generate_json_data(message: bytes) -> str:
 def _format_field_value(field_name: str, value: Any) -> str:
     """Format single field value for code generation."""
     if field_name == "unit_of_measurement":
-        if value in (PERCENTAGE, "%"):
+        if value == PERCENTAGE:
             return "PERCENTAGE"
         return f"UnitOfMeasurement.{UnitOfMeasurement(value).name}"
     if isinstance(value, float) and value.is_integer():
@@ -149,8 +148,8 @@ def _collect_module_imports(
         getattr(description, "unit_of_measurement", None)
         for description in all_descriptions
     }
-    has_percentage = any(unit in (PERCENTAGE, "%") for unit in units)
-    has_unit_of_measurement = any(unit not in (None, PERCENTAGE, "%") for unit in units)
+    has_percentage = PERCENTAGE in units
+    has_unit_of_measurement = bool(units - {None, PERCENTAGE})
     consts = [
         *(["PERCENTAGE"] if has_percentage else []),
         *(["UnitOfMeasurement"] if has_unit_of_measurement else []),
@@ -182,7 +181,6 @@ def generate_custom_parameter_module(
     description_lines = "\n".join(
         _format_dict_entry(index, description)
         for index, description in sorted(descriptions.items())
-        if isinstance(description, (EcomaxNumberDescription, EcomaxSwitchDescription))
     )
     description_block = (
         f"    descriptions = {{\n{description_lines}\n    }}\n"
@@ -204,7 +202,7 @@ def generate_custom_parameter_module(
 
 
 def _build_test_row(
-    description: EcomaxNumberDescription | EcomaxSwitchDescription,
+    description: EcomaxParameterDescription,
     values: ParameterValues,
 ) -> tuple[str, bool, bool]:
     """Build single parametrize row and flag unit/switch usage."""
@@ -221,7 +219,7 @@ def _build_test_row(
         else (str(row.min_value), str(row.max_value))
     )
     unit = getattr(description, "unit_of_measurement", None)
-    is_percentage = unit in (PERCENTAGE, "%")
+    is_percentage = unit == PERCENTAGE
     unit_string = (
         "None"
         if unit is None
@@ -257,9 +255,7 @@ def generate_test_module(
     rows: list[str] = []
     has_percentage = has_switch = False
     for index, description in sorted(descriptions.items()):
-        if index in values_map and isinstance(
-            description, (EcomaxNumberDescription, EcomaxSwitchDescription)
-        ):
+        if index in values_map:
             row_string, percentage_flag, switch_flag = _build_test_row(
                 description, values_map[index]
             )

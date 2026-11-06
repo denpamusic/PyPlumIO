@@ -44,6 +44,7 @@ from pyplumio.parameters.custom import model_slug
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES,
     EcomaxNumberDescription,
+    EcomaxParameterDescription,
     EcomaxSwitchDescription,
 )
 
@@ -114,7 +115,7 @@ class AppData:
     default_type: str = "number"
     offset: int = 0
     step: float | int = 1
-    description: EcomaxNumberDescription | EcomaxSwitchDescription | None = None
+    description: EcomaxParameterDescription | None = None
 
     def reset(self) -> None:
         """Reset app data fields to defaults."""
@@ -188,7 +189,6 @@ class AppState:
         "status",
         "step",
         "table",
-        "_handlers",
     )
 
     application: Application[None] | None
@@ -200,7 +200,6 @@ class AppState:
     status: str
     step: AppStep
     table: ParameterTable
-    _handlers: dict[AppStep, Callable[[str, Buffer], None]]
 
     def __init__(
         self, session: Session, table: ParameterTable, output_dir: Path
@@ -215,22 +214,6 @@ class AppState:
         self.scroll_offset = 0
         self.data = AppData()
         self.application = None
-        self._handlers = {
-            AppStep.INDEX: self.step_index,
-            AppStep.NAME: self.step_name,
-            AppStep.CONFIRM_STANDARD_NAME: self.step_confirm_standard_name,
-            AppStep.TYPE: self.step_type,
-            AppStep.OFFSET: self.step_offset,
-            AppStep.STEP: self.step_step,
-            AppStep.UNIT: self.step_unit,
-            AppStep.CONFIRM: self.step_confirm,
-            AppStep.OVERWRITE: self.step_overwrite,
-        }
-
-    @property
-    def state(self) -> str:
-        """Return step value string for compatibility."""
-        return self.step.value
 
     @property
     def max_scroll_offset(self) -> int:
@@ -390,7 +373,7 @@ class AppState:
 
     def setup_confirm(
         self,
-        description: EcomaxNumberDescription | EcomaxSwitchDescription,
+        description: EcomaxParameterDescription,
         buffer: Buffer,
     ) -> None:
         """Set up confirm prompt."""
@@ -431,8 +414,8 @@ class AppState:
 
     def dispatch_enter(self, buffer: Buffer) -> None:
         """Dispatch enter key press to current step handler."""
-        if handler := self._handlers.get(self.step):
-            handler(buffer.text.strip(), buffer)
+        handler: Callable[[str, Buffer], None] = getattr(self, f"step_{self.step}")
+        handler(buffer.text.strip(), buffer)
 
 
 class StatusLogHandler(logging.Handler):
@@ -462,8 +445,6 @@ def _parse_unit(
         return None
     if text.lower() in UNIT_ALIASES:
         return UNIT_ALIASES[text.lower()]
-    with suppress(ValueError):
-        return UnitOfMeasurement(text)
     for unit in UnitOfMeasurement:
         if unit.value.lower() == text.lower():
             return unit
@@ -511,12 +492,10 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
 
 def _format_value_with_unit(
     value: Any,
-    description: EcomaxNumberDescription | EcomaxSwitchDescription | None,
+    description: EcomaxParameterDescription | None,
 ) -> str:
     """Format parameter value with unit of measurement if available."""
-    if isinstance(description, EcomaxSwitchDescription) or not (
-        unit := getattr(description, "unit_of_measurement", None)
-    ):
+    if not (unit := getattr(description, "unit_of_measurement", None)):
         return str(value)
     return f"{value} {unit}"
 
@@ -576,7 +555,7 @@ def _resolve_live_number_params(
 
 def _build_live_description(
     state: AppState, row: Row, text: str
-) -> EcomaxNumberDescription | EcomaxSwitchDescription | None:
+) -> EcomaxParameterDescription | None:
     """Build transient description for live preview."""
     if state.step == AppStep.INDEX:
         return row.description
@@ -688,14 +667,7 @@ def _create_key_bindings(
         if not (product := state.session.product_info):
             state.status = "No connection or product info yet."
             return
-        mapped_descriptions = [
-            description
-            for description in state.table.descriptions.values()
-            if isinstance(
-                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
-            )
-        ]
-        if not mapped_descriptions:
+        if not state.table.descriptions:
             state.status = "Nothing to save: map at least one parameter first."
             return
         slug = model_slug(product.model)
@@ -854,10 +826,7 @@ async def run_app(args: argparse.Namespace) -> int:
         product_info = await session.connect()
         descriptions, overrides = load_custom_parameters(product_info.model, output_dir)
         for index, description in descriptions.items():
-            if isinstance(
-                description, (EcomaxNumberDescription, EcomaxSwitchDescription)
-            ):
-                table.set_description(index, description)
+            table.set_description(index, description)
         table.overrides = overrides
         app, state = create_app(session, table, output_dir)
         status_handler = StatusLogHandler(state)
