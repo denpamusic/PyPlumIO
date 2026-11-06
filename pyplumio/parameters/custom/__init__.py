@@ -55,31 +55,17 @@ class CustomParameters:
 
 
 def model_slug(model: str) -> str:
-    """Return model slug from model name.
-
-    :param model: The product model name.
-    :type model: str
-    :return: The normalized model slug.
-    :rtype: str
-    """
+    """Return model slug from model name."""
     return model.replace("-", "_").replace(" ", "_").lower()
 
 
 def custom_class_name(slug: str) -> str:
-    """Return custom parameter class name from model slug.
-
-    :param slug: The model slug.
-    :type slug: str
-    :return: The custom parameter class name.
-    :rtype: str
-    """
+    """Return custom parameter class name from model slug."""
     return to_camelcase(slug).upper().replace("ECOMAX", "EcoMAX")
 
 
 @acache
-async def _load_custom_parameters(
-    product_info: ProductInfo,
-) -> CustomParameters | None:
+async def _load_custom_parameters(product_info: ProductInfo) -> CustomParameters | None:
     """Load custom parameters."""
     module_name = model_slug(product_info.model)
     module_path = f"parameters.custom.{module_name}"
