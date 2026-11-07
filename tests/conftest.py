@@ -169,8 +169,8 @@ def fixture_skip_asyncio_events():
 @pytest.fixture(autouse=True)
 def skip_asyncio_sleep():
     """Skip an asyncio sleep calls."""
-    with patch("asyncio.sleep"):
-        yield
+    with patch("asyncio.sleep") as mock_sleep:
+        yield mock_sleep
 
 
 @pytest.fixture(name="ecomax")
