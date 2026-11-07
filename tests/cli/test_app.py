@@ -25,6 +25,7 @@ from pyplumio.cli.app import (
     PREVIEW_BOX_WIDTH,
     TABLE_HEADER,
     TABLE_SEPARATOR,
+    UNIT_ALIASES,
     AppState,
     AppStep,
     StatusLogHandler,
@@ -32,7 +33,6 @@ from pyplumio.cli.app import (
     _get_header_text,
     _get_preview_text,
     _get_table_text,
-    _parse_unit,
     _save_files,
     create_app,
     prompt_connection_url,
@@ -227,7 +227,7 @@ async def test_app_state_validation_errors(tmp_path: Path) -> None:
     # Type invalid
     buff.text = "unknown"
     state.dispatch_enter(buff)
-    assert "Type must be 'number' or 'switch'." in state.status
+    assert "Type must be one of the following: number, switch." in state.status
 
     buff.text = "number"
     state.dispatch_enter(buff)
@@ -384,29 +384,25 @@ async def test_app_state_table_freeze(tmp_path: Path) -> None:
     assert [row.index for row in table.rows()] == [1, 0]
 
 
-def test_parse_unit() -> None:
-    """Test parsing of unit strings."""
-    assert _parse_unit("") is None
-    assert _parse_unit("none") is None
-    assert _parse_unit("None") is None
-    assert _parse_unit("%") == PERCENTAGE
-    assert _parse_unit("percent") == PERCENTAGE
-    assert _parse_unit("percentage") == PERCENTAGE
-    assert _parse_unit("c") == UnitOfMeasurement.CELSIUS
-    assert _parse_unit("degc") == UnitOfMeasurement.CELSIUS
-    assert _parse_unit("d") == UnitOfMeasurement.DAYS
-    assert _parse_unit("day") == UnitOfMeasurement.DAYS
-    assert _parse_unit("sec") == UnitOfMeasurement.SECONDS
-    assert _parse_unit("second") == UnitOfMeasurement.SECONDS
-    assert _parse_unit("minute") == UnitOfMeasurement.MINUTES
-    assert _parse_unit("rpm") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
-    assert _parse_unit("RPM") == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
-    assert _parse_unit("kw") == UnitOfMeasurement.KILO_WATT
-    assert _parse_unit("kW") == UnitOfMeasurement.KILO_WATT
-    assert _parse_unit("°c") == UnitOfMeasurement.CELSIUS
-    assert _parse_unit("CELSIUS") == UnitOfMeasurement.CELSIUS
-    assert _parse_unit("  kW  ") == UnitOfMeasurement.KILO_WATT
-    assert _parse_unit("invalid") is False
+def test_unit_aliases() -> None:
+    """Test unit alias mappings."""
+    assert UNIT_ALIASES[""] is None
+    assert UNIT_ALIASES["none"] is None
+    assert UNIT_ALIASES["%"] == PERCENTAGE
+    assert UNIT_ALIASES["percent"] == PERCENTAGE
+    assert UNIT_ALIASES["percentage"] == PERCENTAGE
+    assert UNIT_ALIASES["c"] == UnitOfMeasurement.CELSIUS
+    assert UNIT_ALIASES["degc"] == UnitOfMeasurement.CELSIUS
+    assert UNIT_ALIASES["d"] == UnitOfMeasurement.DAYS
+    assert UNIT_ALIASES["day"] == UnitOfMeasurement.DAYS
+    assert UNIT_ALIASES["sec"] == UnitOfMeasurement.SECONDS
+    assert UNIT_ALIASES["second"] == UnitOfMeasurement.SECONDS
+    assert UNIT_ALIASES["minute"] == UnitOfMeasurement.MINUTES
+    assert UNIT_ALIASES["rpm"] == UnitOfMeasurement.REVOLUTIONS_PER_MINUTE
+    assert UNIT_ALIASES["kw"] == UnitOfMeasurement.KILO_WATT
+    assert UNIT_ALIASES["°c"] == UnitOfMeasurement.CELSIUS
+    assert UNIT_ALIASES["celsius"] == UnitOfMeasurement.CELSIUS
+    assert "invalid" not in UNIT_ALIASES
 
 
 async def test_app_state_switch_and_decline(tmp_path: Path) -> None:

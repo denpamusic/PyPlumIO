@@ -55,7 +55,9 @@ PAGE_SIZE: Final = 25
 SCROLL_PAGE: Final = 20
 INDEX_PROMPT: Final = "Enter parameter index to edit: "
 UNIT_WORDS: Final = tuple(unit.value for unit in UnitOfMeasurement) + (PERCENTAGE,)
-UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"]]] = {
+UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"] | None]] = {
+    "": None,
+    "none": None,
     "%": PERCENTAGE,
     "percent": PERCENTAGE,
     "percentage": PERCENTAGE,
@@ -63,27 +65,12 @@ UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"]]] = {
     "degc": UnitOfMeasurement.CELSIUS,
     "d": UnitOfMeasurement.DAYS,
     "day": UnitOfMeasurement.DAYS,
-    "days": UnitOfMeasurement.DAYS,
     "sec": UnitOfMeasurement.SECONDS,
     "second": UnitOfMeasurement.SECONDS,
-    "seconds": UnitOfMeasurement.SECONDS,
-    "min": UnitOfMeasurement.MINUTES,
     "minute": UnitOfMeasurement.MINUTES,
-    "minutes": UnitOfMeasurement.MINUTES,
+    **{unit.value.lower(): unit for unit in UnitOfMeasurement},
+    **{unit.name.lower(): unit for unit in UnitOfMeasurement},
 }
-UNIT_COMPLETER: Final = WordCompleter(
-    list(UNIT_WORDS),
-    ignore_case=True,
-    match_middle=True,
-    meta_dict={
-        **{
-            unit.value: unit.name.replace("_", " ").lower()
-            for unit in UnitOfMeasurement
-        },
-        PERCENTAGE: "percentage",
-    },
-)
-TYPE_COMPLETER: Final = WordCompleter(["number", "switch"])
 TABLE_HEADER: Final = (
     "Index  Name                                  Value       Min         Max\n"
 )
@@ -106,13 +93,38 @@ class AppStep(StrEnum):
     OVERWRITE = "overwrite"
 
 
+@unique
+class ParameterType(StrEnum):
+    """Represents parameter type."""
+
+    NUMBER = "number"
+    SWITCH = "switch"
+
+
+WORD_COMPLETERS: dict[AppStep, WordCompleter] = {
+    AppStep.TYPE: WordCompleter(list(ParameterType)),
+    AppStep.UNIT: WordCompleter(
+        list(UNIT_WORDS),
+        ignore_case=True,
+        match_middle=True,
+        meta_dict={
+            **{
+                unit.value: unit.name.replace("_", " ").lower()
+                for unit in UnitOfMeasurement
+            },
+            PERCENTAGE: "percentage",
+        },
+    ),
+}
+
+
 @dataclass(slots=True)
 class AppData:
     """Holds working data for the application."""
 
     index: int | None = None
     name: str | None = None
-    default_type: str = "number"
+    default_type: ParameterType = ParameterType.NUMBER
     offset: int = 0
     step: float | int = 1
     description: EcomaxParameterDescription | None = None
@@ -121,7 +133,7 @@ class AppData:
         """Reset app data fields to defaults."""
         self.index = None
         self.name = None
-        self.default_type = "number"
+        self.default_type = ParameterType.NUMBER
         self.offset = 0
         self.step = 1
         self.description = None
@@ -264,16 +276,14 @@ class AppState:
     def _advance_to_type(self, buffer: Buffer) -> None:
         """Advance app to type selection step."""
         row = self.table.get(self.data.index if self.data.index is not None else -1)
-        is_switch = (
+        is_binary = (
             row is not None and row.values.min_value == 0 and row.values.max_value == 1
         )
-        default_type = "switch" if is_switch else "number"
-        self.data.default_type = default_type
+        default_type = ParameterType.SWITCH if is_binary else ParameterType.NUMBER
         self.set_step(
-            AppStep.TYPE,
-            f"Parameter type (number, switch) [{default_type}]: ",
-            buffer,
+            AppStep.TYPE, f"Parameter type (number, switch) [{default_type}]: ", buffer
         )
+        self.data.default_type = default_type
 
     def step_name(self, text: str, buffer: Buffer) -> None:
         """Handle name step."""
@@ -320,15 +330,21 @@ class AppState:
 
     def step_type(self, text: str, buffer: Buffer) -> None:
         """Handle type step."""
-        choice = text.lower() or self.data.default_type
-        if choice == "switch":
-            self.setup_confirm(
-                EcomaxSwitchDescription(name=self.data.name or ""), buffer
+        try:
+            choice = ParameterType(text.lower() or self.data.default_type)
+        except ValueError:
+            self.status = (
+                f"Type must be one of the following: {', '.join(ParameterType)}."
             )
-        elif choice == "number":
-            self.set_step(AppStep.OFFSET, "Offset [0]: ", buffer)
-        else:
-            self.status = "Type must be 'number' or 'switch'."
+            return
+
+        match choice:
+            case ParameterType.SWITCH:
+                self.setup_confirm(
+                    EcomaxSwitchDescription(name=self.data.name or ""), buffer
+                )
+            case ParameterType.NUMBER:
+                self.set_step(AppStep.OFFSET, "Offset [0]: ", buffer)
 
     def step_offset(self, text: str, buffer: Buffer) -> None:
         """Handle offset step."""
@@ -356,8 +372,9 @@ class AppState:
 
     def step_unit(self, text: str, buffer: Buffer) -> None:
         """Handle unit step."""
-        unit = _parse_unit(text)
-        if unit is False:
+        try:
+            unit = UNIT_ALIASES[text.lower()]
+        except KeyError:
             units_display = ", ".join(UNIT_WORDS)
             self.status = f"Unknown unit of measurement. Available: {units_display}"
             return
@@ -437,22 +454,6 @@ class StatusLogHandler(logging.Handler):
             self._state.application.invalidate()
 
 
-def _parse_unit(
-    text: str,
-) -> UnitOfMeasurement | Literal["%"] | None | Literal[False]:
-    """Parse unit of measurement from user input."""
-    if not (text := text.strip()) or text.lower() == "none":
-        return None
-    if text.lower() in UNIT_ALIASES:
-        return UNIT_ALIASES[text.lower()]
-    for unit in UnitOfMeasurement:
-        if unit.value.lower() == text.lower():
-            return unit
-    with suppress(KeyError):
-        return UnitOfMeasurement[text.upper()]
-    return False
-
-
 def _save_files(state: AppState) -> None:
     """Save parameter files to disk."""
     product_info = state.session.product_info
@@ -491,8 +492,7 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
 
 
 def _format_value_with_unit(
-    value: Any,
-    description: EcomaxParameterDescription | None,
+    value: Any, description: EcomaxParameterDescription | None
 ) -> str:
     """Format parameter value with unit of measurement if available."""
     if not (unit := getattr(description, "unit_of_measurement", None)):
@@ -535,21 +535,18 @@ def _resolve_live_number_params(
     state: AppState, text: str
 ) -> tuple[int, float | int, UnitOfMeasurement | Literal["%"] | None]:
     """Return live (offset, step, unit) from app data and current buffer."""
-    offset: int = state.data.offset
+    offset = state.data.offset
     if state.step == AppStep.OFFSET and text:
         with suppress(ValueError):
             offset = int(text)
 
-    step: float | int = state.data.step
+    step = state.data.step
     if state.step == AppStep.STEP and text:
         with suppress(ValueError):
             if (parsed := float(text)) > 0:
                 step = int(parsed) if parsed.is_integer() else parsed
 
-    unit: UnitOfMeasurement | Literal["%"] | None = None
-    if state.step == AppStep.UNIT:
-        parsed_unit = _parse_unit(text)
-        unit = None if parsed_unit is False else parsed_unit
+    unit = UNIT_ALIASES.get(text.lower()) if state.step == AppStep.UNIT else None
     return offset, step, unit
 
 
@@ -573,7 +570,7 @@ def _build_live_description(
         state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME)
         and isinstance(row.description, EcomaxSwitchDescription)
         or state.step == AppStep.TYPE
-        and (text.lower() or state.data.default_type) == "switch"
+        and (text.lower() or state.data.default_type) == ParameterType.SWITCH
     ):
         return EcomaxSwitchDescription(name=name)
     if state.step in (
@@ -594,23 +591,27 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     row = _resolve_preview_row(state, text)
     inner_width = PREVIEW_BOX_WIDTH - 4
     if row is None:
-        top = f"┌─ Live Preview {'─' * (PREVIEW_BOX_WIDTH - 17)}┐\n"
         message = (
             "Enter a parameter index below to preview raw values and live calculations."
         )
-        mid1 = f"│ {message:<{inner_width}} │\n"
-        mid2 = f"│ {'':<{inner_width}} │\n"
-        bot = f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
-        return [("", top + mid1 + mid2 + bot)]
+        content = (
+            f"┌─ Live Preview {'─' * (PREVIEW_BOX_WIDTH - 17)}┐\n"
+            f"│ {message:<{inner_width}} │\n"
+            f"│ {'':<{inner_width}} │\n"
+            f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
+        )
+        return [("", content)]
 
     description = _build_live_description(state, row, text)
     preview = Row(row.index, row.values, description=description)
-    is_switch = isinstance(description, EcomaxSwitchDescription)
-    type_string = "switch" if is_switch else "number"
-    offset_val = getattr(description, "offset", 0)
-    step_val = getattr(description, "step", 1)
-    unit_val = getattr(description, "unit_of_measurement", None)
-    unit_string = f" {unit_val}" if unit_val else ""
+    parameter_type = (
+        ParameterType.SWITCH
+        if isinstance(description, EcomaxSwitchDescription)
+        else ParameterType.NUMBER
+    )
+    offset = getattr(description, "offset", 0)
+    step = getattr(description, "step", 1)
+    unit = getattr(description, "unit_of_measurement", None)
 
     fields = [
         _format_field(
@@ -618,38 +619,34 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
             preview.name or "<unnamed>",
             state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME),
         ),
-        _format_field("Type", type_string, state.step == AppStep.TYPE),
+        _format_field("Type", parameter_type, state.step == AppStep.TYPE),
     ]
-    if not is_switch:
+
+    if parameter_type == ParameterType.NUMBER:
         fields.extend(
             [
-                _format_field("Offset", offset_val, state.step == AppStep.OFFSET),
-                _format_field("Step", step_val, state.step == AppStep.STEP),
-                _format_field("Unit", unit_val or "none", state.step == AppStep.UNIT),
+                _format_field("Offset", offset, state.step == AppStep.OFFSET),
+                _format_field("Step", step, state.step == AppStep.STEP),
+                _format_field("Unit", unit or "none", state.step == AppStep.UNIT),
             ]
         )
-    line1_content = "  ".join(fields)[:inner_width]
-    raw = row.values
+
+    values = row.values
+    unit_string = f" {unit}" if unit else ""
     preview_range = f"{preview.min_value}-{preview.max_value}{unit_string}"
+    title = f"─ Live Preview (Index #{row.index}) "
+    line1_content = "  ".join(fields)[:inner_width]
     line2_content = (
-        f"Raw: {raw.value} (min: {raw.min_value}, max: {raw.max_value})  ──►  "
+        f"Raw: {values.value} (min: {values.min_value}, max: {values.max_value})  ──►  "
         f"Preview: {preview.value}{unit_string} ({preview_range})"
     )[:inner_width]
-    header_title = f"─ Live Preview (Index #{row.index}) "
-    top = f"┌{header_title}{'─' * max(0, PREVIEW_BOX_WIDTH - 2 - len(header_title))}┐\n"
-    mid1 = f"│ {line1_content:<{inner_width}} │\n"
-    mid2 = f"│ {line2_content:<{inner_width}} │\n"
-    bot = f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
-    return [("", top + mid1 + mid2 + bot)]
-
-
-def _get_completer(state: AppState) -> WordCompleter | None:
-    """Return completer for current app step."""
-    if state.step == AppStep.TYPE:
-        return TYPE_COMPLETER
-    if state.step == AppStep.UNIT:
-        return UNIT_COMPLETER
-    return None
+    content = (
+        f"┌{title}{'─' * max(0, PREVIEW_BOX_WIDTH - 2 - len(title))}┐\n"
+        f"│ {line1_content:<{inner_width}} │\n"
+        f"│ {line2_content:<{inner_width}} │\n"
+        f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
+    )
+    return [("", content)]
 
 
 def _create_key_bindings(
@@ -746,7 +743,7 @@ def create_app(
     """Create prompt_toolkit Application instance and AppState."""
     state = AppState(session, table, output_dir)
     buffer = Buffer(
-        completer=DynamicCompleter(lambda: _get_completer(state)),
+        completer=DynamicCompleter(lambda: WORD_COMPLETERS.get(state.step, None)),
         complete_while_typing=True,
     )
     key_bindings = _create_key_bindings(state, buffer, output_dir)
