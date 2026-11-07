@@ -576,22 +576,34 @@ def _build_live_description(
     return description
 
 
+def _format_preview_box(title: str, line1: str = "", line2: str = "") -> str:
+    """Return 4-line preview box with a title and two content lines."""
+    inner_width = PREVIEW_BOX_WIDTH - 4
+    border_width = PREVIEW_BOX_WIDTH - 2
+    title = f"─ {title} "
+    return (
+        f"┌{title}{'─' * max(0, border_width - len(title))}┐\n"
+        f"│ {line1[:inner_width]:<{inner_width}} │\n"
+        f"│ {line2[:inner_width]:<{inner_width}} │\n"
+        f"└{'─' * border_width}┘\n"
+    )
+
+
 def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     """Return formatted 4-line live preview box."""
     text = buffer.text.strip()
     row = _resolve_preview_row(state, text)
-    inner_width = PREVIEW_BOX_WIDTH - 4
     if row is None:
-        message = (
-            "Enter a parameter index below to preview raw values and live calculations."
-        )
-        content = (
-            f"┌─ Live Preview {'─' * (PREVIEW_BOX_WIDTH - 17)}┐\n"
-            f"│ {message:<{inner_width}} │\n"
-            f"│ {'':<{inner_width}} │\n"
-            f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
-        )
-        return [("", content)]
+        return [
+            (
+                "",
+                _format_preview_box(
+                    "Live Preview",
+                    "Enter a parameter index below to preview raw values and live "
+                    "calculations.",
+                ),
+            )
+        ]
 
     description = _build_live_description(state, row, text)
     preview = Row(row.index, row.values, description=description)
@@ -625,19 +637,20 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     values = row.values
     unit_string = f" {unit}" if unit else ""
     preview_range = f"{preview.min_value}-{preview.max_value}{unit_string}"
-    title = f"─ Live Preview (Index #{row.index}) "
-    line1_content = "  ".join(fields)[:inner_width]
-    line2_content = (
-        f"Raw: {values.value} (min: {values.min_value}, max: {values.max_value})  ──►  "
-        f"Preview: {preview.value}{unit_string} ({preview_range})"
-    )[:inner_width]
-    content = (
-        f"┌{title}{'─' * max(0, PREVIEW_BOX_WIDTH - 2 - len(title))}┐\n"
-        f"│ {line1_content:<{inner_width}} │\n"
-        f"│ {line2_content:<{inner_width}} │\n"
-        f"└{'─' * (PREVIEW_BOX_WIDTH - 2)}┘\n"
-    )
-    return [("", content)]
+    return [
+        (
+            "",
+            _format_preview_box(
+                f"Live Preview (Index #{row.index})",
+                "  ".join(fields),
+                (
+                    f"Raw: {values.value} (min: {values.min_value}, "
+                    f"max: {values.max_value})  ──►  Preview: "
+                    f"{preview.value}{unit_string} ({preview_range})"
+                ),
+            ),
+        )
+    ]
 
 
 def _create_key_bindings(
