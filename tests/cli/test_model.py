@@ -2,18 +2,11 @@
 
 from __future__ import annotations
 
-import logging
-from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
-from pyplumio.cli.model import (
-    ParameterTable,
-    Row,
-    load_custom_parameters,
-    unpack_parameter_value,
-)
+from pyplumio.cli.model import ParameterTable, Row, unpack_parameter_value
 from pyplumio.const import STATE_OFF, STATE_ON, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride
@@ -318,58 +311,3 @@ def test_parameter_table_frozen_order() -> None:
     table.unfreeze()
     assert not bool(table.is_frozen)
     assert [row.index for row in table.rows()] == [2, 0, 1, 3]
-
-
-def test_load_custom_parameters_from_package() -> None:
-    """Test loading custom parameters from installed package."""
-    descriptions, overrides = load_custom_parameters(
-        "ecoMAX 350P2-ZF", Path("nonexistent")
-    )
-    assert 8 in descriptions
-    assert descriptions[8].name == "heating_cycle_time"
-    assert isinstance(overrides, tuple)
-
-
-def test_load_custom_parameters_from_output_dir(tmp_path: Path) -> None:
-    """Test loading custom parameters from output directory."""
-    custom_dir = tmp_path / "pyplumio" / "parameters" / "custom"
-    custom_dir.mkdir(parents=True)
-    custom_file = custom_dir / "ecomax_dummy.py"
-    custom_file.write_text(
-        "from pyplumio.parameters.custom import CustomParameters\n"
-        "from pyplumio.parameters.ecomax import EcomaxSwitchDescription\n\n"
-        "class EcoMAXDUMMY(CustomParameters):\n"
-        '    descriptions = {1: EcomaxSwitchDescription(name="dummy_switch")}\n'
-        "    overrides = ()\n",
-        encoding="utf-8",
-    )
-
-    descriptions, overrides = load_custom_parameters("ecoMAX Dummy", tmp_path)
-    assert 1 in descriptions
-    assert descriptions[1].name == "dummy_switch"
-    assert overrides == ()
-
-
-def test_load_custom_parameters_syntax_error(
-    tmp_path: Path, caplog: pytest.LogCaptureFixture
-) -> None:
-    """Test loading custom parameter file with syntax error falls back cleanly."""
-    custom_dir = tmp_path / "pyplumio" / "parameters" / "custom"
-    custom_dir.mkdir(parents=True)
-    # Write invalid Python syntax
-    custom_file = custom_dir / "ecomax_350p2_zf.py"
-    custom_file.write_text("def invalid_syntax(:", encoding="utf-8")
-
-    with caplog.at_level(logging.WARNING):
-        descriptions, overrides = load_custom_parameters("ecoMAX 350P2-ZF", tmp_path)
-        # Successfully fell back to installed package module!
-        assert 8 in descriptions
-        assert descriptions[8].name == "heating_cycle_time"
-        assert "Failed to load custom parameters" in caplog.text
-
-
-def test_load_custom_parameters_missing(tmp_path: Path) -> None:
-    """Test loading non-existent custom parameters."""
-    descriptions, overrides = load_custom_parameters("ecoMAX Unknown Model", tmp_path)
-    assert descriptions == {}
-    assert overrides == ()

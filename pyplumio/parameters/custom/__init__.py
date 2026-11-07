@@ -65,7 +65,7 @@ def custom_class_name(slug: str) -> str:
 
 
 @acache
-async def _load_custom_parameters(product_info: ProductInfo) -> CustomParameters | None:
+async def load_custom_parameters(product_info: ProductInfo) -> CustomParameters | None:
     """Load custom parameters."""
     module_name = model_slug(product_info.model)
     module_path = f"parameters.custom.{module_name}"
@@ -95,7 +95,7 @@ async def get_custom_service_parameter_types(
     product_info: ProductInfo,
 ) -> dict[int, EcomaxParameterDescription]:
     """Get custom service parameter types."""
-    if custom_parameters := await _load_custom_parameters(product_info):
+    if custom_parameters := await load_custom_parameters(product_info):
         return custom_parameters.descriptions
 
     return {}
@@ -105,7 +105,7 @@ async def inject_custom_parameter_overrides(
     product_info: ProductInfo, parameter_types: list[_DescriptionT]
 ) -> list[_DescriptionT]:
     """Patch the parameter types based on the provided overrides."""
-    if custom_parameters := await _load_custom_parameters(product_info):
+    if custom_parameters := await load_custom_parameters(product_info):
         if overrides := dict(custom_parameters.overrides):
             return cast(
                 list[_DescriptionT],
@@ -130,5 +130,6 @@ __all__ = (
     "custom_class_name",
     "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
+    "load_custom_parameters",
     "model_slug",
 )

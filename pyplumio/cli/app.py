@@ -35,12 +35,12 @@ from prompt_toolkit.shortcuts import PromptSession
 from prompt_toolkit.validation import Validator
 
 from pyplumio.cli.codegen import generate_all_files, write_files
-from pyplumio.cli.model import ParameterTable, Row, load_custom_parameters
+from pyplumio.cli.model import ParameterTable, Row
 from pyplumio.cli.session import Session
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom import model_slug
+from pyplumio.parameters.custom import load_custom_parameters, model_slug
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES,
     EcomaxNumberDescription,
@@ -825,10 +825,10 @@ async def run_app(args: argparse.Namespace) -> int:
     )
     try:
         product_info = await session.connect()
-        descriptions, overrides = load_custom_parameters(product_info.model, output_dir)
-        for index, description in descriptions.items():
-            table.set_description(index, description)
-        table.overrides = overrides
+        if custom_parameters := await load_custom_parameters(product_info):
+            for index, description in custom_parameters.descriptions.items():
+                table.set_description(index, description)
+            table.overrides = tuple(custom_parameters.overrides)
         app, state = create_app(session, table, output_dir)
         status_handler = StatusLogHandler(state)
         pyplumio_logger = logging.getLogger("pyplumio")

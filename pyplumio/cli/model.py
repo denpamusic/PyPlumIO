@@ -3,23 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from contextlib import suppress
 from dataclasses import dataclass
-import importlib.util
-import logging
-from pathlib import Path
 from typing import Final
 
 from pyplumio.const import STATE_OFF, STATE_ON, State
 from pyplumio.parameters import Numeric, ParameterValues
-from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
+from pyplumio.parameters.custom import ParameterOverride
 from pyplumio.parameters.ecomax import (
     EcomaxNumberDescription,
     EcomaxParameterDescription,
     EcomaxSwitchDescription,
 )
-
-_LOGGER = logging.getLogger(__name__)
 
 CHANGED_ROW_INTERVALS: Final = 5
 
@@ -205,46 +199,9 @@ class ParameterTable:
             row.description = description
 
 
-def load_custom_parameters(
-    model: str, output_dir: Path
-) -> tuple[dict[int, EcomaxParameterDescription], tuple[ParameterOverride, ...]]:
-    """Load existing custom parameters for a model."""
-    slug = model_slug(model)
-    class_name = custom_class_name(slug)
-    module_file = output_dir / "pyplumio" / "parameters" / "custom" / f"{slug}.py"
-    custom_class: type | None = None
-    if module_file.is_file() and (
-        spec := importlib.util.spec_from_file_location(f"_custom_{slug}", module_file)
-    ):
-        if spec.loader:
-            try:
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-                custom_class = getattr(module, class_name, None)
-            except Exception as err:
-                _LOGGER.warning(
-                    "Failed to load custom parameters from %s: %s", module_file, err
-                )
-
-    if custom_class is None:
-        with suppress(ImportError, AttributeError):
-            custom_class = getattr(
-                importlib.import_module(f"pyplumio.parameters.custom.{slug}"),
-                class_name,
-                None,
-            )
-
-    if custom_class is None:
-        return {}, ()
-    return dict(getattr(custom_class, "descriptions", {})), tuple(
-        getattr(custom_class, "overrides", ())
-    )
-
-
 __all__ = (
     "CHANGED_ROW_INTERVALS",
     "ParameterTable",
     "Row",
-    "load_custom_parameters",
     "unpack_parameter_value",
 )
