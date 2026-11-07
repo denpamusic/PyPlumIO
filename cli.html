@@ -1,0 +1,238 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Line Interface &mdash; PyPlumIO 0.7.6 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=918ced64"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Frames" href="frames.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workflow-parameter-mapping">Workflow &amp; Parameter Mapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#connection-resilience">Connection Resilience</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#saving-output-files">Saving &amp; Output Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing-mapped-parameters">Contributing Mapped Parameters</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Command Line Interface</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cli.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="command-line-interface">
+<h1>Command Line Interface<a class="headerlink" href="#command-line-interface" title="Link to this heading"></a></h1>
+<p>PyPlumIO includes an interactive command-line utility for mapping ecoMAX controller
+service parameters and generating custom parameter modules.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>The CLI utility requires optional dependencies (such as <code class="docutils literal notranslate"><span class="pre">prompt_toolkit</span></code>).
+Install PyPlumIO with the <code class="docutils literal notranslate"><span class="pre">cli</span></code> extra:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"pyplumio[cli]"</span>
+<span class="gp"># </span>or<span class="w"> </span>with<span class="w"> </span>uv
+<span class="gp">$ </span>uv<span class="w"> </span>add<span class="w"> </span><span class="s2">"pyplumio[cli]"</span>
+</pre></div>
+</div>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>Run the CLI using the console script or Python module execution:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>pyplumio
+<span class="gp"># </span>or
+<span class="gp">$ </span>python<span class="w"> </span>-m<span class="w"> </span>pyplumio
+</pre></div>
+</div>
+</section>
+<section id="command-line-options">
+<h2>Command-Line Options<a class="headerlink" href="#command-line-options" title="Link to this heading"></a></h2>
+<p>The CLI supports the following arguments:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>usage: pyplumio [-h] [--url URL] [--output DIR] [--interval SECONDS] [--baudrate BAUDRATE]
+
+options:
+  -h, --help          show this help message and exit
+  --url URL           Connection URL (e.g. socket://localhost:8899 or /dev/ttyUSB0).
+                      If omitted, you will be prompted interactively.
+  --output DIR        Output directory for generated files (default: current working directory).
+  --interval SECONDS  Polling interval in seconds (default: 2.0).
+  --baudrate BAUDRATE Serial baudrate (default: 115200).
+</pre></div>
+</div>
+<section id="interactive-connection-setup">
+<h3>Interactive Connection Setup<a class="headerlink" href="#interactive-connection-setup" title="Link to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">--url</span></code> is omitted, the CLI will guide you through configuring the connection:</p>
+<ol class="arabic simple">
+<li><p><strong>Connection Type</strong>: Choose between <code class="docutils literal notranslate"><span class="pre">tcp</span></code> and <code class="docutils literal notranslate"><span class="pre">serial</span></code>.</p></li>
+<li><p><strong>TCP Settings</strong>: Enter host and port (default: <code class="docutils literal notranslate"><span class="pre">8899</span></code>).</p></li>
+<li><p><strong>Serial Settings</strong>: Enter the serial port path (e.g., <code class="docutils literal notranslate"><span class="pre">/dev/ttyUSB0</span></code> or <code class="docutils literal notranslate"><span class="pre">COM3</span></code>).</p></li>
+</ol>
+</section>
+</section>
+<section id="workflow-parameter-mapping">
+<h2>Workflow &amp; Parameter Mapping<a class="headerlink" href="#workflow-parameter-mapping" title="Link to this heading"></a></h2>
+<p>Once connected, the CLI retrieves the controller model and product ID and continuously
+polls service parameters.</p>
+<p>The interface consists of:</p>
+<ul class="simple">
+<li><p><strong>Header</strong>: Shows connected controller model, product ID, connection URL, last update timestamp, and keyboard shortcuts.</p></li>
+<li><p><strong>Table</strong>: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Recently changed parameters are highlighted with inverted colors.</p></li>
+<li><p><strong>Live Preview</strong>: Real-time 4-line framed box docked above the input bar displaying active parameter fields, raw values, and live calculations.</p></li>
+<li><p><strong>Navigation</strong>: Use Up/Down arrow keys or <code class="docutils literal notranslate"><span class="pre">PageUp</span></code> and <code class="docutils literal notranslate"><span class="pre">PageDown</span></code> to scroll through the parameters list.</p></li>
+</ul>
+<section id="interactive-wizard">
+<h3>Interactive Wizard<a class="headerlink" href="#interactive-wizard" title="Link to this heading"></a></h3>
+<p>At the bottom of the screen, a wizard guides you through naming and configuring each parameter:</p>
+<ol class="arabic simple">
+<li><p><strong>Index</strong>: Enter the parameter index from the table. While navigating the wizard past this step, table row ordering is frozen to prevent rows from jumping while typing.</p></li>
+<li><p><strong>Name</strong>: Enter a unique snake_case name (e.g. <code class="docutils literal notranslate"><span class="pre">heating_temp</span></code>):
+- If the name is already used by another parameter index, it is rejected.
+- If the name matches a standard ecoMAX parameter for the connected product type, you will be prompted for confirmation (<code class="docutils literal notranslate"><span class="pre">'&lt;name&gt;'</span> <span class="pre">is</span> <span class="pre">also</span> <span class="pre">a</span> <span class="pre">standard</span> <span class="pre">parameter;</span> <span class="pre">both</span> <span class="pre">will</span> <span class="pre">share</span> <span class="pre">one</span> <span class="pre">event</span> <span class="pre">name.</span> <span class="pre">Continue?</span> <span class="pre">[y/N]</span></code>) to allow sharing the event name.</p></li>
+<li><p><strong>Type</strong>: Select <code class="docutils literal notranslate"><span class="pre">number</span></code> or <code class="docutils literal notranslate"><span class="pre">switch</span></code> (defaults to <code class="docutils literal notranslate"><span class="pre">switch</span></code> if minimum is 0 and maximum is 1, otherwise <code class="docutils literal notranslate"><span class="pre">number</span></code>).</p></li>
+<li><p><strong>Number Settings</strong>: If configuring a number:
+- <strong>Offset</strong>: Raw offset to subtract (default: <code class="docutils literal notranslate"><span class="pre">0</span></code>).
+- <strong>Step</strong>: Multiplier/step (e.g. <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">0.1</span></code>, <code class="docutils literal notranslate"><span class="pre">10</span></code>).
+- <strong>Unit</strong>: Physical unit of measurement (supports autocompletion for unit values such as <code class="docutils literal notranslate"><span class="pre">°C</span></code>, <code class="docutils literal notranslate"><span class="pre">kW</span></code>, <code class="docutils literal notranslate"><span class="pre">rpm</span></code>, <code class="docutils literal notranslate"><span class="pre">%</span></code>, etc., or enter <code class="docutils literal notranslate"><span class="pre">none</span></code>).</p></li>
+<li><p><strong>Confirm</strong>: Confirm the decoded value and range match your controller display (<code class="docutils literal notranslate"><span class="pre">[y/N]</span></code>).</p></li>
+<li><p>Press <code class="docutils literal notranslate"><span class="pre">Esc</span></code> at any point to cancel the wizard.</p></li>
+</ol>
+</section>
+</section>
+<section id="connection-resilience">
+<h2>Connection Resilience<a class="headerlink" href="#connection-resilience" title="Link to this heading"></a></h2>
+<p>If the serial connection or TCP bridge drops during a session, the CLI automatically stops background polling and notifies you via the status line:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Connection lost: &lt;reason&gt;. Ctrl+S still saves the last received frame, Ctrl+Q quits.
+</pre></div>
+</div>
+<p>Even when disconnected, the application remains fully responsive. You can review mapped parameters, continue editing, and press <code class="docutils literal notranslate"><span class="pre">Ctrl+S</span></code> to save the files from the last received frame.</p>
+</section>
+<section id="saving-output-files">
+<h2>Saving &amp; Output Files<a class="headerlink" href="#saving-output-files" title="Link to this heading"></a></h2>
+<p>Press <code class="docutils literal notranslate"><span class="pre">Ctrl+S</span></code> to save generated files. At least one parameter must be mapped; attempting to save with no mapped parameters will show:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Nothing to save: map at least one parameter first.
+</pre></div>
+</div>
+<p>If generated files already exist in the target directory, you will be prompted to confirm overwrite (<code class="docutils literal notranslate"><span class="pre">[y/N]</span></code>).</p>
+<p>The utility produces three files in the output directory:</p>
+<ol class="arabic simple">
+<li><p><strong>Custom Parameter Module</strong>:
+<code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/pyplumio/parameters/custom/&lt;model_slug&gt;.py</span></code>
+Contains the <code class="docutils literal notranslate"><span class="pre">CustomParameters</span></code> class definition, model signature, and descriptions dictionary.</p></li>
+<li><p><strong>Test Module</strong>:
+<code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/tests/parameters/custom/test_&lt;model_slug&gt;.py</span></code>
+Parametrized pytest tests verifying every mapped parameter against real frame data.</p></li>
+<li><p><strong>Captured Frame Test Data</strong>:
+<code class="docutils literal notranslate"><span class="pre">&lt;output&gt;/tests/testdata/parameters/&lt;model_slug&gt;.json</span></code>
+Raw frame capture used for reproducible testing.</p></li>
+</ol>
+<p>Press <code class="docutils literal notranslate"><span class="pre">Ctrl+Q</span></code> to exit the application cleanly.</p>
+</section>
+<section id="contributing-mapped-parameters">
+<h2>Contributing Mapped Parameters<a class="headerlink" href="#contributing-mapped-parameters" title="Link to this heading"></a></h2>
+<p>Once you have mapped parameters for your controller model:</p>
+<ol class="arabic simple">
+<li><p>Open a pull request against <a class="reference external" href="https://github.com/denpamusic/PyPlumIO/">PyPlumIO</a> adding the generated files.</p></li>
+<li><p>Alternatively, create an issue on GitHub and attach the generated files (or a zip archive containing them).</p></li>
+</ol>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="frames.html" class="btn btn-neutral float-left" title="Frames" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
