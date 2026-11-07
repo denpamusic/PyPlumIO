@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable, Sequence
 from contextlib import suppress
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum, unique
 import logging
 from pathlib import Path
@@ -71,6 +71,7 @@ UNIT_ALIASES: Final[dict[str, UnitOfMeasurement | Literal["%"] | None]] = {
     **{unit.value.lower(): unit for unit in UnitOfMeasurement},
     **{unit.name.lower(): unit for unit in UnitOfMeasurement},
 }
+UNNAMED: Final = "<unnamed>"
 TABLE_HEADER: Final = (
     "Index  Name                                  Value       Min         Max\n"
 )
@@ -357,9 +358,7 @@ class AppState:
     def step_step(self, text: str, buffer: Buffer) -> None:
         """Handle step step."""
         try:
-            if (step := float(text) if text else 1.0) <= 0:
-                raise ValueError
-            self.data.step = int(step) if step.is_integer() else step
+            self.data.step = _parse_step(text)
             units_display = ", ".join(UNIT_WORDS)
             self.set_step(
                 AppStep.UNIT,
@@ -513,6 +512,7 @@ def _get_table_text(state: AppState) -> StyleAndTextTuples:
             f"{max_value:<10}\n"
         )
         lines.append(("reverse", row_text) if row.changed else ("", row_text))
+
     return lines
 
 
@@ -526,63 +526,54 @@ def _resolve_preview_row(state: AppState, text: str) -> Row | None:
     """Return the Row currently being previewed."""
     if state.data.index is not None:
         return state.table.get(state.data.index)
+
     if state.step == AppStep.INDEX and text.isdigit():
         return state.table.get(int(text))
+
     return None
 
 
-def _resolve_live_number_params(
-    state: AppState, text: str
-) -> tuple[int, float | int, UnitOfMeasurement | Literal["%"] | None]:
-    """Return live (offset, step, unit) from app data and current buffer."""
-    offset = state.data.offset
-    if state.step == AppStep.OFFSET and text:
-        with suppress(ValueError):
-            offset = int(text)
-
-    step = state.data.step
-    if state.step == AppStep.STEP and text:
-        with suppress(ValueError):
-            if (parsed := float(text)) > 0:
-                step = int(parsed) if parsed.is_integer() else parsed
-
-    unit = UNIT_ALIASES.get(text.lower()) if state.step == AppStep.UNIT else None
-    return offset, step, unit
+def _parse_step(text: str) -> float | int:
+    """Parse positive step value from user input."""
+    if (step := float(text) if text else 1.0) <= 0:
+        raise ValueError
+    return int(step) if step.is_integer() else step
 
 
 def _build_live_description(
     state: AppState, row: Row, text: str
 ) -> EcomaxParameterDescription | None:
     """Build transient description for live preview."""
-    if state.step == AppStep.INDEX:
-        return row.description
-    if state.step in (AppStep.CONFIRM, AppStep.OVERWRITE):
-        return state.data.description or row.description
-    name = (
-        text
-        if state.step == AppStep.NAME
-        else state.data.name
-        if state.step == AppStep.CONFIRM_STANDARD_NAME
-        else state.data.name or row.name
+    name = (text if state.step == AppStep.NAME else state.data.name) or UNNAMED
+    number = EcomaxNumberDescription(
+        name=name, offset=state.data.offset, step=state.data.step
     )
-    name = name or "<unnamed>"
-    if (
-        state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME)
-        and isinstance(row.description, EcomaxSwitchDescription)
-        or state.step == AppStep.TYPE
-        and (text.lower() or state.data.default_type) == ParameterType.SWITCH
-    ):
-        return EcomaxSwitchDescription(name=name)
-    if state.step in (
-        AppStep.NAME,
-        AppStep.CONFIRM_STANDARD_NAME,
-        AppStep.TYPE,
-    ):
-        return EcomaxNumberDescription(name=name)
-    offset, step, unit = _resolve_live_number_params(state, text)
-    return EcomaxNumberDescription(
-        name=name, step=step, offset=offset, unit_of_measurement=unit
-    )
+    description: EcomaxParameterDescription | None = number
+    match state.step:
+        case AppStep.INDEX:
+            description = row.description
+        case AppStep.CONFIRM | AppStep.OVERWRITE:
+            description = state.data.description or row.description
+        case AppStep.NAME | AppStep.CONFIRM_STANDARD_NAME if isinstance(
+            row.description, EcomaxSwitchDescription
+        ):
+            description = EcomaxSwitchDescription(name=name)
+        case AppStep.TYPE if (
+            text.lower() or state.data.default_type
+        ) == ParameterType.SWITCH:
+            description = EcomaxSwitchDescription(name=name)
+        case AppStep.OFFSET:
+            with suppress(ValueError):
+                description = replace(number, offset=int(text))
+        case AppStep.STEP:
+            with suppress(ValueError):
+                description = replace(number, step=_parse_step(text))
+        case AppStep.UNIT:
+            description = replace(
+                number, unit_of_measurement=UNIT_ALIASES.get(text.lower())
+            )
+
+    return description
 
 
 def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
@@ -616,7 +607,7 @@ def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:
     fields = [
         _format_field(
             "Name",
-            preview.name or "<unnamed>",
+            preview.name or UNNAMED,
             state.step in (AppStep.NAME, AppStep.CONFIRM_STANDARD_NAME),
         ),
         _format_field("Type", parameter_type, state.step == AppStep.TYPE),
