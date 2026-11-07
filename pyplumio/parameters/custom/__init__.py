@@ -5,12 +5,14 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
-from typing import ClassVar, NamedTuple, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, NamedTuple, TypeVar, cast
 
 from pyplumio.helpers.async_cache import acache
-from pyplumio.parameters import ParameterDescription
 from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import create_instance, to_camelcase
+
+if TYPE_CHECKING:
+    from pyplumio.parameters.ecomax import EcomaxParameterDescription
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +29,7 @@ class ParameterOverride(NamedTuple):
     """Represents a parameter override."""
 
     original: str
-    replacement: ParameterDescription
+    replacement: EcomaxParameterDescription
 
 
 class CustomParameters:
@@ -42,7 +44,7 @@ class CustomParameters:
     overrides: ClassVar[Sequence[ParameterOverride]] = []
 
     # Service parameters descriptions.
-    descriptions: ClassVar[dict[int, ParameterDescription]] = {}
+    descriptions: ClassVar[dict[int, EcomaxParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -52,14 +54,22 @@ class CustomParameters:
         )
 
 
+def model_slug(model: str) -> str:
+    """Return model slug from model name."""
+    return model.replace("-", "_").replace(" ", "_").lower()
+
+
+def custom_class_name(slug: str) -> str:
+    """Return custom parameter class name from model slug."""
+    return to_camelcase(slug).upper().replace("ECOMAX", "EcoMAX")
+
+
 @acache
-async def _load_custom_parameters(
-    product_info: ProductInfo,
-) -> CustomParameters | None:
+async def _load_custom_parameters(product_info: ProductInfo) -> CustomParameters | None:
     """Load custom parameters."""
-    module_name = product_info.model.replace("-", "_").replace(" ", "_").lower()
+    module_name = model_slug(product_info.model)
     module_path = f"parameters.custom.{module_name}"
-    class_name = to_camelcase(module_name).upper().replace("ECOMAX", "EcoMAX")
+    class_name = custom_class_name(module_name)
     class_path = f"{module_path}.{class_name}"
     try:
         _LOGGER.debug(
@@ -78,12 +88,12 @@ async def _load_custom_parameters(
     return custom_parameters
 
 
-_DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
+_DescriptionT = TypeVar("_DescriptionT", bound="EcomaxParameterDescription")
 
 
 async def get_custom_service_parameter_types(
     product_info: ProductInfo,
-) -> dict[int, ParameterDescription]:
+) -> dict[int, EcomaxParameterDescription]:
     """Get custom service parameter types."""
     if custom_parameters := await _load_custom_parameters(product_info):
         return custom_parameters.descriptions
@@ -117,6 +127,8 @@ __all__ = (
     "CustomParameters",
     "ParameterOverride",
     "Signature",
+    "custom_class_name",
     "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
+    "model_slug",
 )

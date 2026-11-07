@@ -833,7 +833,7 @@ async def get_ecomax_parameter_types(
 @acache
 async def get_service_parameter_types(
     product_info: ProductInfo,
-) -> dict[int, ParameterDescription]:
+) -> dict[int, EcomaxParameterDescription]:
     """Return service ecoMAX parameter types for a specific product."""
     return await get_custom_service_parameter_types(product_info)
 
