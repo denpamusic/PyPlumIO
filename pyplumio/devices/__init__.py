@@ -262,7 +262,7 @@ __all__ = [
     "Device",
     "PhysicalDevice",
     "LogicalDevice",
-    "device_hander",
+    "device_handler",
     "get_device_handler",
     "is_known_device_type",
 ]
