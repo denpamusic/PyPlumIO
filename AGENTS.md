@@ -46,6 +46,10 @@ of the module.
 
 2.1.6. Use timezone-aware datetimes (Ruff DTZ rules).
 
+2.1.7. Prefer constants over helper functions or methods when
+instantiating classes without dynamic parameters (for example
+`ECOMAX_CONTROL_PARAMETER` in `pyplumio/parameters/ecomax.py`).
+
 ### 2.2. Memory: `__slots__`
 
 2.2.1. Every class defines `__slots__`.
@@ -89,9 +93,11 @@ including private ones and tests, has a docstring.
 2.4.2. The summary line starts on the first line, is in imperative mood
 and ends with a period.
 
-2.4.3. Public functions with parameters use Sphinx reST fields:
-`:param x:`, `:type x:`, `:return:`, `:rtype:`, `:raise Error:`.
-Trivial or private functions may use a one-line docstring.
+2.4.3. Only functions, methods and classes included in the Sphinx docs
+(`docs/source/*.rst`, via autodoc/autoclass/automethod directives) use
+full Sphinx reST fields: `:param x:`, `:type x:`, `:return:`, `:rtype:`,
+`:raise Error:`. Everything else, including public names not included in
+the docs, uses a concise one-line docstring.
 
 2.4.4. Sphinx docs in `docs/source` are built from docstrings. Keep
 docstrings accurate and update `docs/source/*.rst` when behavior
