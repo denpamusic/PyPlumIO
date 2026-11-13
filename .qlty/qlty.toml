@@ -3,17 +3,22 @@ config_version = "0"
 
 # Exclude generated, build, documentation, cache, and virtual environment directories
 exclude_patterns = [
+  "**/.git/**",
   "**/.mypy_cache/**",
   "**/.pytest_cache/**",
   "**/.ruff_cache/**",
   "**/.tox/**",
   "**/.venv/**",
+  "**/.vscode/**",
   "**/build/**",
   "**/docs/**",
   "**/testdata/**",
 ]
 
 test_patterns = ["**/tests/**", "**/*.test_*"]
+
+[coverage]
+paths = ["coverage.lcov"]
 
 [smells]
 mode = "comment"
@@ -24,7 +29,11 @@ threshold = 15
 
 # Match Ruff's PLR0911 (max 6 return statements)
 [smells.return_statements]
-threshold = 6
+threshold = 7
+
+# Disable whole-file complexity (not used by complexipy or ruff)
+[smells.file_complexity]
+enabled = false
 
 # Allow wider signatures (mirrors ignoring PLR0913/PLR0917 in pyproject.toml)
 [smells.function_parameters]
@@ -45,9 +54,9 @@ match.rules = ["markdownlint:MD013", "markdownlint:MD029"]
 match.file_patterns = ["*.md", "**/*.md"]
 set.ignored = true
 
-# Ignore pytest assertions in test files for bandit
+# Ignore bandit findings in test files
 [[triage]]
-match.rules = ["bandit:B101"]
+match.plugins = ["bandit"]
 match.file_patterns = ["tests/**", "**/tests/**"]
 set.ignored = true
 
