@@ -25,6 +25,14 @@ dependencies = [
     "serialx>=1.10.0",
 ]
 
+[project.optional-dependencies]
+cli = [
+    "prompt_toolkit>=3.0.43",
+]
+
+[project.scripts]
+pyplumio = "pyplumio.cli:main"
+
 [project.urls]
 "Documentation" = "https://pyplumio.denpa.pro"
 "Source Code" = "https://github.com/denpamusic/PyPlumIO"
@@ -40,6 +48,7 @@ dev = [
 test = [
     "freezegun>=1.5.5",
     "numpy>=2.0.0,<2.5.0",
+    "prompt-toolkit>=3.0.53",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.3.0",
     "pytest-cov>=6.0.0",
@@ -51,6 +60,7 @@ lint = [
 ]
 typing = [
     "mypy>=1.19.1,<=2.4.0",
+    "prompt-toolkit>=3.0.53",
 ]
 docs = [
     "sphinx>=8.1.3",
@@ -227,11 +237,6 @@ split-on-trailing-comma = false
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
-
-[tool.ruff.lint.per-file-ignores]
-
-# Allow print in main
-"pyplumio/__main__.py" = ["T201"]
 
 [tool.coverage.run]
 source = ["pyplumio"]
