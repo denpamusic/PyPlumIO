@@ -50,6 +50,9 @@ of the module.
 instantiating classes without dynamic parameters (for example
 `ECOMAX_CONTROL_PARAMETER` in `pyplumio/parameters/ecomax.py`).
 
+2.1.8. Place a blank line after every `if:` (or `if/elif/else:`) block
+when followed by another statement in the same scope.
+
 ### 2.2. Memory: `__slots__`
 
 2.2.1. Every class defines `__slots__`.
