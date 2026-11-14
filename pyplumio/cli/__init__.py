@@ -7,6 +7,7 @@ import asyncio
 from collections.abc import Sequence
 from contextlib import suppress
 import ctypes
+from enum import IntEnum, unique
 import os
 from pathlib import Path
 import sys
@@ -17,7 +18,15 @@ from pyplumio.cli.session import DEFAULT_INTERVAL_SECONDS
 from pyplumio.connection import DEFAULT_BAUDRATE
 
 MAX_CONSOLE_PROCESSES: Final = 4
-SIGINT_EXIT_CODE: Final = 130
+
+
+@unique
+class _ExitCode(IntEnum):
+    """Contains exit codes."""
+
+    SUCCESS = 0
+    FAILURE = 1
+    SIGINT = 130
 
 
 def _is_standalone_windows_console() -> bool:
@@ -56,7 +65,7 @@ def _parse_system_exit(err: SystemExit) -> int:
     if isinstance(err.code, int):
         return err.code
 
-    return 0 if err.code is None else 1
+    return _ExitCode.SUCCESS if err.code is None else _ExitCode.FAILURE
 
 
 def _run_cli(argv: Sequence[str] | None) -> int:
@@ -67,7 +76,7 @@ def _run_cli(argv: Sequence[str] | None) -> int:
         sys.stderr.write(
             'PyPlumIO CLI requires extra dependencies: pip install "pyplumio[cli]"\n'
         )
-        return 1
+        return _ExitCode.FAILURE
 
     parser = argparse.ArgumentParser(description="PyPlumIO parameter mapper.")
     parser.add_argument("--url", default=None, help="connection URL")
@@ -87,20 +96,20 @@ def _run_cli(argv: Sequence[str] | None) -> int:
     try:
         return asyncio.run(run_app(parser.parse_args(argv)))
     except KeyboardInterrupt:
-        return SIGINT_EXIT_CODE
+        return _ExitCode.SIGINT
     except EOFError:
-        return 1
+        return _ExitCode.FAILURE
     except SystemExit as err:
         return _parse_system_exit(err)
     except Exception:
         traceback.print_exc()
-        return 1
+        return _ExitCode.FAILURE
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Run PyPlumIO command line interface."""
     exit_code = _run_cli(argv)
-    if exit_code not in (0, SIGINT_EXIT_CODE):
+    if exit_code not in (_ExitCode.SUCCESS, _ExitCode.SIGINT):
         _pause_before_exit()
 
     return exit_code
