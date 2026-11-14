@@ -28,10 +28,10 @@ from pyplumio.cli.ui import (
     _get_table_text,
     create_app,
 )
-from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
+from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
-from pyplumio.structures.product_info import ProductInfo
+from tests.cli.conftest import DUMMY_ID, DUMMY_MODEL, DUMMY_SLUG, dummy_product_info
 
 
 def _step(state: AppState) -> AppStep:
@@ -48,14 +48,7 @@ def _assert_table_row(line: OneStyleAndTextTuple, index: int, style: str) -> Non
 async def test_app_state_save_nothing_mapped(tmp_path: Path) -> None:
     """Test saving files when no descriptions are mapped."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -82,17 +75,10 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     assert "Updated: Never" in header[0][1]
 
     # Header with product info and update time
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
     header = _get_header_text(state)
-    assert "Model: ecoMAX 350P2-ZF (ID: 90)" in header[0][1]
+    assert f"Model: {DUMMY_MODEL} (ID: {DUMMY_ID})" in header[0][1]
     assert "Updated: 12:00:00" in header[0][1]
 
     # Table text without description
@@ -455,14 +441,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert state.status == "No connection or product info yet."
 
     # 2b. c-s with product info but nothing mapped
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -484,7 +463,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert _step(state) == AppStep.ZIP
     state.step_zip("n", app_buffer)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == "Overwrite existing ecomax_350p2_zf.py? [y/N]: "
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
     assert str(tmp_path) not in state.prompt
 
     # 3. escape
@@ -645,14 +624,7 @@ def test_name_completer(tmp_path: Path) -> None:
     )
 
     # With product_info, offers substring matches for ProductType
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     matches = [
         c.text
         for c in app_buffer.completer.get_completions(
@@ -733,14 +705,7 @@ def test_live_preview_box_prefilled_unit_and_step(tmp_path: Path) -> None:
 async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     """Test ZIP prompt, tree save, overwrite prompt, Esc cancel, and live preview."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -776,13 +741,13 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     assert _step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
-    assert (tmp_path / "pyplumio/parameters/custom/ecomax_350p2_zf.py").is_file()
+    assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
 
     # Answering "n" with existing .py goes to OVERWRITE; Esc cancels
     bindings["c-s"](mock_event)
     state.step_zip("n", app_buffer)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == "Overwrite existing ecomax_350p2_zf.py? [y/N]: "
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
     bindings["escape"](mock_event)
     assert _step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
@@ -791,14 +756,7 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
 async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     """Test answering yes at ZIP prompt creates and overwrites ZIP archive."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -813,7 +771,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     mock_event = MagicMock(spec=KeyPressEvent)
     buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
-    zip_path = tmp_path / "ecomax_350p2_zf.zip"
+    zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
 
     # Answering "y" writes ZIP and resets save_as_zip
     bindings["c-s"](mock_event)
@@ -824,16 +782,16 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     assert zip_path.is_file()
     with zipfile.ZipFile(zip_path, "r") as archive:
         assert set(archive.namelist()) == {
-            "pyplumio/parameters/custom/ecomax_350p2_zf.py",
-            "tests/parameters/custom/test_ecomax_350p2_zf.py",
-            "tests/testdata/parameters/ecomax_350p2_zf.json",
+            f"pyplumio/parameters/custom/{DUMMY_SLUG}.py",
+            f"tests/parameters/custom/test_{DUMMY_SLUG}.py",
+            f"tests/testdata/parameters/{DUMMY_SLUG}.json",
         }
 
     # Existing ZIP -> OVERWRITE prompt, decline -> "Save cancelled."
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == "Overwrite existing ecomax_350p2_zf.zip? [y/N]: "
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
     assert bool(state.data.save_as_zip) is True
     state.step_overwrite("n", app_buffer)
     assert _step(state) == AppStep.INDEX
@@ -853,14 +811,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
 async def test_zip_save_flag(tmp_path: Path) -> None:
     """Test create_app with zip_output=True skips ZIP prompt and saves ZIP directly."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -878,7 +829,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
-    zip_path = tmp_path / "ecomax_350p2_zf.zip"
+    zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {zip_path}."
@@ -888,7 +839,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     # Second Ctrl+S goes directly to OVERWRITE for the ZIP file
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == "Overwrite existing ecomax_350p2_zf.zip? [y/N]: "
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
     app_buffer.text = "y"
     state.dispatch_enter(app_buffer)
     assert _step(state) == AppStep.INDEX

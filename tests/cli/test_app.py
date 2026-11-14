@@ -31,12 +31,17 @@ from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
 from pyplumio.cli.state import AppState, AppStep, _save_files
 from pyplumio.cli.ui import create_app
-from pyplumio.const import ProductType
 from pyplumio.exceptions import ConnectionFailedError, PyPlumIOError
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom.ecomax_350p2_zf import EcoMAX350P2ZF
 from pyplumio.parameters.ecomax import EcomaxNumberDescription
-from pyplumio.structures.product_info import ProductInfo
+from tests.cli.conftest import (
+    DUMMY_COMMENTS,
+    DUMMY_MODEL,
+    DUMMY_SLUG,
+    EcoMAX999TEST,
+    dummy_product_info,
+    write_dummy_custom_module,
+)
 
 
 def _step(state: AppState) -> AppStep:
@@ -143,14 +148,8 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         zip=False,
     )
 
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    product_info = dummy_product_info()
+    source_path = write_dummy_custom_module(tmp_path / "source")
 
     created_sessions: list[Session] = []
     created_states: list[AppState] = []
@@ -171,6 +170,15 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         create_app_session(input=pipe_input, output=DummyOutput()),
         patch.object(Session, "__init__", track_init),
         patch("pyplumio.cli.app.create_app", side_effect=track_create_app),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=EcoMAX999TEST(),
+        ),
+        patch(
+            "pyplumio.cli.app.inspect.getsourcefile",
+            return_value=str(source_path),
+        ),
         patch(
             "pyplumio.cli.session.Session.connect", new_callable=AsyncMock
         ) as mock_connect,
@@ -203,7 +211,9 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         mock_run.assert_awaited_once()
         mock_close.assert_awaited_once()
         assert created_sessions[0]._on_status is _write_status
-        assert created_states[0].table.comments == {113: "0 - pellets, 1 - wood"}
+        assert created_states[0].table.descriptions == EcoMAX999TEST.descriptions
+        assert created_states[0].table.overrides == EcoMAX999TEST.overrides
+        assert created_states[0].table.comments == DUMMY_COMMENTS
         captured = capsys.readouterr()
         assert "Starting interface...\n" in captured.err
 
@@ -239,7 +249,7 @@ async def test_run_app_error(capsys: pytest.CaptureFixture[str]) -> None:
     with patch(
         "pyplumio.cli.session.Session.connect",
         side_effect=PyPlumIOError(
-            "ecoMAX 350P2-ZF did not return service parameters after 3 attempts; "
+            f"{DUMMY_MODEL} did not return service parameters after 3 attempts; "
             "this controller may not support them"
         ),
     ):
@@ -247,7 +257,7 @@ async def test_run_app_error(capsys: pytest.CaptureFixture[str]) -> None:
         assert ret == 1
         captured = capsys.readouterr()
         assert (
-            "Error: ecoMAX 350P2-ZF did not return service parameters "
+            f"Error: {DUMMY_MODEL} did not return service parameters "
             "after 3 attempts; this controller may not support them\n" in captured.err
         )
 
@@ -282,14 +292,7 @@ async def test_run_app_disconnect_status(tmp_path: Path) -> None:
         baudrate=115200,
         zip=False,
     )
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    product_info = dummy_product_info()
     created_sessions: list[Session] = []
     created_states: list[AppState] = []
     orig_init = Session.__init__
@@ -362,14 +365,7 @@ async def test_run_app_zip_flag(tmp_path: Path) -> None:
         baudrate=115200,
         zip=True,
     )
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    product_info = dummy_product_info()
     created_states: list[AppState] = []
     orig_create_app = create_app
 
@@ -400,39 +396,40 @@ async def test_run_app_zip_flag(tmp_path: Path) -> None:
 
 def test_load_comments(tmp_path: Path) -> None:
     """Test _load_comments precedence, source fallback, and missing source."""
-    module_path = custom_module_path(tmp_path, "ecomax_350p2_zf")
+    module_path = custom_module_path(tmp_path, DUMMY_SLUG)
     module_path.parent.mkdir(parents=True, exist_ok=True)
     module_path.write_text(
         "        # custom output comment\n"
-        '        8: EcomaxNumberDescription(name="heating_cycle_time"),\n',
+        '        4: EcomaxNumberDescription(name="fuel_type"),\n',
         encoding="utf-8",
     )
-    assert _load_comments(EcoMAX350P2ZF(), tmp_path, "ecomax_350p2_zf") == {
-        8: "custom output comment"
+    assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {
+        4: "custom output comment"
     }
 
-    assert _load_comments(EcoMAX350P2ZF(), tmp_path / "empty", "ecomax_350p2_zf") == {
-        113: "0 - pellets, 1 - wood"
-    }
-
-    with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=None):
+    source_path = write_dummy_custom_module(tmp_path / "source")
+    with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=str(source_path)):
         assert (
-            _load_comments(EcoMAX350P2ZF(), tmp_path / "empty", "ecomax_350p2_zf") == {}
+            _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG)
+            == DUMMY_COMMENTS
         )
 
+    with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=None):
+        assert _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG) == {}
+
     with patch.object(Path, "read_text", side_effect=OSError("Permission denied")):
-        assert _load_comments(EcoMAX350P2ZF(), tmp_path, "ecomax_350p2_zf") == {}
+        assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {}
 
 
 async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> None:
     """Test loaded comments are pre-filled at comment step and preserved on save."""
-    existing_module = custom_module_path(tmp_path, "ecomax_350p2_zf")
+    existing_module = custom_module_path(tmp_path, DUMMY_SLUG)
     existing_module.parent.mkdir(parents=True, exist_ok=True)
     existing_module.write_text(
         "        # untouched output comment\n"
-        '        8: EcomaxNumberDescription(name="heating_cycle_time"),\n'
+        '        0: EcomaxNumberDescription(name="max_boiler_power"),\n'
         "        # 0 - pellets, 1 - wood\n"
-        '        113: EcomaxNumberDescription(name="fuel_type"),\n',
+        '        4: EcomaxNumberDescription(name="fuel_type"),\n',
         encoding="utf-8",
     )
 
@@ -443,14 +440,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         baudrate=115200,
         zip=False,
     )
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    product_info = dummy_product_info()
     created_sessions: list[Session] = []
     created_states: list[AppState] = []
     orig_init = Session.__init__
@@ -470,8 +460,8 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         sess.product_info = product_info
         sess.last_frame_message = b"\x00" * 40
         sess.last_parameters = [
-            (8, ParameterValues(value=10, min_value=0, max_value=20)),
-            (113, ParameterValues(value=0, min_value=0, max_value=1)),
+            (0, ParameterValues(value=10, min_value=0, max_value=20)),
+            (4, ParameterValues(value=0, min_value=0, max_value=1)),
         ]
         if sess._on_update:
             sess._on_update(sess.last_parameters)
@@ -479,8 +469,8 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         state = created_states[0]
         buff = Buffer()
 
-        # Edit index 113 and verify loaded comment is pre-filled
-        buff.text = "113"
+        # Edit index 4 and verify loaded comment is pre-filled
+        buff.text = "4"
         state.dispatch_enter(buff)
         state.dispatch_enter(buff)  # keep "fuel_type"
         state.dispatch_enter(buff)  # keep "number"
@@ -493,10 +483,10 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         buff.text = "y"
         state.dispatch_enter(buff)
 
-        # Save to output_dir without touching index 8 and verify both comments persist
+        # Save to output_dir without touching index 0 and verify both comments persist
         state.start_save(buff, save_as_zip=False)
         assert _step(state) == AppStep.OVERWRITE
-        assert state.prompt == "Overwrite existing ecomax_350p2_zf.py? [y/N]: "
+        assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
         buff.text = "y"
         state.dispatch_enter(buff)
 
@@ -505,6 +495,11 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         create_app_session(input=pipe_input, output=DummyOutput()),
         patch.object(Session, "__init__", track_init),
         patch("pyplumio.cli.app.create_app", side_effect=track_create_app),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=EcoMAX999TEST(),
+        ),
         patch(
             "pyplumio.cli.session.Session.connect",
             new_callable=AsyncMock,
@@ -520,5 +515,5 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         assert await run_app(args) == 0
 
     saved_module = existing_module.read_text(encoding="utf-8")
-    assert "        # untouched output comment\n        8: " in saved_module
-    assert "        # 0 - pellets, 1 - wood\n        113: " in saved_module
+    assert "        # untouched output comment\n        0: " in saved_module
+    assert "        # 0 - pellets, 1 - wood\n        4: " in saved_module

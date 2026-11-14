@@ -15,7 +15,7 @@ from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.mixer import MixerNumber, MixerParameter, MixerSwitch
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.sensor_data import ATTR_MIXER_SENSORS
-from tests.conftest import class_from_json
+from tests.conftest import DUMMY_MODEL, class_from_json
 
 MIXER_INDEX: Final = 4
 
@@ -115,4 +115,4 @@ async def test_mixer_parameters_event_listener_unknown_parameter(
 
     assert "unknown mixer parameter (14)" in caplog.text
     assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
-    assert "ecoMAX Dummy" in caplog.text
+    assert DUMMY_MODEL in caplog.text

@@ -27,6 +27,7 @@ TESTDATA_DIR: Final = "testdata"
 UNDEFINED: Final = "undefined"
 RAISES: Final = "raises"
 DEFAULT_TOLERANCE: Final = 1e-6
+DUMMY_MODEL: Final = "ecoMAX 999-TEST"
 
 T = TypeVar("T")
 
@@ -183,7 +184,7 @@ async def fixture_ecomax() -> EcoMAX:
         uid="TEST",
         logo=0,
         image=0,
-        model="ecoMAX Dummy",
+        model=DUMMY_MODEL,
     )
     await ecomax.dispatch(ATTR_PRODUCT, product_info)
     return ecomax
@@ -197,6 +198,7 @@ def fixture_frozen_time():
 
 
 __all__ = (
+    "DUMMY_MODEL",
     "class_from_json",
     "equal_parameter_value",
     "json_test_data",

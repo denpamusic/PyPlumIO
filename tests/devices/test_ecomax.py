@@ -96,6 +96,7 @@ from pyplumio.structures.thermostat_parameters import (
     ATTR_THERMOSTAT_PROFILE,
 )
 from tests.conftest import (
+    DUMMY_MODEL,
     UNDEFINED,
     class_from_json,
     equal_parameter_value,
@@ -472,7 +473,7 @@ async def test_unknown_ecomax_parameter(
 
     assert "unknown ecoMAX parameter (139)" in caplog.text
     assert "ParameterValues(value=1, min_value=1, max_value=1)" in caplog.text
-    assert "ecoMAX Dummy" in caplog.text
+    assert DUMMY_MODEL in caplog.text
 
 
 @class_from_json(SensorDataMessage, "messages/sensor_data.json", arguments=("message",))

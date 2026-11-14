@@ -23,10 +23,18 @@ from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.frames.responses import EcomaxServiceParametersResponse
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride
-from pyplumio.parameters.custom.ecomax_350p2_zf import EcoMAX350P2ZF
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.product_info import ProductInfo
+from tests.cli.conftest import (
+    DUMMY_CLASS_NAME,
+    DUMMY_COMMENTS,
+    DUMMY_SLUG,
+    EcoMAX999TEST,
+    dummy_product_info,
+    dummy_service_parameters_frame,
+    write_dummy_custom_module,
+)
 
 
 def _assert_ruff_clean(tmp_path: Path, slug: str) -> None:
@@ -89,42 +97,21 @@ def _assert_ruff_clean(tmp_path: Path, slug: str) -> None:
 
 
 def test_codegen_golden(tmp_path: Path) -> None:
-    """Test codegen golden test with ecoMAX 350P2-ZF test data."""
-    json_path = (
-        Path(__file__).parent.parent
-        / "testdata"
-        / "parameters"
-        / "ecomax_350p2_zf.json"
-    )
-    raw_json = json.loads(json_path.read_text(encoding="utf-8"))
-    raw_bytes = bytes.fromhex("".join(raw_json[0]["message"]["items"]))
-
+    """Test codegen golden test with synthetic ecoMAX 999-TEST data."""
+    raw_bytes, expected_parameters = dummy_service_parameters_frame()
     response = EcomaxServiceParametersResponse(message=raw_bytes)
     frame_parameters = response.data[ATTR_ECOMAX_SERVICE_PARAMETERS]
+    assert frame_parameters == expected_parameters
 
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
-
-    real_module_path = (
-        Path(__file__).parent.parent.parent
-        / "pyplumio"
-        / "parameters"
-        / "custom"
-        / "ecomax_350p2_zf.py"
-    )
-    comments = extract_comments(real_module_path.read_text(encoding="utf-8"))
-    assert comments == {113: "0 - pellets, 1 - wood"}
+    product_info = dummy_product_info()
+    source_path = write_dummy_custom_module(tmp_path / "source")
+    comments = extract_comments(source_path.read_text(encoding="utf-8"))
+    assert comments == DUMMY_COMMENTS
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=EcoMAX350P2ZF.descriptions,
-        overrides=getattr(EcoMAX350P2ZF, "overrides", ()),
+        descriptions=EcoMAX999TEST.descriptions,
+        overrides=EcoMAX999TEST.overrides,
         frame_message=raw_bytes,
         frame_parameters=frame_parameters,
         output_dir=tmp_path,
@@ -133,7 +120,7 @@ def test_codegen_golden(tmp_path: Path) -> None:
 
     # 1. Assert JSON round-trips
     json_content = files[
-        tmp_path / "tests" / "testdata" / "parameters" / "ecomax_350p2_zf.json"
+        tmp_path / "tests" / "testdata" / "parameters" / f"{DUMMY_SLUG}.json"
     ]
     parsed_json = json.loads(json_content)
     roundtrip_bytes = bytes.fromhex("".join(parsed_json[0]["message"]["items"]))
@@ -141,28 +128,29 @@ def test_codegen_golden(tmp_path: Path) -> None:
 
     # 2. Assert generated module compiles and matches signature and descriptions
     module_content = files[
-        tmp_path / "pyplumio" / "parameters" / "custom" / "ecomax_350p2_zf.py"
+        tmp_path / "pyplumio" / "parameters" / "custom" / f"{DUMMY_SLUG}.py"
     ]
-    assert "        # 0 - pellets, 1 - wood\n        113: " in module_content
-    code_obj = compile(module_content, "<ecomax_350p2_zf>", "exec")
+    assert "        # 0 - pellets, 1 - wood\n        4: " in module_content
+    code_obj = compile(module_content, f"<{DUMMY_SLUG}>", "exec")
     local_ns: dict[str, object] = {}
     exec(code_obj, local_ns)  # noqa: S102
-    gen_cls = local_ns["EcoMAX350P2ZF"]
-    assert getattr(gen_cls, "signature") == EcoMAX350P2ZF.signature
-    assert getattr(gen_cls, "descriptions") == EcoMAX350P2ZF.descriptions
+    gen_cls = local_ns[DUMMY_CLASS_NAME]
+    assert getattr(gen_cls, "signature") == EcoMAX999TEST.signature
+    assert getattr(gen_cls, "descriptions") == EcoMAX999TEST.descriptions
+    assert getattr(gen_cls, "overrides") == EcoMAX999TEST.overrides
 
     # 3. Assert test module compiles
     test_content = files[
-        tmp_path / "tests" / "parameters" / "custom" / "test_ecomax_350p2_zf.py"
+        tmp_path / "tests" / "parameters" / "custom" / f"test_{DUMMY_SLUG}.py"
     ]
-    compile(test_content, "<test_ecomax_350p2_zf>", "exec")
+    compile(test_content, f"<test_{DUMMY_SLUG}>", "exec")
 
     # 4. Write files and run ruff on them
     write_files(files)
     for file_path in files:
         assert file_path.is_file()
 
-    _assert_ruff_clean(tmp_path, "ecomax_350p2_zf")
+    _assert_ruff_clean(tmp_path, DUMMY_SLUG)
 
 
 def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
@@ -345,53 +333,27 @@ def test_format_field_value() -> None:
 
 def test_write_zip(tmp_path: Path) -> None:
     """Test writing generated parameter files into a ZIP archive."""
-    json_path = (
-        Path(__file__).parent.parent
-        / "testdata"
-        / "parameters"
-        / "ecomax_350p2_zf.json"
-    )
-    raw_json = json.loads(json_path.read_text(encoding="utf-8"))
-    raw_bytes = bytes.fromhex("".join(raw_json[0]["message"]["items"]))
-    response = EcomaxServiceParametersResponse(message=raw_bytes)
-    frame_parameters = response.data[ATTR_ECOMAX_SERVICE_PARAMETERS]
-
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
-    real_module_path = (
-        Path(__file__).parent.parent.parent
-        / "pyplumio"
-        / "parameters"
-        / "custom"
-        / "ecomax_350p2_zf.py"
-    )
-    comments = extract_comments(real_module_path.read_text(encoding="utf-8"))
-    assert comments == {113: "0 - pellets, 1 - wood"}
+    raw_bytes, frame_parameters = dummy_service_parameters_frame()
+    product_info = dummy_product_info()
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=EcoMAX350P2ZF.descriptions,
-        overrides=getattr(EcoMAX350P2ZF, "overrides", ()),
+        descriptions=EcoMAX999TEST.descriptions,
+        overrides=EcoMAX999TEST.overrides,
         frame_message=raw_bytes,
         frame_parameters=frame_parameters,
         output_dir=tmp_path,
-        comments=comments,
+        comments=DUMMY_COMMENTS,
     )
 
-    zip_path = tmp_path / "archives" / "ecomax_350p2_zf.zip"
+    zip_path = tmp_path / "archives" / f"{DUMMY_SLUG}.zip"
     write_zip(zip_path, files, tmp_path)
     assert zip_path.is_file()
 
     expected_members = {
-        "pyplumio/parameters/custom/ecomax_350p2_zf.py",
-        "tests/parameters/custom/test_ecomax_350p2_zf.py",
-        "tests/testdata/parameters/ecomax_350p2_zf.json",
+        f"pyplumio/parameters/custom/{DUMMY_SLUG}.py",
+        f"tests/parameters/custom/test_{DUMMY_SLUG}.py",
+        f"tests/testdata/parameters/{DUMMY_SLUG}.json",
     }
     with zipfile.ZipFile(zip_path, "r") as archive:
         assert set(archive.namelist()) == expected_members
@@ -402,14 +364,7 @@ def test_write_zip(tmp_path: Path) -> None:
 
 def test_codegen_with_comments(tmp_path: Path) -> None:
     """Test generating custom parameter module and files with wrapped comments."""
-    product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    product_info = dummy_product_info()
     descriptions: dict[int, EcomaxNumberDescription | EcomaxSwitchDescription] = {
         0: EcomaxSwitchDescription(name="mode_switch"),
         1: EcomaxSwitchDescription(name="aux_switch"),
@@ -452,25 +407,24 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         2: long_comment,
     }
 
-    custom_dir = (
-        Path(__file__).parent.parent.parent / "pyplumio" / "parameters" / "custom"
+    no_comment_module = generate_custom_parameter_module(product_info, descriptions)
+    assert extract_comments(no_comment_module) == {}
+
+    wrapped_module = (
+        "    descriptions = {\n"
+        "        # 0 - standard, 1 - fuzzy logic. Kept as a number, because the\n"
+        "        # controller allows a third value (2) with unknown meaning.\n"
+        '        23: EcomaxNumberDescription(name="control_mode"),\n'
+        "        # 0 - off, 1 - priority, 2 - no priority.\n"
+        '        90: EcomaxNumberDescription(name="boiler_priority"),\n'
+        "    }\n"
     )
-    assert (
-        extract_comments(
-            (custom_dir / "ecomax_860d3_hb.py").read_text(encoding="utf-8")
-        )
-        == {}
-    )
-    assert extract_comments(
-        (custom_dir / "ecomax_860p4_nm_touch.py").read_text(encoding="utf-8")
-    ) == {
+    assert extract_comments(wrapped_module) == {
         23: (
             "0 - standard, 1 - fuzzy logic. Kept as a number, because the "
             "controller allows a third value (2) with unknown meaning."
         ),
         90: "0 - off, 1 - priority, 2 - no priority.",
-        210: "0 - off, 1 - 4D valve, 2 - 3D valve (by panel list order).",
-        215: "0 - reserve boiler, 1 - alarms, 2 - circulation pump.",
     }
     assert extract_comments(
         "# top-level comment\n"
@@ -509,10 +463,10 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         comments=comments,
     )
     generated_module = files[
-        tmp_path / "pyplumio" / "parameters" / "custom" / "ecomax_350p2_zf.py"
+        tmp_path / "pyplumio" / "parameters" / "custom" / f"{DUMMY_SLUG}.py"
     ]
     assert generated_module == module_content
-    compile(generated_module, "<ecomax_350p2_zf>", "exec")
+    compile(generated_module, f"<{DUMMY_SLUG}>", "exec")
 
     write_files(files)
-    _assert_ruff_clean(tmp_path, "ecomax_350p2_zf")
+    _assert_ruff_clean(tmp_path, DUMMY_SLUG)

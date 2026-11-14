@@ -12,7 +12,7 @@ from serialx import SerialException
 import pyplumio
 from pyplumio.cli.session import SERVICE_PARAMETERS_REQUEST, UID_REQUEST, Session
 from pyplumio.connection import RECONNECT_AFTER_SECONDS
-from pyplumio.const import DeviceType, ProductType
+from pyplumio.const import DeviceType
 from pyplumio.exceptions import (
     ChecksumError,
     ConnectionFailedError,
@@ -26,19 +26,7 @@ from pyplumio.frames import responses
 from pyplumio.parameters import ParameterValues
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
-
-
-@pytest.fixture
-def product_info() -> ProductInfo:
-    """Return sample product info."""
-    return ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+from tests.cli.conftest import DUMMY_MODEL
 
 
 @pytest.fixture
@@ -109,7 +97,7 @@ async def test_session_connect_success(
         assert on_status.call_args_list == [
             call("Connecting to socket://localhost:8899..."),
             call("Requesting product info (1/2)..."),
-            call("Requesting service parameters for ecoMAX 350P2-ZF (1/2)..."),
+            call(f"Requesting service parameters for {DUMMY_MODEL} (1/2)..."),
             call("Received 1 service parameters."),
         ]
 
@@ -148,8 +136,8 @@ async def test_session_connect_retry_and_timeout(
             call("Connecting to /dev/ttyUSB0..."),
             call("Requesting product info (1/2)..."),
             call("Requesting product info (2/2)..."),
-            call("Requesting service parameters for ecoMAX 350P2-ZF (1/2)..."),
-            call("Requesting service parameters for ecoMAX 350P2-ZF (2/2)..."),
+            call(f"Requesting service parameters for {DUMMY_MODEL} (1/2)..."),
+            call(f"Requesting service parameters for {DUMMY_MODEL} (2/2)..."),
             call("Received 1 service parameters."),
         ]
         assert "Product info attempt 1/2 timed out" in caplog.text
@@ -178,7 +166,7 @@ async def test_session_connect_service_parameters_unsupported(
         with pytest.raises(
             PyPlumIOError,
             match=(
-                "ecoMAX 350P2-ZF did not return service parameters after 2 attempts; "
+                f"{DUMMY_MODEL} did not return service parameters after 2 attempts; "
                 "this controller may not support them"
             ),
         ):
@@ -204,7 +192,7 @@ async def test_session_connect_service_parameters_unsupported(
         with pytest.raises(
             PyPlumIOError,
             match=(
-                "ecoMAX 350P2-ZF did not return service parameters after 2 attempts; "
+                f"{DUMMY_MODEL} did not return service parameters after 2 attempts; "
                 "this controller may not support them"
             ),
         ):

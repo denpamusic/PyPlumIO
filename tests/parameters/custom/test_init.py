@@ -19,14 +19,15 @@ from pyplumio.parameters.ecomax import (
     EcomaxNumberDescription,
 )
 from pyplumio.structures.product_info import ProductInfo
+from tests.conftest import DUMMY_MODEL
 
 
-class DummyEcoMAX(CustomParameters):
-    """Custom parameters for ecoMAX Dummy."""
+class EcoMAX999TEST(CustomParameters):
+    """Custom parameters for ecoMAX 999-TEST."""
 
     __slots__ = ()
 
-    signature = Signature(model="ecoMAX Dummy", id=1)
+    signature = Signature(model=DUMMY_MODEL, id=1)
 
     overrides = (
         ParameterOverride(
@@ -50,9 +51,9 @@ class DummyEcoMAX(CustomParameters):
                 uid="*TEST*",
                 logo=1,
                 image=1,
-                model="ecoMAX Dummy",
+                model=DUMMY_MODEL,
             ),
-            "ecomax_dummy.EcoMAXDUMMY",
+            "ecomax_999_test.EcoMAX999TEST",
             True,
         ),
         (
@@ -62,9 +63,9 @@ class DummyEcoMAX(CustomParameters):
                 uid="*TEST*",
                 logo=2,
                 image=1,
-                model="ecoMAX Dummy",
+                model=DUMMY_MODEL,
             ),
-            "ecomax_dummy.EcoMAXDUMMY",
+            "ecomax_999_test.EcoMAX999TEST",
             False,
         ),
         (
@@ -74,14 +75,14 @@ class DummyEcoMAX(CustomParameters):
                 uid="*TEST*",
                 logo=1,
                 image=1,
-                model="ecoMAX Dummy2",
+                model=f"{DUMMY_MODEL}2",
             ),
-            "ecomax_dummy2.EcoMAXDUMMY2",
+            "ecomax_999_test2.EcoMAX999TEST2",
             False,
         ),
     ],
 )
-@patch("pyplumio.parameters.custom.create_instance", return_value=DummyEcoMAX())
+@patch("pyplumio.parameters.custom.create_instance", return_value=EcoMAX999TEST())
 async def test_custom_parameters(
     mock_create_instance,
     product_info: ProductInfo,

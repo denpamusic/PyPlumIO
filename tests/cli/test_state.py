@@ -18,10 +18,10 @@ from pyplumio.cli.state import (
     _format_value_with_unit,
     _save_files,
 )
-from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
+from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
-from pyplumio.structures.product_info import ProductInfo
+from tests.cli.conftest import DUMMY_SLUG, dummy_product_info
 
 
 def _step(state: AppState) -> AppStep:
@@ -388,14 +388,7 @@ async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
     assert table.comments[0] == "test comment"
 
     # Overwrite with 'yes'
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -403,7 +396,7 @@ async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
     state.step_overwrite("yes", buff)
     assert state.status == f"Files saved to {tmp_path}."
     saved_module = (
-        tmp_path / "pyplumio" / "parameters" / "custom" / "ecomax_350p2_zf.py"
+        tmp_path / "pyplumio" / "parameters" / "custom" / f"{DUMMY_SLUG}.py"
     ).read_text(encoding="utf-8")
     assert "        # test comment\n" in saved_module
 
@@ -420,14 +413,7 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
     assert "Error: no data received yet" in state.status
 
     # Set mock product info, frame data, and mapped description
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     session.last_frame_message = b"\x00" * 40
     session.last_parameters = [
         (0, ParameterValues(value=10, min_value=0, max_value=20))
@@ -499,14 +485,7 @@ def test_format_value_with_unit() -> None:
 async def test_prefilled_defaults_heating_curve_shift(tmp_path: Path) -> None:
     """Test pre-filled defaults when selecting standard number parameter."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     table = ParameterTable()
     table.update([(0, ParameterValues(value=25, min_value=10, max_value=40))])
     state = AppState(session, table, tmp_path)
@@ -560,14 +539,7 @@ async def test_prefilled_defaults_max_fuel_flow_and_unit_override(
 ) -> None:
     """Test decimal step pre-fill and overriding pre-filled unit with none."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     table = ParameterTable()
     table.update(
         [
@@ -639,14 +611,7 @@ async def test_prefilled_defaults_max_fuel_flow_and_unit_override(
 async def test_prefilled_defaults_switch_non_binary(tmp_path: Path) -> None:
     """Test standard switch name gives [switch] default for non-binary raw range."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     table = ParameterTable()
     table.update([(0, ParameterValues(value=1, min_value=0, max_value=10))])
     state = AppState(session, table, tmp_path)
@@ -674,14 +639,7 @@ async def test_prefilled_defaults_switch_non_binary(tmp_path: Path) -> None:
 async def test_reedit_mapped_row_preserves_defaults(tmp_path: Path) -> None:
     """Test re-editing mapped row with same name keeps its description values."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     table = ParameterTable()
     table.update(
         [
@@ -741,14 +699,7 @@ async def test_reedit_mapped_row_preserves_defaults(tmp_path: Path) -> None:
 async def test_reedit_mapped_row_switches_on_rename(tmp_path: Path) -> None:
     """Test renaming mapped row switches defaults to new standard or generic."""
     session = Session(url="socket://localhost:8899")
-    session.product_info = ProductInfo(
-        type=ProductType.ECOMAX_P,
-        id=90,
-        uid="*TEST*",
-        logo=0,
-        image=0,
-        model="ecoMAX 350P2-ZF",
-    )
+    session.product_info = dummy_product_info()
     table = ParameterTable()
     table.update([(0, ParameterValues(value=25, min_value=10, max_value=40))])
     table.set_description(
