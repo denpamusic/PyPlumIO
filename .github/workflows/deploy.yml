@@ -66,11 +66,15 @@ jobs:
             $ErrorActionPreference = 'Continue'
             .\dist\pyplumio.exe --url invalid://test 2>&1 | Out-String
           }
-          if ($LASTEXITCODE -ne 1) { exit 1 }
+          if ($LASTEXITCODE -ne 1) {
+            Write-Error "Expected exit code 1, got $LASTEXITCODE. Output: $err"
+            exit 1
+          }
           if ($err -notmatch "Error:") {
             Write-Error "Unexpected output: $err"
             exit 1
           }
+          exit 0
 
       - name: Upload Windows executable
         uses: actions/upload-artifact@v7
