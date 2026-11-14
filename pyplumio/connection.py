@@ -23,6 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 TRY_CONNECT_FOR_SECONDS: Final = 5
 RECONNECT_AFTER_SECONDS: Final = 20
+DEFAULT_BAUDRATE: Final = 115200
 
 
 class Connection(ABC, TaskManager):
@@ -142,7 +143,7 @@ class Connection(ABC, TaskManager):
 
 
 DEFAULT_OPTIONS: dict[str, Any] = {
-    "baudrate": 115200,
+    "baudrate": DEFAULT_BAUDRATE,
     "byte_size": 8,
     "parity": Parity.NONE,
     "stopbits": StopBits.ONE,

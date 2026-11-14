@@ -9,8 +9,10 @@ from pyplumio.parameters.custom import (
     CustomParameters,
     ParameterOverride,
     Signature,
+    custom_class_name,
     get_custom_service_parameter_types,
     inject_custom_parameter_overrides,
+    model_slug,
 )
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES as ECOMAX_PARAMETER_TYPES,
@@ -104,3 +106,11 @@ async def test_custom_parameters(
     mock_create_instance.assert_called_once_with(
         f"parameters.custom.{module_name}", cls=CustomParameters
     )
+
+
+def test_model_slug_and_custom_class_name() -> None:
+    """Test model slug and custom class name helpers."""
+    assert model_slug("ecoMAX 350P2-ZF") == "ecomax_350p2_zf"
+    assert model_slug("ecoMAX 860P4-NM TOUCH") == "ecomax_860p4_nm_touch"
+    assert custom_class_name("ecomax_350p2_zf") == "EcoMAX350P2ZF"
+    assert custom_class_name("ecomax_860p4_nm_touch") == "EcoMAX860P4NMTOUCH"

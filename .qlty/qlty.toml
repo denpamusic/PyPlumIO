@@ -84,6 +84,12 @@ match.rules = ["radarlint-python:python:S5713"]
 match.file_patterns = ["pyplumio/**"]
 set.ignored = true
 
+# Ignore SystemExit handling in CLI entrypoint
+[[triage]]
+match.rules = ["radarlint-python:python:S5754"]
+match.file_patterns = ["pyplumio/cli/__init__.py"]
+set.ignored = true
+
 [[source]]
 name = "default"
 default = true
@@ -107,6 +113,7 @@ drivers = [
 [[plugin]]
 name = "mypy"
 extra_packages = [
+  "prompt-toolkit@3.0.53",
   "serialx@1.15.1",
 ]
 

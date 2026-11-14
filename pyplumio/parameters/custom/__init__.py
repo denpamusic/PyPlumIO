@@ -8,7 +8,6 @@ import logging
 from typing import TYPE_CHECKING, ClassVar, NamedTuple, TypeVar, cast
 
 from pyplumio.helpers.async_cache import acache
-from pyplumio.parameters import ParameterDescription
 from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import create_instance, to_camelcase
 
@@ -55,14 +54,22 @@ class CustomParameters:
         )
 
 
+def model_slug(model: str) -> str:
+    """Return model slug from model name."""
+    return model.replace("-", "_").replace(" ", "_").lower()
+
+
+def custom_class_name(slug: str) -> str:
+    """Return custom parameter class name from model slug."""
+    return to_camelcase(slug).upper().replace("ECOMAX", "EcoMAX")
+
+
 @acache
-async def _load_custom_parameters(
-    product_info: ProductInfo,
-) -> CustomParameters | None:
+async def load_custom_parameters(product_info: ProductInfo) -> CustomParameters | None:
     """Load custom parameters."""
-    module_name = product_info.model.replace("-", "_").replace(" ", "_").lower()
+    module_name = model_slug(product_info.model)
     module_path = f"parameters.custom.{module_name}"
-    class_name = to_camelcase(module_name).upper().replace("ECOMAX", "EcoMAX")
+    class_name = custom_class_name(module_name)
     class_path = f"{module_path}.{class_name}"
     try:
         _LOGGER.debug(
@@ -81,14 +88,14 @@ async def _load_custom_parameters(
     return custom_parameters
 
 
-_DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
+_DescriptionT = TypeVar("_DescriptionT", bound="EcomaxParameterDescription")
 
 
 async def get_custom_service_parameter_types(
     product_info: ProductInfo,
 ) -> dict[int, EcomaxParameterDescription]:
     """Get custom service parameter types."""
-    if custom_parameters := await _load_custom_parameters(product_info):
+    if custom_parameters := await load_custom_parameters(product_info):
         return custom_parameters.descriptions
 
     return {}
@@ -98,7 +105,7 @@ async def inject_custom_parameter_overrides(
     product_info: ProductInfo, parameter_types: list[_DescriptionT]
 ) -> list[_DescriptionT]:
     """Patch the parameter types based on the provided overrides."""
-    if custom_parameters := await _load_custom_parameters(product_info):
+    if custom_parameters := await load_custom_parameters(product_info):
         if overrides := dict(custom_parameters.overrides):
             return cast(
                 list[_DescriptionT],
@@ -120,6 +127,9 @@ __all__ = (
     "CustomParameters",
     "ParameterOverride",
     "Signature",
+    "custom_class_name",
     "get_custom_service_parameter_types",
     "inject_custom_parameter_overrides",
+    "load_custom_parameters",
+    "model_slug",
 )

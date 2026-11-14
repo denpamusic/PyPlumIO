@@ -10,7 +10,76 @@ on:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Build package
+        run: uv build
+
+      - name: Upload package distributions
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Build Windows executable
+        run: >
+          uv run --locked --no-default-groups --python 3.11 --extra cli --with "pyinstaller>=6"
+          pyinstaller
+          --onefile
+          --console
+          --name pyplumio
+          --specpath "${{ runner.temp }}"
+          --collect-submodules pyplumio
+          --copy-metadata PyPlumIO
+          --exclude-module numpy
+          pyplumio/__main__.py
+
+      - name: Smoke test Windows executable
+        shell: pwsh
+        run: |
+          .\dist\pyplumio.exe --help
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $err = & {
+            $ErrorActionPreference = 'Continue'
+            .\dist\pyplumio.exe --url invalid://test 2>&1 | Out-String
+          }
+          if ($LASTEXITCODE -ne 1) { exit 1 }
+          if ($err -notmatch "Error:") {
+            Write-Error "Unexpected output: $err"
+            exit 1
+          }
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-executable
+          path: dist/pyplumio.exe
+
   deploy:
+    needs: [build, build-windows]
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -27,11 +96,20 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Build package
-        run: uv build
+      - name: Download package distributions
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
 
       - name: Publish package distributions to PyPI
-        run: uv publish
+        run: uv publish dist/*.whl dist/*.tar.gz
+
+      - name: Download Windows executable
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-executable
+          path: dist
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
@@ -39,4 +117,5 @@ jobs:
           files: |
             dist/*.whl
             dist/*.tar.gz
+            dist/pyplumio.exe
           generate_release_notes: true

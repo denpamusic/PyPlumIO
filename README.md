@@ -39,6 +39,25 @@ through network by using RS-485 to Ethernet/WiFi converter.
   - [Communication](https://pyplumio.denpa.pro/protocol.html#communication)
   - [Versioning](https://pyplumio.denpa.pro/protocol.html#versioning)
 - [Supported frames](https://pyplumio.denpa.pro/frames.html)
+- [CLI Parameter Mapper](https://pyplumio.denpa.pro/cli.html)
+
+## Parameter Mapping CLI
+
+PyPlumIO provides an interactive terminal utility to help map service parameters
+for ecoMAX controllers and generate custom parameter modules.
+
+On **Windows**, you can download the standalone `pyplumio.exe` executable directly from
+the [GitHub Releases](https://github.com/denpamusic/PyPlumIO/releases) page without
+installing Python.
+
+Alternatively, install PyPlumIO with the `cli` extra and run it via Python:
+
+```bash
+pip install "pyplumio[cli]"
+python -m pyplumio
+```
+
+See the [CLI documentation](https://pyplumio.denpa.pro/cli.html) for details.
 
 ## Quickstart
 
