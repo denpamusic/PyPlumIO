@@ -117,7 +117,7 @@ If the serial connection or TCP bridge drops during a session, the CLI automatic
 
 .. code-block:: text
 
-    Connection lost. Reconnecting in background...
+    Connection lost. Reconnecting in background in 20 seconds...
 
 The CLI automatically retries the connection every 20 seconds in the background while keeping the interface fully responsive. Once reconnected, it displays ``Connection restored.`` and resumes polling. Even when disconnected, you can review mapped parameters, continue editing, and press ``Ctrl+S`` to save the files from the last received frame.
 

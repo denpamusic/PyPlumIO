@@ -163,7 +163,10 @@ class Session(TaskManager):
     async def _handle_disconnect(self) -> None:
         """Handle connection disconnect."""
         self.cancel_tasks()
-        _LOGGER.error("Connection lost. Reconnecting in background...")
+        _LOGGER.error(
+            "Connection lost. Reconnecting in background in %i seconds...",
+            RECONNECT_AFTER_SECONDS,
+        )
         self.create_task(self._reconnect())
 
     async def _read_until(

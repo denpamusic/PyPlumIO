@@ -511,7 +511,10 @@ async def test_session_handle_disconnect(
     with patch.object(Session, "_reconnect", new_callable=AsyncMock) as mock_reconnect:
         await session._handle_disconnect()
         assert task1.cancelling() or task1.cancelled()
-        assert "Connection lost. Reconnecting in background..." in caplog.text
+        assert (
+            "Connection lost. Reconnecting in background in 20 seconds..."
+            in caplog.text
+        )
         await session.wait_until_done()
         mock_reconnect.assert_awaited_once()
 
