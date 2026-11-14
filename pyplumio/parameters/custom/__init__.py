@@ -5,12 +5,15 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 import logging
-from typing import ClassVar, NamedTuple, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, NamedTuple, TypeVar, cast
 
 from pyplumio.helpers.async_cache import acache
 from pyplumio.parameters import ParameterDescription
 from pyplumio.structures.product_info import ProductInfo
 from pyplumio.utils import create_instance, to_camelcase
+
+if TYPE_CHECKING:
+    from pyplumio.parameters.ecomax import EcomaxParameterDescription
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +30,7 @@ class ParameterOverride(NamedTuple):
     """Represents a parameter override."""
 
     original: str
-    replacement: ParameterDescription
+    replacement: EcomaxParameterDescription
 
 
 class CustomParameters:
@@ -42,7 +45,7 @@ class CustomParameters:
     overrides: ClassVar[Sequence[ParameterOverride]] = []
 
     # Service parameters descriptions.
-    descriptions: ClassVar[dict[int, ParameterDescription]] = {}
+    descriptions: ClassVar[dict[int, EcomaxParameterDescription]] = {}
 
     def validate(self, product_info: ProductInfo) -> bool:
         """Validate the product info."""
@@ -83,7 +86,7 @@ _DescriptionT = TypeVar("_DescriptionT", bound=ParameterDescription)
 
 async def get_custom_service_parameter_types(
     product_info: ProductInfo,
-) -> dict[int, ParameterDescription]:
+) -> dict[int, EcomaxParameterDescription]:
     """Get custom service parameter types."""
     if custom_parameters := await _load_custom_parameters(product_info):
         return custom_parameters.descriptions
