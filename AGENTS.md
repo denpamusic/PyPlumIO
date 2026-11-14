@@ -189,6 +189,10 @@ to verify each parameter's class, value, bounds, and unit of measurement.
 `tests/parameters/custom/test_ecomax_350p2_zf.py` for reference
 implementations.
 
+2.9.5. The three files can be generated interactively using the CLI
+utility: install with `pip install "pyplumio[cli]"` and run
+`python -m pyplumio` (or `pyplumio`).
+
 ## 3. Reactive Event System & Filter Pipeline
 
 3.1. `EventManager` (`pyplumio/helpers/event_manager.py`) is the base of

@@ -1,30 +1,20 @@
 """Contains tests for the main module."""
 
-from unittest.mock import AsyncMock, call, patch
+from __future__ import annotations
 
-from pyplumio.devices import PhysicalDevice
+import runpy
+from unittest.mock import patch
 
-with patch("asyncio.run") as mock_asyncio_run:
-    from pyplumio.__main__ import main
+import pytest
 
 
-async def test_main(capsys) -> None:
-    """Test main."""
-    mock_device = AsyncMock(spec=PhysicalDevice, autospec=True)
-    mock_device.get.side_effect = ("one", "two")
-    mock_connection = AsyncMock()
-    mock_connection.__aenter__.return_value = mock_connection
-    mock_connection.get.return_value = mock_device
-    main_fn = mock_asyncio_run.call_args[0][0]
+def test_main() -> None:
+    """Test entry point execution."""
+    with (
+        patch("pyplumio.cli.main", return_value=0) as mock_cli_main,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        runpy.run_module("pyplumio.__main__", run_name="__main__")
 
-    with patch("pyplumio.serial_for_url", return_value=mock_connection) as mock_serial:
-        await main_fn
-
-    assert main.__name__ == main_fn.__name__
-    mock_asyncio_run.assert_called_once()
-    mock_serial.assert_called_with("/dev/ttyUSB0", baudrate=115200)
-    mock_connection.__aenter__.assert_awaited_once()
-    mock_connection.get.assert_awaited_once_with("ecomax")
-    mock_device.get.assert_has_calls([call("sensors"), call("parameters")])
-    captured = capsys.readouterr()
-    assert captured.out == "one\ntwo\n"
+    assert exc_info.value.code == 0
+    mock_cli_main.assert_called_once()
