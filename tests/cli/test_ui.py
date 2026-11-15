@@ -19,6 +19,7 @@ from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
 from pyplumio.cli.state import AppState, AppStep
 from pyplumio.cli.ui import (
+    HOTKEY_BAR,
     PREVIEW_BOX_WIDTH,
     TABLE_HEADER,
     TABLE_SEPARATOR,
@@ -71,15 +72,21 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
 
     # Initial header without product info or update time
     header = _get_header_text(state)
+    assert header[0][0] == "reverse"
     assert "Model: Unknown (ID: 0)" in header[0][1]
     assert "Updated: Never" in header[0][1]
+    assert "Ctrl+S" not in header[0][1] and "Ctrl+Q" not in header[0][1]
+    assert not header[0][1].endswith("\n") and len(header[0][1]) == PREVIEW_BOX_WIDTH
 
     # Header with product info and update time
     session.product_info = dummy_product_info()
     session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
     header = _get_header_text(state)
+    assert header[0][0] == "reverse"
     assert f"Model: {DUMMY_MODEL} (ID: {DUMMY_ID})" in header[0][1]
-    assert "Updated: 12:00:00" in header[0][1]
+    assert "Updated: 12:00:00" in " ".join(header[0][1].split())
+    assert not header[0][1].endswith("\n")
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in header[0][1].splitlines())
 
     # Table text without description
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
@@ -429,7 +436,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
     mock_event.app = MagicMock()
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     # 1. c-q
@@ -472,7 +479,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert state.status == "Cancelled."
 
     # 4. live preview container check
-    preview_win = app.layout.container.content.children[3]  # type: ignore[attr-defined]
+    preview_win = app.layout.container.content.children[4]  # type: ignore[attr-defined]
     assert preview_win.height == 4
     preview_output = preview_win.content.text()
     assert "Live Preview" in preview_output[0][1]
@@ -510,7 +517,7 @@ def test_app_completion_keybindings(tmp_path: Path) -> None:
     app, _state = create_app(session, table, tmp_path, output=DummyOutput())
     mock_event = MagicMock(spec=KeyPressEvent)
 
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app.key_bindings is not None
     named_bindings = {b.handler.__name__: b.handler for b in app.key_bindings.bindings}
@@ -610,7 +617,7 @@ def test_name_completer(tmp_path: Path) -> None:
         ]
     )
     app, state = create_app(session, table, tmp_path, output=DummyOutput())
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app_buffer.completer is not None
 
@@ -718,7 +725,7 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     # Ctrl+S asks ZIP question; Esc cancels back to INDEX
@@ -769,7 +776,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
 
@@ -826,7 +833,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
@@ -845,3 +852,48 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     assert _step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {zip_path}."
     assert state.data.save_as_zip is False
+
+
+def test_ui_header_wrapping(tmp_path: Path) -> None:
+    """Test multi-line wrapping and padding of long headers."""
+    session = Session(url="socket://long-hostname.example.local:8899")
+    session.product_info = dummy_product_info()
+    session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
+    table = ParameterTable()
+    state = AppState(session, table, tmp_path)
+
+    wrapped_header = _get_header_text(state)
+    assert wrapped_header[0][0] == "reverse"
+    assert not wrapped_header[0][1].endswith("\n")
+    assert "\n" in wrapped_header[0][1]
+    assert all(
+        len(line) == PREVIEW_BOX_WIDTH for line in wrapped_header[0][1].splitlines()
+    )
+
+    # Long unbroken URL wraps across lines with break_long_words=True
+    session.url = "socket://" + "a" * 90 + ":8899"
+    long_word_header = _get_header_text(state)
+    assert long_word_header[0][0] == "reverse"
+    assert "\n" in long_word_header[0][1]
+    assert all(
+        len(line) == PREVIEW_BOX_WIDTH for line in long_word_header[0][1].splitlines()
+    )
+
+
+def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
+    """Test header window, spacer windows, and bottom hotkey bar."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    app, _state = create_app(session, table, tmp_path, output=DummyOutput())
+    children = app.layout.container.content.children  # type: ignore[attr-defined]
+
+    header_win = children[0]
+    assert header_win.dont_extend_height() is True
+    assert header_win.wrap_lines() is True
+    assert children[1].height == 1
+    assert children[7].height == 1
+
+    hotkey_win = children[8]
+    assert hotkey_win.height == 1
+    assert hotkey_win.content.text == HOTKEY_BAR
+    assert len("".join(item[1] for item in HOTKEY_BAR)) == PREVIEW_BOX_WIDTH
