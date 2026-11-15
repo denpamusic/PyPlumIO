@@ -970,7 +970,7 @@ wheels = [
 
 [[package]]
 name = "pyplumio"
-version = "0.7.8.post1"
+version = "0.7.8.post2"
 source = { editable = "." }
 dependencies = [
     { name = "serialx" },
