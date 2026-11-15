@@ -81,6 +81,7 @@ PAGE_SIZE: Final = 25
 INDEX_PROMPT: Final = "Enter parameter index to edit: "
 NAME_PROMPT: Final = "Name: "
 COMMENT_PROMPT: Final = "Comment (leave empty for none): "
+CONFIRM_PROMPT: Final = "Does the preview match your device? [y/N]: "
 ZIP_PROMPT: Final = "Also save as a ZIP archive? [y/N]: "
 
 
@@ -386,7 +387,7 @@ class AppState:
     def step_comment(self, text: str, buffer: Buffer) -> None:
         """Handle comment step."""
         self.data.comment = text.lstrip("#").strip()
-        self._setup_confirm(buffer)
+        self._set_step(AppStep.CONFIRM, CONFIRM_PROMPT, buffer)
 
     def step_confirm(self, text: str, buffer: Buffer) -> None:
         """Handle confirm step."""
@@ -461,18 +462,6 @@ class AppState:
         comment = self.table.comments.get(index, "")
         self.data.description = description
         self._set_step(AppStep.COMMENT, COMMENT_PROMPT, buffer, text=comment)
-
-    def _setup_confirm(self, buffer: Buffer) -> None:
-        """Set up confirm prompt."""
-        index = cast(int, self.data.index)
-        row = cast(Row, self.table.get(index))
-        description = cast(EcomaxParameterDescription, self.data.description)
-        preview = Row(row.index, row.values, description=description)
-        prompt = (
-            f"{self.data.name}: {_format_preview_value(preview)}. "
-            "Does this match your device? [y/N]: "
-        )
-        self._set_step(AppStep.CONFIRM, prompt, buffer)
 
     def _abort(self, message: str) -> None:
         """Abort current step and set status message."""

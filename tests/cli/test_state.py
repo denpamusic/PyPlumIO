@@ -84,10 +84,7 @@ async def test_app_state_number(tmp_path: Path) -> None:
     buff.text = ""
     state.dispatch_enter(buff)
     assert _step(state) == AppStep.CONFIRM
-    assert (
-        state.prompt
-        == "boiler_temp: 20 % (10-30 %). Does this match your device? [y/N]: "
-    )
+    assert state.prompt == "Does the preview match your device? [y/N]: "
 
     # Step 8: Confirm
     buff.text = "y"
@@ -100,39 +97,6 @@ async def test_app_state_number(tmp_path: Path) -> None:
     assert isinstance(desc, EcomaxNumberDescription)
     assert desc.name == "boiler_temp"
     assert desc.unit_of_measurement == PERCENTAGE
-
-
-async def test_app_state_preview_kw(tmp_path: Path) -> None:
-    """Test preview prompt format with kW unit of measurement."""
-    session = Session(url="socket://localhost:8899")
-    table = ParameterTable()
-    table.update([(2, ParameterValues(value=16, min_value=11, max_value=16))])
-    state = AppState(session, table, tmp_path)
-    buff = Buffer()
-
-    buff.text = "2"
-    state.dispatch_enter(buff)
-    buff.text = "boiler_power"
-    state.dispatch_enter(buff)
-    buff.text = ""
-    state.dispatch_enter(buff)
-    assert _step(state) == AppStep.OFFSET
-    buff.text = "0"
-    state.dispatch_enter(buff)
-    assert _step(state) == AppStep.STEP
-    buff.text = "1"
-    state.dispatch_enter(buff)
-    assert _step(state) == AppStep.UNIT
-    buff.text = "kW"
-    state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
-    buff.text = ""
-    state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
-    assert (
-        state.prompt
-        == "boiler_power: 16 kW (11-16 kW). Does this match your device? [y/N]: "
-    )
 
 
 async def test_app_state_validation_errors(tmp_path: Path) -> None:
@@ -288,10 +252,7 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     buff.text = ""
     state.dispatch_enter(buff)
     assert _step(state) == AppStep.CONFIRM
-    assert (
-        state.prompt
-        == "heating_switch: on (off-on). Does this match your device? [y/N]: "
-    )
+    assert state.prompt == "Does the preview match your device? [y/N]: "
 
     buff.text = "n"
     state.dispatch_enter(buff)
@@ -607,10 +568,7 @@ async def test_prefilled_defaults_heating_curve_shift(tmp_path: Path) -> None:
     buff.text = ""
     state.dispatch_enter(buff)
     assert _step(state) == AppStep.CONFIRM
-    assert (
-        state.prompt
-        == "heating_curve_shift: 5 °C (-10-20 °C). Does this match your device? [y/N]: "
-    )
+    assert state.prompt == "Does the preview match your device? [y/N]: "
 
     buff.text = "y"
     state.dispatch_enter(buff)
