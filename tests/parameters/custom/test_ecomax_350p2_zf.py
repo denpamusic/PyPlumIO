@@ -90,6 +90,7 @@ from tests.conftest import class_from_json, equal_parameter_value
         ("thermostat_mode", STATE_ON, STATE_OFF, STATE_ON, None),
         ("heating_curve_shift", 0, -20, 20, UnitOfMeasurement.CELSIUS),
         ("low_fuel_level", 10, 5, 99, PERCENTAGE),
+        ("fuel_level_calibration", 2, 0, 2, None),
         ("fuel_detection_time", 10, 10, 30, UnitOfMeasurement.MINUTES),
         ("feed2_work", 2, 0, 100, UnitOfMeasurement.MINUTES),
         ("fuel_profile", 2, 2, 5, None),

@@ -199,6 +199,8 @@ class EcoMAX350P2ZF(CustomParameters):
             name="low_fuel_level",
             unit_of_measurement=PERCENTAGE,
         ),
+        # 0 - 100%, 1 - 0%, 2 - in progress
+        102: EcomaxNumberDescription(name="fuel_level_calibration"),
         103: EcomaxNumberDescription(
             name="fuel_detection_time",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
