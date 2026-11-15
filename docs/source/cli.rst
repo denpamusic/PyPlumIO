@@ -85,10 +85,11 @@ polling in the background.
 
 The interface consists of:
 
-- **Header**: Shows connected controller model, product ID, connection URL, last update timestamp, and keyboard shortcuts.
+- **Header**: Inverted top bar showing connected controller model, product ID, connection URL, and last update timestamp.
 - **Table**: Monospace scrollable list showing parameter indices, mapped names, current values, minimums, and maximums. Recently changed parameters are highlighted with inverted colors.
 - **Live Preview**: Real-time 4-line framed box docked above the input bar displaying active parameter fields, raw values, and live calculations.
-- **Navigation**: Use Up/Down arrow keys or ``PageUp`` and ``PageDown`` to scroll through the parameters list.
+- **Status Bar**: Inverted bar positioned below the input prompt and directly above the hotkey bar displaying validation messages, available units, and connection status.
+- **Hotkey Bar**: Bottom bar displaying keyboard shortcuts (``^S`` Save, ``^Q`` Quit, ``Esc`` Cancel, ``↑/↓`` Scroll, ``PgUp/PgDn`` Page, ``Tab`` Complete).
 
 Interactive Wizard
 ~~~~~~~~~~~~~~~~~~

@@ -5,6 +5,7 @@ from __future__ import annotations
 from contextlib import suppress
 from dataclasses import replace
 from pathlib import Path
+import textwrap
 from typing import Any, Final
 
 from prompt_toolkit.application import Application
@@ -50,10 +51,25 @@ from pyplumio.parameters.ecomax import (
 
 SCROLL_SIZE: Final = 20
 PREVIEW_BOX_WIDTH: Final = 80
+ELLIPSIS: Final = "..."
 TABLE_HEADER: Final = (
     "Index  Name                                  Value       Min         Max\n"
 )
 TABLE_SEPARATOR: Final = f"{'-' * 5}  {'-' * 36}  {'-' * 10}  {'-' * 10}  {'-' * 10}\n"
+HOTKEY_BAR: Final[StyleAndTextTuples] = [
+    ("reverse", "^S"),
+    ("", " Save    "),
+    ("reverse", "^Q"),
+    ("", " Quit    "),
+    ("reverse", "Esc"),
+    ("", " Cancel    "),
+    ("reverse", "↑/↓"),
+    ("", " Scroll    "),
+    ("reverse", "PgUp/PgDn"),
+    ("", " Page    "),
+    ("reverse", "Tab"),
+    ("", " Complete"),
+]
 
 TYPE_COMPLETER: Final = WordCompleter(list(_ParameterType))
 UNIT_COMPLETER: Final = WordCompleter(
@@ -70,21 +86,48 @@ UNIT_COMPLETER: Final = WordCompleter(
 )
 
 
+def _truncate_middle(text: str, max_length: int) -> str:
+    """Truncate text in the middle with an ellipsis to fit max_length."""
+    if len(text) <= max_length:
+        return text
+
+    if max_length <= len(ELLIPSIS):
+        return ELLIPSIS[: max(0, max_length)]
+
+    head = (max_length - len(ELLIPSIS)) // 2
+    tail = max_length - len(ELLIPSIS) - head
+    return f"{text[:head]}{ELLIPSIS}{text[-tail:]}"
+
+
 def _get_header_text(state: AppState) -> StyleAndTextTuples:
     """Return formatted header text."""
     product_info = state.session.product_info
-    last_update = state.session.last_update_time
-    model, product_id = (
-        (product_info.model, product_info.id) if product_info else ("Unknown", 0)
+    model = product_info.model if product_info else "Unknown"
+    product_id = product_info.id if product_info else 0
+    updated = (
+        state.session.last_update_time.strftime("%H:%M:%S")
+        if state.session.last_update_time
+        else "Never"
     )
-    updated = last_update.strftime("%H:%M:%S") if last_update else "Never"
-    return [
-        (
-            "bold",
-            f"Model: {model} (ID: {product_id}) | URL: {state.session.url} | "
-            f"Updated: {updated} | Ctrl+S save · Ctrl+Q quit\n",
-        )
-    ]
+    left = f" {model} (ID: {product_id})"
+    right = f"↻ {updated} "
+    middle_width = PREVIEW_BOX_WIDTH - len(left) - len(right)
+    url = _truncate_middle(state.session.url, middle_width - 4)
+    return [("reverse", f"{left}{url.center(middle_width)}{right}")]
+
+
+def _get_status_text(state: AppState) -> StyleAndTextTuples:
+    """Return formatted status bar text."""
+    if not state.status.strip():
+        return []
+
+    lines = textwrap.wrap(
+        state.status,
+        width=PREVIEW_BOX_WIDTH,
+        break_long_words=True,
+        break_on_hyphens=False,
+    )
+    return [("reverse", "\n".join(line.center(PREVIEW_BOX_WIDTH) for line in lines))]
 
 
 def _get_table_text(state: AppState) -> StyleAndTextTuples:
@@ -365,17 +408,16 @@ def create_app(
     key_bindings = _create_key_bindings(state, buffer)
     body = HSplit(
         [
-            Window(FormattedTextControl(lambda: _get_header_text(state)), height=2),
+            Window(
+                FormattedTextControl(lambda: _get_header_text(state)),
+                height=1,
+            ),
+            Window(height=1),
             Window(FormattedTextControl(lambda: _get_table_text(state))),
             Window(height=1),
             Window(
                 FormattedTextControl(lambda: _get_preview_text(state, buffer)),
                 height=4,
-            ),
-            Window(
-                FormattedTextControl(lambda: f" {state.status}"),
-                wrap_lines=True,
-                dont_extend_height=True,
             ),
             VSplit(
                 [
@@ -386,6 +428,14 @@ def create_app(
                     Window(BufferControl(buffer=buffer)),
                 ]
             ),
+            Window(height=1),
+            Window(
+                FormattedTextControl(lambda: _get_status_text(state)),
+                width=PREVIEW_BOX_WIDTH,
+                wrap_lines=True,
+                dont_extend_height=True,
+            ),
+            Window(FormattedTextControl(HOTKEY_BAR), height=1),
         ]
     )
     root = FloatContainer(

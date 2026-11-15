@@ -13,19 +13,23 @@ from prompt_toolkit.completion import CompleteEvent
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import OneStyleAndTextTuple
 from prompt_toolkit.key_binding import KeyPressEvent
+from prompt_toolkit.layout.containers import VSplit
 from prompt_toolkit.output import DummyOutput
 
 from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
 from pyplumio.cli.state import AppState, AppStep
 from pyplumio.cli.ui import (
+    HOTKEY_BAR,
     PREVIEW_BOX_WIDTH,
     TABLE_HEADER,
     TABLE_SEPARATOR,
     _get_completer,
     _get_header_text,
     _get_preview_text,
+    _get_status_text,
     _get_table_text,
+    _truncate_middle,
     create_app,
 )
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
@@ -71,15 +75,24 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
 
     # Initial header without product info or update time
     header = _get_header_text(state)
-    assert "Model: Unknown (ID: 0)" in header[0][1]
-    assert "Updated: Never" in header[0][1]
+    assert header[0][0] == "reverse"
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(" Unknown (ID: 0)  ")
+    assert "socket://localhost:8899" in header[0][1]
+    assert header[0][1].endswith("  ↻ Never ")
+    assert "Model:" not in header[0][1]
+    assert "URL:" not in header[0][1]
+    assert "Updated:" not in header[0][1]
 
     # Header with product info and update time
     session.product_info = dummy_product_info()
     session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
     header = _get_header_text(state)
-    assert f"Model: {DUMMY_MODEL} (ID: {DUMMY_ID})" in header[0][1]
-    assert "Updated: 12:00:00" in header[0][1]
+    assert header[0][0] == "reverse"
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(f" {DUMMY_MODEL} (ID: {DUMMY_ID})  ")
+    assert "socket://localhost:8899" in header[0][1]
+    assert header[0][1].endswith("  ↻ 12:00:00 ")
 
     # Table text without description
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
@@ -472,7 +485,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     assert state.status == "Cancelled."
 
     # 4. live preview container check
-    preview_win = app.layout.container.content.children[3]  # type: ignore[attr-defined]
+    preview_win = app.layout.container.content.children[4]  # type: ignore[attr-defined]
     assert preview_win.height == 4
     preview_output = preview_win.content.text()
     assert "Live Preview" in preview_output[0][1]
@@ -845,3 +858,80 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     assert _step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {zip_path}."
     assert state.data.save_as_zip is False
+
+
+def test_ui_header_url_truncation(tmp_path: Path) -> None:
+    """Test middle truncation of long URLs in the single-line header."""
+    session = Session(
+        url="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A50285BI-if00-port0"
+    )
+    session.product_info = dummy_product_info()
+    session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
+    table = ParameterTable()
+    state = AppState(session, table, tmp_path)
+
+    header = _get_header_text(state)
+    assert header[0][0] == "reverse"
+    assert "\n" not in header[0][1]
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(f" {DUMMY_MODEL} (ID: {DUMMY_ID})  ")
+    assert header[0][1].endswith("  ↻ 12:00:00 ")
+    assert "/dev/serial/" in header[0][1]
+    assert "..." in header[0][1]
+    assert "-port0" in header[0][1]
+
+    # Edge cases for _truncate_middle
+    assert _truncate_middle("abcdef", 6) == "abcdef"
+    assert _truncate_middle("abcdef", 5) == "a...f"
+    assert _truncate_middle("abcdef", 4) == "...f"
+    assert _truncate_middle("abcdef", 3) == "..."
+    assert _truncate_middle("abcdef", 2) == ".."
+    assert _truncate_middle("abcdef", 0) == ""
+    assert _truncate_middle("abcdef", -3) == ""
+
+
+def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
+    """Test header, preview, prompt, status, spacer, and hotkey bar layout."""
+    session = Session(url="socket://localhost:8899")
+    table = ParameterTable()
+    app, state = create_app(session, table, tmp_path, output=DummyOutput())
+    children = app.layout.container.content.children  # type: ignore[attr-defined]
+
+    header_win = children[0]
+    assert header_win.height == 1
+    assert children[1].height == 1
+    assert children[3].height == 1
+    assert children[4].height == 4
+    assert isinstance(children[5], VSplit)
+    assert children[6].height == 1
+
+    status_win = children[7]
+    assert status_win.width == PREVIEW_BOX_WIDTH
+    assert status_win.dont_extend_height() is True
+    assert status_win.wrap_lines() is True
+    assert state.status == ""
+    assert _get_status_text(state) == []
+    assert status_win.content.text() == []
+    assert status_win.preferred_height(PREVIEW_BOX_WIDTH, 24).preferred == 1
+
+    state.status = "   "
+    assert _get_status_text(state) == []
+    assert status_win.content.text() == []
+
+    state.status = "Cancelled."
+    assert status_win.content.text() == [
+        ("reverse", "Cancelled.".center(PREVIEW_BOX_WIDTH))
+    ]
+
+    state.status = "a " * 50
+    wrapped_status = _get_status_text(state)
+    assert wrapped_status[0][0] == "reverse"
+    assert "\n" in wrapped_status[0][1]
+    wrapped_lines = wrapped_status[0][1].splitlines()
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in wrapped_lines)
+    assert wrapped_lines[1].startswith(" ") and wrapped_lines[1].endswith(" ")
+
+    hotkey_win = children[8]
+    assert hotkey_win.height == 1
+    assert hotkey_win.content.text == HOTKEY_BAR
+    assert len("".join(item[1] for item in HOTKEY_BAR)) == PREVIEW_BOX_WIDTH
