@@ -49,7 +49,7 @@ from pyplumio.parameters.ecomax import (
 )
 
 SCROLL_SIZE: Final = 20
-PREVIEW_BOX_WIDTH: Final = 78
+PREVIEW_BOX_WIDTH: Final = 80
 TABLE_HEADER: Final = (
     "Index  Name                                  Value       Min         Max\n"
 )
