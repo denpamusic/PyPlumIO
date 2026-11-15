@@ -148,7 +148,7 @@ The utility produces the following three files on disk (and inside ``<output>/<m
 
 1. **Custom Parameter Module**:
    ``<output>/pyplumio/parameters/custom/<model_slug>.py``
-   Contains the ``CustomParameters`` class definition, model signature, and descriptions dictionary.
+   Contains the ``CustomParameters`` class definition, model signature, and descriptions dictionary. Entries whose names match a standard parameter in ``PARAMETER_TYPES`` for the controller type are automatically annotated with ``# [overrides standard]`` directly above the entry (above any user comment); this tag is stripped when reloading the file in the CLI so it never appears in the ``Comment`` prompt.
 
 2. **Test Module**:
    ``<output>/tests/parameters/custom/test_<model_slug>.py``

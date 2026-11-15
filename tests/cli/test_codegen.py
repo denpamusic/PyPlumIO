@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+from typing import cast
 import zipfile
 
 import pytest
@@ -130,7 +131,12 @@ def test_codegen_golden(tmp_path: Path) -> None:
     module_content = files[
         tmp_path / "pyplumio" / "parameters" / "custom" / f"{DUMMY_SLUG}.py"
     ]
+    assert "        # [overrides standard]\n        0: " in module_content
+    assert "        # [overrides standard]\n        # Long comment" in module_content
+    assert "),\n        1: " in module_content
+    assert "),\n        2: " in module_content
     assert "        # 0 - pellets, 1 - wood\n        4: " in module_content
+    assert module_content.count("# [overrides standard]") == 2
     code_obj = compile(module_content, f"<{DUMMY_SLUG}>", "exec")
     local_ns: dict[str, object] = {}
     exec(code_obj, local_ns)  # noqa: S102
@@ -374,6 +380,8 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
             offset=0,
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
+        3: EcomaxNumberDescription(name="boiler_power_100"),
+        4: EcomaxNumberDescription(name="boiler_power_50"),
     }
     long_comment = (
         "Long comment that wraps across multiple lines because it exceeds the "
@@ -383,6 +391,7 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         0: "0 - off, 1 - on",
         1: "# 0 - off, 1 - on",
         2: long_comment,
+        4: "50 percent power",
     }
 
     module_content = generate_custom_parameter_module(
@@ -394,21 +403,91 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
     assert "        # 0 - off, 1 - on\n        1: EcomaxSwitchDescription" in (
         module_content
     )
+    assert (
+        "        # [overrides standard]\n"
+        '        3: EcomaxNumberDescription(name="boiler_power_100"),'
+    ) in module_content
+    assert (
+        "        # [overrides standard]\n"
+        "        # 50 percent power\n"
+        '        4: EcomaxNumberDescription(name="boiler_power_50"),'
+    ) in module_content
     assert "# #" not in module_content
 
     comment_lines = [
         line for line in module_content.splitlines() if line.startswith("        # ")
     ]
-    assert len(comment_lines) >= 4
+    assert len(comment_lines) >= 6
     assert all(len(line) <= 88 for line in comment_lines)
     assert extract_comments(module_content) == {
         0: "0 - off, 1 - on",
         1: "0 - off, 1 - on",
         2: long_comment,
+        4: "50 percent power",
     }
 
     no_comment_module = generate_custom_parameter_module(product_info, descriptions)
     assert extract_comments(no_comment_module) == {}
+
+    assert (
+        extract_comments(
+            "        # [overrides standard]\n"
+            '        0: EcomaxNumberDescription(name="boiler_power_100"),\n'
+        )
+        == {}
+    )
+    assert (
+        extract_comments(
+            "        #   [overrides standard]  \n"
+            '        0: EcomaxNumberDescription(name="boiler_power_100"),\n'
+        )
+        == {}
+    )
+    assert extract_comments(
+        "        # [overrides standard]\n"
+        "        # 0 - off, 1 - on\n"
+        '        0: EcomaxNumberDescription(name="boiler_power_100"),\n'
+    ) == {0: "0 - off, 1 - on"}
+
+    ecomax_i_info = ProductInfo(
+        type=ProductType.ECOMAX_I,
+        id=100,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 860I",
+    )
+    ecomax_i_descriptions: dict[
+        int, EcomaxNumberDescription | EcomaxSwitchDescription
+    ] = {
+        0: EcomaxSwitchDescription(name="solar_support"),
+        1: EcomaxNumberDescription(name="boiler_power_100"),
+    }
+    ecomax_i_module = generate_custom_parameter_module(
+        ecomax_i_info, ecomax_i_descriptions
+    )
+    assert (
+        "        # [overrides standard]\n"
+        '        0: EcomaxSwitchDescription(name="solar_support"),'
+    ) in ecomax_i_module
+    assert (
+        "        # [overrides standard]\n"
+        '        1: EcomaxNumberDescription(name="boiler_power_100"),'
+    ) not in ecomax_i_module
+    assert ecomax_i_module.count("# [overrides standard]") == 1
+
+    unknown_type_info = ProductInfo(
+        type=cast(ProductType, 99),
+        id=101,
+        uid="*TEST*",
+        logo=0,
+        image=0,
+        model="ecoMAX 999X",
+    )
+    unknown_type_module = generate_custom_parameter_module(
+        unknown_type_info, ecomax_i_descriptions
+    )
+    assert "# [overrides standard]" not in unknown_type_module
 
     wrapped_module = (
         "    descriptions = {\n"
@@ -458,6 +537,8 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
             (0, ParameterValues(value=1, min_value=0, max_value=1)),
             (1, ParameterValues(value=0, min_value=0, max_value=1)),
             (2, ParameterValues(value=50, min_value=10, max_value=80)),
+            (3, ParameterValues(value=20, min_value=10, max_value=30)),
+            (4, ParameterValues(value=10, min_value=5, max_value=15)),
         ],
         output_dir=tmp_path,
         comments=comments,

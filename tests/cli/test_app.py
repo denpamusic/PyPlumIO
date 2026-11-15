@@ -538,7 +538,12 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         mock_load_builtin.assert_not_awaited()
 
     saved_module = existing_module.read_text(encoding="utf-8")
-    assert "        # untouched output comment\n        0: " in saved_module
+    assert (
+        "        # [overrides standard]\n"
+        "        # untouched output comment\n"
+        "        0: "
+    ) in saved_module
+    assert saved_module.count("# [overrides standard]") == 1
     assert "        # 0 - pellets, 1 - wood\n        4: " in saved_module
 
 

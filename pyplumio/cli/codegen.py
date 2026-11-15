@@ -15,6 +15,7 @@ from pyplumio.const import PERCENTAGE, STATE_ON, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
 from pyplumio.parameters.ecomax import (
+    PARAMETER_TYPES,
     EcomaxNumberDescription,
     EcomaxParameterDescription,
     EcomaxSwitchDescription,
@@ -25,6 +26,7 @@ CHUNK_SIZE: Final = 77
 MAX_LINE_LENGTH: Final = 88
 COMMENT_PREFIX: Final = "        # "
 ENTRY_PREFIX: Final = "        "
+OVERRIDE_COMMENT: Final = "[overrides standard]"
 
 MODULE_TEMPLATE: Final = (
     '"""Contains patch for {model}."""\n\nfrom __future__ import annotations\n\n'
@@ -128,17 +130,21 @@ def _format_dict_entry(
     index: int,
     description: EcomaxParameterDescription,
     comment: str | None = None,
+    *,
+    overrides_standard: bool = False,
 ) -> str:
     """Format single descriptions dict entry with 88-column wrapping."""
+    tag_prefix = f"{COMMENT_PREFIX}{OVERRIDE_COMMENT}\n" if overrides_standard else ""
     comment_prefix = _format_comment(comment) if comment else ""
+    prefix_text = f"{tag_prefix}{comment_prefix}"
     class_name, arguments = _format_description(description)
     prefix = f"{ENTRY_PREFIX}{index}: "
     single_line = f"{class_name}({', '.join(arguments)})"
     if len(prefix) + len(single_line) + 1 <= MAX_LINE_LENGTH:
-        return f"{comment_prefix}{prefix}{single_line},"
+        return f"{prefix_text}{prefix}{single_line},"
 
     body = "\n".join(f"            {arg}," for arg in arguments)
-    return f"{comment_prefix}{prefix}{class_name}(\n{body}\n        ),"
+    return f"{prefix_text}{prefix}{class_name}(\n{body}\n        ),"
 
 
 def _format_override_entry(override: ParameterOverride) -> str:
@@ -261,7 +267,8 @@ def extract_comments(source: str) -> dict[int, str]:
     pending: list[str] = []
     for line in source.splitlines():
         if line.startswith(COMMENT_PREFIX):
-            if text := line.removeprefix(COMMENT_PREFIX).strip():
+            text = line.removeprefix(COMMENT_PREFIX).strip()
+            if text and text != OVERRIDE_COMMENT:
                 pending.append(text)
 
             continue
@@ -286,11 +293,19 @@ def generate_custom_parameter_module(
     """Generate the custom parameter module file content."""
     slug = model_slug(product_info.model)
     comment_map = comments or {}
+    standard_names = {
+        parameter.name for parameter in PARAMETER_TYPES.get(product_info.type, ())
+    }
     override_lines = "\n".join(
         _format_override_entry(override) for override in overrides
     )
     description_lines = "\n".join(
-        _format_dict_entry(index, description, comment_map.get(index))
+        _format_dict_entry(
+            index,
+            description,
+            comment_map.get(index),
+            overrides_standard=description.name in standard_names,
+        )
         for index, description in sorted(descriptions.items())
     )
     description_block = (
