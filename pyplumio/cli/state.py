@@ -413,7 +413,7 @@ class AppState:
             return description
 
         if product_info := self.session.product_info:
-            for parameter in PARAMETER_TYPES.get(product_info.type, []):
+            for parameter in PARAMETER_TYPES.get(product_info.type, ()):
                 if parameter.name == name:
                     return parameter
 

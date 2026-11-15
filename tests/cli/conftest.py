@@ -78,11 +78,11 @@ def app_step(state: AppState) -> AppStep:
     return state.step
 
 
-def dummy_product_info() -> ProductInfo:
+def dummy_product_info(product_id: int = DUMMY_ID) -> ProductInfo:
     """Return synthetic product info for ecoMAX 999-TEST."""
     return ProductInfo(
         type=ProductType.ECOMAX_P,
-        id=DUMMY_ID,
+        id=product_id,
         uid="*TEST*",
         logo=0,
         image=0,

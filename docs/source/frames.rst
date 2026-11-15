@@ -794,5 +794,6 @@ Handlers
 ^^^^^^^^
 
 .. autoclass:: pyplumio.structures.frame_versions.FrameVersionsStructure
+   :no-index:
 
 .. autoclass:: pyplumio.structures.sensor_data.SensorDataStructure

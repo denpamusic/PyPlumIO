@@ -319,7 +319,7 @@ def _get_name_completer(state: AppState) -> WordCompleter | None:
 
     available_names = [
         parameter.name
-        for parameter in PARAMETER_TYPES.get(product_info.type, [])
+        for parameter in PARAMETER_TYPES.get(product_info.type, ())
         if parameter.name not in used_names
     ]
 

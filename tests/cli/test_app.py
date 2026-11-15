@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import replace
 import logging
 from pathlib import Path
 from typing import Any
@@ -440,6 +439,21 @@ def test_load_comments(tmp_path: Path) -> None:
         assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {}
 
 
+def _verify_wizard_comment(
+    state: AppState, buff: Buffer, index: str, steps: int, expected: str
+) -> None:
+    """Walk parameter wizard to comment step, verify text, and confirm."""
+    buff.text = index
+    for _ in range(steps):
+        state.dispatch_enter(buff)
+
+    assert app_step(state) == AppStep.COMMENT
+    assert buff.text == expected
+    state.dispatch_enter(buff)
+    buff.text = "y"
+    state.dispatch_enter(buff)
+
+
 async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> None:
     """Test loaded comments are pre-filled at comment step and preserved on save."""
     product_info = dummy_product_info()
@@ -450,6 +464,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
             product_info,
             {
                 0: EcoMAX999TEST.descriptions[0],
+                3: EcoMAX999TEST.descriptions[3],
                 4: EcoMAX999TEST.descriptions[4],
             },
             EcoMAX999TEST.overrides,
@@ -485,6 +500,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         sess.last_frame_message = b"\x00" * 40
         sess.last_parameters = [
             (0, ParameterValues(value=10, min_value=0, max_value=20)),
+            (3, ParameterValues(value=1, min_value=0, max_value=1)),
             (4, ParameterValues(value=0, min_value=0, max_value=1)),
         ]
         if sess._on_update:
@@ -495,16 +511,11 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         assert state.table.overrides == EcoMAX999TEST.overrides
         buff = Buffer()
 
-        # Edit index 4 and verify loaded comment is pre-filled
-        buff.text = "4"
-        for _ in range(6):
-            state.dispatch_enter(buff)  # select 4 and keep name/type/offset/step/unit
+        # Index 3 (standard override without comment) has empty comment prompt
+        _verify_wizard_comment(state, buff, "3", 3, "")
 
-        assert app_step(state) == AppStep.COMMENT
-        assert buff.text == "0 - pellets, 1 - wood"
-        state.dispatch_enter(buff)  # keep pre-filled comment
-        buff.text = "y"
-        state.dispatch_enter(buff)
+        # Index 4 preserves pre-filled user comment
+        _verify_wizard_comment(state, buff, "4", 6, "0 - pellets, 1 - wood")
 
         # Save to output_dir without touching index 0 and verify both comments persist
         state.start_save(buff, save_as_zip=False)
@@ -543,7 +554,8 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         "        # untouched output comment\n"
         "        0: "
     ) in saved_module
-    assert saved_module.count("# [overrides standard]") == 1
+    assert "        # [overrides standard]\n        3: " in saved_module
+    assert saved_module.count("# [overrides standard]") == 2
     assert "        # 0 - pellets, 1 - wood\n        4: " in saved_module
 
 
@@ -588,7 +600,7 @@ def test_load_custom_parameters_from_file(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="Signature mismatch"):
         _load_custom_parameters_from_file(
-            valid_path, replace(product_info, id=DUMMY_ID + 1)
+            valid_path, dummy_product_info(product_id=DUMMY_ID + 1)
         )
 
     wrong_model = tmp_path / "wrong_model.py"
@@ -745,7 +757,7 @@ async def test_run_app_invalid_output_module_fallback(
 ) -> None:
     """Test run_app falls back cleanly when output module fails validation."""
     product_info = dummy_product_info()
-    mismatched_info = replace(product_info, id=DUMMY_ID + 1)
+    mismatched_info = dummy_product_info(product_id=DUMMY_ID + 1)
     rejected_path = custom_module_path(tmp_path, DUMMY_SLUG)
     rejected_path.parent.mkdir(parents=True, exist_ok=True)
     rejected_path.write_text(
