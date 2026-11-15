@@ -13,7 +13,7 @@ Windows Executable
 On Windows, download the standalone ``pyplumio.exe`` executable from the
 `GitHub Releases <https://github.com/denpamusic/PyPlumIO/releases>`_ page. No Python
 installation is required—double-click ``pyplumio.exe`` or run it from Command Prompt
-or PowerShell. Generated files (or ``<model_slug>.zip``) are saved in the working
+or PowerShell. Generated files (and optional ``<model_slug>.zip``) are saved in the working
 directory where ``pyplumio.exe`` is launched unless ``--output`` is specified.
 
 Python Package
@@ -55,7 +55,7 @@ The CLI supports the following arguments:
       --output DIR        Output directory for generated files (default: current working directory).
       --interval SECONDS  Polling interval in seconds (default: 2.0).
       --baudrate BAUDRATE Serial baudrate (default: 115200).
-      -z, --zip           Save output as a ZIP archive.
+      -z, --zip           Also save output as a ZIP archive.
 
 Interactive Connection Setup
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,12 +131,12 @@ Press ``Ctrl+S`` to save generated files. At least one parameter must be mapped;
 
     Nothing to save: map at least one parameter first.
 
-Unless ``-z`` / ``--zip`` was passed on the command line, you will be asked ``Save as a ZIP archive? [y/N]``:
+Unless ``-z`` / ``--zip`` was passed on the command line, you will be asked ``Also save as a ZIP archive? [y/N]``:
 
-- Answering ``n`` (or pressing Enter) writes the three generated files directly into the ``<output>`` directory tree. If ``<output>/pyplumio/parameters/custom/<model_slug>.py`` already exists, you will be prompted to confirm overwrite (``Overwrite existing <model_slug>.py? [y/N]``).
-- Answering ``y`` (or starting the CLI with ``-z`` / ``--zip``) saves a single ``<output>/<model_slug>.zip`` archive containing the same repository-relative paths inside, which can be attached directly to a GitHub issue instead of opening a PR. If ``<output>/<model_slug>.zip`` already exists, you will be prompted to confirm overwrite (``Overwrite existing <model_slug>.zip? [y/N]``).
+- Answering ``n`` (or pressing Enter) writes only the three generated files directly into the ``<output>`` directory tree. If ``<output>/pyplumio/parameters/custom/<model_slug>.py`` already exists, you will be prompted to confirm overwrite (``Overwrite existing <model_slug>.py? [y/N]``).
+- Answering ``y`` (or starting the CLI with ``-z`` / ``--zip``) writes the three generated files into ``<output>`` and also saves ``<output>/<model_slug>.zip`` containing the same repository-relative paths inside, which can be attached directly to a GitHub issue instead of opening a PR. If ``<model_slug>.py``, ``<model_slug>.zip``, or both already exist, you will be prompted to confirm overwrite (``Overwrite existing <target>? [y/N]``, or ``Overwrite existing <model_slug>.py and <model_slug>.zip? [y/N]`` when both exist).
 
-The utility produces the following three files (either on disk or inside ``<output>/<model_slug>.zip``):
+The utility produces the following three files on disk (and inside ``<output>/<model_slug>.zip`` when ZIP output is requested):
 
 1. **Custom Parameter Module**:
    ``<output>/pyplumio/parameters/custom/<model_slug>.py``

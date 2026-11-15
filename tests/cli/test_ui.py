@@ -466,7 +466,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     table.set_description(0, EcomaxNumberDescription(name="boiler_temp"))
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.ZIP
-    assert state.prompt == "Save as a ZIP archive? [y/N]: "
+    assert state.prompt == "Also save as a ZIP archive? [y/N]: "
     state.step_zip("n", app_buffer)
     assert _step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
@@ -737,7 +737,7 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     # Ctrl+S asks ZIP question; Esc cancels back to INDEX
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.ZIP
-    assert state.prompt == "Save as a ZIP archive? [y/N]: "
+    assert state.prompt == "Also save as a ZIP archive? [y/N]: "
     bindings["escape"](mock_event)
     assert _step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
@@ -786,12 +786,15 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     app_buffer = buffer_ctrl.content.buffer
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
 
-    # Answering "y" writes ZIP and resets save_as_zip
+    # Answering "y" writes regular files + ZIP and resets save_as_zip
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {zip_path}."
+    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
     assert state.data.save_as_zip is False
+    assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
+    assert (tmp_path / f"tests/parameters/custom/test_{DUMMY_SLUG}.py").is_file()
+    assert (tmp_path / f"tests/testdata/parameters/{DUMMY_SLUG}.json").is_file()
     assert zip_path.is_file()
     with zipfile.ZipFile(zip_path, "r") as archive:
         assert set(archive.namelist()) == {
@@ -800,24 +803,26 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
             f"tests/testdata/parameters/{DUMMY_SLUG}.json",
         }
 
-    # Existing ZIP -> OVERWRITE prompt, decline -> "Save cancelled."
+    # Existing files + ZIP -> OVERWRITE prompt, decline -> "Save cancelled."
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
+    assert state.prompt == (
+        f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
+    )
     assert bool(state.data.save_as_zip) is True
     state.step_overwrite("n", app_buffer)
     assert _step(state) == AppStep.INDEX
     assert state.status == "Save cancelled."
     assert state.data.save_as_zip is False
 
-    # Existing ZIP -> OVERWRITE accept -> rewrites ZIP and resets save_as_zip
+    # Existing files + ZIP -> OVERWRITE accept -> rewrites and resets save_as_zip
     bindings["c-s"](mock_event)
     state.step_zip("yes", app_buffer)
     assert _step(state) == AppStep.OVERWRITE
     state.step_overwrite("y", app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {zip_path}."
+    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
     assert state.data.save_as_zip is False
 
 
@@ -845,18 +850,21 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {zip_path}."
+    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
     assert state.data.save_as_zip is False
+    assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
     assert zip_path.is_file()
 
-    # Second Ctrl+S goes directly to OVERWRITE for the ZIP file
+    # Second Ctrl+S goes directly to OVERWRITE for both regular module and ZIP file
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.OVERWRITE
-    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
+    assert state.prompt == (
+        f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
+    )
     app_buffer.text = "y"
     state.dispatch_enter(app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {zip_path}."
+    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
     assert state.data.save_as_zip is False
 
 

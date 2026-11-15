@@ -91,7 +91,7 @@ def _run_cli(argv: Sequence[str] | None) -> int:
         "--baudrate", type=int, default=DEFAULT_BAUDRATE, help="baudrate"
     )
     parser.add_argument(
-        "-z", "--zip", action="store_true", help="save output as a ZIP archive"
+        "-z", "--zip", action="store_true", help="also save output as a ZIP archive"
     )
     try:
         return asyncio.run(run_app(parser.parse_args(argv)))

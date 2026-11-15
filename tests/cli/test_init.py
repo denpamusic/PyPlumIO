@@ -116,10 +116,11 @@ def test_main_eof_error() -> None:
         mock_pause.assert_called_once()
 
 
-def test_main_help_and_invalid_argument() -> None:
+def test_main_help_and_invalid_argument(capsys: pytest.CaptureFixture[str]) -> None:
     """Test main handles SystemExit for --help and invalid arguments."""
     with patch("pyplumio.cli._pause_before_exit") as mock_pause:
         assert main(["--help"]) == 0
+        assert "also save output as a ZIP archive" in capsys.readouterr().out
         mock_pause.assert_not_called()
 
         assert main(["--unknown-flag"]) == 2

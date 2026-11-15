@@ -81,7 +81,7 @@ PAGE_SIZE: Final = 25
 INDEX_PROMPT: Final = "Enter parameter index to edit: "
 NAME_PROMPT: Final = "Name: "
 COMMENT_PROMPT: Final = "Comment (leave empty for none): "
-ZIP_PROMPT: Final = "Save as a ZIP archive? [y/N]: "
+ZIP_PROMPT: Final = "Also save as a ZIP archive? [y/N]: "
 
 
 def _normalize_number(value: float) -> float | int:
@@ -144,14 +144,14 @@ def _save_files(state: AppState) -> None:
             state.output_dir,
             comments=state.table.comments,
         )
+        write_files(files)
         if state.data.save_as_zip:
             zip_path = zip_archive_path(
                 state.output_dir, model_slug(product_info.model)
             )
             write_zip(zip_path, files, state.output_dir)
-            state.status = f"Files saved to {zip_path}."
+            state.status = f"Files saved to {state.output_dir} and {zip_path.name}."
         else:
-            write_files(files)
             state.status = f"Files saved to {state.output_dir}."
 
     except (OSError, ValueError) as err:
@@ -264,13 +264,13 @@ class AppState:
 
         self.data.save_as_zip = self.zip_output if save_as_zip is None else save_as_zip
         slug = model_slug(product_info.model)
-        target_path = (
-            zip_archive_path(self.output_dir, slug)
-            if self.data.save_as_zip
-            else custom_module_path(self.output_dir, slug)
-        )
-        if target_path.is_file():
-            prompt = f"Overwrite existing {target_path.name}? [y/N]: "
+        targets = [custom_module_path(self.output_dir, slug)]
+        if self.data.save_as_zip:
+            targets.append(zip_archive_path(self.output_dir, slug))
+
+        if existing := [path.name for path in targets if path.is_file()]:
+            names = " and ".join(existing)
+            prompt = f"Overwrite existing {names}? [y/N]: "
             return self._set_step(AppStep.OVERWRITE, prompt, buffer)
 
         _save_files(self)

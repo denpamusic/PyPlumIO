@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from prompt_toolkit.buffer import Buffer
 
+from pyplumio.cli.codegen import custom_module_path, zip_archive_path
 from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
 from pyplumio.cli.state import (
@@ -442,6 +443,93 @@ async def test_app_state_save_and_overwrite(tmp_path: Path) -> None:
     ):
         _save_files(state)
         assert "Error saving files: Invalid parameter" in state.status
+
+
+async def test_app_state_save_zip_writes_regular_files(tmp_path: Path) -> None:
+    """Test _save_files writes regular output files alongside ZIP when enabled."""
+    session = Session(url="socket://localhost:8899")
+    session.product_info = dummy_product_info()
+    session.last_frame_message = b"\x00" * 40
+    session.last_parameters = [
+        (0, ParameterValues(value=10, min_value=0, max_value=20))
+    ]
+    table = ParameterTable()
+    table.set_description(0, EcomaxNumberDescription(name="boiler_temp"))
+
+    state = AppState(session, table, tmp_path)
+    state.data.save_as_zip = True
+    _save_files(state)
+    assert state.status == f"Files saved to {tmp_path} and {DUMMY_SLUG}.zip."
+    assert custom_module_path(tmp_path, DUMMY_SLUG).is_file()
+    assert (tmp_path / f"tests/parameters/custom/test_{DUMMY_SLUG}.py").is_file()
+    assert (tmp_path / f"tests/testdata/parameters/{DUMMY_SLUG}.json").is_file()
+    assert zip_archive_path(tmp_path, DUMMY_SLUG).is_file()
+
+
+async def test_app_state_save_overwrite_combinations(tmp_path: Path) -> None:
+    """Test overwrite prompts and cancellation across regular and ZIP targets."""
+    session = Session(url="socket://localhost:8899")
+    session.product_info = dummy_product_info()
+    session.last_frame_message = b"\x00" * 40
+    session.last_parameters = [
+        (0, ParameterValues(value=10, min_value=0, max_value=20))
+    ]
+    table = ParameterTable()
+    table.set_description(0, EcomaxNumberDescription(name="boiler_temp"))
+
+    module_path = custom_module_path(tmp_path, DUMMY_SLUG)
+    test_path = tmp_path / f"tests/parameters/custom/test_{DUMMY_SLUG}.py"
+    data_path = tmp_path / f"tests/testdata/parameters/{DUMMY_SLUG}.json"
+    zip_path = zip_archive_path(tmp_path, DUMMY_SLUG)
+
+    # Only <slug>.py exists -> prompts for <slug>.py, declining cancels without touch
+    state = AppState(session, table, tmp_path)
+    buff = Buffer()
+    module_path.parent.mkdir(parents=True, exist_ok=True)
+    module_path.write_text("# existing module", encoding="utf-8")
+    state.start_save(buff, save_as_zip=True)
+    assert _step(state) == AppStep.OVERWRITE
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
+    state.step_overwrite("n", buff)
+    assert _step(state) == AppStep.INDEX
+    assert state.status == "Save cancelled."
+    assert module_path.read_text(encoding="utf-8") == "# existing module"
+    assert not zip_path.exists()
+
+    # Only <slug>.zip exists + save_as_zip=False -> writes regular files immediately
+    module_path.unlink()
+    zip_path.write_bytes(b"existing zip")
+    state.start_save(buff, save_as_zip=False)
+    assert _step(state) == AppStep.INDEX
+    assert state.status == f"Files saved to {tmp_path}."
+    assert module_path.is_file()
+    assert test_path.is_file()
+    assert data_path.is_file()
+    assert zip_path.read_bytes() == b"existing zip"
+
+    # Only <slug>.zip exists + save_as_zip=True -> prompts for <slug>.zip, decline
+    module_path.unlink()
+    state.start_save(buff, save_as_zip=True)
+    assert _step(state) == AppStep.OVERWRITE
+    assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
+    state.step_overwrite("n", buff)
+    assert _step(state) == AppStep.INDEX
+    assert state.status == "Save cancelled."
+    assert not module_path.exists()
+    assert zip_path.read_bytes() == b"existing zip"
+
+    # Both <slug>.py and <slug>.zip exist -> prompts for both, declining cancels
+    module_path.write_text("# existing module", encoding="utf-8")
+    state.start_save(buff, save_as_zip=True)
+    assert _step(state) == AppStep.OVERWRITE
+    assert state.prompt == (
+        f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
+    )
+    state.step_overwrite("n", buff)
+    assert _step(state) == AppStep.INDEX
+    assert state.status == "Save cancelled."
+    assert module_path.read_text(encoding="utf-8") == "# existing module"
+    assert zip_path.read_bytes() == b"existing zip"
 
 
 def test_format_value_with_unit() -> None:
