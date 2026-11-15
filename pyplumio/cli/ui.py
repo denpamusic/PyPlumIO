@@ -51,6 +51,7 @@ from pyplumio.parameters.ecomax import (
 
 SCROLL_SIZE: Final = 20
 PREVIEW_BOX_WIDTH: Final = 80
+ELLIPSIS: Final = "..."
 TABLE_HEADER: Final = (
     "Index  Name                                  Value       Min         Max\n"
 )
@@ -85,18 +86,17 @@ UNIT_COMPLETER: Final = WordCompleter(
 )
 
 
-def _format_bar_text(text: str) -> StyleAndTextTuples:
-    """Wrap and pad text as an inverted bar."""
-    if not text.strip():
-        return []
+def _truncate_middle(text: str, max_length: int) -> str:
+    """Truncate text in the middle with an ellipsis to fit max_length."""
+    if len(text) <= max_length:
+        return text
 
-    lines = textwrap.wrap(
-        text,
-        width=PREVIEW_BOX_WIDTH,
-        break_long_words=True,
-        break_on_hyphens=False,
-    )
-    return [("reverse", "\n".join(line.center(PREVIEW_BOX_WIDTH) for line in lines))]
+    if max_length <= len(ELLIPSIS):
+        return ELLIPSIS[: max(0, max_length)]
+
+    head = (max_length - len(ELLIPSIS)) // 2
+    tail = max_length - len(ELLIPSIS) - head
+    return f"{text[:head]}{ELLIPSIS}{text[-tail:]}"
 
 
 def _get_header_text(state: AppState) -> StyleAndTextTuples:
@@ -109,15 +109,25 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
         if state.session.last_update_time
         else "Never"
     )
-    return _format_bar_text(
-        f"Model: {model} (ID: {product_id}) | URL: {state.session.url} | "
-        f"Updated: {updated}"
-    )
+    left = f" {model} (ID: {product_id})"
+    right = f"↻ {updated} "
+    middle_width = PREVIEW_BOX_WIDTH - len(left) - len(right)
+    url = _truncate_middle(state.session.url, middle_width - 4)
+    return [("reverse", f"{left}{url.center(middle_width)}{right}")]
 
 
 def _get_status_text(state: AppState) -> StyleAndTextTuples:
     """Return formatted status bar text."""
-    return _format_bar_text(state.status)
+    if not state.status.strip():
+        return []
+
+    lines = textwrap.wrap(
+        state.status,
+        width=PREVIEW_BOX_WIDTH,
+        break_long_words=True,
+        break_on_hyphens=False,
+    )
+    return [("reverse", "\n".join(line.center(PREVIEW_BOX_WIDTH) for line in lines))]
 
 
 def _get_table_text(state: AppState) -> StyleAndTextTuples:
@@ -400,9 +410,7 @@ def create_app(
         [
             Window(
                 FormattedTextControl(lambda: _get_header_text(state)),
-                width=PREVIEW_BOX_WIDTH,
-                wrap_lines=True,
-                dont_extend_height=True,
+                height=1,
             ),
             Window(height=1),
             Window(FormattedTextControl(lambda: _get_table_text(state))),

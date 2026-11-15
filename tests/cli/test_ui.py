@@ -29,6 +29,7 @@ from pyplumio.cli.ui import (
     _get_preview_text,
     _get_status_text,
     _get_table_text,
+    _truncate_middle,
     create_app,
 )
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
@@ -75,20 +76,23 @@ def test_ui_header_and_table_text(tmp_path: Path) -> None:
     # Initial header without product info or update time
     header = _get_header_text(state)
     assert header[0][0] == "reverse"
-    assert "Model: Unknown (ID: 0)" in header[0][1]
-    assert "Updated: Never" in header[0][1]
-    assert "Ctrl+S" not in header[0][1] and "Ctrl+Q" not in header[0][1]
-    assert not header[0][1].endswith("\n") and len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(" Unknown (ID: 0)  ")
+    assert "socket://localhost:8899" in header[0][1]
+    assert header[0][1].endswith("  ↻ Never ")
+    assert "Model:" not in header[0][1]
+    assert "URL:" not in header[0][1]
+    assert "Updated:" not in header[0][1]
 
     # Header with product info and update time
     session.product_info = dummy_product_info()
     session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
     header = _get_header_text(state)
     assert header[0][0] == "reverse"
-    assert f"Model: {DUMMY_MODEL} (ID: {DUMMY_ID})" in header[0][1]
-    assert "Updated: 12:00:00" in " ".join(header[0][1].split())
-    assert not header[0][1].endswith("\n")
-    assert all(len(line) == PREVIEW_BOX_WIDTH for line in header[0][1].splitlines())
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(f" {DUMMY_MODEL} (ID: {DUMMY_ID})  ")
+    assert "socket://localhost:8899" in header[0][1]
+    assert header[0][1].endswith("  ↻ 12:00:00 ")
 
     # Table text without description
     table.update([(0, ParameterValues(value=10, min_value=0, max_value=20))])
@@ -856,30 +860,34 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     assert state.data.save_as_zip is False
 
 
-def test_ui_header_wrapping(tmp_path: Path) -> None:
-    """Test multi-line wrapping and padding of long headers."""
-    session = Session(url="socket://long-hostname.example.local:8899")
+def test_ui_header_url_truncation(tmp_path: Path) -> None:
+    """Test middle truncation of long URLs in the single-line header."""
+    session = Session(
+        url="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A50285BI-if00-port0"
+    )
     session.product_info = dummy_product_info()
     session.last_update_time = datetime(2025, 1, 1, 12, 0, 0, tzinfo=UTC)
     table = ParameterTable()
     state = AppState(session, table, tmp_path)
 
-    wrapped_header = _get_header_text(state)
-    assert wrapped_header[0][0] == "reverse"
-    assert not wrapped_header[0][1].endswith("\n")
-    assert "\n" in wrapped_header[0][1]
-    assert all(
-        len(line) == PREVIEW_BOX_WIDTH for line in wrapped_header[0][1].splitlines()
-    )
+    header = _get_header_text(state)
+    assert header[0][0] == "reverse"
+    assert "\n" not in header[0][1]
+    assert len(header[0][1]) == PREVIEW_BOX_WIDTH
+    assert header[0][1].startswith(f" {DUMMY_MODEL} (ID: {DUMMY_ID})  ")
+    assert header[0][1].endswith("  ↻ 12:00:00 ")
+    assert "/dev/serial/" in header[0][1]
+    assert "..." in header[0][1]
+    assert "-port0" in header[0][1]
 
-    # Long unbroken URL wraps across lines with break_long_words=True
-    session.url = "socket://" + "a" * 90 + ":8899"
-    long_word_header = _get_header_text(state)
-    assert long_word_header[0][0] == "reverse"
-    assert "\n" in long_word_header[0][1]
-    assert all(
-        len(line) == PREVIEW_BOX_WIDTH for line in long_word_header[0][1].splitlines()
-    )
+    # Edge cases for _truncate_middle
+    assert _truncate_middle("abcdef", 6) == "abcdef"
+    assert _truncate_middle("abcdef", 5) == "a...f"
+    assert _truncate_middle("abcdef", 4) == "...f"
+    assert _truncate_middle("abcdef", 3) == "..."
+    assert _truncate_middle("abcdef", 2) == ".."
+    assert _truncate_middle("abcdef", 0) == ""
+    assert _truncate_middle("abcdef", -3) == ""
 
 
 def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
@@ -890,8 +898,7 @@ def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
     children = app.layout.container.content.children  # type: ignore[attr-defined]
 
     header_win = children[0]
-    assert header_win.dont_extend_height() is True
-    assert header_win.wrap_lines() is True
+    assert header_win.height == 1
     assert children[1].height == 1
     assert children[3].height == 1
     assert children[4].height == 4
