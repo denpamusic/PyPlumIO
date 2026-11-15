@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import replace
 import logging
 from pathlib import Path
 from typing import Any
@@ -20,22 +21,32 @@ from serialx import SerialException
 
 from pyplumio.cli.app import (
     _format_error,
+    _load_cli_custom_parameters,
     _load_comments,
+    _load_custom_parameters_from_file,
     _StatusLogHandler,
     _write_status,
     prompt_connection_url,
     run_app,
 )
-from pyplumio.cli.codegen import custom_module_path
+from pyplumio.cli.codegen import (
+    custom_module_path,
+    generate_custom_parameter_module,
+    write_zip,
+    zip_archive_path,
+)
 from pyplumio.cli.model import ParameterTable
 from pyplumio.cli.session import Session
 from pyplumio.cli.state import AppState, AppStep, _save_files
 from pyplumio.cli.ui import create_app
 from pyplumio.exceptions import ConnectionFailedError, PyPlumIOError
 from pyplumio.parameters import ParameterValues
+from pyplumio.parameters.custom import CustomParameters
 from pyplumio.parameters.ecomax import EcomaxNumberDescription
 from tests.cli.conftest import (
+    DUMMY_CLASS_NAME,
     DUMMY_COMMENTS,
+    DUMMY_ID,
     DUMMY_MODEL,
     DUMMY_SLUG,
     EcoMAX999TEST,
@@ -413,9 +424,21 @@ def test_load_comments(tmp_path: Path) -> None:
             _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG)
             == DUMMY_COMMENTS
         )
+        assert (
+            _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG, prefer_output=False)
+            == DUMMY_COMMENTS
+        )
 
     with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=None):
         assert _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG) == {}
+
+    dynamic_instance = _load_custom_parameters_from_file(
+        source_path, dummy_product_info()
+    )
+    assert (
+        _load_comments(dynamic_instance, tmp_path, DUMMY_SLUG, prefer_output=False)
+        == {}
+    )
 
     with patch.object(Path, "read_text", side_effect=OSError("Permission denied")):
         assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {}
@@ -423,13 +446,19 @@ def test_load_comments(tmp_path: Path) -> None:
 
 async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> None:
     """Test loaded comments are pre-filled at comment step and preserved on save."""
+    product_info = dummy_product_info()
     existing_module = custom_module_path(tmp_path, DUMMY_SLUG)
     existing_module.parent.mkdir(parents=True, exist_ok=True)
     existing_module.write_text(
-        "        # untouched output comment\n"
-        '        0: EcomaxNumberDescription(name="max_boiler_power"),\n'
-        "        # 0 - pellets, 1 - wood\n"
-        '        4: EcomaxNumberDescription(name="fuel_type"),\n',
+        generate_custom_parameter_module(
+            product_info,
+            {
+                0: EcoMAX999TEST.descriptions[0],
+                4: EcoMAX999TEST.descriptions[4],
+            },
+            EcoMAX999TEST.overrides,
+            comments={0: "untouched output comment", 4: "0 - pellets, 1 - wood"},
+        ),
         encoding="utf-8",
     )
 
@@ -440,7 +469,6 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         baudrate=115200,
         zip=False,
     )
-    product_info = dummy_product_info()
     created_sessions: list[Session] = []
     created_states: list[AppState] = []
     orig_init = Session.__init__
@@ -467,16 +495,15 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
             sess._on_update(sess.last_parameters)
 
         state = created_states[0]
+        assert state.status == f"Loaded custom parameters from {tmp_path}."
+        assert state.table.overrides == EcoMAX999TEST.overrides
         buff = Buffer()
 
         # Edit index 4 and verify loaded comment is pre-filled
         buff.text = "4"
-        state.dispatch_enter(buff)
-        state.dispatch_enter(buff)  # keep "fuel_type"
-        state.dispatch_enter(buff)  # keep "number"
-        state.dispatch_enter(buff)  # keep offset
-        state.dispatch_enter(buff)  # keep step
-        state.dispatch_enter(buff)  # keep unit
+        for _ in range(6):
+            state.dispatch_enter(buff)  # select 4 and keep name/type/offset/step/unit
+
         assert _step(state) == AppStep.COMMENT
         assert buff.text == "0 - pellets, 1 - wood"
         state.dispatch_enter(buff)  # keep pre-filled comment
@@ -498,7 +525,273 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
+        ) as mock_load_builtin,
+        patch(
+            "pyplumio.cli.session.Session.connect",
+            new_callable=AsyncMock,
+            return_value=product_info,
+        ),
+        patch(
+            "prompt_toolkit.application.Application.run_async",
+            new_callable=AsyncMock,
+            side_effect=fake_run_async,
+        ),
+        patch("pyplumio.cli.session.Session.close", new_callable=AsyncMock),
+    ):
+        assert await run_app(args) == 0
+        mock_load_builtin.assert_not_awaited()
+
+    saved_module = existing_module.read_text(encoding="utf-8")
+    assert "        # untouched output comment\n        0: " in saved_module
+    assert "        # 0 - pellets, 1 - wood\n        4: " in saved_module
+
+
+def test_load_custom_parameters_from_file(tmp_path: Path) -> None:
+    """Test _load_custom_parameters_from_file validation and error cases."""
+    product_info = dummy_product_info()
+    valid_path = write_dummy_custom_module(tmp_path / "valid")
+    loaded = _load_custom_parameters_from_file(valid_path, product_info)
+    assert isinstance(loaded, CustomParameters)
+    assert loaded.validate(product_info)
+    assert loaded.descriptions == EcoMAX999TEST.descriptions
+
+    invalid_suffix = tmp_path / "invalid.txt"
+    invalid_suffix.write_text("", encoding="utf-8")
+    with pytest.raises(ImportError, match="Could not create module spec"):
+        _load_custom_parameters_from_file(invalid_suffix, product_info)
+
+    missing_class = tmp_path / "missing.py"
+    missing_class.write_text("VALUE = 1\n", encoding="utf-8")
+    with pytest.raises(AttributeError):
+        _load_custom_parameters_from_file(missing_class, product_info)
+
+    wrong_class = tmp_path / "wrong.py"
+    wrong_class.write_text(f"class {DUMMY_CLASS_NAME}:\n    pass\n", encoding="utf-8")
+    with pytest.raises(TypeError, match="Expected instance of 'CustomParameters'"):
+        _load_custom_parameters_from_file(wrong_class, product_info)
+
+    non_callable = tmp_path / "non_callable.py"
+    non_callable.write_text(f"{DUMMY_CLASS_NAME} = 123\n", encoding="utf-8")
+    with pytest.raises(TypeError):
+        _load_custom_parameters_from_file(non_callable, product_info)
+
+    missing_signature = tmp_path / "missing_signature.py"
+    missing_signature.write_text(
+        "from pyplumio.parameters.custom import CustomParameters\n"
+        f"class {DUMMY_CLASS_NAME}(CustomParameters):\n"
+        "    pass\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(AttributeError):
+        _load_custom_parameters_from_file(missing_signature, product_info)
+
+    with pytest.raises(ValueError, match="Signature mismatch"):
+        _load_custom_parameters_from_file(
+            valid_path, replace(product_info, id=DUMMY_ID + 1)
+        )
+
+    wrong_model = tmp_path / "wrong_model.py"
+    wrong_model.write_text(
+        "from pyplumio.parameters.custom import CustomParameters, Signature\n"
+        f"class {DUMMY_CLASS_NAME}(CustomParameters):\n"
+        f'    signature = Signature(model="ecoMAX 999-OTHER", id={DUMMY_ID})\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Signature mismatch"):
+        _load_custom_parameters_from_file(wrong_model, product_info)
+
+
+async def test_load_cli_custom_parameters_fallback(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test _load_cli_custom_parameters precedence, fallback, and warnings."""
+    product_info = dummy_product_info()
+
+    missing_dir = tmp_path / "missing"
+    with (
+        caplog.at_level(logging.WARNING),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
             return_value=EcoMAX999TEST(),
+        ) as mock_load,
+    ):
+        params, status, from_output = await _load_cli_custom_parameters(
+            missing_dir, product_info
+        )
+
+    assert isinstance(params, EcoMAX999TEST)
+    assert status == ""
+    assert from_output is False
+    assert caplog.text == ""
+    assert capsys.readouterr().err == ""
+    mock_load.assert_awaited_once_with(product_info)
+
+    broken_dir = tmp_path / "broken"
+    broken_path = custom_module_path(broken_dir, DUMMY_SLUG)
+    broken_path.parent.mkdir(parents=True, exist_ok=True)
+    broken_path.write_text("def broken(:\n", encoding="utf-8")
+    with (
+        caplog.at_level(logging.WARNING),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=EcoMAX999TEST(),
+        ) as mock_load,
+    ):
+        params, status, from_output = await _load_cli_custom_parameters(
+            broken_dir, product_info
+        )
+
+    assert isinstance(params, EcoMAX999TEST)
+    assert from_output is False
+    assert status.startswith(
+        f"Warning: Failed to load custom parameters from {broken_path}:"
+    )
+    assert "Falling back to built-in definitions." in status
+    assert "Failed to load custom parameters from" in caplog.text
+    assert f"{status}\n" in capsys.readouterr().err
+    mock_load.assert_awaited_once_with(product_info)
+
+    valid_dir = tmp_path / "valid"
+    write_dummy_custom_module(valid_dir)
+    with patch(
+        "pyplumio.cli.app.load_custom_parameters",
+        new_callable=AsyncMock,
+    ) as mock_load:
+        params, status, from_output = await _load_cli_custom_parameters(
+            valid_dir, product_info
+        )
+
+    assert isinstance(params, CustomParameters)
+    assert status == f"Loaded custom parameters from {valid_dir}."
+    assert from_output is True
+    assert f"{status}\n" in capsys.readouterr().err
+    mock_load.assert_not_awaited()
+
+
+async def test_load_cli_custom_parameters_zip_and_empty_error(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test _load_cli_custom_parameters ignores zip archives and empty errors."""
+    product_info = dummy_product_info()
+    zip_only_dir = tmp_path / "zip_only"
+    zip_module_path = custom_module_path(zip_only_dir, DUMMY_SLUG)
+    write_zip(
+        zip_archive_path(zip_only_dir, DUMMY_SLUG),
+        {
+            zip_module_path: generate_custom_parameter_module(
+                product_info,
+                EcoMAX999TEST.descriptions,
+                EcoMAX999TEST.overrides,
+            )
+        },
+        zip_only_dir,
+    )
+    with (
+        caplog.at_level(logging.WARNING),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=EcoMAX999TEST(),
+        ) as mock_load,
+    ):
+        params, status, from_output = await _load_cli_custom_parameters(
+            zip_only_dir, product_info
+        )
+
+    assert isinstance(params, EcoMAX999TEST)
+    assert status == ""
+    assert from_output is False
+    assert caplog.text == ""
+    assert capsys.readouterr().err == ""
+    mock_load.assert_awaited_once_with(product_info)
+
+    empty_err_dir = tmp_path / "empty_err"
+    empty_err_path = custom_module_path(empty_err_dir, DUMMY_SLUG)
+    empty_err_path.parent.mkdir(parents=True, exist_ok=True)
+    empty_err_path.write_text("raise ValueError()\n", encoding="utf-8")
+    with (
+        caplog.at_level(logging.WARNING),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=None,
+        ) as mock_load,
+    ):
+        params, status, from_output = await _load_cli_custom_parameters(
+            empty_err_dir, product_info
+        )
+
+    assert params is None
+    assert from_output is False
+    assert status == (
+        f"Warning: Failed to load custom parameters from {empty_err_path}: "
+        "ValueError. Falling back to built-in definitions."
+    )
+    assert f"{status}\n" in capsys.readouterr().err
+    mock_load.assert_awaited_once_with(product_info)
+
+
+async def test_run_app_invalid_output_module_fallback(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Test run_app falls back cleanly when output module fails validation."""
+    product_info = dummy_product_info()
+    mismatched_info = replace(product_info, id=DUMMY_ID + 1)
+    rejected_path = custom_module_path(tmp_path, DUMMY_SLUG)
+    rejected_path.parent.mkdir(parents=True, exist_ok=True)
+    rejected_path.write_text(
+        generate_custom_parameter_module(
+            mismatched_info,
+            {4: EcoMAX999TEST.descriptions[4]},
+            comments={4: "rejected output comment"},
+        ),
+        encoding="utf-8",
+    )
+    source_path = write_dummy_custom_module(tmp_path / "source")
+
+    args = argparse.Namespace(
+        url="socket://localhost:8899",
+        output=str(tmp_path),
+        interval=1.0,
+        baudrate=115200,
+        zip=False,
+    )
+    created_states: list[AppState] = []
+    orig_create_app = create_app
+
+    def track_create_app(*a: Any, **kw: Any) -> tuple[Application[None], AppState]:
+        app, state = orig_create_app(*a, **kw)
+        created_states.append(state)
+        return app, state
+
+    async def fake_run_async(*_args: Any, **_kwargs: Any) -> None:
+        state = created_states[0]
+        assert state.status.startswith(
+            f"Warning: Failed to load custom parameters from {rejected_path}:"
+        )
+        assert state.table.comments == DUMMY_COMMENTS
+
+    with (
+        caplog.at_level(logging.WARNING),
+        create_pipe_input() as pipe_input,
+        create_app_session(input=pipe_input, output=DummyOutput()),
+        patch("pyplumio.cli.app.create_app", side_effect=track_create_app),
+        patch(
+            "pyplumio.cli.app.load_custom_parameters",
+            new_callable=AsyncMock,
+            return_value=EcoMAX999TEST(),
+        ) as mock_load,
+        patch(
+            "pyplumio.cli.app.inspect.getsourcefile",
+            return_value=str(source_path),
         ),
         patch(
             "pyplumio.cli.session.Session.connect",
@@ -513,7 +806,9 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         patch("pyplumio.cli.session.Session.close", new_callable=AsyncMock),
     ):
         assert await run_app(args) == 0
+        mock_load.assert_awaited_once_with(product_info)
 
-    saved_module = existing_module.read_text(encoding="utf-8")
-    assert "        # untouched output comment\n        0: " in saved_module
-    assert "        # 0 - pellets, 1 - wood\n        4: " in saved_module
+    assert "Failed to load custom parameters from" in caplog.text
+    assert f"Warning: Failed to load custom parameters from {rejected_path}:" in (
+        capsys.readouterr().err
+    )

@@ -83,6 +83,14 @@ this phase, a connection-lost error is reported instead. Once startup succeeds,
 the full-screen interface opens with the parameter table already filled and keeps
 polling in the background.
 
+If ``<output>/pyplumio/parameters/custom/<model_slug>.py`` exists on disk with a
+matching model and product ID signature, the CLI loads its mapped descriptions,
+overrides, and comments automatically—taking precedence over bundled definitions in
+PyPlumIO—and displays a confirmation notice in the status bar. If no local file exists,
+bundled definitions for the detected model are loaded when available. If an existing
+local file fails to load or has a mismatched signature, a warning is displayed and the
+CLI falls back to built-in definitions.
+
 The interface consists of:
 
 - **Header**: Inverted top bar showing connected controller model, product ID, connection URL, and last update timestamp.
@@ -149,6 +157,10 @@ The utility produces the following three files on disk (and inside ``<output>/<m
 3. **Captured Frame Test Data**:
    ``<output>/tests/testdata/parameters/<model_slug>.json``
    Raw frame capture used for reproducible testing.
+
+Restarting the CLI with the same ``--output`` directory (or working directory)
+automatically reloads these saved definitions whether running from source, an installed
+package, or standalone ``pyplumio.exe``.
 
 Press ``Ctrl+Q`` to exit the application cleanly.
 

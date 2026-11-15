@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from collections.abc import Iterator, Sequence
 from contextlib import contextmanager, suppress
 from enum import StrEnum, unique
+import importlib.util
 import inspect
 import logging
 from pathlib import Path
@@ -27,9 +29,13 @@ from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import (
     CustomParameters,
+    custom_class_name,
     load_custom_parameters,
     model_slug,
 )
+from pyplumio.structures.product_info import ProductInfo
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @unique
@@ -114,20 +120,80 @@ def _write_status(message: str) -> None:
 
 
 def _load_comments(
-    custom_parameters: CustomParameters, output_dir: Path, slug: str
+    custom_parameters: CustomParameters,
+    output_dir: Path,
+    slug: str,
+    *,
+    prefer_output: bool = True,
 ) -> dict[int, str]:
     """Load parameter comments from output directory or module source."""
-    path = custom_module_path(output_dir, slug)
-    if not path.is_file() and (
-        source_file := inspect.getsourcefile(type(custom_parameters))
-    ):
-        path = Path(source_file)
+    path = custom_module_path(output_dir, slug) if prefer_output else None
+    if path is None or not path.is_file():
+        with suppress(TypeError):
+            if source_file := inspect.getsourcefile(type(custom_parameters)):
+                path = Path(source_file)
 
-    if path.is_file():
+    if path is not None and path.is_file():
         with suppress(OSError):
             return extract_comments(path.read_text(encoding="utf-8"))
 
     return {}
+
+
+def _load_custom_parameters_from_file(
+    path: Path, product_info: ProductInfo
+) -> CustomParameters:
+    """Load and validate custom parameters from a module file on disk."""
+    slug = model_slug(product_info.model)
+    spec = importlib.util.spec_from_file_location(f"_pyplumio_cli_custom_{slug}", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Could not create module spec for {path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    class_name = custom_class_name(slug)
+    cls = getattr(module, class_name)
+    instance = cls()
+    if not isinstance(instance, CustomParameters):
+        raise TypeError(
+            f"Expected instance of 'CustomParameters', "
+            f"but got '{type(instance).__name__}' from '{class_name}'"
+        )
+
+    if not instance.validate(product_info):
+        raise ValueError(
+            f"Signature mismatch in {path.name} "
+            f"(expected {product_info.model!r} ID {product_info.id})"
+        )
+
+    return instance
+
+
+async def _load_cli_custom_parameters(
+    output_dir: Path, product_info: ProductInfo
+) -> tuple[CustomParameters | None, str, bool]:
+    """Load custom parameters from output directory or installed package."""
+    path = custom_module_path(output_dir, model_slug(product_info.model))
+    if path.is_file():
+        try:
+            custom_parameters = await asyncio.to_thread(
+                _load_custom_parameters_from_file, path, product_info
+            )
+        except Exception as err:
+            message = (
+                f"Failed to load custom parameters from {path}: "
+                f"{_format_error(err)}. Falling back to built-in definitions."
+            )
+            _LOGGER.warning("%s", message)
+            warning = f"Warning: {message}"
+            _write_status(warning)
+            return await load_custom_parameters(product_info), warning, False
+
+        notice = f"Loaded custom parameters from {output_dir}."
+        _write_status(notice)
+        return custom_parameters, notice, True
+
+    return await load_custom_parameters(product_info), "", False
 
 
 async def prompt_connection_url(
@@ -182,9 +248,17 @@ async def run_app(args: argparse.Namespace) -> int:
     )
     try:
         product_info = await session.connect()
-        if custom_parameters := await load_custom_parameters(product_info):
+        (
+            custom_parameters,
+            startup_status,
+            from_output,
+        ) = await _load_cli_custom_parameters(output_dir, product_info)
+        if custom_parameters:
             comments = _load_comments(
-                custom_parameters, output_dir, model_slug(product_info.model)
+                custom_parameters,
+                output_dir,
+                model_slug(product_info.model),
+                prefer_output=from_output,
             )
             for index, description in custom_parameters.descriptions.items():
                 table.set_description(
@@ -194,6 +268,9 @@ async def run_app(args: argparse.Namespace) -> int:
             table.overrides = tuple(custom_parameters.overrides)
 
         app, state = create_app(session, table, output_dir, zip_output=args.zip)
+        if startup_status:
+            state.status = startup_status
+
         with _capture_logs(state):
             _write_status("Starting interface...")
             await app.run_async()
