@@ -50,14 +50,10 @@ from tests.cli.conftest import (
     DUMMY_MODEL,
     DUMMY_SLUG,
     EcoMAX999TEST,
+    app_step,
     dummy_product_info,
     write_dummy_custom_module,
 )
-
-
-def _step(state: AppState) -> AppStep:
-    """Return app step without triggering mypy attribute narrowing."""
-    return state.step
 
 
 async def test_prompt_connection_url_tcp() -> None:
@@ -504,7 +500,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         for _ in range(6):
             state.dispatch_enter(buff)  # select 4 and keep name/type/offset/step/unit
 
-        assert _step(state) == AppStep.COMMENT
+        assert app_step(state) == AppStep.COMMENT
         assert buff.text == "0 - pellets, 1 - wood"
         state.dispatch_enter(buff)  # keep pre-filled comment
         buff.text = "y"
@@ -512,7 +508,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
 
         # Save to output_dir without touching index 0 and verify both comments persist
         state.start_save(buff, save_as_zip=False)
-        assert _step(state) == AppStep.OVERWRITE
+        assert app_step(state) == AppStep.OVERWRITE
         assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
         buff.text = "y"
         state.dispatch_enter(buff)

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from enum import StrEnum, unique
 from pathlib import Path
 import re
-from typing import Any, Final, Literal, cast
+from typing import Final, Literal, cast
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.buffer import Buffer
@@ -101,29 +101,6 @@ def _parse_step(text: str, default: float | int = 1) -> float | int:
         raise ValueError
 
     return _normalize_number(step)
-
-
-def _format_value_with_unit(
-    value: Any, description: EcomaxParameterDescription | None
-) -> str:
-    """Format parameter value with unit of measurement if available."""
-    if (
-        isinstance(description, EcomaxNumberDescription)
-        and description.unit_of_measurement
-    ):
-        return f"{value} {description.unit_of_measurement}"
-
-    return str(value)
-
-
-def _format_preview_value(preview: Row) -> str:
-    """Format preview value."""
-    value, min_value, max_value = preview.value, preview.min_value, preview.max_value
-    value_string = _format_value_with_unit(value, preview.description)
-    range_string = _format_value_with_unit(
-        f"{min_value}-{max_value}", preview.description
-    )
-    return f"{value_string} ({range_string})"
 
 
 def _save_files(state: AppState) -> None:
@@ -472,7 +449,6 @@ class AppState:
 
 
 __all__ = (
-    "AppData",
     "AppState",
     "AppStep",
 )

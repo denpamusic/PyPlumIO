@@ -36,8 +36,6 @@ from pyplumio.cli.state import (
     UNNAMED,
     AppState,
     AppStep,
-    _format_preview_value,
-    _format_value_with_unit,
     _ParameterType,
     _parse_step,
 )
@@ -226,6 +224,29 @@ def _format_raw_value(row: Row) -> str:
         row.values.max_value,
     )
     return f"{value} (min: {min_value}, max: {max_value})"
+
+
+def _format_value_with_unit(
+    value: Any, description: EcomaxParameterDescription | None
+) -> str:
+    """Format parameter value with unit of measurement if available."""
+    if (
+        isinstance(description, EcomaxNumberDescription)
+        and description.unit_of_measurement
+    ):
+        return f"{value} {description.unit_of_measurement}"
+
+    return str(value)
+
+
+def _format_preview_value(preview: Row) -> str:
+    """Format preview value."""
+    value, min_value, max_value = preview.value, preview.min_value, preview.max_value
+    value_string = _format_value_with_unit(value, preview.description)
+    range_string = _format_value_with_unit(
+        f"{min_value}-{max_value}", preview.description
+    )
+    return f"{value_string} ({range_string})"
 
 
 def _get_preview_text(state: AppState, buffer: Buffer) -> StyleAndTextTuples:

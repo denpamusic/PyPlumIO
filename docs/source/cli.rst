@@ -116,7 +116,7 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
    - **Step**: Multiplier/step (default: ``1``; e.g. ``1``, ``0.1``, ``10``).
    - **Unit**: Physical unit of measurement (supports autocompletion for unit values such as ``°C``, ``kW``, ``rpm``, ``%``, etc., or enter ``none`` to clear a pre-filled unit).
 5. **Comment**: Enter an optional comment (or leave empty for none). When re-editing a parameter that already has a comment (either loaded from an existing custom parameter module or added in the current session), the prompt is pre-filled with the existing comment. Comments are written as wrapped ``# ...`` lines directly above the parameter entry in the generated module.
-6. **Confirm**: Confirm the decoded value and range match your controller display (``[y/N]``).
+6. **Confirm**: Confirm that the live preview matches your controller display (``[y/N]``).
 7. Press ``Esc`` at any point to cancel the wizard.
 
 Connection Resilience
@@ -126,9 +126,9 @@ If the serial connection or TCP bridge drops during a session, the CLI automatic
 
 .. code-block:: text
 
-    Connection lost. Reconnecting in background in 20 seconds...
+    Connection lost. Reconnecting in background in 5 seconds...
 
-The CLI automatically retries the connection every 20 seconds in the background while keeping the interface fully responsive. Once reconnected, it displays ``Connection restored.`` and resumes polling. Even when disconnected, you can review mapped parameters, continue editing, and press ``Ctrl+S`` to save the files from the last received frame.
+The CLI automatically retries the connection every 5 seconds in the background while keeping the interface fully responsive. Once reconnected, it displays ``Connection restored.`` and resumes polling. Even when disconnected, you can review mapped parameters, continue editing, and press ``Ctrl+S`` to save the files from the last received frame.
 
 Saving & Output Files
 ---------------------

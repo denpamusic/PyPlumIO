@@ -33,7 +33,7 @@ DEFAULT_INTERVAL_SECONDS: Final = 2.0
 DEFAULT_RETRIES: Final = 3
 DEFAULT_TIMEOUT_SECONDS: Final = 5.0
 
-RECONNECT_AFTER_SECONDS: Final = 5.0
+RECONNECT_AFTER_SECONDS: Final = 5
 
 UID_REQUEST: Final = requests.UIDRequest(recipient=DeviceType.ECOMAX)
 SERVICE_PARAMETERS_REQUEST: Final = requests.EcomaxServiceParametersRequest(

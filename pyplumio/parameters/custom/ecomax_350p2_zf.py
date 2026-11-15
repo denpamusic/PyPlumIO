@@ -209,7 +209,7 @@ class EcoMAX350P2ZF(CustomParameters):
             name="feed2_work",
             unit_of_measurement=UnitOfMeasurement.MINUTES,
         ),
-        # 2 - white pellets, 3 - browm pellets
+        # 2 - white pellets, 3 - brown pellets
         109: EcomaxNumberDescription(name="fuel_profile"),
         110: EcomaxNumberDescription(
             name="max_feeder_temp",

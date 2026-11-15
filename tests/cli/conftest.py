@@ -9,6 +9,7 @@ from typing import Final
 import pytest
 
 from pyplumio.cli.codegen import custom_module_path, generate_custom_parameter_module
+from pyplumio.cli.state import AppState, AppStep
 from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import CustomParameters, ParameterOverride, Signature
@@ -72,6 +73,11 @@ class EcoMAX999TEST(CustomParameters):
     }
 
 
+def app_step(state: AppState) -> AppStep:
+    """Return app step without triggering mypy attribute narrowing."""
+    return state.step
+
+
 def dummy_product_info() -> ProductInfo:
     """Return synthetic product info for ecoMAX 999-TEST."""
     return ProductInfo(
@@ -133,6 +139,7 @@ __all__ = (
     "DUMMY_MODEL",
     "DUMMY_SLUG",
     "EcoMAX999TEST",
+    "app_step",
     "dummy_product_info",
     "dummy_service_parameters_frame",
     "product_info",

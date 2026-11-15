@@ -24,6 +24,7 @@ from pyplumio.cli.ui import (
     PREVIEW_BOX_WIDTH,
     TABLE_HEADER,
     TABLE_SEPARATOR,
+    _format_value_with_unit,
     _get_completer,
     _get_header_text,
     _get_preview_text,
@@ -35,12 +36,13 @@ from pyplumio.cli.ui import (
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
-from tests.cli.conftest import DUMMY_ID, DUMMY_MODEL, DUMMY_SLUG, dummy_product_info
-
-
-def _step(state: AppState) -> AppStep:
-    """Return app step without triggering mypy attribute narrowing."""
-    return state.step
+from tests.cli.conftest import (
+    DUMMY_ID,
+    DUMMY_MODEL,
+    DUMMY_SLUG,
+    app_step,
+    dummy_product_info,
+)
 
 
 def _assert_table_row(line: OneStyleAndTextTuple, index: int, style: str) -> None:
@@ -227,7 +229,7 @@ def test_live_preview_box_name(tmp_path: Path) -> None:
     # 2. NAME state
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.NAME
+    assert app_step(state) == AppStep.NAME
     buff.text = ""
     content = _get_preview_text(state, buff)[0][1]
     assert "[Name: <unnamed>]" in content
@@ -262,7 +264,7 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "boiler_power"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
 
     # Default type (number) when text is empty
     buff.text = ""
@@ -280,7 +282,7 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     # Advance to OFFSET state
     buff.text = "number"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.OFFSET
+    assert app_step(state) == AppStep.OFFSET
 
     buff.text = ""
     assert "[Offset: 0]" in _get_preview_text(state, buff)[0][1]
@@ -294,7 +296,7 @@ def test_live_preview_box_type_offset_step(tmp_path: Path) -> None:
     # Advance to STEP state
     buff.text = "5"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.STEP
+    assert app_step(state) == AppStep.STEP
     assert state.data.offset == 5
 
     buff.text = ""
@@ -344,7 +346,7 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
     # Advance to COMMENT and CONFIRM states
     buff.text = "°C"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     content = _get_preview_text(state, buff)[0][1]
     assert "Name: boiler_power" in content
     assert "Unit: °C" in content
@@ -352,7 +354,7 @@ def test_live_preview_box_unit_confirm_overwrite(tmp_path: Path) -> None:
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     content = _get_preview_text(state, buff)[0][1]
     assert "Name: boiler_power" in content
     assert "Type: number" in content
@@ -465,23 +467,23 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     # 2c. c-s with product info and mapped description -> ZIP question -> file tree
     table.set_description(0, EcomaxNumberDescription(name="boiler_temp"))
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.ZIP
+    assert app_step(state) == AppStep.ZIP
     assert state.prompt == "Also save as a ZIP archive? [y/N]: "
     state.step_zip("n", app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
 
     # 2d. c-s with product info and existing file -> ZIP question -> OVERWRITE
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.ZIP
+    assert app_step(state) == AppStep.ZIP
     state.step_zip("n", app_buffer)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
     assert str(tmp_path) not in state.prompt
 
     # 3. escape
     bindings["escape"](mock_event)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
 
     # 4. live preview container check
@@ -736,10 +738,10 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
 
     # Ctrl+S asks ZIP question; Esc cancels back to INDEX
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.ZIP
+    assert app_step(state) == AppStep.ZIP
     assert state.prompt == "Also save as a ZIP archive? [y/N]: "
     bindings["escape"](mock_event)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
     assert state.data.save_as_zip is False
 
@@ -747,11 +749,11 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     app_buffer.text = "0"
     state.dispatch_enter(app_buffer)
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.ZIP
+    assert app_step(state) == AppStep.ZIP
     assert "Live Preview (Index #0)" in _get_preview_text(state, app_buffer)[0][1]
     app_buffer.text = ""
     state.dispatch_enter(app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
     assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
@@ -759,10 +761,10 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     # Answering "n" with existing .py goes to OVERWRITE; Esc cancels
     bindings["c-s"](mock_event)
     state.step_zip("n", app_buffer)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
     bindings["escape"](mock_event)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Cancelled."
 
 
@@ -789,7 +791,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     # Answering "y" writes regular files + ZIP and resets save_as_zip
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
     assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
@@ -806,22 +808,22 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     # Existing files + ZIP -> OVERWRITE prompt, decline -> "Save cancelled."
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == (
         f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
     )
     assert bool(state.data.save_as_zip) is True
     state.step_overwrite("n", app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Save cancelled."
     assert state.data.save_as_zip is False
 
     # Existing files + ZIP -> OVERWRITE accept -> rewrites and resets save_as_zip
     bindings["c-s"](mock_event)
     state.step_zip("yes", app_buffer)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     state.step_overwrite("y", app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
 
@@ -849,7 +851,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
 
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
     assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
@@ -857,13 +859,13 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
 
     # Second Ctrl+S goes directly to OVERWRITE for both regular module and ZIP file
     bindings["c-s"](mock_event)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == (
         f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
     )
     app_buffer.text = "y"
     state.dispatch_enter(app_buffer)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
 
@@ -943,3 +945,41 @@ def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
     assert hotkey_win.height == 1
     assert hotkey_win.content.text == HOTKEY_BAR
     assert len("".join(item[1] for item in HOTKEY_BAR)) == PREVIEW_BOX_WIDTH
+
+
+def test_format_value_with_unit() -> None:
+    """Test formatting values with units of measurement."""
+    # Unknown or None description
+    assert _format_value_with_unit(10, None) == "10"
+
+    # Number with None unit
+    desc_no_unit = EcomaxNumberDescription(name="untyped")
+    assert _format_value_with_unit(10, desc_no_unit) == "10"
+
+    # Number with PERCENTAGE constant
+    desc_pct = EcomaxNumberDescription(name="fan_power", unit_of_measurement=PERCENTAGE)
+    assert _format_value_with_unit(50, desc_pct) == "50 %"
+
+    # Number with "%" literal
+    desc_pct_lit = EcomaxNumberDescription(name="fan_power", unit_of_measurement="%")
+    assert _format_value_with_unit(100, desc_pct_lit) == "100 %"
+
+    # Number with UnitOfMeasurement
+    desc_celsius = EcomaxNumberDescription(
+        name="boiler_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
+    )
+    assert _format_value_with_unit(75.5, desc_celsius) == "75.5 °C"
+
+    desc_kw = EcomaxNumberDescription(
+        name="boiler_power", unit_of_measurement=UnitOfMeasurement.KILO_WATT
+    )
+    assert _format_value_with_unit(16, desc_kw) == "16 kW"
+
+    # Switch description ignores any unit
+    switch_desc = EcomaxSwitchDescription(name="heating_pump")
+    assert _format_value_with_unit("on", switch_desc) == "on"
+    assert _format_value_with_unit("off", switch_desc) == "off"
+
+    # Zero and negative values
+    assert _format_value_with_unit(0, desc_pct) == "0 %"
+    assert _format_value_with_unit(-10, desc_celsius) == "-10 °C"

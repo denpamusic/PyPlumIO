@@ -16,18 +16,12 @@ from pyplumio.cli.state import (
     UNIT_ALIASES,
     AppState,
     AppStep,
-    _format_value_with_unit,
     _save_files,
 )
 from pyplumio.const import PERCENTAGE, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
-from tests.cli.conftest import DUMMY_SLUG, dummy_product_info
-
-
-def _step(state: AppState) -> AppStep:
-    """Return app step without triggering mypy attribute narrowing."""
-    return state.step
+from tests.cli.conftest import DUMMY_SLUG, app_step, dummy_product_info
 
 
 async def test_app_state_number(tmp_path: Path) -> None:
@@ -44,7 +38,7 @@ async def test_app_state_number(tmp_path: Path) -> None:
     buff.text = "0"
     buff.cursor_position = 1
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.NAME
+    assert app_step(state) == AppStep.NAME
     assert buff.text == ""
     assert buff.cursor_position == 0
     assert state.data.index == 0
@@ -52,44 +46,44 @@ async def test_app_state_number(tmp_path: Path) -> None:
     # Step 2: Name
     buff.text = "boiler_temp"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [number]: "
     assert state.data.name == "boiler_temp"
 
     # Step 3: Type default (number)
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.OFFSET
+    assert app_step(state) == AppStep.OFFSET
 
     # Step 4: Offset
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.STEP
+    assert app_step(state) == AppStep.STEP
     assert state.data.offset == 0
 
     # Step 5: Step
     buff.text = "1"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.UNIT
+    assert app_step(state) == AppStep.UNIT
     assert state.data.step == 1
     assert "Available units:" in state.status
 
     # Step 6: Unit
     buff.text = "%"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     assert state.prompt == COMMENT_PROMPT
 
     # Step 7: Comment
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     assert state.prompt == "Does the preview match your device? [y/N]: "
 
     # Step 8: Confirm
     buff.text = "y"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Stored parameter 0."
     assert 0 in table.descriptions
@@ -173,7 +167,7 @@ async def test_app_state_name_already_used(tmp_path: Path) -> None:
     buff.text = "fan_power"
     state.dispatch_enter(buff)
     assert state.status == "Name 'fan_power' is already used by index 1."
-    assert _step(state) == AppStep.NAME
+    assert app_step(state) == AppStep.NAME
 
     # Selecting index 1 and keeping "fan_power" is allowed
     state.reset_app(buff)
@@ -181,7 +175,7 @@ async def test_app_state_name_already_used(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "fan_power"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
 
 
 async def test_app_state_table_freeze(tmp_path: Path) -> None:
@@ -244,19 +238,19 @@ async def test_app_state_switch_and_decline(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "heating_switch"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     assert state.prompt == "Does the preview match your device? [y/N]: "
 
     buff.text = "n"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Discarded."
     assert 1 not in table.descriptions
@@ -283,7 +277,7 @@ async def test_app_state_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [switch]: "
     buff.text = "number"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.OFFSET
+    assert app_step(state) == AppStep.OFFSET
     state.reset_app(buff)
 
     # Number default overridden with switch
@@ -294,10 +288,10 @@ async def test_app_state_type_override(tmp_path: Path) -> None:
     assert state.prompt == "Parameter type (number, switch) [number]: "
     buff.text = "switch"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
 
 
 async def test_app_state_index_clears_changed(tmp_path: Path) -> None:
@@ -338,14 +332,14 @@ async def test_app_state_yes_confirmations(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "none"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = "# test comment"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
 
     buff.text = "yes"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Stored parameter 0."
     assert table.comments[0] == "test comment"
 
@@ -449,10 +443,10 @@ async def test_app_state_save_overwrite_combinations(tmp_path: Path) -> None:
     module_path.parent.mkdir(parents=True, exist_ok=True)
     module_path.write_text("# existing module", encoding="utf-8")
     state.start_save(buff, save_as_zip=True)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.py? [y/N]: "
     state.step_overwrite("n", buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Save cancelled."
     assert module_path.read_text(encoding="utf-8") == "# existing module"
     assert not zip_path.exists()
@@ -461,7 +455,7 @@ async def test_app_state_save_overwrite_combinations(tmp_path: Path) -> None:
     module_path.unlink()
     zip_path.write_bytes(b"existing zip")
     state.start_save(buff, save_as_zip=False)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == f"Files saved to {tmp_path}."
     assert module_path.is_file()
     assert test_path.is_file()
@@ -471,10 +465,10 @@ async def test_app_state_save_overwrite_combinations(tmp_path: Path) -> None:
     # Only <slug>.zip exists + save_as_zip=True -> prompts for <slug>.zip, decline
     module_path.unlink()
     state.start_save(buff, save_as_zip=True)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == f"Overwrite existing {DUMMY_SLUG}.zip? [y/N]: "
     state.step_overwrite("n", buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Save cancelled."
     assert not module_path.exists()
     assert zip_path.read_bytes() == b"existing zip"
@@ -482,53 +476,15 @@ async def test_app_state_save_overwrite_combinations(tmp_path: Path) -> None:
     # Both <slug>.py and <slug>.zip exist -> prompts for both, declining cancels
     module_path.write_text("# existing module", encoding="utf-8")
     state.start_save(buff, save_as_zip=True)
-    assert _step(state) == AppStep.OVERWRITE
+    assert app_step(state) == AppStep.OVERWRITE
     assert state.prompt == (
         f"Overwrite existing {DUMMY_SLUG}.py and {DUMMY_SLUG}.zip? [y/N]: "
     )
     state.step_overwrite("n", buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.status == "Save cancelled."
     assert module_path.read_text(encoding="utf-8") == "# existing module"
     assert zip_path.read_bytes() == b"existing zip"
-
-
-def test_format_value_with_unit() -> None:
-    """Test formatting values with units of measurement."""
-    # Unknown or None description
-    assert _format_value_with_unit(10, None) == "10"
-
-    # Number with None unit
-    desc_no_unit = EcomaxNumberDescription(name="untyped")
-    assert _format_value_with_unit(10, desc_no_unit) == "10"
-
-    # Number with PERCENTAGE constant
-    desc_pct = EcomaxNumberDescription(name="fan_power", unit_of_measurement=PERCENTAGE)
-    assert _format_value_with_unit(50, desc_pct) == "50 %"
-
-    # Number with "%" literal
-    desc_pct_lit = EcomaxNumberDescription(name="fan_power", unit_of_measurement="%")
-    assert _format_value_with_unit(100, desc_pct_lit) == "100 %"
-
-    # Number with UnitOfMeasurement
-    desc_celsius = EcomaxNumberDescription(
-        name="boiler_temp", unit_of_measurement=UnitOfMeasurement.CELSIUS
-    )
-    assert _format_value_with_unit(75.5, desc_celsius) == "75.5 °C"
-
-    desc_kw = EcomaxNumberDescription(
-        name="boiler_power", unit_of_measurement=UnitOfMeasurement.KILO_WATT
-    )
-    assert _format_value_with_unit(16, desc_kw) == "16 kW"
-
-    # Switch description ignores any unit
-    switch_desc = EcomaxSwitchDescription(name="heating_pump")
-    assert _format_value_with_unit("on", switch_desc) == "on"
-    assert _format_value_with_unit("off", switch_desc) == "off"
-
-    # Zero and negative values
-    assert _format_value_with_unit(0, desc_pct) == "0 %"
-    assert _format_value_with_unit(-10, desc_celsius) == "-10 °C"
 
 
 async def test_prefilled_defaults_heating_curve_shift(tmp_path: Path) -> None:
@@ -544,30 +500,30 @@ async def test_prefilled_defaults_heating_curve_shift(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "heating_curve_shift"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [number]: "
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.OFFSET
+    assert app_step(state) == AppStep.OFFSET
     assert state.prompt == "Offset [20]: "
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.STEP
+    assert app_step(state) == AppStep.STEP
     assert state.prompt == "Step [1]: "
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.UNIT
+    assert app_step(state) == AppStep.UNIT
     assert state.prompt == "Unit [°C]: "
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     assert state.prompt == "Does the preview match your device? [y/N]: "
 
     buff.text = "y"
@@ -612,10 +568,10 @@ async def test_prefilled_defaults_max_fuel_flow_and_unit_override(
     assert state.prompt == "Unit [kg/h]: "
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert table.descriptions[0] == EcomaxNumberDescription(
@@ -640,10 +596,10 @@ async def test_prefilled_defaults_max_fuel_flow_and_unit_override(
     assert state.prompt == "Unit [kg]: "
     buff.text = "none"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert table.descriptions[1] == EcomaxNumberDescription(
@@ -667,15 +623,15 @@ async def test_prefilled_defaults_switch_non_binary(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "fuzzy_logic"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.TYPE
+    assert app_step(state) == AppStep.TYPE
     assert state.prompt == "Parameter type (number, switch) [switch]: "
 
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     assert state.data.description == EcomaxSwitchDescription(name="fuzzy_logic")
     buff.text = "y"
     state.dispatch_enter(buff)
@@ -721,10 +677,10 @@ async def test_reedit_mapped_row_preserves_defaults(tmp_path: Path) -> None:
         assert state.prompt == expected_prompt
         buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert table.descriptions[0] == EcomaxNumberDescription(
@@ -801,10 +757,10 @@ async def test_app_state_empty_name_delete_and_cancel(tmp_path: Path) -> None:
     # Unmapped index 0 + empty Name -> resets to INDEX with "Cancelled."
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.NAME
+    assert app_step(state) == AppStep.NAME
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Cancelled."
     assert 0 not in table.descriptions
@@ -820,11 +776,11 @@ async def test_app_state_empty_name_delete_and_cancel(tmp_path: Path) -> None:
 
     buff.text = "0"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.NAME
+    assert app_step(state) == AppStep.NAME
     assert buff.text == "boiler_temp"
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.INDEX
+    assert app_step(state) == AppStep.INDEX
     assert state.prompt == INDEX_PROMPT
     assert state.status == "Deleted parameter 0."
     assert 0 not in table.descriptions
@@ -847,10 +803,10 @@ async def test_app_state_comment_reedit_and_clear(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     buff.text = "switch"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     buff.text = "0 - pellets, 1 - wood"
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert table.comments[0] == "0 - pellets, 1 - wood"
@@ -860,12 +816,12 @@ async def test_app_state_comment_reedit_and_clear(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     state.dispatch_enter(buff)  # keep "fuel_type"
     state.dispatch_enter(buff)  # keep "switch"
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     assert state.prompt == COMMENT_PROMPT
     assert buff.text == "0 - pellets, 1 - wood"
     assert buff.cursor_position == len("0 - pellets, 1 - wood")
     state.dispatch_enter(buff)  # keep pre-filled comment
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert table.comments[0] == "0 - pellets, 1 - wood"
@@ -875,11 +831,11 @@ async def test_app_state_comment_reedit_and_clear(tmp_path: Path) -> None:
     state.dispatch_enter(buff)
     state.dispatch_enter(buff)  # keep "fuel_type"
     state.dispatch_enter(buff)  # keep "switch"
-    assert _step(state) == AppStep.COMMENT
+    assert app_step(state) == AppStep.COMMENT
     assert buff.text == "0 - pellets, 1 - wood"
     buff.text = ""
     state.dispatch_enter(buff)
-    assert _step(state) == AppStep.CONFIRM
+    assert app_step(state) == AppStep.CONFIRM
     buff.text = "y"
     state.dispatch_enter(buff)
     assert 0 not in table.comments
