@@ -105,11 +105,10 @@ class EcoMAX350P2ZF(CustomParameters):
             name="stabilization_temp_delta",
             unit_of_measurement=UnitOfMeasurement.CELSIUS,
         ),
-        28: EcomaxNumberDescription(
+        33: EcomaxNumberDescription(
             name="min_fan_power",
             unit_of_measurement=PERCENTAGE,
         ),
-        33: EcomaxNumberDescription(name="min_airflow", unit_of_measurement=PERCENTAGE),
         39: EcomaxNumberDescription(name="feeder_coefficient", step=0.1),
         40: EcomaxNumberDescription(
             name="fuel_calorific_value",

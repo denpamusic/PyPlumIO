@@ -49,8 +49,7 @@ from tests.conftest import class_from_json, equal_parameter_value
         ("stabilization_min_flue_gas_temp", 70, 50, 150, UnitOfMeasurement.CELSIUS),
         ("stabilization_fan_work_time", 3, 1, 10, UnitOfMeasurement.MINUTES),
         ("stabilization_temp_delta", 10, 0, 50, UnitOfMeasurement.CELSIUS),
-        ("min_fan_power", 31, 30, 50, PERCENTAGE),
-        ("min_airflow", 30, 10, 100, PERCENTAGE),
+        ("min_fan_power", 30, 10, 100, PERCENTAGE),
         ("feeder_coefficient", 0.8, 0.1, 2.0, None),
         (
             "fuel_calorific_value",
