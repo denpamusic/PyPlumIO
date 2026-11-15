@@ -13,6 +13,7 @@ from prompt_toolkit.completion import CompleteEvent
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import OneStyleAndTextTuple
 from prompt_toolkit.key_binding import KeyPressEvent
+from prompt_toolkit.layout.containers import VSplit
 from prompt_toolkit.output import DummyOutput
 
 from pyplumio.cli.model import ParameterTable
@@ -26,6 +27,7 @@ from pyplumio.cli.ui import (
     _get_completer,
     _get_header_text,
     _get_preview_text,
+    _get_status_text,
     _get_table_text,
     create_app,
 )
@@ -436,7 +438,7 @@ def test_app_keybindings_and_layout(tmp_path: Path) -> None:
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
     mock_event.app = MagicMock()
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     # 1. c-q
@@ -517,7 +519,7 @@ def test_app_completion_keybindings(tmp_path: Path) -> None:
     app, _state = create_app(session, table, tmp_path, output=DummyOutput())
     mock_event = MagicMock(spec=KeyPressEvent)
 
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app.key_bindings is not None
     named_bindings = {b.handler.__name__: b.handler for b in app.key_bindings.bindings}
@@ -617,7 +619,7 @@ def test_name_completer(tmp_path: Path) -> None:
         ]
     )
     app, state = create_app(session, table, tmp_path, output=DummyOutput())
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     assert app_buffer.completer is not None
 
@@ -725,7 +727,7 @@ async def test_zip_save_flow_tree_and_cancel(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     # Ctrl+S asks ZIP question; Esc cancels back to INDEX
@@ -776,7 +778,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
 
@@ -833,7 +835,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     assert app.key_bindings is not None
     bindings = {b.keys[0]: b.handler for b in app.key_bindings.bindings}
     mock_event = MagicMock(spec=KeyPressEvent)
-    buffer_ctrl = app.layout.container.content.children[6].children[1]  # type: ignore[attr-defined]
+    buffer_ctrl = app.layout.container.content.children[5].children[1]  # type: ignore[attr-defined]
     app_buffer = buffer_ctrl.content.buffer
 
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
@@ -881,17 +883,46 @@ def test_ui_header_wrapping(tmp_path: Path) -> None:
 
 
 def test_app_layout_header_and_hotkey_bar(tmp_path: Path) -> None:
-    """Test header window, spacer windows, and bottom hotkey bar."""
+    """Test header, preview, prompt, status, spacer, and hotkey bar layout."""
     session = Session(url="socket://localhost:8899")
     table = ParameterTable()
-    app, _state = create_app(session, table, tmp_path, output=DummyOutput())
+    app, state = create_app(session, table, tmp_path, output=DummyOutput())
     children = app.layout.container.content.children  # type: ignore[attr-defined]
 
     header_win = children[0]
     assert header_win.dont_extend_height() is True
     assert header_win.wrap_lines() is True
     assert children[1].height == 1
-    assert children[7].height == 1
+    assert children[3].height == 1
+    assert children[4].height == 4
+    assert isinstance(children[5], VSplit)
+    assert children[6].height == 1
+
+    status_win = children[7]
+    assert status_win.width == PREVIEW_BOX_WIDTH
+    assert status_win.dont_extend_height() is True
+    assert status_win.wrap_lines() is True
+    assert state.status == ""
+    assert _get_status_text(state) == []
+    assert status_win.content.text() == []
+    assert status_win.preferred_height(PREVIEW_BOX_WIDTH, 24).preferred == 1
+
+    state.status = "   "
+    assert _get_status_text(state) == []
+    assert status_win.content.text() == []
+
+    state.status = "Cancelled."
+    assert status_win.content.text() == [
+        ("reverse", "Cancelled.".center(PREVIEW_BOX_WIDTH))
+    ]
+
+    state.status = "a " * 50
+    wrapped_status = _get_status_text(state)
+    assert wrapped_status[0][0] == "reverse"
+    assert "\n" in wrapped_status[0][1]
+    wrapped_lines = wrapped_status[0][1].splitlines()
+    assert all(len(line) == PREVIEW_BOX_WIDTH for line in wrapped_lines)
+    assert wrapped_lines[1].startswith(" ") and wrapped_lines[1].endswith(" ")
 
     hotkey_win = children[8]
     assert hotkey_win.height == 1

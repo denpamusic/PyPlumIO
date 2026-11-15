@@ -85,6 +85,20 @@ UNIT_COMPLETER: Final = WordCompleter(
 )
 
 
+def _format_bar_text(text: str) -> StyleAndTextTuples:
+    """Wrap and pad text as an inverted bar."""
+    if not text.strip():
+        return []
+
+    lines = textwrap.wrap(
+        text,
+        width=PREVIEW_BOX_WIDTH,
+        break_long_words=True,
+        break_on_hyphens=False,
+    )
+    return [("reverse", "\n".join(line.center(PREVIEW_BOX_WIDTH) for line in lines))]
+
+
 def _get_header_text(state: AppState) -> StyleAndTextTuples:
     """Return formatted header text."""
     product_info = state.session.product_info
@@ -95,17 +109,15 @@ def _get_header_text(state: AppState) -> StyleAndTextTuples:
         if state.session.last_update_time
         else "Never"
     )
-    header = (
+    return _format_bar_text(
         f"Model: {model} (ID: {product_id}) | URL: {state.session.url} | "
         f"Updated: {updated}"
     )
-    lines = textwrap.wrap(
-        header,
-        width=PREVIEW_BOX_WIDTH,
-        break_long_words=True,
-        break_on_hyphens=False,
-    )
-    return [("reverse", "\n".join(line.ljust(PREVIEW_BOX_WIDTH) for line in lines))]
+
+
+def _get_status_text(state: AppState) -> StyleAndTextTuples:
+    """Return formatted status bar text."""
+    return _format_bar_text(state.status)
 
 
 def _get_table_text(state: AppState) -> StyleAndTextTuples:
@@ -399,11 +411,6 @@ def create_app(
                 FormattedTextControl(lambda: _get_preview_text(state, buffer)),
                 height=4,
             ),
-            Window(
-                FormattedTextControl(lambda: f" {state.status}"),
-                wrap_lines=True,
-                dont_extend_height=True,
-            ),
             VSplit(
                 [
                     Window(
@@ -414,6 +421,12 @@ def create_app(
                 ]
             ),
             Window(height=1),
+            Window(
+                FormattedTextControl(lambda: _get_status_text(state)),
+                width=PREVIEW_BOX_WIDTH,
+                wrap_lines=True,
+                dont_extend_height=True,
+            ),
             Window(FormattedTextControl(HOTKEY_BAR), height=1),
         ]
     )
