@@ -38,7 +38,7 @@ through network by using RS-485 to Ethernet/WiFi converter.
   - [Requests and Responses](https://pyplumio.denpa.pro/protocol.html#requests-and-responses)
   - [Communication](https://pyplumio.denpa.pro/protocol.html#communication)
   - [Versioning](https://pyplumio.denpa.pro/protocol.html#versioning)
-- [Supported frames](https://pyplumio.denpa.pro/frames.html)
+- [Supported Frames](https://pyplumio.denpa.pro/frames.html)
 - [CLI Parameter Mapper](https://pyplumio.denpa.pro/cli.html)
 
 ## Parameter Mapping CLI

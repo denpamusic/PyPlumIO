@@ -108,7 +108,7 @@ At the bottom of the screen, a wizard guides you through naming and configuring 
 2. **Name**: Enter a unique snake_case name (e.g. ``heating_temp``):
    - Standard ecoMAX parameter names for the connected device are offered as autocompletion (substring match; names already used by other indices are left out).
    - If the name is already used by another parameter index, it is rejected.
-   - Choosing or typing a standard name pre-fills the **Type**, **Offset**, **Step**, and **Unit** defaults from that parameter's standard description. Re-editing an already-mapped parameter and keeping its name preserves its existing settings as defaults. Sharing a name with a standard parameter is intended, so there is no warning any more.
+   - Choosing or typing a standard name pre-fills the **Type**, **Offset**, **Step**, and **Unit** defaults from that parameter's standard description. Re-editing an already-mapped parameter and keeping its name preserves its existing settings as defaults.
    - Submitting an empty name deletes the parameter (and its comment) if it is already mapped, or cancels and returns to the index prompt if it has not been mapped yet.
 3. **Type**: Select ``number`` or ``switch`` (defaults to the pre-filled template type, or ``switch`` if minimum is 0 and maximum is 1, otherwise ``number``).
 4. **Number Settings**: If configuring a number (defaults come from the matched template or existing mapping, or fall back to ``0``, ``1``, and ``none``):
