@@ -10,8 +10,12 @@ import pytest
 from serialx import SerialException
 
 import pyplumio
-from pyplumio.cli.session import SERVICE_PARAMETERS_REQUEST, UID_REQUEST, Session
-from pyplumio.connection import RECONNECT_AFTER_SECONDS
+from pyplumio.cli.session import (
+    RECONNECT_AFTER_SECONDS,
+    SERVICE_PARAMETERS_REQUEST,
+    UID_REQUEST,
+    Session,
+)
 from pyplumio.const import DeviceType
 from pyplumio.exceptions import (
     ChecksumError,
@@ -500,8 +504,7 @@ async def test_session_handle_disconnect(
         await session._handle_disconnect()
         assert task1.cancelling() or task1.cancelled()
         assert (
-            "Connection lost. Reconnecting in background in 20 seconds..."
-            in caplog.text
+            "Connection lost. Reconnecting in background in 5 seconds..." in caplog.text
         )
         await session.wait_until_done()
         mock_reconnect.assert_awaited_once()

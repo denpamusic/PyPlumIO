@@ -12,7 +12,7 @@ from typing import Final, TypeVar, cast
 from serialx import SerialException
 
 import pyplumio
-from pyplumio.connection import DEFAULT_BAUDRATE, RECONNECT_AFTER_SECONDS, Connection
+from pyplumio.connection import DEFAULT_BAUDRATE, Connection
 from pyplumio.const import ATTR_COUNT, ATTR_START, DeviceType
 from pyplumio.exceptions import (
     ConnectionFailedError,
@@ -32,6 +32,8 @@ _LOGGER = logging.getLogger(__name__)
 DEFAULT_INTERVAL_SECONDS: Final = 2.0
 DEFAULT_RETRIES: Final = 3
 DEFAULT_TIMEOUT_SECONDS: Final = 5.0
+
+RECONNECT_AFTER_SECONDS: Final = 5.0
 
 UID_REQUEST: Final = requests.UIDRequest(recipient=DeviceType.ECOMAX)
 SERVICE_PARAMETERS_REQUEST: Final = requests.EcomaxServiceParametersRequest(

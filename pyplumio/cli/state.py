@@ -186,9 +186,7 @@ class AppData:
 
         if isinstance(description, EcomaxSwitchDescription):
             self.default_type = _ParameterType.SWITCH
-            return
-
-        if isinstance(description, EcomaxNumberDescription):
+        elif isinstance(description, EcomaxNumberDescription):
             self.default_type = _ParameterType.NUMBER
             self.offset = description.offset
             self.step = _normalize_number(description.step)

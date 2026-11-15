@@ -361,7 +361,7 @@ async def test_run_app_disconnect_status(tmp_path: Path) -> None:
         mock_close.assert_awaited_once()
         state = created_states[0]
         assert state.status == (
-            "Connection lost. Reconnecting in background in 20 seconds..."
+            "Connection lost. Reconnecting in background in 5 seconds..."
         )
         _save_files(state)
         assert state.status == f"Files saved to {tmp_path}."
