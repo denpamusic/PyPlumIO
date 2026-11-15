@@ -790,7 +790,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     bindings["c-s"](mock_event)
     state.step_zip("y", app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
+    assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
     assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
     assert (tmp_path / f"tests/parameters/custom/test_{DUMMY_SLUG}.py").is_file()
@@ -822,7 +822,7 @@ async def test_zip_save_flow_archive(tmp_path: Path) -> None:
     assert _step(state) == AppStep.OVERWRITE
     state.step_overwrite("y", app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
+    assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
 
 
@@ -850,7 +850,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     zip_path = tmp_path / f"{DUMMY_SLUG}.zip"
     bindings["c-s"](mock_event)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
+    assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
     assert (tmp_path / f"pyplumio/parameters/custom/{DUMMY_SLUG}.py").is_file()
     assert zip_path.is_file()
@@ -864,7 +864,7 @@ async def test_zip_save_flag(tmp_path: Path) -> None:
     app_buffer.text = "y"
     state.dispatch_enter(app_buffer)
     assert _step(state) == AppStep.INDEX
-    assert state.status == f"Files saved to {tmp_path} and {zip_path.name}."
+    assert state.status == f"Files saved to {tmp_path}."
     assert state.data.save_as_zip is False
 
 

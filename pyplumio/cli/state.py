@@ -150,9 +150,8 @@ def _save_files(state: AppState) -> None:
                 state.output_dir, model_slug(product_info.model)
             )
             write_zip(zip_path, files, state.output_dir)
-            state.status = f"Files saved to {state.output_dir} and {zip_path.name}."
-        else:
-            state.status = f"Files saved to {state.output_dir}."
+
+        state.status = f"Files saved to {state.output_dir}."
 
     except (OSError, ValueError) as err:
         state.status = f"Error saving files: {err}"

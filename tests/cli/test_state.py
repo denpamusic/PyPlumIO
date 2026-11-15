@@ -459,7 +459,7 @@ async def test_app_state_save_zip_writes_regular_files(tmp_path: Path) -> None:
     state = AppState(session, table, tmp_path)
     state.data.save_as_zip = True
     _save_files(state)
-    assert state.status == f"Files saved to {tmp_path} and {DUMMY_SLUG}.zip."
+    assert state.status == f"Files saved to {tmp_path}."
     assert custom_module_path(tmp_path, DUMMY_SLUG).is_file()
     assert (tmp_path / f"tests/parameters/custom/test_{DUMMY_SLUG}.py").is_file()
     assert (tmp_path / f"tests/testdata/parameters/{DUMMY_SLUG}.json").is_file()
