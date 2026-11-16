@@ -84,12 +84,13 @@ the full-screen interface opens with the parameter table already filled and keep
 polling in the background.
 
 If ``<output>/pyplumio/parameters/custom/<model_slug>.py`` exists on disk with a
-matching model and product ID, the CLI loads its mapped service parameters,
-patches, and comments automatically—taking precedence over bundled definitions in
+matching model and product ID, the CLI loads its mapped ``service_parameters``,
+``patches``, and comments automatically—taking precedence over bundled definitions in
 PyPlumIO—and displays a confirmation notice in the status bar. If no local file exists,
 bundled definitions for the detected model are loaded when available. If an existing
 local file fails to load or has a mismatched model or product ID, a warning is displayed and the
-CLI falls back to built-in definitions.
+CLI falls back to built-in definitions. See :doc:`custom_parameters` for details on
+``custom_parameters()`` definitions and model slugs.
 
 The interface consists of:
 
@@ -172,3 +173,7 @@ Once you have mapped parameters for your controller model:
 
 1. Open a pull request against `PyPlumIO <https://github.com/denpamusic/PyPlumIO/>`_ adding the generated files.
 2. Alternatively, create an issue on GitHub and attach the generated ``<model_slug>.zip`` archive (or the three generated files).
+
+For hand-authoring ``patches``, factoring repeated descriptors with ``functools.partial``,
+configuring ``number()`` / ``switch()`` options (such as ``precision`` or ``optimistic``),
+and running all required pre-PR verification checks, see :doc:`custom_parameters`.

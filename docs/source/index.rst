@@ -53,6 +53,7 @@ Documentation
    callbacks
    mixers_thermostats
    schedules
+   custom_parameters
    protocol
    frames
    cli

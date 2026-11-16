@@ -65,7 +65,30 @@ def number(
     optimistic: bool = False,
     unit: UnitOfMeasurement | UnitValue | None = None,
 ) -> EcomaxNumberDescription:
-    """Return an ecoMAX number parameter description."""
+    """Return an ecoMAX number parameter description.
+
+    :param name: Snake-case parameter name used on the device
+    :type name: str
+    :param step: Multiplier applied to ``raw - offset`` when unpacking
+        and divisor used when packing, defaults to ``1.0``
+    :type step: float, optional
+    :param offset: Integer offset subtracted from the raw wire value
+        before scaling, defaults to ``0``
+    :type offset: int, optional
+    :param precision: Number of decimal places to round unpacked values
+        to, defaults to ``6``
+    :type precision: int, optional
+    :param optimistic: Whether writes succeed immediately without
+        waiting for controller confirmation, defaults to ``False``
+    :type optimistic: bool, optional
+    :param unit: Physical unit of measurement as a ``UnitOfMeasurement``
+        member, supported unit string, or ``None``, defaults to ``None``
+    :type unit: UnitOfMeasurement | UnitValue | None, optional
+    :return: Number parameter description
+    :rtype: EcomaxNumberDescription
+    :raise ValueError: If ``unit`` is not a recognized unit string or
+        enum member
+    """
     from pyplumio.parameters.ecomax import EcomaxNumberDescription  # noqa: PLC0415
 
     return EcomaxNumberDescription(
@@ -79,7 +102,16 @@ def number(
 
 
 def switch(name: str, *, optimistic: bool = False) -> EcomaxSwitchDescription:
-    """Return an ecoMAX switch parameter description."""
+    """Return an ecoMAX switch parameter description.
+
+    :param name: Snake-case parameter name used on the device
+    :type name: str
+    :param optimistic: Whether writes succeed immediately without
+        waiting for controller confirmation, defaults to ``False``
+    :type optimistic: bool, optional
+    :return: Switch parameter description
+    :rtype: EcomaxSwitchDescription
+    """
     from pyplumio.parameters.ecomax import EcomaxSwitchDescription  # noqa: PLC0415
 
     return EcomaxSwitchDescription(name=name, optimistic=optimistic)
@@ -92,7 +124,24 @@ def custom_parameters(
     service_parameters: Mapping[int, EcomaxParameterDescription] | None = None,
     patches: Mapping[str, EcomaxParameterDescription] | None = None,
 ) -> CustomParameters:
-    """Return custom parameters for a device model."""
+    """Return custom parameters for a device model.
+
+    :param model: Exact controller model string matching
+        ``ProductInfo.model``
+    :type model: str
+    :param id: Numeric product identifier matching ``ProductInfo.id``
+    :type id: int
+    :param service_parameters: Mapping of integer service parameter
+        indices to ``number()`` or ``switch()`` descriptors, defaults to
+        ``None``
+    :type service_parameters:
+        Mapping[int, EcomaxParameterDescription] | None, optional
+    :param patches: Mapping of standard parameter names to replacement
+        ``number()`` or ``switch()`` descriptors, defaults to ``None``
+    :type patches: Mapping[str, EcomaxParameterDescription] | None, optional
+    :return: Custom parameter definition for the controller model
+    :rtype: CustomParameters
+    """
     return CustomParameters(
         model=model,
         id=id,
