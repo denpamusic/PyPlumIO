@@ -12,7 +12,12 @@ from pyplumio.cli.codegen import custom_module_path, generate_custom_parameter_m
 from pyplumio.cli.state import AppState, AppStep
 from pyplumio.const import ProductType
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom import custom_parameters, number, switch
+from pyplumio.parameters.custom import (
+    CustomParameters,
+    custom_parameters,
+    number,
+    switch,
+)
 from pyplumio.structures.product_info import ProductInfo
 from tests.conftest import DUMMY_MODEL
 
@@ -52,15 +57,26 @@ def app_step(state: AppState) -> AppStep:
     return state.step
 
 
-def dummy_product_info() -> ProductInfo:
+def dummy_product_info(product_id: int = DUMMY_ID) -> ProductInfo:
     """Return synthetic product info for ecoMAX 999-TEST."""
     return ProductInfo(
         type=ProductType.ECOMAX_P,
-        id=DUMMY_ID,
+        id=product_id,
         uid="*TEST*",
         logo=0,
         image=0,
         model=DUMMY_MODEL,
+    )
+
+
+def dummy_custom_parameters(source: Path | None = None) -> CustomParameters:
+    """Return synthetic CustomParameters for ecoMAX 999-TEST."""
+    return CustomParameters(
+        model=DUMMY_PARAMETERS.model,
+        id=DUMMY_PARAMETERS.id,
+        service_parameters=DUMMY_PARAMETERS.service_parameters,
+        patches=DUMMY_PARAMETERS.patches,
+        source=source,
     )
 
 
@@ -113,6 +129,7 @@ __all__ = (
     "DUMMY_PARAMETERS",
     "DUMMY_SLUG",
     "app_step",
+    "dummy_custom_parameters",
     "dummy_product_info",
     "dummy_service_parameters_frame",
     "product_info",

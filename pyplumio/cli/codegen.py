@@ -170,7 +170,7 @@ def _format_dict_block(name: str, entries: list[str]) -> str:
 def _collect_module_imports(
     service_parameters: Mapping[int, EcomaxParameterDescription],
     patches: Mapping[str, EcomaxParameterDescription],
-) -> list[str]:
+) -> str:
     """Collect required module imports."""
     all_descriptions = list(service_parameters.values()) + list(patches.values())
     has_number = any(
@@ -186,7 +186,7 @@ def _collect_module_imports(
         *(["number"] if has_number else []),
         *(["switch"] if has_switch else []),
     ]
-    return [f"from pyplumio.parameters.custom import {', '.join(custom_imports)}"]
+    return f"from pyplumio.parameters.custom import {', '.join(custom_imports)}"
 
 
 def _format_test_row(
@@ -296,7 +296,7 @@ def generate_custom_parameter_module(
     return MODULE_TEMPLATE.format(
         model=product_info.model,
         product_id=product_info.id,
-        imports="\n".join(_collect_module_imports(service_parameters, patch_map)),
+        imports=_collect_module_imports(service_parameters, patch_map),
         blocks=blocks,
     )
 

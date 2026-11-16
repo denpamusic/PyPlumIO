@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 from types import MappingProxyType, ModuleType
@@ -159,9 +159,9 @@ def extract_custom_parameters(
     module: ModuleType, *, path: Path | None = None
 ) -> CustomParameters | None:
     """Extract custom parameters instance from a loaded module."""
-    params = getattr(module, "PARAMETERS", None)
-    if not isinstance(params, CustomParameters):
-        params = next(
+    parameters = getattr(module, "PARAMETERS", None)
+    if not isinstance(parameters, CustomParameters):
+        parameters = next(
             (
                 value
                 for value in vars(module).values()
@@ -170,16 +170,23 @@ def extract_custom_parameters(
             None,
         )
 
-    if params is None:
+    if parameters is None:
         return None
 
-    if path is not None:
-        return replace(params, source=path)
+    source: Path | None = path
+    if source is None and (module_file := getattr(module, "__file__", None)):
+        source = Path(module_file)
 
-    if module_file := getattr(module, "__file__", None):
-        return replace(params, source=Path(module_file))
+    if source is None:
+        return parameters
 
-    return params
+    return CustomParameters(
+        model=parameters.model,
+        id=parameters.id,
+        service_parameters=parameters.service_parameters,
+        patches=parameters.patches,
+        source=source,
+    )
 
 
 @acache

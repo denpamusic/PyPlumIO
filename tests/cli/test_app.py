@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import replace
 import logging
 from pathlib import Path
 from typing import Any
@@ -50,6 +49,7 @@ from tests.cli.conftest import (
     DUMMY_PARAMETERS,
     DUMMY_SLUG,
     app_step,
+    dummy_custom_parameters,
     dummy_product_info,
     write_dummy_custom_module,
 )
@@ -179,7 +179,7 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=replace(DUMMY_PARAMETERS, source=source_path),
+            return_value=dummy_custom_parameters(source=source_path),
         ),
         patch(
             "pyplumio.cli.session.Session.connect", new_callable=AsyncMock
@@ -411,7 +411,7 @@ def test_load_comments(tmp_path: Path) -> None:
     }
 
     source_path = write_dummy_custom_module(tmp_path / "source")
-    sourced_params = replace(DUMMY_PARAMETERS, source=source_path)
+    sourced_params = dummy_custom_parameters(source=source_path)
     assert (
         _load_comments(sourced_params, tmp_path / "empty", DUMMY_SLUG) == DUMMY_COMMENTS
     )
@@ -422,7 +422,7 @@ def test_load_comments(tmp_path: Path) -> None:
 
     assert _load_comments(DUMMY_PARAMETERS, tmp_path / "empty", DUMMY_SLUG) == {}
 
-    missing_source = replace(DUMMY_PARAMETERS, source=tmp_path / "missing.py")
+    missing_source = dummy_custom_parameters(source=tmp_path / "missing.py")
     assert (
         _load_comments(missing_source, tmp_path, DUMMY_SLUG, prefer_output=False) == {}
     )
@@ -580,7 +580,7 @@ def test_load_custom_parameters_from_file(tmp_path: Path) -> None:
 
     with pytest.raises(ValueError, match="Model or product ID mismatch"):
         _load_custom_parameters_from_file(
-            valid_path, replace(product_info, id=DUMMY_ID + 1)
+            valid_path, dummy_product_info(product_id=DUMMY_ID + 1)
         )
 
     wrong_model = tmp_path / "wrong_model.py"
@@ -736,7 +736,7 @@ async def test_run_app_invalid_output_module_fallback(
 ) -> None:
     """Test run_app falls back cleanly when output module fails validation."""
     product_info = dummy_product_info()
-    mismatched_info = replace(product_info, id=DUMMY_ID + 1)
+    mismatched_info = dummy_product_info(product_id=DUMMY_ID + 1)
     rejected_path = custom_module_path(tmp_path, DUMMY_SLUG)
     rejected_path.parent.mkdir(parents=True, exist_ok=True)
     rejected_path.write_text(
@@ -779,7 +779,7 @@ async def test_run_app_invalid_output_module_fallback(
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=replace(DUMMY_PARAMETERS, source=source_path),
+            return_value=dummy_custom_parameters(source=source_path),
         ) as mock_load,
         patch(
             "pyplumio.cli.session.Session.connect",
