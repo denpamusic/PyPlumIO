@@ -27,8 +27,8 @@ from pyplumio.parameters import (
     SwitchDescription,
 )
 from pyplumio.parameters.custom import (
+    apply_custom_parameter_patches,
     get_custom_service_parameter_types,
-    inject_custom_parameter_overrides,
 )
 from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
 from pyplumio.structures.product_info import ProductInfo
@@ -825,7 +825,7 @@ async def get_ecomax_parameter_types(
     product_info: ProductInfo,
 ) -> list[EcomaxParameterDescription]:
     """Return ecoMAX parameter types for a specific product."""
-    return await inject_custom_parameter_overrides(
+    return await apply_custom_parameter_patches(
         product_info, parameter_types=PARAMETER_TYPES[product_info.type]
     )
 

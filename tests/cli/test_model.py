@@ -93,7 +93,7 @@ def test_parameter_table() -> None:
 
     assert table.comments == {}
     assert table.descriptions == {}
-    assert table.overrides == ()
+    assert table.patches == {}
     assert len(table) == 0
     assert table.rows() == []
 

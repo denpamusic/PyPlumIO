@@ -168,15 +168,14 @@ in `pyplumio/parameters/custom/<model_slug>.py`, where `<model_slug>` is
 `model.replace("-", "_").replace(" ", "_").lower()` (for example,
 `"ecoMAX 350P2-ZF"` becomes `ecomax_350p2_zf.py`).
 
-2.9.2. Define a `CustomParameters` subclass named
-`to_camelcase(model_slug).upper().replace("ECOMAX", "EcoMAX")` (for
-example, `EcoMAX350P2ZF` or `EcoMAX860P4NMTOUCH`) with:
-2.9.2.1. `signature = Signature(model="<exact model>", id=<product_id>)`.
-2.9.2.2. `overrides`: a tuple of `ParameterOverride(original, replacement)`
-entries to replace standard `PARAMETER_TYPES` descriptors by name.
-2.9.2.3. `descriptions`: a `dict[int, ParameterDescription]` mapping service
-parameter indices to `EcomaxNumberDescription` or
-`EcomaxSwitchDescription` instances.
+2.9.2. Define a module-level `PARAMETERS` constant via
+`custom_parameters(model="<exact model>", id=<product_id>, ...)` with:
+2.9.2.1. `patches`: an optional `dict[str, EcomaxParameterDescription]`
+mapping standard `PARAMETER_TYPES` descriptor names to replacement
+`number()` or `switch()` descriptors.
+2.9.2.2. `service_parameters`: an optional
+`dict[int, EcomaxParameterDescription]` mapping service parameter
+indices to `number()` or `switch()` descriptors.
 
 2.9.3. Every custom device module requires real captured frame data from
 the physical device in `tests/testdata/parameters/<model_slug>.json` and

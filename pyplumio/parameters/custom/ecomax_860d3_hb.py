@@ -1,80 +1,25 @@
-"""Contains patch for ecoMAX 860D3-HB."""
+"""Contains custom parameters for ecoMAX 860D3-HB."""
 
 from __future__ import annotations
 
-from pyplumio.const import UnitOfMeasurement
-from pyplumio.parameters.custom import CustomParameters, ParameterOverride, Signature
-from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+from pyplumio.parameters.custom import custom_parameters, number, switch
 
-
-class EcoMAX860D3HB(CustomParameters):
-    """Custom parameters for ecoMAX 860D3-HB."""
-
-    signature = Signature(model="ecoMAX 860D3-HB", id=48)
-
-    overrides = (
+PARAMETERS = custom_parameters(
+    model="ecoMAX 860D3-HB",
+    id=48,
+    patches={
         # Summer mode
-        ParameterOverride(
-            original="summer_mode_disable_temp",
-            replacement=EcomaxNumberDescription(name="__unknown_parameter_1"),
-        ),
-        ParameterOverride(
-            original="water_heater_target_temp",
-            replacement=EcomaxNumberDescription(name="summer_mode"),
-        ),
-        ParameterOverride(
-            original="min_water_heater_target_temp",
-            replacement=EcomaxNumberDescription(
-                name="summer_mode_enable_temp",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
-        ParameterOverride(
-            original="max_water_heater_target_temp",
-            replacement=EcomaxNumberDescription(
-                name="summer_mode_disable_temp",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
+        "summer_mode_disable_temp": number("__unknown_parameter_1"),
+        "water_heater_target_temp": number("summer_mode"),
+        "min_water_heater_target_temp": number("summer_mode_enable_temp", unit="°C"),
+        "max_water_heater_target_temp": number("summer_mode_disable_temp", unit="°C"),
         # Water heater
-        ParameterOverride(
-            original="disable_pump_on_thermostat",
-            replacement=EcomaxNumberDescription(
-                name="water_heater_target_temp",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
-        ParameterOverride(
-            original="boiler_alert_temp",
-            replacement=EcomaxNumberDescription(
-                name="min_water_heater_target_temp",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
-        ParameterOverride(
-            original="max_feeder_temp",
-            replacement=EcomaxNumberDescription(
-                name="max_water_heater_target_temp",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
-        ParameterOverride(
-            original="water_heater_work_mode",
-            replacement=EcomaxNumberDescription(name="water_heater_feeding_extension"),
-        ),
-        ParameterOverride(
-            original="external_boiler_temp",
-            replacement=EcomaxNumberDescription(name="water_heater_work_mode"),
-        ),
-        ParameterOverride(
-            original="alert_notify",
-            replacement=EcomaxNumberDescription(
-                name="water_heater_hysteresis",
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
-        ),
-        ParameterOverride(
-            original="pump_hysteresis",
-            replacement=EcomaxSwitchDescription(name="water_heater_disinfection"),
-        ),
-    )
+        "disable_pump_on_thermostat": number("water_heater_target_temp", unit="°C"),
+        "boiler_alert_temp": number("min_water_heater_target_temp", unit="°C"),
+        "max_feeder_temp": number("max_water_heater_target_temp", unit="°C"),
+        "water_heater_work_mode": number("water_heater_feeding_extension"),
+        "external_boiler_temp": number("water_heater_work_mode"),
+        "alert_notify": number("water_heater_hysteresis", unit="°C"),
+        "pump_hysteresis": switch("water_heater_disinfection"),
+    },
+)

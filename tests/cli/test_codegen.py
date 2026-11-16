@@ -22,15 +22,14 @@ from pyplumio.cli.codegen import (
 from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
 from pyplumio.frames.responses import EcomaxServiceParametersResponse
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom import ParameterOverride
+from pyplumio.parameters.custom import CustomParameters
 from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.product_info import ProductInfo
 from tests.cli.conftest import (
-    DUMMY_CLASS_NAME,
     DUMMY_COMMENTS,
+    DUMMY_PARAMETERS,
     DUMMY_SLUG,
-    EcoMAX999TEST,
     dummy_product_info,
     dummy_service_parameters_frame,
     write_dummy_custom_module,
@@ -62,21 +61,22 @@ def _assert_ruff_clean(tmp_path: Path, slug: str) -> None:
     assert module_check.returncode == 0, module_check.stdout + module_check.stderr
 
     test_path = tmp_path / "tests" / "parameters" / "custom" / f"test_{slug}.py"
-    test_check = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "ruff",
-            "check",
-            "--config",
-            tests_ruff_path,
-            str(test_path),
-        ],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert test_check.returncode == 0, test_check.stdout + test_check.stderr
+    if test_path.is_file():
+        test_check = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "ruff",
+                "check",
+                "--config",
+                tests_ruff_path,
+                str(test_path),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        assert test_check.returncode == 0, test_check.stdout + test_check.stderr
 
     format_check = subprocess.run(
         [
@@ -110,8 +110,8 @@ def test_codegen_golden(tmp_path: Path) -> None:
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=EcoMAX999TEST.descriptions,
-        overrides=EcoMAX999TEST.overrides,
+        service_parameters=DUMMY_PARAMETERS.service_parameters,
+        patches=DUMMY_PARAMETERS.patches,
         frame_message=raw_bytes,
         frame_parameters=frame_parameters,
         output_dir=tmp_path,
@@ -126,7 +126,7 @@ def test_codegen_golden(tmp_path: Path) -> None:
     roundtrip_bytes = bytes.fromhex("".join(parsed_json[0]["message"]["items"]))
     assert roundtrip_bytes == raw_bytes
 
-    # 2. Assert generated module compiles and matches signature and descriptions
+    # 2. Assert generated module compiles and matches PARAMETERS
     module_content = files[
         tmp_path / "pyplumio" / "parameters" / "custom" / f"{DUMMY_SLUG}.py"
     ]
@@ -134,10 +134,9 @@ def test_codegen_golden(tmp_path: Path) -> None:
     code_obj = compile(module_content, f"<{DUMMY_SLUG}>", "exec")
     local_ns: dict[str, object] = {}
     exec(code_obj, local_ns)  # noqa: S102
-    gen_cls = local_ns[DUMMY_CLASS_NAME]
-    assert getattr(gen_cls, "signature") == EcoMAX999TEST.signature
-    assert getattr(gen_cls, "descriptions") == EcoMAX999TEST.descriptions
-    assert getattr(gen_cls, "overrides") == EcoMAX999TEST.overrides
+    generated = local_ns["PARAMETERS"]
+    assert isinstance(generated, CustomParameters)
+    assert generated == DUMMY_PARAMETERS
 
     # 3. Assert test module compiles
     test_content = files[
@@ -163,7 +162,7 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
         image=0,
         model="ecoMAX 860P",
     )
-    descriptions = {
+    service_parameters = {
         0: EcomaxNumberDescription(
             name="detailed_temp",
             step=0.5,
@@ -177,12 +176,9 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
             optimistic=True,
         ),
     }
-    overrides = [
-        ParameterOverride(
-            original="max_temp",
-            replacement=EcomaxNumberDescription(name="max_temp", step=1, offset=5),
-        )
-    ]
+    patches = {
+        "max_temp": EcomaxNumberDescription(name="max_temp", step=1, offset=5),
+    }
     frame_parameters = [
         (0, ParameterValues(value=20, min_value=0, max_value=100)),
         (1, ParameterValues(value=1, min_value=0, max_value=1)),
@@ -190,8 +186,8 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=descriptions,
-        overrides=overrides,
+        service_parameters=service_parameters,
+        patches=patches,
         frame_message=b"\x00" * 40,
         frame_parameters=frame_parameters,
         output_dir=tmp_path,
@@ -203,25 +199,29 @@ def test_codegen_non_default_fields_roundtrip(tmp_path: Path) -> None:
     assert "optimistic=True" in module_content
     assert "precision=2" in module_content
     assert "offset=-10" in module_content
+    assert 'unit="°C"' in module_content
     assert (
-        "from pyplumio.parameters.ecomax import "
-        "EcomaxNumberDescription, EcomaxSwitchDescription"
-    ) in module_content
+        "from pyplumio.parameters.custom import custom_parameters, number, switch"
+        in module_content
+    )
 
     # Exec module and verify exact dataclass equality
     code_obj = compile(module_content, "<ecomax_860p>", "exec")
     local_ns: dict[str, object] = {}
     exec(code_obj, local_ns)  # noqa: S102
-    generated_class = local_ns["EcoMAX860P"]
-    assert getattr(generated_class, "descriptions") == descriptions
-    assert getattr(generated_class, "overrides") == tuple(overrides)
+    generated = local_ns["PARAMETERS"]
+    assert isinstance(generated, CustomParameters)
+    assert generated.model == "ecoMAX 860P"
+    assert generated.id == 42
+    assert generated.service_parameters == service_parameters
+    assert generated.patches == patches
 
     write_files(files)
     _assert_ruff_clean(tmp_path, "ecomax_860p")
 
 
-def test_codegen_with_overrides_and_switches() -> None:
-    """Test codegen with parameter overrides and switch descriptions."""
+def test_codegen_with_patches_and_switches(tmp_path: Path) -> None:
+    """Test codegen with parameter patches, switch descriptions, and wrapping."""
     product_info = ProductInfo(
         type=ProductType.ECOMAX_I,
         id=12,
@@ -230,27 +230,17 @@ def test_codegen_with_overrides_and_switches() -> None:
         image=0,
         model="ecoMAX 860P",
     )
-    replacement = EcomaxNumberDescription(
-        name="long_replacement_parameter_name",
-        step=5,
-        offset=-10,
-        unit_of_measurement=PERCENTAGE,
-    )
-    overrides = [
-        ParameterOverride(
-            original="a",
-            replacement=EcomaxNumberDescription(name="a"),
+    patches = {
+        "a": EcomaxNumberDescription(name="a"),
+        "medium_param_name": EcomaxSwitchDescription(name="bar"),
+        "original_long_parameter_name_to_wrap": EcomaxNumberDescription(
+            name="long_replacement_parameter_name",
+            step=5,
+            offset=-10,
+            unit_of_measurement=PERCENTAGE,
         ),
-        ParameterOverride(
-            original="medium_param_name",
-            replacement=EcomaxSwitchDescription(name="bar"),
-        ),
-        ParameterOverride(
-            original="original_long_parameter_name_to_wrap",
-            replacement=replacement,
-        ),
-    ]
-    descriptions = {
+    }
+    service_parameters = {
         0: EcomaxSwitchDescription(name="power_switch"),
         1: EcomaxNumberDescription(
             name="boiler_temp",
@@ -267,16 +257,26 @@ def test_codegen_with_overrides_and_switches() -> None:
     }
 
     module_content = generate_custom_parameter_module(
-        product_info, descriptions, overrides
+        product_info, service_parameters, patches
     )
-    assert "class EcoMAX860P(CustomParameters):" in module_content
-    assert "ParameterOverride(" in module_content
-    assert "descriptions = {" in module_content
-    assert "power_switch" in module_content
+    assert "PARAMETERS = custom_parameters(" in module_content
+    assert "service_parameters={" in module_content
+    assert "patches={" in module_content
+    assert 'switch("power_switch")' in module_content
+    assert 'unit="%"' in module_content
+    assert 'unit="°C"' in module_content
+    assert (
+        '        "original_long_parameter_name_to_wrap": number(\n'
+        '            "long_replacement_parameter_name",\n'
+        "            step=5,\n"
+        "            offset=-10,\n"
+        '            unit="%",\n'
+        "        ),"
+    ) in module_content
 
     test_content = generate_test_module(
         product_info,
-        descriptions,
+        service_parameters,
         [
             (0, ParameterValues(value=1, min_value=0, max_value=1)),
             (1, ParameterValues(value=50, min_value=20, max_value=80)),
@@ -293,9 +293,14 @@ def test_codegen_with_overrides_and_switches() -> None:
     compile(module_content, "<ecomax_860p>", "exec")
     compile(test_content, "<test_ecomax_860p>", "exec")
 
+    module_path = tmp_path / "pyplumio" / "parameters" / "custom" / "ecomax_860p.py"
+    test_path = tmp_path / "tests" / "parameters" / "custom" / "test_ecomax_860p.py"
+    write_files({module_path: module_content, test_path: test_content})
+    _assert_ruff_clean(tmp_path, "ecomax_860p")
 
-def test_codegen_empty_descriptions() -> None:
-    """Test generating module with empty descriptions outputs empty dict."""
+
+def test_codegen_empty_and_patches_only(tmp_path: Path) -> None:
+    """Test generating modules with empty service_parameters or patches only."""
     product_info = ProductInfo(
         type=ProductType.ECOMAX_P,
         id=1,
@@ -304,11 +309,27 @@ def test_codegen_empty_descriptions() -> None:
         image=0,
         model="ecoMAX 100",
     )
-    module_content = generate_custom_parameter_module(
-        product_info, descriptions={}, overrides=()
+    empty_content = generate_custom_parameter_module(
+        product_info, service_parameters={}, patches={}
     )
-    assert "descriptions = {}" in module_content
-    compile(module_content, "<empty>", "exec")
+    assert "service_parameters={}," in empty_content
+    assert "patches=" not in empty_content
+    assert "from pyplumio.parameters.custom import custom_parameters\n" in empty_content
+    compile(empty_content, "<empty>", "exec")
+
+    patches_only = generate_custom_parameter_module(
+        product_info,
+        service_parameters={},
+        patches={"a": EcomaxSwitchDescription(name="b")},
+    )
+    assert "service_parameters=" not in patches_only
+    assert "patches={" in patches_only
+    assert "from pyplumio.parameters.custom import custom_parameters, switch\n" in (
+        patches_only
+    )
+    module_path = tmp_path / "pyplumio" / "parameters" / "custom" / "ecomax_100.py"
+    write_files({module_path: patches_only})
+    _assert_ruff_clean(tmp_path, "ecomax_100")
 
 
 def test_codegen_empty_test_rows_raises_value_error() -> None:
@@ -326,8 +347,10 @@ def test_codegen_empty_test_rows_raises_value_error() -> None:
 
 
 def test_format_field_value() -> None:
-    """Test _format_field_value with float integers and strings."""
+    """Test _format_field_value with float integers, units, and strings."""
     assert _format_field_value("step", 2.0) == "2"
+    assert _format_field_value("unit", PERCENTAGE) == '"%"'
+    assert _format_field_value("unit", UnitOfMeasurement.CELSIUS) == '"°C"'
     assert _format_field_value("custom_str", "hello") == '"hello"'
 
 
@@ -338,8 +361,8 @@ def test_write_zip(tmp_path: Path) -> None:
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=EcoMAX999TEST.descriptions,
-        overrides=EcoMAX999TEST.overrides,
+        service_parameters=DUMMY_PARAMETERS.service_parameters,
+        patches=DUMMY_PARAMETERS.patches,
         frame_message=raw_bytes,
         frame_parameters=frame_parameters,
         output_dir=tmp_path,
@@ -365,7 +388,7 @@ def test_write_zip(tmp_path: Path) -> None:
 def test_codegen_with_comments(tmp_path: Path) -> None:
     """Test generating custom parameter module and files with wrapped comments."""
     product_info = dummy_product_info()
-    descriptions: dict[int, EcomaxNumberDescription | EcomaxSwitchDescription] = {
+    service_parameters: dict[int, EcomaxNumberDescription | EcomaxSwitchDescription] = {
         0: EcomaxSwitchDescription(name="mode_switch"),
         1: EcomaxSwitchDescription(name="aux_switch"),
         2: EcomaxNumberDescription(
@@ -386,12 +409,12 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
     }
 
     module_content = generate_custom_parameter_module(
-        product_info, descriptions, comments=comments
+        product_info, service_parameters, comments=comments
     )
-    assert "        # 0 - off, 1 - on\n        0: EcomaxSwitchDescription" in (
+    assert '        # 0 - off, 1 - on\n        0: switch("mode_switch")' in (
         module_content
     )
-    assert "        # 0 - off, 1 - on\n        1: EcomaxSwitchDescription" in (
+    assert '        # 0 - off, 1 - on\n        1: switch("aux_switch")' in (
         module_content
     )
     assert "# #" not in module_content
@@ -407,17 +430,19 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         2: long_comment,
     }
 
-    no_comment_module = generate_custom_parameter_module(product_info, descriptions)
+    no_comment_module = generate_custom_parameter_module(
+        product_info, service_parameters
+    )
     assert extract_comments(no_comment_module) == {}
 
     wrapped_module = (
-        "    descriptions = {\n"
+        "    service_parameters={\n"
         "        # 0 - standard, 1 - fuzzy logic. Kept as a number, because the\n"
         "        # controller allows a third value (2) with unknown meaning.\n"
-        '        23: EcomaxNumberDescription(name="control_mode"),\n'
+        '        23: number("control_mode"),\n'
         "        # 0 - off, 1 - priority, 2 - no priority.\n"
-        '        90: EcomaxNumberDescription(name="boiler_priority"),\n'
-        "    }\n"
+        '        90: number("boiler_priority"),\n'
+        "    },\n"
     )
     assert extract_comments(wrapped_module) == {
         23: (
@@ -431,8 +456,8 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         "    # 4-space comment\n"
         "        # separated by blank line\n"
         "\n"
-        '        1: EcomaxSwitchDescription(name="a"),\n'
-        '        2: EcomaxSwitchDescription(name="b"),  # inline comment\n'
+        '        1: switch("a"),\n'
+        '        2: switch("b"),  # inline comment\n'
         "        # comment before unindented entry\n"
         "10: something\n"
         "        # comment before 4-space entry\n"
@@ -440,9 +465,9 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
         "        # first line\n"
         "        #\n"
         "        # second line\n"
-        '        12: EcomaxSwitchDescription(name="c"),\n'
+        '        12: switch("c"),\n'
         "        #unspaced malformed comment\n"
-        '        13: EcomaxSwitchDescription(name="d"),\n'
+        '        13: switch("d"),\n'
         "        # comment before bare integer without colon\n"
         "        14\n"
         "        # comment before unicode digit entry\n"
@@ -451,8 +476,8 @@ def test_codegen_with_comments(tmp_path: Path) -> None:
 
     files = generate_all_files(
         product_info=product_info,
-        descriptions=descriptions,
-        overrides=(),
+        service_parameters=service_parameters,
+        patches={},
         frame_message=b"\x00" * 40,
         frame_parameters=[
             (0, ParameterValues(value=1, min_value=0, max_value=1)),

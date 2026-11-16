@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import fields
 import json
 from pathlib import Path
 import textwrap
@@ -13,7 +12,7 @@ import zipfile
 from pyplumio.cli.model import Row
 from pyplumio.const import PERCENTAGE, STATE_ON, UnitOfMeasurement
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom import ParameterOverride, custom_class_name, model_slug
+from pyplumio.parameters.custom import model_slug
 from pyplumio.parameters.ecomax import (
     EcomaxNumberDescription,
     EcomaxParameterDescription,
@@ -27,11 +26,13 @@ COMMENT_PREFIX: Final = "        # "
 ENTRY_PREFIX: Final = "        "
 
 MODULE_TEMPLATE: Final = (
-    '"""Contains patch for {model}."""\n\nfrom __future__ import annotations\n\n'
-    "{imports}\n\n\nclass {class_name}(CustomParameters):\n"
-    '    """Custom parameters for {model}."""\n\n'
-    '    signature = Signature(model="{model}", id={product_id})\n\n'
-    "{override_block}{description_block}"
+    '"""Contains custom parameters for {model}."""\n\n'
+    "from __future__ import annotations\n\n"
+    "{imports}\n\n"
+    "PARAMETERS = custom_parameters(\n"
+    '    model="{model}",\n'
+    "    id={product_id},\n"
+    "{blocks})\n"
 )
 
 TEST_TEMPLATE: Final = (
@@ -89,8 +90,9 @@ def _format_unit(unit: UnitOfMeasurement | Literal["%"] | None) -> str:
 
 def _format_field_value(field_name: str, value: Any) -> str:
     """Format single field value for code generation."""
-    if field_name == "unit_of_measurement":
-        return _format_unit(value)
+    if field_name == "unit":
+        unit = PERCENTAGE if value == PERCENTAGE else UnitOfMeasurement(value).value
+        return f'"{unit}"'
 
     if isinstance(value, float) and value.is_integer():
         return str(int(value))
@@ -104,13 +106,27 @@ def _format_field_value(field_name: str, value: Any) -> str:
 def _format_description(
     description: EcomaxParameterDescription,
 ) -> tuple[str, list[str]]:
-    """Format description class name and non-default arguments."""
-    arguments = [
-        f"{field.name}={_format_field_value(field.name, value)}"
-        for field in fields(description)
-        if (value := getattr(description, field.name)) != field.default
-    ]
-    return type(description).__name__, arguments
+    """Format factory function name and arguments."""
+    arguments = [f'"{description.name}"']
+    if isinstance(description, EcomaxNumberDescription):
+        for field_name, attr_name, default in (
+            ("step", "step", 1.0),
+            ("offset", "offset", 0),
+            ("precision", "precision", 6),
+            ("optimistic", "optimistic", False),
+            ("unit", "unit_of_measurement", None),
+        ):
+            if (value := getattr(description, attr_name)) != default:
+                arguments.append(
+                    f"{field_name}={_format_field_value(field_name, value)}"
+                )
+
+        return "number", arguments
+
+    if description.optimistic:
+        arguments.append("optimistic=True")
+
+    return "switch", arguments
 
 
 def _format_comment(comment: str) -> str:
@@ -125,75 +141,52 @@ def _format_comment(comment: str) -> str:
 
 
 def _format_dict_entry(
-    index: int,
+    key: int | str,
     description: EcomaxParameterDescription,
     comment: str | None = None,
 ) -> str:
-    """Format single descriptions dict entry with 88-column wrapping."""
+    """Format single dictionary entry with 88-column wrapping."""
     comment_prefix = _format_comment(comment) if comment else ""
-    class_name, arguments = _format_description(description)
-    prefix = f"{ENTRY_PREFIX}{index}: "
-    single_line = f"{class_name}({', '.join(arguments)})"
+    func_name, arguments = _format_description(description)
+    formatted_key = f'"{key}"' if isinstance(key, str) else str(key)
+    prefix = f"{ENTRY_PREFIX}{formatted_key}: "
+    single_line = f"{func_name}({', '.join(arguments)})"
     if len(prefix) + len(single_line) + 1 <= MAX_LINE_LENGTH:
         return f"{comment_prefix}{prefix}{single_line},"
 
     body = "\n".join(f"            {arg}," for arg in arguments)
-    return f"{comment_prefix}{prefix}{class_name}(\n{body}\n        ),"
+    return f"{comment_prefix}{prefix}{func_name}(\n{body}\n        ),"
 
 
-def _format_override_entry(override: ParameterOverride) -> str:
-    """Format single override entry with 88-column wrapping."""
-    class_name, arguments = _format_description(override.replacement)
-    single_replacement = f"{class_name}({', '.join(arguments)})"
-    prefix = f'        ParameterOverride(original="{override.original}", replacement='
-    if len(prefix) + len(single_replacement) + 2 <= MAX_LINE_LENGTH:
-        return f"{prefix}{single_replacement}),"
+def _format_dict_block(name: str, entries: list[str]) -> str:
+    """Format a keyword dictionary block for custom_parameters()."""
+    if not entries:
+        return f"    {name}={{}},\n"
 
-    body = "\n".join(f"                {arg}," for arg in arguments)
-    replacement = (
-        f"            replacement={single_replacement},"
-        if len(f"            replacement={single_replacement},") <= MAX_LINE_LENGTH
-        else f"            replacement={class_name}(\n{body}\n            ),"
-    )
-    return (
-        f'        ParameterOverride(\n            original="{override.original}",\n'
-        f"{replacement}\n        ),"
-    )
+    joined = "\n".join(entries)
+    return f"    {name}={{\n{joined}\n    }},\n"
 
 
 def _collect_module_imports(
-    descriptions: Mapping[int, EcomaxParameterDescription],
-    overrides: Sequence[ParameterOverride],
+    service_parameters: Mapping[int, EcomaxParameterDescription],
+    patches: Mapping[str, EcomaxParameterDescription],
 ) -> list[str]:
     """Collect required module imports."""
-    all_descriptions = list(descriptions.values()) + [
-        override.replacement for override in overrides
-    ]
-    units = {
-        description.unit_of_measurement
+    all_descriptions = list(service_parameters.values()) + list(patches.values())
+    has_number = any(
+        isinstance(description, EcomaxNumberDescription)
         for description in all_descriptions
-        if isinstance(description, EcomaxNumberDescription)
-    }
-    has_percentage = PERCENTAGE in units
-    has_unit_of_measurement = bool(units - {None, PERCENTAGE})
-    consts = [
-        *(["PERCENTAGE"] if has_percentage else []),
-        *(["UnitOfMeasurement"] if has_unit_of_measurement else []),
-    ]
-    lines = [f"from pyplumio.const import {', '.join(consts)}"] if consts else []
+    )
+    has_switch = any(
+        isinstance(description, EcomaxSwitchDescription)
+        for description in all_descriptions
+    )
     custom_imports = [
-        "CustomParameters",
-        *(["ParameterOverride"] if overrides else []),
-        "Signature",
+        "custom_parameters",
+        *(["number"] if has_number else []),
+        *(["switch"] if has_switch else []),
     ]
-    lines.append(f"from pyplumio.parameters.custom import {', '.join(custom_imports)}")
-
-    if classes := sorted(
-        {type(description).__name__ for description in all_descriptions}
-    ):
-        lines.append(f"from pyplumio.parameters.ecomax import {', '.join(classes)}")
-
-    return lines
+    return [f"from pyplumio.parameters.custom import {', '.join(custom_imports)}"]
 
 
 def _format_test_row(
@@ -279,34 +272,32 @@ def extract_comments(source: str) -> dict[int, str]:
 
 def generate_custom_parameter_module(
     product_info: ProductInfo,
-    descriptions: Mapping[int, EcomaxParameterDescription],
-    overrides: Sequence[ParameterOverride] = (),
+    service_parameters: Mapping[int, EcomaxParameterDescription],
+    patches: Mapping[str, EcomaxParameterDescription] | None = None,
     comments: Mapping[int, str] | None = None,
 ) -> str:
     """Generate the custom parameter module file content."""
-    slug = model_slug(product_info.model)
     comment_map = comments or {}
-    override_lines = "\n".join(
-        _format_override_entry(override) for override in overrides
-    )
-    description_lines = "\n".join(
+    patch_map = patches or {}
+    service_entries = [
         _format_dict_entry(index, description, comment_map.get(index))
-        for index, description in sorted(descriptions.items())
-    )
-    description_block = (
-        f"    descriptions = {{\n{description_lines}\n    }}\n"
-        if description_lines
-        else "    descriptions = {}\n"
-    )
+        for index, description in sorted(service_parameters.items())
+    ]
+    patch_entries = [
+        _format_dict_entry(name, description) for name, description in patch_map.items()
+    ]
+    blocks = ""
+    if service_entries or not patch_entries:
+        blocks += _format_dict_block("service_parameters", service_entries)
+
+    if patch_entries:
+        blocks += _format_dict_block("patches", patch_entries)
+
     return MODULE_TEMPLATE.format(
         model=product_info.model,
         product_id=product_info.id,
-        class_name=custom_class_name(slug),
-        imports="\n".join(_collect_module_imports(descriptions, overrides)),
-        override_block=(
-            f"    overrides = (\n{override_lines}\n    )\n\n" if overrides else ""
-        ),
-        description_block=description_block,
+        imports="\n".join(_collect_module_imports(service_parameters, patch_map)),
+        blocks=blocks,
     )
 
 
@@ -362,8 +353,8 @@ def generate_test_module(
 
 def generate_all_files(
     product_info: ProductInfo,
-    descriptions: Mapping[int, EcomaxParameterDescription],
-    overrides: Sequence[ParameterOverride],
+    service_parameters: Mapping[int, EcomaxParameterDescription],
+    patches: Mapping[str, EcomaxParameterDescription] | None,
     frame_message: bytes,
     frame_parameters: Sequence[tuple[int, ParameterValues]],
     output_dir: Path,
@@ -374,11 +365,11 @@ def generate_all_files(
     return {
         custom_module_path(output_dir, slug): (
             generate_custom_parameter_module(
-                product_info, descriptions, overrides, comments=comments
+                product_info, service_parameters, patches, comments=comments
             )
         ),
         output_dir / f"tests/parameters/custom/test_{slug}.py": (
-            generate_test_module(product_info, descriptions, frame_parameters)
+            generate_test_module(product_info, service_parameters, frame_parameters)
         ),
         output_dir / f"tests/testdata/parameters/{slug}.json": (
             _generate_json_data(frame_message)

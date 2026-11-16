@@ -116,7 +116,7 @@ def _save_files(state: AppState) -> None:
         files = generate_all_files(
             product_info,
             state.table.descriptions,
-            state.table.overrides,
+            state.table.patches,
             frame_message,
             parameters,
             state.output_dir,

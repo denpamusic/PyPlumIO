@@ -84,11 +84,11 @@ the full-screen interface opens with the parameter table already filled and keep
 polling in the background.
 
 If ``<output>/pyplumio/parameters/custom/<model_slug>.py`` exists on disk with a
-matching model and product ID signature, the CLI loads its mapped descriptions,
-overrides, and comments automatically—taking precedence over bundled definitions in
+matching model and product ID, the CLI loads its mapped service parameters,
+patches, and comments automatically—taking precedence over bundled definitions in
 PyPlumIO—and displays a confirmation notice in the status bar. If no local file exists,
 bundled definitions for the detected model are loaded when available. If an existing
-local file fails to load or has a mismatched signature, a warning is displayed and the
+local file fails to load or has a mismatched model or product ID, a warning is displayed and the
 CLI falls back to built-in definitions.
 
 The interface consists of:
@@ -148,7 +148,8 @@ The utility produces the following three files on disk (and inside ``<output>/<m
 
 1. **Custom Parameter Module**:
    ``<output>/pyplumio/parameters/custom/<model_slug>.py``
-   Contains the ``CustomParameters`` class definition, model signature, and descriptions dictionary.
+   Contains the ``PARAMETERS = custom_parameters(...)`` definition with model,
+   product ID, and service parameters dictionary.
 
 2. **Test Module**:
    ``<output>/tests/parameters/custom/test_<model_slug>.py``

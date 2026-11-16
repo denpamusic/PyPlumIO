@@ -8,7 +8,6 @@ from collections.abc import Iterator, Sequence
 from contextlib import contextmanager, suppress
 from enum import StrEnum, unique
 import importlib.util
-import inspect
 import logging
 from pathlib import Path
 import sys
@@ -29,7 +28,7 @@ from pyplumio.exceptions import PyPlumIOError
 from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import (
     CustomParameters,
-    custom_class_name,
+    extract_custom_parameters,
     load_custom_parameters,
     model_slug,
 )
@@ -129,9 +128,7 @@ def _load_comments(
     """Load parameter comments from output directory or module source."""
     path = custom_module_path(output_dir, slug) if prefer_output else None
     if path is None or not path.is_file():
-        with suppress(TypeError):
-            if source_file := inspect.getsourcefile(type(custom_parameters)):
-                path = Path(source_file)
+        path = custom_parameters.source
 
     if path is not None and path.is_file():
         with suppress(OSError):
@@ -151,18 +148,13 @@ def _load_custom_parameters_from_file(
 
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    class_name = custom_class_name(slug)
-    cls = getattr(module, class_name)
-    instance = cls()
-    if not isinstance(instance, CustomParameters):
-        raise TypeError(
-            f"Expected instance of 'CustomParameters', "
-            f"but got '{type(instance).__name__}' from '{class_name}'"
-        )
+    instance = extract_custom_parameters(module, path=path)
+    if instance is None:
+        raise ValueError(f"No CustomParameters instance found in {path.name}")
 
     if not instance.validate(product_info):
         raise ValueError(
-            f"Signature mismatch in {path.name} "
+            f"Model or product ID mismatch in {path.name} "
             f"(expected {product_info.model!r} ID {product_info.id})"
         )
 
@@ -260,12 +252,12 @@ async def run_app(args: argparse.Namespace) -> int:
                 model_slug(product_info.model),
                 prefer_output=from_output,
             )
-            for index, description in custom_parameters.descriptions.items():
+            for index, description in custom_parameters.service_parameters.items():
                 table.set_description(
                     index, description, comment=comments.get(index, "")
                 )
 
-            table.overrides = tuple(custom_parameters.overrides)
+            table.patches = dict(custom_parameters.patches)
 
         app, state = create_app(session, table, output_dir, zip_output=args.zip)
         if startup_status:
