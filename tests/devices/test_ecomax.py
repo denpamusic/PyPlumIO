@@ -408,6 +408,107 @@ async def test_ecomax_service_parameters_event_listener(
     assert ecomax.get_nowait("fan_speed_100") is fan_speed_100
 
 
+ECOMAX_350P2 = ProductInfo(
+    type=ProductType.ECOMAX_P,
+    id=90,
+    uid="*TEST*",
+    logo=0,
+    image=0,
+    model="ecoMAX 350P2-ZF",
+)
+
+
+@class_from_json(
+    EcomaxParametersResponse,
+    "responses/ecomax_parameters.json",
+    arguments=("message",),
+)
+@class_from_json(
+    EcomaxServiceParametersResponse,
+    "parameters/ecomax_350p2_zf.json",
+    arguments=("message",),
+)
+async def test_ecomax_parameters_do_not_overwrite_service_parameters(
+    ecomax: EcoMAX,
+    ecomax_parameters: EcomaxParametersResponse,
+    ecomax_350p2_zf: EcomaxServiceParametersResponse,
+) -> None:
+    """Test that ecoMAX parameters do not overwrite active service parameters."""
+    await ecomax.dispatch(ATTR_PRODUCT, ECOMAX_350P2)
+    ecomax.handle_frame(ecomax_350p2_zf)
+    await ecomax.wait_until_done()
+
+    service_number = ecomax.get_nowait("fuel_calorific_value")
+    assert isinstance(service_number, EcomaxServiceNumber)
+    assert equal_parameter_value(service_number.value, 5.4)
+
+    service_switch = ecomax.get_nowait("weather_control")
+    assert isinstance(service_switch, EcomaxServiceSwitch)
+
+    number_callback = AsyncMock(return_value=None)
+    switch_callback = AsyncMock(return_value=None)
+    ecomax.subscribe("fuel_calorific_value", number_callback)
+    ecomax.subscribe("weather_control", switch_callback)
+
+    ecomax.handle_frame(ecomax_parameters)
+    await ecomax.wait_until_done()
+
+    assert ecomax.get_nowait("fuel_calorific_value") is service_number
+    assert equal_parameter_value(service_number.value, 5.4)
+    assert ecomax.get_nowait("weather_control") is service_switch
+    number_callback.assert_not_awaited()
+    switch_callback.assert_not_awaited()
+
+    fuzzy_logic = ecomax.get_nowait("fuzzy_logic")
+    assert isinstance(fuzzy_logic, EcomaxSwitch)
+    assert not isinstance(fuzzy_logic, EcomaxServiceSwitch)
+
+
+@class_from_json(
+    EcomaxParametersResponse,
+    "responses/ecomax_parameters.json",
+    arguments=("message",),
+)
+@class_from_json(
+    EcomaxServiceParametersResponse,
+    "parameters/ecomax_350p2_zf.json",
+    arguments=("message",),
+)
+async def test_ecomax_parameters_upgrade_to_service_parameters(
+    ecomax: EcoMAX,
+    ecomax_parameters: EcomaxParametersResponse,
+    ecomax_350p2_zf: EcomaxServiceParametersResponse,
+) -> None:
+    """Test that base ecoMAX parameters upgrade to service parameters."""
+    await ecomax.dispatch(ATTR_PRODUCT, ECOMAX_350P2)
+    ecomax.handle_frame(ecomax_parameters)
+    await ecomax.wait_until_done()
+
+    base_number = ecomax.get_nowait("fuel_calorific_value")
+    assert type(base_number) is EcomaxNumber
+    assert equal_parameter_value(base_number.value, 4.6)
+
+    base_switch = ecomax.get_nowait("weather_control")
+    assert type(base_switch) is EcomaxSwitch
+
+    ecomax.handle_frame(ecomax_350p2_zf)
+    await ecomax.wait_until_done()
+
+    service_number = ecomax.get_nowait("fuel_calorific_value")
+    assert isinstance(service_number, EcomaxServiceNumber)
+    assert equal_parameter_value(service_number.value, 5.4)
+
+    service_switch = ecomax.get_nowait("weather_control")
+    assert isinstance(service_switch, EcomaxServiceSwitch)
+
+    ecomax.handle_frame(ecomax_parameters)
+    await ecomax.wait_until_done()
+
+    assert ecomax.get_nowait("fuel_calorific_value") is service_number
+    assert equal_parameter_value(ecomax.get_nowait("fuel_calorific_value").value, 5.4)
+    assert ecomax.get_nowait("weather_control") is service_switch
+
+
 @patch("asyncio.Queue.put_nowait")
 @json_test_data("responses/ecomax_service_parameters.json", selector="message")
 async def test_set_ecomax_service_parameter(

@@ -36,6 +36,7 @@ from pyplumio.parameters.ecomax import (
     EcomaxServiceSwitch,
     EcomaxSwitch,
     EcomaxSwitchDescription,
+    ServiceParameter,
     get_ecomax_parameter_types,
     get_service_parameter_types,
 )
@@ -301,6 +302,9 @@ class EcoMAX(PhysicalDevice):
                         product_info.model,
                     )
                     return
+
+                if isinstance(self.get_nowait(description.name), ServiceParameter):
+                    continue
 
                 handler = (
                     EcomaxSwitch
