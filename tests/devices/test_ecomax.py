@@ -58,6 +58,8 @@ from pyplumio.frames.responses import (
     SchedulesResponse,
     ThermostatParametersResponse,
 )
+from pyplumio.helpers.async_cache import AsyncCache
+from pyplumio.helpers.event_manager import EventCallback
 from pyplumio.parameters.ecomax import (
     PARAMETER_TYPES,
     EcomaxNumber,
@@ -507,6 +509,127 @@ async def test_ecomax_parameters_upgrade_to_service_parameters(
     assert ecomax.get_nowait("fuel_calorific_value") is service_number
     assert equal_parameter_value(ecomax.get_nowait("fuel_calorific_value").value, 5.4)
     assert ecomax.get_nowait("weather_control") is service_switch
+
+
+@pytest.mark.parametrize(
+    "service_first", [True, False], ids=["service_first", "base_first"]
+)
+@class_from_json(
+    EcomaxParametersResponse,
+    "responses/ecomax_parameters.json",
+    arguments=("message",),
+)
+@class_from_json(
+    EcomaxServiceParametersResponse,
+    "parameters/ecomax_350p2_zf.json",
+    arguments=("message",),
+)
+async def test_ecomax_parameters_concurrent_burst_precedence(
+    ecomax: EcoMAX,
+    ecomax_parameters: EcomaxParametersResponse,
+    ecomax_350p2_zf: EcomaxServiceParametersResponse,
+    service_first: bool,
+) -> None:
+    """Test service parameter precedence under concurrent same-burst arrivals."""
+    await ecomax.dispatch(ATTR_PRODUCT, ECOMAX_350P2)
+
+    number_events: list[Any] = []
+    switch_events: list[Any] = []
+
+    def _make_recorder(events: list[Any]) -> EventCallback:
+        """Create an async subscriber that yields before recording the event."""
+
+        async def _record(value: Any) -> None:
+            """Yield to the event loop and record the dispatched value."""
+            loop = asyncio.get_running_loop()
+            future: asyncio.Future[None] = loop.create_future()
+            loop.call_soon(future.set_result, None)
+            await future
+            events.append(value)
+
+        return _record
+
+    ecomax.subscribe("fuel_calorific_value", _make_recorder(number_events))
+    ecomax.subscribe("weather_control", _make_recorder(switch_events))
+
+    if service_first:
+        ecomax.handle_frame(ecomax_350p2_zf)
+        ecomax.handle_frame(ecomax_parameters)
+    else:
+        ecomax.handle_frame(ecomax_parameters)
+        ecomax.handle_frame(ecomax_350p2_zf)
+
+    await ecomax.wait_until_done()
+
+    service_number = ecomax.get_nowait("fuel_calorific_value")
+    assert isinstance(service_number, EcomaxServiceNumber)
+    assert equal_parameter_value(service_number.value, 5.4)
+
+    service_switch = ecomax.get_nowait("weather_control")
+    assert isinstance(service_switch, EcomaxServiceSwitch)
+
+    fuzzy_logic = ecomax.get_nowait("fuzzy_logic")
+    assert isinstance(fuzzy_logic, EcomaxSwitch)
+    assert not isinstance(fuzzy_logic, EcomaxServiceSwitch)
+
+    if service_first:
+        assert number_events == [service_number]
+        assert switch_events == [service_switch]
+    else:
+        assert len(number_events) == 2
+        assert type(number_events[0]) is EcomaxNumber
+        assert number_events[1] is service_number
+        assert len(switch_events) == 2
+        assert type(switch_events[0]) is EcomaxSwitch
+        assert switch_events[1] is service_switch
+
+
+@pytest.mark.parametrize(
+    "service_first", [True, False], ids=["service_first", "base_first"]
+)
+@class_from_json(
+    EcomaxParametersResponse,
+    "responses/ecomax_parameters.json",
+    arguments=("message",),
+)
+@class_from_json(
+    EcomaxServiceParametersResponse,
+    "parameters/ecomax_350p2_zf.json",
+    arguments=("message",),
+)
+async def test_ecomax_parameters_concurrent_burst_before_product_info(
+    ecomax_parameters: EcomaxParametersResponse,
+    ecomax_350p2_zf: EcomaxServiceParametersResponse,
+    service_first: bool,
+) -> None:
+    """Test burst precedence with cold cache and delayed product info."""
+    fresh_ecomax = EcoMAX(asyncio.Queue(), network_info=NetworkInfo())
+    with patch("pyplumio.helpers.async_cache.async_cache", AsyncCache()):
+        if service_first:
+            fresh_ecomax.handle_frame(ecomax_350p2_zf)
+            fresh_ecomax.handle_frame(ecomax_parameters)
+        else:
+            fresh_ecomax.handle_frame(ecomax_parameters)
+            fresh_ecomax.handle_frame(ecomax_350p2_zf)
+
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[None] = loop.create_future()
+        loop.call_soon(future.set_result, None)
+        await future
+
+        await fresh_ecomax.dispatch(ATTR_PRODUCT, ECOMAX_350P2)
+        await fresh_ecomax.wait_until_done()
+
+    service_number = fresh_ecomax.get_nowait("fuel_calorific_value")
+    assert isinstance(service_number, EcomaxServiceNumber)
+    assert equal_parameter_value(service_number.value, 5.4)
+
+    service_switch = fresh_ecomax.get_nowait("weather_control")
+    assert isinstance(service_switch, EcomaxServiceSwitch)
+
+    fuzzy_logic = fresh_ecomax.get_nowait("fuzzy_logic")
+    assert isinstance(fuzzy_logic, EcomaxSwitch)
+    assert not isinstance(fuzzy_logic, EcomaxServiceSwitch)
 
 
 @patch("asyncio.Queue.put_nowait")

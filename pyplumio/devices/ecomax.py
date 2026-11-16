@@ -152,9 +152,10 @@ WAIT_FOR_SETUP_SECONDS: Final = 60.0
 class EcoMAX(PhysicalDevice):
     """Represents an ecoMAX controller."""
 
-    __slots__ = ("_fuel_meter",)
+    __slots__ = ("_fuel_meter", "_parameters_lock")
 
     _fuel_meter: _FuelMeter
+    _parameters_lock: asyncio.Lock
 
     def __init__(
         self, write_queue: asyncio.Queue[Frame], network_info: NetworkInfo
@@ -162,6 +163,7 @@ class EcoMAX(PhysicalDevice):
         """Initialize a new ecoMAX controller."""
         super().__init__(write_queue, network_info)
         self._fuel_meter = _FuelMeter()
+        self._parameters_lock = asyncio.Lock()
 
     def reset_fuel_meter(self) -> None:
         """Reset the fuel meter baseline."""
@@ -284,41 +286,46 @@ class EcoMAX(PhysicalDevice):
         """Update ecoMAX parameters and dispatch the events."""
         _LOGGER.debug("Received device parameters")
         product_info = await self.get(ATTR_PRODUCT)
-        parameter_types = await get_ecomax_parameter_types(product_info)
+        async with self._parameters_lock:
+            parameter_types = await get_ecomax_parameter_types(product_info)
 
-        def _ecomax_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
-            """Get dispatch calls for ecoMAX parameter events."""
-            for index, values in parameters:
-                try:
-                    description = parameter_types[index]
-                except IndexError:
-                    _LOGGER.warning(
-                        "Encountered unknown ecoMAX parameter (%i): %s. "
-                        "Your device isn't fully compatible with this software "
-                        "and may not work properly. Please visit the issue tracker "
-                        "and open a feature request to support %s",
-                        index,
-                        values,
-                        product_info.model,
+            def _ecomax_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
+                """Get dispatch calls for ecoMAX parameter events."""
+                for index, values in parameters:
+                    try:
+                        description = parameter_types[index]
+                    except IndexError:
+                        _LOGGER.warning(
+                            "Encountered unknown ecoMAX parameter (%i): %s. "
+                            "Your device isn't fully compatible with this software "
+                            "and may not work properly. Please visit the issue tracker "
+                            "and open a feature request to support %s",
+                            index,
+                            values,
+                            product_info.model,
+                        )
+                        return
+
+                    if isinstance(self.get_nowait(description.name), ServiceParameter):
+                        continue
+
+                    handler = (
+                        EcomaxSwitch
+                        if isinstance(description, EcomaxSwitchDescription)
+                        else EcomaxNumber
                     )
-                    return
+                    yield self.dispatch(
+                        description.name,
+                        handler.create_or_update(
+                            device=self,
+                            description=description,
+                            values=values,
+                            index=index,
+                        ),
+                    )
 
-                if isinstance(self.get_nowait(description.name), ServiceParameter):
-                    continue
+            await asyncio.gather(*_ecomax_parameter_events())
 
-                handler = (
-                    EcomaxSwitch
-                    if isinstance(description, EcomaxSwitchDescription)
-                    else EcomaxNumber
-                )
-                yield self.dispatch(
-                    description.name,
-                    handler.create_or_update(
-                        device=self, description=description, values=values, index=index
-                    ),
-                )
-
-        await asyncio.gather(*_ecomax_parameter_events())
         return True
 
     @event_listener
@@ -331,35 +338,41 @@ class EcoMAX(PhysicalDevice):
         """
         _LOGGER.debug("Received device service parameters")
         product_info = await self.get(ATTR_PRODUCT)
-        if not (parameter_types := await get_service_parameter_types(product_info)):
-            _LOGGER.debug(
-                "Encountered unknown ecoMAX service parameter table. "
-                "Your device isn't fully compatible with this software "
-                "and may not work properly. Please visit the issue tracker "
-                "and open a feature request to support %s",
-                product_info.model,
-            )
-            return
-
-        def _ecomax_service_parameter_events() -> Generator[Coroutine[Any, Any, None]]:
-            """Get dispatch calls for ecoMAX service parameter events."""
-            for index, values in parameters:
-                if not (description := parameter_types.get(index, None)):
-                    continue
-
-                handler = (
-                    EcomaxServiceSwitch
-                    if isinstance(description, EcomaxSwitchDescription)
-                    else EcomaxServiceNumber
+        async with self._parameters_lock:
+            if not (parameter_types := await get_service_parameter_types(product_info)):
+                _LOGGER.debug(
+                    "Encountered unknown ecoMAX service parameter table. "
+                    "Your device isn't fully compatible with this software "
+                    "and may not work properly. Please visit the issue tracker "
+                    "and open a feature request to support %s",
+                    product_info.model,
                 )
-                yield self.dispatch(
-                    description.name,
-                    handler.create_or_update(
-                        device=self, description=description, values=values, index=index
-                    ),
-                )
+                return
 
-        await asyncio.gather(*_ecomax_service_parameter_events())
+            def _ecomax_service_parameter_events() -> Generator[
+                Coroutine[Any, Any, None]
+            ]:
+                """Get dispatch calls for ecoMAX service parameter events."""
+                for index, values in parameters:
+                    if not (description := parameter_types.get(index, None)):
+                        continue
+
+                    handler = (
+                        EcomaxServiceSwitch
+                        if isinstance(description, EcomaxSwitchDescription)
+                        else EcomaxServiceNumber
+                    )
+                    yield self.dispatch(
+                        description.name,
+                        handler.create_or_update(
+                            device=self,
+                            description=description,
+                            values=values,
+                            index=index,
+                        ),
+                    )
+
+            await asyncio.gather(*_ecomax_service_parameter_events())
 
     @event_listener
     async def on_event_fuel_consumption(self, fuel_consumption: float) -> None:
