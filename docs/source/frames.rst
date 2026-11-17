@@ -113,7 +113,9 @@ changes.
 Parameters are represented in the same way as in :ref:`ecomaxparameters`.
 Raw parameters are available under the ``ecomax_service_parameters`` key.
 Parameters with known meaning are also available by name for verified
-products only.
+products only. Once a parameter is populated from service parameters,
+subsequent updates from ``ecomax_parameters`` preserve the synced service
+parameter rather than overwriting it.
 
 Request
 ^^^^^^^
