@@ -44,7 +44,7 @@ class CustomParameters:
 
 
 def _resolve_unit(
-    unit: UnitOfMeasurement | UnitValue | None,
+    unit: UnitValue | UnitOfMeasurement | None,
 ) -> UnitOfMeasurement | Literal["%"] | None:
     """Resolve unit literal or enum to UnitOfMeasurement or PERCENTAGE."""
     if unit is None:
@@ -63,7 +63,7 @@ def number(
     offset: int = 0,
     precision: int = 6,
     optimistic: bool = False,
-    unit: UnitOfMeasurement | UnitValue | None = None,
+    unit: UnitValue | UnitOfMeasurement | None = None,
 ) -> EcomaxNumberDescription:
     """Return an ecoMAX number parameter description.
 
@@ -83,7 +83,7 @@ def number(
     :type optimistic: bool, optional
     :param unit: Physical unit of measurement as a ``UnitOfMeasurement``
         member, supported unit string, or ``None``, defaults to ``None``
-    :type unit: UnitOfMeasurement | UnitValue | None, optional
+    :type unit: UnitValue | UnitOfMeasurement | None, optional
     :return: Number parameter description
     :rtype: EcomaxNumberDescription
     :raise ValueError: If ``unit`` is not a recognized unit string or
