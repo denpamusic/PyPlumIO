@@ -18,5 +18,6 @@
   },
   "python.testing.pytestArgs": [
     "."
-  ]
+  ],
+  "antigravity.enableInlineDiff": false
 }
