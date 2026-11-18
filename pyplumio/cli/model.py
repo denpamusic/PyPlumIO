@@ -8,7 +8,6 @@ from typing import Final
 
 from pyplumio.const import STATE_OFF, STATE_ON, State
 from pyplumio.parameters import Numeric, ParameterValues
-from pyplumio.parameters.custom import ParameterOverride
 from pyplumio.parameters.ecomax import (
     EcomaxNumberDescription,
     EcomaxParameterDescription,
@@ -90,7 +89,7 @@ class ParameterTable:
     __slots__ = (
         "comments",
         "descriptions",
-        "overrides",
+        "patches",
         "_change_counter",
         "_frozen_order",
         "_has_previous",
@@ -99,7 +98,7 @@ class ParameterTable:
 
     comments: dict[int, str]
     descriptions: dict[int, EcomaxParameterDescription]
-    overrides: tuple[ParameterOverride, ...]
+    patches: dict[str, EcomaxParameterDescription]
     _change_counter: int
     _frozen_order: list[int] | None
     _has_previous: bool
@@ -109,7 +108,7 @@ class ParameterTable:
         """Initialize the parameter table."""
         self.comments = {}
         self.descriptions = {}
-        self.overrides = ()
+        self.patches = {}
         self._change_counter = 0
         self._frozen_order = None
         self._has_previous = False

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import replace
 import logging
 from pathlib import Path
 from typing import Any
@@ -44,13 +43,13 @@ from pyplumio.parameters import ParameterValues
 from pyplumio.parameters.custom import CustomParameters
 from pyplumio.parameters.ecomax import EcomaxNumberDescription
 from tests.cli.conftest import (
-    DUMMY_CLASS_NAME,
     DUMMY_COMMENTS,
     DUMMY_ID,
     DUMMY_MODEL,
+    DUMMY_PARAMETERS,
     DUMMY_SLUG,
-    EcoMAX999TEST,
     app_step,
+    dummy_custom_parameters,
     dummy_product_info,
     write_dummy_custom_module,
 )
@@ -180,11 +179,7 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=EcoMAX999TEST(),
-        ),
-        patch(
-            "pyplumio.cli.app.inspect.getsourcefile",
-            return_value=str(source_path),
+            return_value=dummy_custom_parameters(source=source_path),
         ),
         patch(
             "pyplumio.cli.session.Session.connect", new_callable=AsyncMock
@@ -218,8 +213,10 @@ async def test_run_app(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> No
         mock_run.assert_awaited_once()
         mock_close.assert_awaited_once()
         assert created_sessions[0]._on_status is _write_status
-        assert created_states[0].table.descriptions == EcoMAX999TEST.descriptions
-        assert created_states[0].table.overrides == EcoMAX999TEST.overrides
+        assert (
+            created_states[0].table.descriptions == DUMMY_PARAMETERS.service_parameters
+        )
+        assert created_states[0].table.patches == DUMMY_PARAMETERS.patches
         assert created_states[0].table.comments == DUMMY_COMMENTS
         captured = capsys.readouterr()
         assert "Starting interface...\n" in captured.err
@@ -406,38 +403,40 @@ def test_load_comments(tmp_path: Path) -> None:
     module_path = custom_module_path(tmp_path, DUMMY_SLUG)
     module_path.parent.mkdir(parents=True, exist_ok=True)
     module_path.write_text(
-        "        # custom output comment\n"
-        '        4: EcomaxNumberDescription(name="fuel_type"),\n',
+        '        # custom output comment\n        4: number("fuel_type"),\n',
         encoding="utf-8",
     )
-    assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {
+    assert _load_comments(DUMMY_PARAMETERS, tmp_path, DUMMY_SLUG) == {
         4: "custom output comment"
     }
 
     source_path = write_dummy_custom_module(tmp_path / "source")
-    with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=str(source_path)):
-        assert (
-            _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG)
-            == DUMMY_COMMENTS
-        )
-        assert (
-            _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG, prefer_output=False)
-            == DUMMY_COMMENTS
-        )
+    sourced_params = dummy_custom_parameters(source=source_path)
+    assert (
+        _load_comments(sourced_params, tmp_path / "empty", DUMMY_SLUG) == DUMMY_COMMENTS
+    )
+    assert (
+        _load_comments(sourced_params, tmp_path, DUMMY_SLUG, prefer_output=False)
+        == DUMMY_COMMENTS
+    )
 
-    with patch("pyplumio.cli.app.inspect.getsourcefile", return_value=None):
-        assert _load_comments(EcoMAX999TEST(), tmp_path / "empty", DUMMY_SLUG) == {}
+    assert _load_comments(DUMMY_PARAMETERS, tmp_path / "empty", DUMMY_SLUG) == {}
+
+    missing_source = dummy_custom_parameters(source=tmp_path / "missing.py")
+    assert (
+        _load_comments(missing_source, tmp_path, DUMMY_SLUG, prefer_output=False) == {}
+    )
 
     dynamic_instance = _load_custom_parameters_from_file(
         source_path, dummy_product_info()
     )
     assert (
         _load_comments(dynamic_instance, tmp_path, DUMMY_SLUG, prefer_output=False)
-        == {}
+        == DUMMY_COMMENTS
     )
 
     with patch.object(Path, "read_text", side_effect=OSError("Permission denied")):
-        assert _load_comments(EcoMAX999TEST(), tmp_path, DUMMY_SLUG) == {}
+        assert _load_comments(DUMMY_PARAMETERS, tmp_path, DUMMY_SLUG) == {}
 
 
 async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> None:
@@ -449,10 +448,10 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
         generate_custom_parameter_module(
             product_info,
             {
-                0: EcoMAX999TEST.descriptions[0],
-                4: EcoMAX999TEST.descriptions[4],
+                0: DUMMY_PARAMETERS.service_parameters[0],
+                4: DUMMY_PARAMETERS.service_parameters[4],
             },
-            EcoMAX999TEST.overrides,
+            DUMMY_PARAMETERS.patches,
             comments={0: "untouched output comment", 4: "0 - pellets, 1 - wood"},
         ),
         encoding="utf-8",
@@ -492,7 +491,7 @@ async def test_loaded_comments_prefill_and_preserve_on_save(tmp_path: Path) -> N
 
         state = created_states[0]
         assert state.status == f"Loaded custom parameters from {tmp_path}."
-        assert state.table.overrides == EcoMAX999TEST.overrides
+        assert state.table.patches == DUMMY_PARAMETERS.patches
         buff = Buffer()
 
         # Edit index 4 and verify loaded comment is pre-filled
@@ -549,51 +548,48 @@ def test_load_custom_parameters_from_file(tmp_path: Path) -> None:
     loaded = _load_custom_parameters_from_file(valid_path, product_info)
     assert isinstance(loaded, CustomParameters)
     assert loaded.validate(product_info)
-    assert loaded.descriptions == EcoMAX999TEST.descriptions
+    assert loaded.source == valid_path
+    assert loaded.service_parameters == DUMMY_PARAMETERS.service_parameters
+    assert loaded.patches == DUMMY_PARAMETERS.patches
+
+    fallback_var = tmp_path / "fallback_var.py"
+    fallback_var.write_text(
+        "from pyplumio.parameters.custom import custom_parameters, number\n"
+        f'CUSTOM_PARAMS = custom_parameters(model="{DUMMY_MODEL}", id={DUMMY_ID}, '
+        'service_parameters={0: number("test")})\n',
+        encoding="utf-8",
+    )
+    loaded_fallback = _load_custom_parameters_from_file(fallback_var, product_info)
+    assert loaded_fallback.source == fallback_var
+    assert loaded_fallback.service_parameters[0].name == "test"
 
     invalid_suffix = tmp_path / "invalid.txt"
     invalid_suffix.write_text("", encoding="utf-8")
     with pytest.raises(ImportError, match="Could not create module spec"):
         _load_custom_parameters_from_file(invalid_suffix, product_info)
 
-    missing_class = tmp_path / "missing.py"
-    missing_class.write_text("VALUE = 1\n", encoding="utf-8")
-    with pytest.raises(AttributeError):
-        _load_custom_parameters_from_file(missing_class, product_info)
+    missing_params = tmp_path / "missing.py"
+    missing_params.write_text("VALUE = 1\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="No CustomParameters instance found"):
+        _load_custom_parameters_from_file(missing_params, product_info)
 
-    wrong_class = tmp_path / "wrong.py"
-    wrong_class.write_text(f"class {DUMMY_CLASS_NAME}:\n    pass\n", encoding="utf-8")
-    with pytest.raises(TypeError, match="Expected instance of 'CustomParameters'"):
-        _load_custom_parameters_from_file(wrong_class, product_info)
+    wrong_type = tmp_path / "wrong.py"
+    wrong_type.write_text("PARAMETERS = 123\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="No CustomParameters instance found"):
+        _load_custom_parameters_from_file(wrong_type, product_info)
 
-    non_callable = tmp_path / "non_callable.py"
-    non_callable.write_text(f"{DUMMY_CLASS_NAME} = 123\n", encoding="utf-8")
-    with pytest.raises(TypeError):
-        _load_custom_parameters_from_file(non_callable, product_info)
-
-    missing_signature = tmp_path / "missing_signature.py"
-    missing_signature.write_text(
-        "from pyplumio.parameters.custom import CustomParameters\n"
-        f"class {DUMMY_CLASS_NAME}(CustomParameters):\n"
-        "    pass\n",
-        encoding="utf-8",
-    )
-    with pytest.raises(AttributeError):
-        _load_custom_parameters_from_file(missing_signature, product_info)
-
-    with pytest.raises(ValueError, match="Signature mismatch"):
+    with pytest.raises(ValueError, match="Model or product ID mismatch"):
         _load_custom_parameters_from_file(
-            valid_path, replace(product_info, id=DUMMY_ID + 1)
+            valid_path, dummy_product_info(product_id=DUMMY_ID + 1)
         )
 
     wrong_model = tmp_path / "wrong_model.py"
     wrong_model.write_text(
-        "from pyplumio.parameters.custom import CustomParameters, Signature\n"
-        f"class {DUMMY_CLASS_NAME}(CustomParameters):\n"
-        f'    signature = Signature(model="ecoMAX 999-OTHER", id={DUMMY_ID})\n',
+        "from pyplumio.parameters.custom import custom_parameters\n"
+        f'PARAMETERS = custom_parameters(model="ecoMAX 999-OTHER", id={DUMMY_ID})\n',
         encoding="utf-8",
     )
-    with pytest.raises(ValueError, match="Signature mismatch"):
+    with pytest.raises(ValueError, match="Model or product ID mismatch"):
         _load_custom_parameters_from_file(wrong_model, product_info)
 
 
@@ -611,14 +607,14 @@ async def test_load_cli_custom_parameters_fallback(
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=EcoMAX999TEST(),
+            return_value=DUMMY_PARAMETERS,
         ) as mock_load,
     ):
         params, status, from_output = await _load_cli_custom_parameters(
             missing_dir, product_info
         )
 
-    assert isinstance(params, EcoMAX999TEST)
+    assert params == DUMMY_PARAMETERS
     assert status == ""
     assert from_output is False
     assert caplog.text == ""
@@ -634,14 +630,14 @@ async def test_load_cli_custom_parameters_fallback(
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=EcoMAX999TEST(),
+            return_value=DUMMY_PARAMETERS,
         ) as mock_load,
     ):
         params, status, from_output = await _load_cli_custom_parameters(
             broken_dir, product_info
         )
 
-    assert isinstance(params, EcoMAX999TEST)
+    assert params == DUMMY_PARAMETERS
     assert from_output is False
     assert status.startswith(
         f"Warning: Failed to load custom parameters from {broken_path}:"
@@ -682,8 +678,8 @@ async def test_load_cli_custom_parameters_zip_and_empty_error(
         {
             zip_module_path: generate_custom_parameter_module(
                 product_info,
-                EcoMAX999TEST.descriptions,
-                EcoMAX999TEST.overrides,
+                DUMMY_PARAMETERS.service_parameters,
+                DUMMY_PARAMETERS.patches,
             )
         },
         zip_only_dir,
@@ -693,14 +689,14 @@ async def test_load_cli_custom_parameters_zip_and_empty_error(
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=EcoMAX999TEST(),
+            return_value=DUMMY_PARAMETERS,
         ) as mock_load,
     ):
         params, status, from_output = await _load_cli_custom_parameters(
             zip_only_dir, product_info
         )
 
-    assert isinstance(params, EcoMAX999TEST)
+    assert params == DUMMY_PARAMETERS
     assert status == ""
     assert from_output is False
     assert caplog.text == ""
@@ -740,13 +736,13 @@ async def test_run_app_invalid_output_module_fallback(
 ) -> None:
     """Test run_app falls back cleanly when output module fails validation."""
     product_info = dummy_product_info()
-    mismatched_info = replace(product_info, id=DUMMY_ID + 1)
+    mismatched_info = dummy_product_info(product_id=DUMMY_ID + 1)
     rejected_path = custom_module_path(tmp_path, DUMMY_SLUG)
     rejected_path.parent.mkdir(parents=True, exist_ok=True)
     rejected_path.write_text(
         generate_custom_parameter_module(
             mismatched_info,
-            {4: EcoMAX999TEST.descriptions[4]},
+            {4: DUMMY_PARAMETERS.service_parameters[4]},
             comments={4: "rejected output comment"},
         ),
         encoding="utf-8",
@@ -783,12 +779,8 @@ async def test_run_app_invalid_output_module_fallback(
         patch(
             "pyplumio.cli.app.load_custom_parameters",
             new_callable=AsyncMock,
-            return_value=EcoMAX999TEST(),
+            return_value=dummy_custom_parameters(source=source_path),
         ) as mock_load,
-        patch(
-            "pyplumio.cli.app.inspect.getsourcefile",
-            return_value=str(source_path),
-        ),
         patch(
             "pyplumio.cli.session.Session.connect",
             new_callable=AsyncMock,

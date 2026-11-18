@@ -222,6 +222,9 @@ class UnitOfMeasurement(StrEnum):
 
 
 PERCENTAGE: Final = "%"
+UnitValue: TypeAlias = Literal[
+    "°C", "kW", "g", "kg", "kWh/kg", "kg/h", "s", "min", "days", "Pa", "rpm", "%"
+]
 
 STATE_ON: Final = "on"
 STATE_OFF: Final = "off"

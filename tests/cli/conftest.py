@@ -10,16 +10,19 @@ import pytest
 
 from pyplumio.cli.codegen import custom_module_path, generate_custom_parameter_module
 from pyplumio.cli.state import AppState, AppStep
-from pyplumio.const import PERCENTAGE, ProductType, UnitOfMeasurement
+from pyplumio.const import ProductType
 from pyplumio.parameters import ParameterValues
-from pyplumio.parameters.custom import CustomParameters, ParameterOverride, Signature
-from pyplumio.parameters.ecomax import EcomaxNumberDescription, EcomaxSwitchDescription
+from pyplumio.parameters.custom import (
+    CustomParameters,
+    custom_parameters,
+    number,
+    switch,
+)
 from pyplumio.structures.product_info import ProductInfo
 from tests.conftest import DUMMY_MODEL
 
 DUMMY_ID: Final = 999
 DUMMY_SLUG: Final = "ecomax_999_test"
-DUMMY_CLASS_NAME: Final = "EcoMAX999TEST"
 DUMMY_COMMENTS: Final[dict[int, str]] = {
     3: (
         "Long comment that wraps across multiple lines because it exceeds the "
@@ -28,49 +31,25 @@ DUMMY_COMMENTS: Final[dict[int, str]] = {
     4: "0 - pellets, 1 - wood",
 }
 
-
-class EcoMAX999TEST(CustomParameters):
-    """Custom parameters for ecoMAX 999-TEST."""
-
-    __slots__ = ()
-
-    signature = Signature(model=DUMMY_MODEL, id=DUMMY_ID)
-
-    overrides = (
-        ParameterOverride(
-            original="summer_mode_disable_temp",
-            replacement=EcomaxNumberDescription(
-                name="summer_mode_disable_temp",
-                step=0.5,
-                offset=-5,
-                unit_of_measurement=UnitOfMeasurement.CELSIUS,
-            ),
+DUMMY_PARAMETERS: Final = custom_parameters(
+    model=DUMMY_MODEL,
+    id=DUMMY_ID,
+    patches={
+        "summer_mode_disable_temp": number(
+            "summer_mode_disable_temp",
+            step=0.5,
+            offset=-5,
+            unit="°C",
         ),
-    )
-
-    descriptions = {
-        0: EcomaxNumberDescription(
-            name="max_boiler_power",
-            unit_of_measurement=UnitOfMeasurement.KILO_WATT,
-        ),
-        1: EcomaxNumberDescription(
-            name="fan_power",
-            unit_of_measurement=PERCENTAGE,
-        ),
-        2: EcomaxNumberDescription(
-            name="feeder_coefficient",
-            step=0.1,
-            offset=5,
-            unit_of_measurement=UnitOfMeasurement.KILOGRAMS_PER_HOUR,
-        ),
-        3: EcomaxSwitchDescription(
-            name="fuzzy_logic",
-            optimistic=True,
-        ),
-        4: EcomaxNumberDescription(
-            name="fuel_type",
-        ),
-    }
+    },
+    service_parameters={
+        0: number("max_boiler_power", unit="kW"),
+        1: number("fan_power", unit="%"),
+        2: number("feeder_coefficient", step=0.1, offset=5, unit="kg/h"),
+        3: switch("fuzzy_logic", optimistic=True),
+        4: number("fuel_type"),
+    },
+)
 
 
 def app_step(state: AppState) -> AppStep:
@@ -78,15 +57,26 @@ def app_step(state: AppState) -> AppStep:
     return state.step
 
 
-def dummy_product_info() -> ProductInfo:
+def dummy_product_info(product_id: int = DUMMY_ID) -> ProductInfo:
     """Return synthetic product info for ecoMAX 999-TEST."""
     return ProductInfo(
         type=ProductType.ECOMAX_P,
-        id=DUMMY_ID,
+        id=product_id,
         uid="*TEST*",
         logo=0,
         image=0,
         model=DUMMY_MODEL,
+    )
+
+
+def dummy_custom_parameters(source: Path | None = None) -> CustomParameters:
+    """Return synthetic CustomParameters for ecoMAX 999-TEST."""
+    return CustomParameters(
+        model=DUMMY_PARAMETERS.model,
+        id=DUMMY_PARAMETERS.id,
+        service_parameters=DUMMY_PARAMETERS.service_parameters,
+        patches=DUMMY_PARAMETERS.patches,
+        source=source,
     )
 
 
@@ -123,8 +113,8 @@ def write_dummy_custom_module(
     module_path.write_text(
         generate_custom_parameter_module(
             dummy_product_info(),
-            EcoMAX999TEST.descriptions,
-            EcoMAX999TEST.overrides,
+            DUMMY_PARAMETERS.service_parameters,
+            DUMMY_PARAMETERS.patches,
             comments=comments,
         ),
         encoding="utf-8",
@@ -133,13 +123,13 @@ def write_dummy_custom_module(
 
 
 __all__ = (
-    "DUMMY_CLASS_NAME",
     "DUMMY_COMMENTS",
     "DUMMY_ID",
     "DUMMY_MODEL",
+    "DUMMY_PARAMETERS",
     "DUMMY_SLUG",
-    "EcoMAX999TEST",
     "app_step",
+    "dummy_custom_parameters",
     "dummy_product_info",
     "dummy_service_parameters_frame",
     "product_info",
