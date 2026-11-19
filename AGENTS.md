@@ -198,9 +198,10 @@ utility: install with `pip install "pyplumio[cli]"` and run
 `Device` and therefore of all devices. It stores the latest value per
 event name and notifies subscribers.
 
-3.2. `dispatch(name, value)` awaits callbacks one by one in subscription
-order, then stores the value in `data` and sets the event's
-`asyncio.Event`.
+3.2. `dispatch(name, value)` awaits internal `@event_listener`s one by
+one in registration order, stores the value in `data` and sets the
+event's `asyncio.Event`, then awaits external `subscribe()` /
+`subscribe_once()` callbacks in subscription order.
 
 3.3. Callback contract (an async callable taking the value):
 3.3.1. Returning `None` passes the value on unchanged.
