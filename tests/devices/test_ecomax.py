@@ -4,15 +4,17 @@ import asyncio
 from datetime import timedelta
 import logging
 from typing import Any, Final, cast
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
 from pyplumio.const import (
+    ATTR_CONNECTED,
     ATTR_FRAME_ERRORS,
     ATTR_INDEX,
     ATTR_OFFSET,
     ATTR_PARAMETER,
+    ATTR_PASSWORD,
     ATTR_SCHEDULE,
     ATTR_SENSORS,
     ATTR_SETUP,
@@ -33,7 +35,7 @@ from pyplumio.devices.ecomax import (
     ATTR_FUEL_BURNED,
     ATTR_MIXERS,
     ATTR_THERMOSTATS,
-    REQUIRED_KEYS,
+    DataKey,
     EcoMAX,
 )
 from pyplumio.devices.mixer import Mixer
@@ -50,6 +52,7 @@ from pyplumio.frames.requests import (
     SetEcomaxServiceParameterRequest,
     SetScheduleRequest,
     SetThermostatParameterRequest,
+    StartMasterRequest,
 )
 from pyplumio.frames.responses import (
     EcomaxParametersResponse,
@@ -70,12 +73,18 @@ from pyplumio.parameters.ecomax import (
     EcomaxSwitchDescription,
     get_service_parameter_types,
 )
-from pyplumio.structures.ecomax_parameters import ATTR_ECOMAX_CONTROL
+from pyplumio.protocol import AsyncProtocol
+from pyplumio.structures.alerts import ATTR_TOTAL_ALERTS
+from pyplumio.structures.ecomax_parameters import (
+    ATTR_ECOMAX_CONTROL,
+    ATTR_ECOMAX_PARAMETERS,
+)
 from pyplumio.structures.ecomax_service_parameters import ATTR_ECOMAX_SERVICE_PARAMETERS
 from pyplumio.structures.frame_versions import ATTR_FRAME_VERSIONS
 from pyplumio.structures.mixer_parameters import ATTR_MIXER_PARAMETERS
 from pyplumio.structures.network_info import ATTR_NETWORK_INFO, NetworkInfo
 from pyplumio.structures.product_info import ATTR_PRODUCT, ProductInfo
+from pyplumio.structures.regulator_data_schema import ATTR_REGDATA_SCHEMA
 from pyplumio.structures.schedules import (
     ATTR_SCHEDULE_PARAMETER,
     ATTR_SCHEDULE_SWITCH,
@@ -264,11 +273,84 @@ async def test_ecomax_shutdown(
 @patch("pyplumio.devices.ecomax.EcoMAX.wait_for")
 async def test_ecomax_setup(mock_wait_for, mock_request, ecomax: EcoMAX) -> None:
     """Test setting up an ecoMAX entry."""
+    in_flight = 0
+    max_in_flight = 0
+
+    async def _sequential_request(*args: Any, **kwargs: Any) -> None:
+        """Yield to the event loop and track concurrent in-flight requests."""
+        nonlocal in_flight, max_in_flight
+        in_flight += 1
+        max_in_flight = max(max_in_flight, in_flight)
+        loop = asyncio.get_running_loop()
+        future: asyncio.Future[None] = loop.create_future()
+        loop.call_soon(future.set_result, None)
+        await future
+        in_flight -= 1
+
+    mock_request.side_effect = _sequential_request
     ecomax.dispatch_nowait(ATTR_SETUP, True)
     await ecomax.wait_until_done()
+    assert ecomax.get_nowait(ATTR_SETUP) is True
     assert ATTR_FRAME_ERRORS not in ecomax.data
-    assert mock_request.await_count == len(REQUIRED_KEYS)
+    assert max_in_flight == 1
+    assert mock_request.await_args_list == [
+        call(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+        call(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        call(
+            ATTR_ECOMAX_SERVICE_PARAMETERS,
+            FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS,
+        ),
+        call(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
+        call(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+        call(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
+    ]
     mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=60.0)
+
+    # Test with connected mixers and thermostats.
+    mock_request.reset_mock()
+    await ecomax.dispatch(ATTR_MIXERS_CONNECTED, 1)
+    await ecomax.dispatch(ATTR_THERMOSTATS_CONNECTED, 1)
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    assert ecomax.get_nowait(ATTR_SETUP) is True
+    assert max_in_flight == 1
+    assert mock_request.await_args_list == [
+        call(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+        call(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        call(
+            ATTR_ECOMAX_SERVICE_PARAMETERS,
+            FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS,
+        ),
+        call(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
+        call(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+        call(ATTR_MIXER_PARAMETERS, FrameType.REQUEST_MIXER_PARAMETERS),
+        call(ATTR_THERMOSTAT_PARAMETERS, FrameType.REQUEST_THERMOSTAT_PARAMETERS),
+        call(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
+    ]
+
+    # Test skipping mixer/thermostat parameters when already in data.
+    await ecomax.dispatch(ATTR_MIXER_PARAMETERS, {0: {}})
+    await ecomax.dispatch(ATTR_THERMOSTAT_PARAMETERS, {0: {}})
+    assert (
+        ecomax._should_request_setup_key(
+            DataKey(
+                ATTR_MIXER_PARAMETERS,
+                FrameType.REQUEST_MIXER_PARAMETERS,
+                ATTR_MIXERS_CONNECTED,
+            )
+        )
+        is False
+    )
+    assert (
+        ecomax._should_request_setup_key(
+            DataKey(
+                ATTR_THERMOSTAT_PARAMETERS,
+                FrameType.REQUEST_THERMOSTAT_PARAMETERS,
+                ATTR_THERMOSTATS_CONNECTED,
+            )
+        )
+        is False
+    )
 
 
 @patch("pyplumio.devices.ecomax.EcoMAX.request")
@@ -284,18 +366,180 @@ async def test_ecomax_setup_failed(
     assert "no response from device for 60 seconds" in caplog.text
 
 
-@patch(
-    "pyplumio.devices.ecomax.EcoMAX.request",
-    side_effect=RequestError("test", FrameType.REQUEST_ALERTS),
-)
+@patch("pyplumio.devices.ecomax.EcoMAX.request")
 @patch("pyplumio.devices.ecomax.EcoMAX.wait_for")
 async def test_ecomax_setup_errors(mock_wait_for, mock_request, ecomax: EcoMAX) -> None:
     """Test setting up an ecoMAX entry with frame errors."""
+
+    async def _request_with_error(key: str, frame_type: FrameType) -> None:
+        """Raise RequestError for alerts and succeed for other keys."""
+        if frame_type == FrameType.REQUEST_ALERTS:
+            raise RequestError("test", frame_type)
+
+    mock_request.side_effect = _request_with_error
     ecomax.dispatch_nowait(ATTR_SETUP, True)
     await ecomax.wait_until_done()
-    assert FrameType.REQUEST_ALERTS in ecomax.get_nowait(ATTR_FRAME_ERRORS, [])
-    assert mock_request.await_count == len(REQUIRED_KEYS)
-    mock_wait_for.assert_awaited_once_with(ATTR_SENSORS, timeout=60.0)
+    assert ecomax.get_nowait(ATTR_FRAME_ERRORS, []) == [FrameType.REQUEST_ALERTS]
+    assert ecomax.get_nowait(ATTR_SETUP) is True
+    assert mock_request.await_args_list == [
+        call(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+        call(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        call(
+            ATTR_ECOMAX_SERVICE_PARAMETERS,
+            FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS,
+        ),
+        call(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
+        call(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+        call(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
+    ]
+    assert (
+        ecomax._should_request_setup_key(
+            DataKey(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS)
+        )
+        is False
+    )
+
+    # Re-running setup skips frame types already present in ATTR_FRAME_ERRORS.
+    mock_request.reset_mock()
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    assert mock_request.await_args_list == [
+        call(ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+        call(ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        call(
+            ATTR_ECOMAX_SERVICE_PARAMETERS,
+            FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS,
+        ),
+        call(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+        call(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
+    ]
+    mock_wait_for.assert_awaited_with(ATTR_SENSORS, timeout=60.0)
+
+
+@patch("pyplumio.devices.ecomax.EcoMAX.request")
+@patch("pyplumio.devices.ecomax.EcoMAX.wait_for")
+async def test_ecomax_setup_disconnected(
+    mock_wait_for, mock_request, ecomax: EcoMAX
+) -> None:
+    """Test aborting ecoMAX setup when disconnected."""
+    # Disconnected before starting requests.
+    await ecomax.dispatch(ATTR_CONNECTED, False)
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    mock_request.assert_not_awaited()
+    assert ecomax.get_nowait(ATTR_SETUP) is False
+    assert ATTR_FRAME_ERRORS not in ecomax.data
+
+    # Disconnected mid-request when RequestError is raised.
+    async def _disconnect_and_fail(key: str, frame_type: FrameType) -> None:
+        """Mark device disconnected and raise RequestError."""
+        await ecomax.dispatch(ATTR_CONNECTED, False)
+        raise RequestError("test", frame_type)
+
+    await ecomax.dispatch(ATTR_CONNECTED, True)
+    mock_request.side_effect = _disconnect_and_fail
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    mock_request.assert_awaited_once_with(
+        ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA
+    )
+    assert ecomax.get_nowait(ATTR_SETUP) is False
+    assert ATTR_FRAME_ERRORS not in ecomax.data
+
+    # Disconnected between successful first request and second request.
+    async def _succeed_then_disconnect(key: str, frame_type: FrameType) -> None:
+        """Store first key and mark device disconnected before next iteration."""
+        await ecomax.dispatch(key, [])
+        await ecomax.dispatch(ATTR_CONNECTED, False)
+
+    mock_request.reset_mock()
+    await ecomax.dispatch(ATTR_CONNECTED, True)
+    mock_request.side_effect = _succeed_then_disconnect
+    ecomax.dispatch_nowait(ATTR_SETUP, True)
+    await ecomax.wait_until_done()
+    mock_request.assert_awaited_once_with(
+        ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA
+    )
+    assert ATTR_REGDATA_SCHEMA in ecomax.data
+    assert ecomax.get_nowait(ATTR_SETUP) is False
+    assert ATTR_FRAME_ERRORS not in ecomax.data
+
+
+async def test_ecomax_reconnect_resumes_setup() -> None:
+    """Test reconnecting after mid-setup disconnect resumes remaining keys."""
+    protocol = AsyncProtocol()
+    ecomax = EcoMAX(protocol._write_queue, NetworkInfo())
+    await ecomax.dispatch(ATTR_CONNECTED, True)
+    await ecomax.dispatch(ATTR_SENSORS, {ATTR_STATE: DeviceState.WORKING})
+    await ecomax.dispatch(
+        ATTR_PRODUCT,
+        ProductInfo(
+            type=ProductType.ECOMAX_P,
+            id=0,
+            uid="TEST",
+            logo=0,
+            image=0,
+            model=DUMMY_MODEL,
+        ),
+    )
+    await protocol.dispatch("ecomax", ecomax)
+
+    protocol.connected.set()
+    protocol.writer = AsyncMock()
+    protocol._write_queue.put_nowait(AlertsRequest(recipient=DeviceType.ECOMAX))
+
+    calls: list[tuple[str, FrameType]] = []
+
+    async def _request_with_disconnect(key: str, frame_type: FrameType) -> None:
+        """Simulate disconnect during second request and succeed on reconnect."""
+        calls.append((key, frame_type))
+        if len(calls) == 2 and ecomax.get_nowait(ATTR_SETUP) is None:
+            await protocol.connection_lost()
+            loop = asyncio.get_running_loop()
+            future: asyncio.Future[None] = loop.create_future()
+            loop.call_soon(future.set_result, None)
+            await future
+            raise RequestError("disconnected", frame_type)
+
+        await ecomax.dispatch(key, [])
+
+    with (
+        patch.object(EcoMAX, "request", side_effect=_request_with_disconnect),
+        patch.object(AsyncProtocol, "frame_handler", new_callable=AsyncMock),
+    ):
+        ecomax.dispatch_nowait(ATTR_SETUP, True)
+        await ecomax.wait_until_done()
+
+        assert ecomax.get_nowait(ATTR_SETUP) is False
+        assert ecomax.get_nowait(ATTR_CONNECTED) is False
+        assert ATTR_FRAME_ERRORS not in ecomax.data
+        assert protocol._write_queue.empty()
+        assert calls == [
+            (ATTR_REGDATA_SCHEMA, FrameType.REQUEST_REGULATOR_DATA_SCHEMA),
+            (ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        ]
+
+        calls.clear()
+        mock_reader = AsyncMock(spec=asyncio.StreamReader)
+        mock_writer = AsyncMock(spec=asyncio.StreamWriter)
+        protocol.connection_established(mock_reader, mock_writer)
+        await protocol.wait_until_done()
+        await ecomax.wait_until_done()
+
+    assert isinstance(protocol._write_queue.get_nowait(), StartMasterRequest)
+    assert ecomax.get_nowait(ATTR_CONNECTED) is True
+    assert ecomax.get_nowait(ATTR_SETUP) is True
+    assert ATTR_FRAME_ERRORS not in ecomax.data
+    assert calls == [
+        (ATTR_ECOMAX_PARAMETERS, FrameType.REQUEST_ECOMAX_PARAMETERS),
+        (
+            ATTR_ECOMAX_SERVICE_PARAMETERS,
+            FrameType.REQUEST_ECOMAX_SERVICE_PARAMETERS,
+        ),
+        (ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
+        (ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
+        (ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
+    ]
 
 
 @patch("asyncio.Queue.put_nowait")

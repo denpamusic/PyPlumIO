@@ -9,6 +9,7 @@ import time
 from typing import Any, Final, NamedTuple
 
 from pyplumio.const import (
+    ATTR_CONNECTED,
     ATTR_FRAME_ERRORS,
     ATTR_PASSWORD,
     ATTR_SENSORS,
@@ -60,7 +61,12 @@ from pyplumio.structures.schedules import (
     ScheduleSwitch,
     ScheduleSwitchDescription,
 )
-from pyplumio.structures.sensor_data import ATTR_MIXER_SENSORS, ATTR_THERMOSTAT_SENSORS
+from pyplumio.structures.sensor_data import (
+    ATTR_MIXER_SENSORS,
+    ATTR_MIXERS_CONNECTED,
+    ATTR_THERMOSTAT_SENSORS,
+    ATTR_THERMOSTATS_CONNECTED,
+)
 from pyplumio.structures.thermostat_parameters import ATTR_THERMOSTAT_PARAMETERS
 
 _LOGGER = logging.getLogger(__name__)
@@ -123,10 +129,11 @@ class _FuelMeter:
 
 
 class DataKey(NamedTuple):
-    """Map a data key to frame type."""
+    """Map a data key to frame type and optional prerequisite sensor key."""
 
     key: str
     provided_by: FrameType
+    prerequisite: str | None = None
 
 
 REQUIRED_KEYS: tuple[DataKey, ...] = (
@@ -138,12 +145,20 @@ REQUIRED_KEYS: tuple[DataKey, ...] = (
     ),
     DataKey(ATTR_TOTAL_ALERTS, FrameType.REQUEST_ALERTS),
     DataKey(ATTR_SCHEDULES, FrameType.REQUEST_SCHEDULES),
-    DataKey(ATTR_MIXER_PARAMETERS, FrameType.REQUEST_MIXER_PARAMETERS),
-    DataKey(ATTR_THERMOSTAT_PARAMETERS, FrameType.REQUEST_THERMOSTAT_PARAMETERS),
+    DataKey(
+        ATTR_MIXER_PARAMETERS,
+        FrameType.REQUEST_MIXER_PARAMETERS,
+        ATTR_MIXERS_CONNECTED,
+    ),
+    DataKey(
+        ATTR_THERMOSTAT_PARAMETERS,
+        FrameType.REQUEST_THERMOSTAT_PARAMETERS,
+        ATTR_THERMOSTATS_CONNECTED,
+    ),
     DataKey(ATTR_PASSWORD, FrameType.REQUEST_PASSWORD),
 )
 
-REQUIRED_TYPES = [frame_type for _, frame_type in REQUIRED_KEYS]
+REQUIRED_TYPES = [data_key.provided_by for data_key in REQUIRED_KEYS]
 
 WAIT_FOR_SETUP_SECONDS: Final = 60.0
 
@@ -250,6 +265,18 @@ class EcoMAX(PhysicalDevice):
         await asyncio.gather(*(device.shutdown() for device in devices))
         await super().shutdown()
 
+    def _should_request_setup_key(self, data_key: DataKey) -> bool:
+        """Return True if the setup data key needs to be requested."""
+        if data_key.key in self.data or not self.supports_frame_type(
+            data_key.provided_by
+        ):
+            return False
+
+        if data_key.prerequisite is not None:
+            return bool(self.get_nowait(data_key.prerequisite, 0))
+
+        return True
+
     @event_listener
     async def on_event_setup(self, setup: bool) -> bool:
         """Request frames required to set up an ecoMAX entry."""
@@ -264,14 +291,21 @@ class EcoMAX(PhysicalDevice):
             )
             return False
 
-        results = await asyncio.gather(
-            *(self.request(key, frame_type) for key, frame_type in REQUIRED_KEYS),
-            return_exceptions=True,
-        )
+        errors: list[FrameType] = []
+        for data_key in REQUIRED_KEYS:
+            if not self.get_nowait(ATTR_CONNECTED, True):
+                return False
 
-        errors = [
-            result.frame_type for result in results if isinstance(result, RequestError)
-        ]
+            if not self._should_request_setup_key(data_key):
+                continue
+
+            try:
+                await self.request(data_key.key, data_key.provided_by)
+            except RequestError as request_error:
+                if not self.get_nowait(ATTR_CONNECTED, True):
+                    return False
+
+                errors.append(request_error.frame_type)
 
         if errors:
             self.dispatch_nowait(ATTR_FRAME_ERRORS, errors)

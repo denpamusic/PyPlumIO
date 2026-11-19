@@ -114,6 +114,7 @@ class TestAsyncProtocol:
         )
 
         # Test devices were notified.
+        mock_physical_device.get_nowait.assert_called_once_with(ATTR_SETUP)
         mock_physical_device.dispatch_nowait.assert_called_once_with(
             ATTR_CONNECTED, True
         )
@@ -123,6 +124,24 @@ class TestAsyncProtocol:
         # Test statistics was updated.
         mock_reset_transfer_statistics.assert_called_once()
         assert protocol.statistics.connected_since == datetime.now()
+
+    @pytest.mark.parametrize(
+        ("setup_state", "expected_calls"),
+        [
+            (False, [call(ATTR_CONNECTED, True), call(ATTR_SETUP, True)]),
+            (True, [call(ATTR_CONNECTED, True)]),
+            (None, [call(ATTR_CONNECTED, True)]),
+        ],
+    )
+    async def test_mark_connected(self, setup_state, expected_calls) -> None:
+        """Test marking existing devices as connected."""
+        protocol = AsyncProtocol()
+        mock_physical_device = Mock(spec=PhysicalDevice)
+        mock_physical_device.get_nowait.return_value = setup_state
+        await protocol.dispatch("physical_device", mock_physical_device)
+        protocol._mark_connected()
+        mock_physical_device.get_nowait.assert_called_once_with(ATTR_SETUP)
+        assert mock_physical_device.dispatch_nowait.call_args_list == expected_calls
 
     @patch("asyncio.Event.is_set", return_value=True)
     @patch("asyncio.Event.clear")
@@ -135,8 +154,16 @@ class TestAsyncProtocol:
         await protocol.dispatch("physical_device", mock_physical_device)
         mock_writer = AsyncMock(spec=FrameWriter, autospec=True)
         protocol.writer = mock_writer
-        await protocol.connection_lost()
+        protocol._write_queue.put_nowait(request)
+        mock_clear.reset_mock()
+        with patch.object(
+            protocol, "_clear_write_queue", wraps=protocol._clear_write_queue
+        ) as mock_clear_write_queue:
+            await protocol.connection_lost()
+
         mock_is_set.assert_called_once()
+        mock_clear_write_queue.assert_called_once()
+        assert protocol._write_queue.empty()
         mock_clear.assert_called_once()
         mock_writer.close.assert_awaited_once()
         mock_connection_lost_callback.assert_awaited_once()
