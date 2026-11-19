@@ -241,6 +241,8 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
         self.statistics.connected_since = datetime.now()
         for device in self.data.values():
             device.dispatch_nowait(ATTR_CONNECTED, True)
+            if device.get_nowait(ATTR_SETUP) is False:
+                device.dispatch_nowait(ATTR_SETUP, True)
 
     def _mark_disconnected(self) -> None:
         """Mark connection as disconnected."""
@@ -259,6 +261,7 @@ class AsyncProtocol(Protocol, EventManager[PhysicalDevice]):
     async def connection_lost(self) -> None:
         """Close the connection and call connection lost callbacks."""
         if self.connected.is_set():
+            self._clear_write_queue()
             self._mark_disconnected()
             await self._close_writer()
             await asyncio.gather(*(callback() for callback in self.on_connection_lost))
