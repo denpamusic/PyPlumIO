@@ -65,11 +65,12 @@ StopPropagation = StopPropagationType(object())
 class EventManager(TaskManager, Generic[_EventDataT]):
     """Represents an event manager."""
 
-    __slots__ = ("_data", "_events", "_callbacks")
+    __slots__ = ("_data", "_events", "_callbacks", "_listeners")
 
     _data: dict[str, _EventDataT]
     _events: dict[str, asyncio.Event]
     _callbacks: dict[str, list[EventCallback]]
+    _listeners: dict[str, list[EventCallback]]
 
     def __init__(self) -> None:
         """Initialize a new event manager."""
@@ -77,6 +78,7 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         self._data = {}
         self._events = {}
         self._callbacks = {}
+        self._listeners = {}
         self._register_event_listeners()
 
     def __getattr__(self, name: str) -> _EventDataT:
@@ -90,7 +92,8 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         """Register the event listeners."""
         for event, callback in self.event_listeners():
             filter_func = getattr(callback, "_on_event_filter", None)
-            self.subscribe(event, filter_func(callback) if filter_func else callback)
+            listeners = self._listeners.setdefault(event, [])
+            listeners.append(filter_func(callback) if filter_func else callback)
 
     def event_listeners(self) -> Generator[tuple[str, EventCallback]]:
         """Get the event listeners."""
@@ -210,9 +213,14 @@ class EventManager(TaskManager, Generic[_EventDataT]):
 
         return False
 
-    async def dispatch(self, name: str, value: _EventDataT) -> None:
-        """Call registered callbacks and dispatch the event."""
-        callbacks = self._callbacks.get(name, [])
+    async def _run_callbacks(
+        self,
+        callbacks: list[EventCallback],
+        value: _EventDataT,
+        *,
+        update_data_key: str | None = None,
+    ) -> tuple[_EventDataT, bool]:
+        """Run callbacks sequentially, returning the updated value and stop flag."""
         for callback in list(callbacks):
             try:
                 result = await callback(value)
@@ -225,12 +233,26 @@ class EventManager(TaskManager, Generic[_EventDataT]):
             if result is None:
                 continue
             elif result is StopPropagation:
-                break
+                return (value, True)
             else:
                 value = result
+                if update_data_key is not None:
+                    self._data[update_data_key] = value
+
+        return (value, False)
+
+    async def dispatch(self, name: str, value: _EventDataT) -> None:
+        """Call registered callbacks and dispatch the event."""
+        if listeners := self._listeners.get(name):
+            value, stopped = await self._run_callbacks(listeners, value)
+        else:
+            stopped = False
 
         self._data[name] = value
         self.set_event(name)
+
+        if not stopped and (callbacks := self._callbacks.get(name)):
+            await self._run_callbacks(callbacks, value, update_data_key=name)
 
     def dispatch_nowait(self, name: str, value: _EventDataT) -> None:
         """Call a registered callbacks and dispatch the event without waiting."""
