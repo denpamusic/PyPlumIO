@@ -300,7 +300,7 @@ unrelated tests.
 `uv add --group <test|lint|typing|docs> <pkg>`. Commit `uv.lock`. Do not
 create `requirements*.txt`.
 
-4.11. CI: `test.yml` runs pytest on Python 3.11 to 3.14. `lint.yml` and
+4.11. CI: `test.yml` runs pytest on Python 3.11 to 3.15. `lint.yml` and
 `typecheck.yml` run on 3.11. `deploy.yml` publishes to PyPI and creates
 a GitHub release on `vX.Y.Z*` tags.
 
