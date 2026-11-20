@@ -1,0 +1,411 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Parameters &mdash; PyPlumIO 0.7.10 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/rtd_sphinx_search.min.css" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d46e566c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/js/rtd_search_config.js"></script>
+      <script src="_static/js/rtd_sphinx_search.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Protocol" href="protocol.html" />
+    <link rel="prev" title="Schedules" href="schedules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PyPlumIO
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="connecting.html">Connecting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading.html">Reading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="writing.html">Writing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="callbacks.html">Callbacks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixers_thermostats.html">Mixers/Thermostats</a></li>
+<li class="toctree-l1"><a class="reference internal" href="schedules.html">Schedules</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Custom Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-guides">How-To Guides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dsl-reference">DSL Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="frames.html">Frames</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyPlumIO</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Custom Parameters</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/custom_parameters.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="custom-parameters">
+<h1>Custom Parameters<a class="headerlink" href="#custom-parameters" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>ecoMAX firmware varies across controller models: newer models store settings in
+the service parameter table (<a class="reference internal" href="frames.html#ecomaxserviceparameters"><span class="std std-ref">EcomaxServiceParameters</span></a>),
+and some models shift or repurpose entries in the standard parameter table
+(<a class="reference internal" href="frames.html#ecomaxparameters"><span class="std std-ref">EcomaxParameters</span></a>). Custom parameter modules map those
+entries to named parameters so they work seamlessly with <a class="reference internal" href="reading.html"><span class="doc">Reading</span></a> and
+<a class="reference internal" href="writing.html"><span class="doc">Writing</span></a> (<code class="docutils literal notranslate"><span class="pre">ecomax.get(...)</span></code> and <code class="docutils literal notranslate"><span class="pre">ecomax.set(...)</span></code>).</p>
+<p>A custom module defines one or both of the following tables:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 76.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Table</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">service_parameters</span></code></p></td>
+<td><p>Maps <a class="reference internal" href="frames.html#ecomaxserviceparameters"><span class="std std-ref">EcomaxServiceParameters</span></a> by index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">patches</span></code></p></td>
+<td><p>Overrides <a class="reference internal" href="frames.html#ecomaxparameters"><span class="std std-ref">EcomaxParameters</span></a> by name.</p></td>
+</tr>
+</tbody>
+</table>
+<p>To match a module to a controller, PyPlumIO converts
+<a class="reference internal" href="frames.html#pyplumio.structures.product_info.ProductInfo" title="pyplumio.structures.product_info.ProductInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProductInfo</span></code></a> <code class="docutils literal notranslate"><span class="pre">model</span></code> (from the
+<a class="reference internal" href="frames.html#uid"><span class="std std-ref">UID</span></a> response) into <code class="docutils literal notranslate"><span class="pre">&lt;model_slug&gt;</span></code> by replacing <code class="docutils literal notranslate"><span class="pre">&quot;-&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;</span> <span class="pre">&quot;</span></code> with <code class="docutils literal notranslate"><span class="pre">&quot;_&quot;</span></code> and lowercasing (for example, <code class="docutils literal notranslate"><span class="pre">&quot;ecoMAX</span> <span class="pre">350P2-ZF&quot;</span></code> becomes
+<code class="docutils literal notranslate"><span class="pre">ecomax_350p2_zf</span></code>). <strong>Both</strong> the exact <code class="docutils literal notranslate"><span class="pre">model</span></code> string and numeric <code class="docutils literal notranslate"><span class="pre">id</span></code>
+(visible in the CLI header or via <code class="docutils literal notranslate"><span class="pre">await</span> <span class="pre">ecomax.get(&quot;product&quot;)</span></code>) must match
+the connected controller.</p>
+</section>
+<section id="how-to-guides">
+<h2>How-To Guides<a class="headerlink" href="#how-to-guides" title="Link to this heading"></a></h2>
+<section id="generating-a-starter-module-with-the-cli">
+<h3>Generating a Starter Module with the CLI<a class="headerlink" href="#generating-a-starter-module-with-the-cli" title="Link to this heading"></a></h3>
+<p>Use the interactive utility in <a class="reference internal" href="cli.html"><span class="doc">Command Line Interface</span></a> to connect to your controller, inspect
+raw <a class="reference internal" href="frames.html#ecomaxserviceparameters"><span class="std std-ref">EcomaxServiceParameters</span></a> entries, and export
+a starter <code class="docutils literal notranslate"><span class="pre">service_parameters</span></code> module, test file, and captured frame JSON
+(optionally bundled as <code class="docutils literal notranslate"><span class="pre">&lt;model_slug&gt;.zip</span></code>). Saving in the CLI regenerates
+plain <code class="docutils literal notranslate"><span class="pre">number()</span></code> and <code class="docutils literal notranslate"><span class="pre">switch()</span></code> entries for <code class="docutils literal notranslate"><span class="pre">service_parameters</span></code>, so add
+manual <code class="docutils literal notranslate"><span class="pre">patches</span></code> or <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code> helpers afterward.</p>
+</section>
+<section id="writing-or-patching-a-module-by-hand">
+<h3>Writing or Patching a Module by Hand<a class="headerlink" href="#writing-or-patching-a-module-by-hand" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">pyplumio/parameters/custom/&lt;model_slug&gt;.py</span></code> with a module docstring,
+<code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">__future__</span> <span class="pre">import</span> <span class="pre">annotations</span></code>, and a module-level
+<code class="docutils literal notranslate"><span class="pre">PARAMETERS</span> <span class="pre">=</span> <span class="pre">custom_parameters(...)</span></code> constant. See
+<a class="reference external" href="https://github.com/denpamusic/PyPlumIO/blob/main/pyplumio/parameters/custom/ecomax_350p2_zf.py">ecomax_350p2_zf.py</a>
+(<code class="docutils literal notranslate"><span class="pre">pyplumio/parameters/custom/ecomax_350p2_zf.py</span></code>) for a complete reference.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">service_parameters</span></code>, map each raw index to <code class="docutils literal notranslate"><span class="pre">number()</span></code> or <code class="docutils literal notranslate"><span class="pre">switch()</span></code>,
+use <code class="docutils literal notranslate"><span class="pre">#</span></code> comments to document enum-style numeric options, and factor repeated
+descriptors with <code class="docutils literal notranslate"><span class="pre">functools.partial</span></code>. When raw wire values are scaled or
+shifted, PyPlumIO unpacks them as
+<code class="docutils literal notranslate"><span class="pre">unpacked</span> <span class="pre">=</span> <span class="pre">round((raw</span> <span class="pre">-</span> <span class="pre">offset)</span> <span class="pre">*</span> <span class="pre">step,</span> <span class="pre">precision)</span></code>:</p>
+<ul class="simple">
+<li><p><strong>Positive offset</strong>: <code class="docutils literal notranslate"><span class="pre">number(&quot;heating_curve_shift&quot;,</span> <span class="pre">offset=20,</span> <span class="pre">unit=&quot;°C&quot;)</span></code>
+maps raw <code class="docutils literal notranslate"><span class="pre">0..40</span></code> to <code class="docutils literal notranslate"><span class="pre">-20..20</span> <span class="pre">°C</span></code>.</p></li>
+<li><p><strong>Negative offset with step</strong>: <code class="docutils literal notranslate"><span class="pre">partial(number,</span> <span class="pre">step=10.0,</span> <span class="pre">offset=-30,</span> <span class="pre">unit=&quot;rpm&quot;)</span></code>
+maps raw <code class="docutils literal notranslate"><span class="pre">0..255</span></code> to <code class="docutils literal notranslate"><span class="pre">300..2850</span> <span class="pre">rpm</span></code>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="sd">"""Contains custom parameters for ecoMAX 860P4-NM TOUCH."""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyplumio.parameters.custom</span><span class="w"> </span><span class="kn">import</span> <span class="n">custom_parameters</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">switch</span>
+
+<span class="n">_fan_speed</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">10.0</span><span class="p">,</span> <span class="n">offset</span><span class="o">=-</span><span class="mi">30</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"rpm"</span><span class="p">)</span>
+
+<span class="n">PARAMETERS</span> <span class="o">=</span> <span class="n">custom_parameters</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"ecoMAX 860P4-NM TOUCH"</span><span class="p">,</span>
+    <span class="nb">id</span><span class="o">=</span><span class="mi">41</span><span class="p">,</span>
+    <span class="n">service_parameters</span><span class="o">=</span><span class="p">{</span>
+        <span class="mi">0</span><span class="p">:</span> <span class="n">number</span><span class="p">(</span><span class="s2">"max_boiler_output"</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"kW"</span><span class="p">),</span>
+        <span class="mi">11</span><span class="p">:</span> <span class="n">_fan_speed</span><span class="p">(</span><span class="s2">"fan_speed_30"</span><span class="p">),</span>
+        <span class="c1"># 0 - off, 1 - priority, 2 - no priority.</span>
+        <span class="mi">90</span><span class="p">:</span> <span class="n">number</span><span class="p">(</span><span class="s2">"water_heater_pump_mode"</span><span class="p">),</span>
+        <span class="mi">100</span><span class="p">:</span> <span class="n">switch</span><span class="p">(</span><span class="s2">"heat_exchanger"</span><span class="p">),</span>
+        <span class="mi">220</span><span class="p">:</span> <span class="n">number</span><span class="p">(</span><span class="s2">"fuel_correction"</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"%"</span><span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>For <code class="docutils literal notranslate"><span class="pre">patches</span></code>, keys are the <strong>original</strong> standard parameter names from
+<a class="reference internal" href="frames.html#ecomaxparameters"><span class="std std-ref">EcomaxParameters</span></a>, mapped to replacement <code class="docutils literal notranslate"><span class="pre">number()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">switch()</span></code> descriptors (adapted from
+<code class="docutils literal notranslate"><span class="pre">pyplumio/parameters/custom/ecomax_860d3_hb.py</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PARAMETERS</span> <span class="o">=</span> <span class="n">custom_parameters</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"ecoMAX 860D3-HB"</span><span class="p">,</span>
+    <span class="nb">id</span><span class="o">=</span><span class="mi">48</span><span class="p">,</span>
+    <span class="n">patches</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"disable_pump_on_thermostat"</span><span class="p">:</span> <span class="n">number</span><span class="p">(</span><span class="s2">"water_heater_target_temp"</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">"°C"</span><span class="p">),</span>
+        <span class="s2">"pump_hysteresis"</span><span class="p">:</span> <span class="n">switch</span><span class="p">(</span><span class="s2">"water_heater_disinfection"</span><span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="testing-and-contributing">
+<h3>Testing and Contributing<a class="headerlink" href="#testing-and-contributing" title="Link to this heading"></a></h3>
+<p>You can contribute mapped parameters in two ways:</p>
+<ol class="arabic simple">
+<li><p><strong>GitHub Issue</strong>: Attach the <code class="docutils literal notranslate"><span class="pre">&lt;model_slug&gt;.zip</span></code> archive exported by
+<a class="reference internal" href="cli.html"><span class="doc">Command Line Interface</span></a> to an issue on <a class="reference external" href="https://github.com/denpamusic/PyPlumIO/">PyPlumIO</a>.</p></li>
+<li><p><strong>Pull Request</strong>: Open a PR containing all three required files:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pyplumio/parameters/custom/&lt;model_slug&gt;.py</span></code> — exports <code class="docutils literal notranslate"><span class="pre">PARAMETERS</span></code>
+with <code class="docutils literal notranslate"><span class="pre">model</span></code> matching <code class="docutils literal notranslate"><span class="pre">&lt;model_slug&gt;</span></code>, a non-bool integer <code class="docutils literal notranslate"><span class="pre">id</span></code>, and
+non-empty <code class="docutils literal notranslate"><span class="pre">service_parameters</span></code> or <code class="docutils literal notranslate"><span class="pre">patches</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/testdata/parameters/&lt;model_slug&gt;.json</span></code> — real frame data captured
+from the controller.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/parameters/custom/test_&lt;model_slug&gt;.py</span></code> — parametrized tests
+verifying each parameter’s class, value, bounds, and unit; use
+<a class="reference external" href="https://github.com/denpamusic/PyPlumIO/blob/main/tests/parameters/custom/test_ecomax_350p2_zf.py">test_ecomax_350p2_zf.py</a>
+(<code class="docutils literal notranslate"><span class="pre">service_parameters</span></code>) or
+<a class="reference external" href="https://github.com/denpamusic/PyPlumIO/blob/main/tests/parameters/custom/test_ecomax_860d3_hb.py">test_ecomax_860d3_hb.py</a>
+(<code class="docutils literal notranslate"><span class="pre">patches</span></code>) as a template.</p></li>
+</ul>
+</li>
+</ol>
+<p>Before opening a PR, verify the test suite and linters pass locally:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>uv<span class="w"> </span>run<span class="w"> </span>pytest
+<span class="gp">$ </span>prek<span class="w"> </span>run<span class="w"> </span>--all-files
+</pre></div>
+</div>
+</section>
+</section>
+<section id="dsl-reference">
+<h2>DSL Reference<a class="headerlink" href="#dsl-reference" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.custom.custom_parameters">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.custom.</span></span><span class="sig-name descname"><span class="pre">custom_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">EcomaxParameterDescription</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mapping</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">EcomaxParameterDescription</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CustomParameters</span></span></span><a class="headerlink" href="#pyplumio.parameters.custom.custom_parameters" title="Link to this definition"></a></dt>
+<dd><p>Return custom parameters for a device model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>str</em>) – Exact controller model string matching
+<code class="docutils literal notranslate"><span class="pre">ProductInfo.model</span></code></p></li>
+<li><p><strong>id</strong> (<em>int</em>) – Numeric product identifier matching <code class="docutils literal notranslate"><span class="pre">ProductInfo.id</span></code></p></li>
+<li><p><strong>service_parameters</strong> (<em>Mapping</em><em>[</em><em>int</em><em>, </em><em>EcomaxParameterDescription</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Mapping of integer service parameter
+indices to <code class="docutils literal notranslate"><span class="pre">number()</span></code> or <code class="docutils literal notranslate"><span class="pre">switch()</span></code> descriptors, defaults to
+<code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+<li><p><strong>patches</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>EcomaxParameterDescription</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Mapping of standard parameter names to replacement
+<code class="docutils literal notranslate"><span class="pre">number()</span></code> or <code class="docutils literal notranslate"><span class="pre">switch()</span></code> descriptors, defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Custom parameter definition for the controller model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CustomParameters</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.custom.number">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.custom.</span></span><span class="sig-name descname"><span class="pre">number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimistic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UnitValue</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">UnitOfMeasurement</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">EcomaxNumberDescription</span></span></span><a class="headerlink" href="#pyplumio.parameters.custom.number" title="Link to this definition"></a></dt>
+<dd><p>Return an ecoMAX number parameter description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Snake-case parameter name used on the device</p></li>
+<li><p><strong>step</strong> (<em>float</em><em>, </em><em>optional</em>) – Multiplier applied to <code class="docutils literal notranslate"><span class="pre">raw</span> <span class="pre">-</span> <span class="pre">offset</span></code> when unpacking
+and divisor used when packing, defaults to <code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></li>
+<li><p><strong>offset</strong> (<em>int</em><em>, </em><em>optional</em>) – Integer offset subtracted from the raw wire value
+before scaling, defaults to <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
+<li><p><strong>precision</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of decimal places to round unpacked values
+to, defaults to <code class="docutils literal notranslate"><span class="pre">6</span></code></p></li>
+<li><p><strong>optimistic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether writes succeed immediately without
+waiting for controller confirmation, defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+<li><p><strong>unit</strong> (<em>UnitValue</em><em> | </em><em>UnitOfMeasurement</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Physical unit of measurement as a <code class="docutils literal notranslate"><span class="pre">UnitOfMeasurement</span></code>
+member, supported unit string, or <code class="docutils literal notranslate"><span class="pre">None</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number parameter description</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EcomaxNumberDescription</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">unit</span></code> is not a recognized unit string or
+enum member</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyplumio.parameters.custom.switch">
+<span class="sig-prename descclassname"><span class="pre">pyplumio.parameters.custom.</span></span><span class="sig-name descname"><span class="pre">switch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimistic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">EcomaxSwitchDescription</span></span></span><a class="headerlink" href="#pyplumio.parameters.custom.switch" title="Link to this definition"></a></dt>
+<dd><p>Return an ecoMAX switch parameter description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Snake-case parameter name used on the device</p></li>
+<li><p><strong>optimistic</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether writes succeed immediately without
+waiting for controller confirmation, defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Switch parameter description</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>EcomaxSwitchDescription</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="supported-units">
+<h3>Supported Units<a class="headerlink" href="#supported-units" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">number(...,</span> <span class="pre">unit=...)</span></code> accepts <code class="docutils literal notranslate"><span class="pre">UnitOfMeasurement</span></code> enum members,
+<code class="docutils literal notranslate"><span class="pre">PERCENTAGE</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>, or any string literal listed below. Passing an
+unrecognized string raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 35.0%" />
+<col style="width: 45.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Literal</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">UnitOfMeasurement</span></code> / Constant</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;°C&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CELSIUS</span></code></p></td>
+<td><p>Degrees Celsius</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;kW&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KILO_WATT</span></code></p></td>
+<td><p>Kilowatts</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;g&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GRAMS</span></code></p></td>
+<td><p>Grams</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;kg&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KILOGRAMS</span></code></p></td>
+<td><p>Kilograms</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;kWh/kg&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KILO_WATT_HOUR_PER_KILOGRAM</span></code></p></td>
+<td><p>Kilowatt-hours per kilogram</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;kg/h&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">KILOGRAMS_PER_HOUR</span></code></p></td>
+<td><p>Kilograms per hour</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;s&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SECONDS</span></code></p></td>
+<td><p>Seconds</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MINUTES</span></code></p></td>
+<td><p>Minutes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;days&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DAYS</span></code></p></td>
+<td><p>Days</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;Pa&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PASCAL</span></code></p></td>
+<td><p>Pascals</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;rpm&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">REVOLUTIONS_PER_MINUTE</span></code></p></td>
+<td><p>Revolutions per minute</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">&quot;%&quot;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PERCENTAGE</span></code></p></td>
+<td><p>Percentage</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="schedules.html" class="btn btn-neutral float-left" title="Schedules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protocol.html" class="btn btn-neutral float-right" title="Protocol" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Denis Paavilainen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
