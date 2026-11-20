@@ -195,7 +195,7 @@ class EventManager(TaskManager, Generic[_EventDataT]):
 
         return self.subscribe(name, _call_once)
 
-    def unsubscribe(self, name: str, callback: EventCallback) -> bool:
+    def unsubscribe(self, name: str, callback: EventCallback) -> None:
         """Usubscribe a callback from the event.
 
         :param name: Event name or ID
@@ -204,14 +204,9 @@ class EventManager(TaskManager, Generic[_EventDataT]):
             subscribed to an event using ``subscribe()`` or
             ``subscribe_once()`` methods.
         :type callback: EventCallback
-        :return: `True` if callback is found, `False` otherwise.
-        :rtype: bool
         """
-        if name in self._callbacks and callback in self._callbacks[name]:
-            self._callbacks[name].remove(callback)
-            return True
-
-        return False
+        if (callbacks := self._callbacks.get(name, None)) and callback in callbacks:
+            callbacks.remove(callback)
 
     async def _run_callbacks(
         self,

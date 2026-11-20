@@ -161,10 +161,11 @@ async def test_unsubscribe(event_manager: EventManager) -> None:
     """Test unsubscribing from the event."""
     callback = AsyncMock(return_value=True)
     event_manager.subscribe("test_key2", callback)
-    assert event_manager.unsubscribe("test_key2", callback)
-    assert not event_manager.unsubscribe("test_key3", callback)
-    event_manager.dispatch_nowait("test_key2", "test_value2")
-    await event_manager.wait_until_done()
+    await event_manager.dispatch("test_key2", "test_value1")
+    callback.assert_awaited_once_with("test_value1")
+    callback.reset_mock()
+    event_manager.unsubscribe("test_key2", callback)
+    await event_manager.dispatch("test_key2", "test_value2")
     callback.assert_not_awaited()
 
 
