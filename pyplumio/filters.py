@@ -164,20 +164,6 @@ class Filter(ABC):
         """Initialize a new filter."""
         self._callback = callback
 
-    def __hash__(self) -> int:
-        """Return a hash of the filter based on its callback."""
-        return hash(self._callback)
-
-    def __eq__(self, other: Any) -> bool:
-        """Compare callbacks."""
-        if isinstance(other, Filter):
-            return self._callback == other._callback
-
-        if callable(other):
-            return bool(self._callback == other)
-
-        return NotImplemented
-
     @property
     def __name__(self) -> str:
         """Return a callback name."""

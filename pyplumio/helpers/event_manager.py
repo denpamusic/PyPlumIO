@@ -12,6 +12,7 @@ from typing import Any, Generic, NewType, TypeAlias, TypeVar, overload
 from pyplumio.helpers.task_manager import TaskManager
 
 EventCallback: TypeAlias = Callable[..., Coroutine[Any, Any, Any]]
+UnsubscribeFunc: TypeAlias = Callable[[], None]
 _FilterFunc: TypeAlias = Callable[[EventCallback], Any]
 
 _EventCallbackT = TypeVar("_EventCallbackT", bound=EventCallback)
@@ -154,26 +155,34 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         except KeyError:
             return default
 
-    def subscribe(self, name: str, callback: _EventCallbackT) -> _EventCallbackT:
+    def subscribe(self, name: str, callback: EventCallback) -> UnsubscribeFunc:
         """Subscribe a callback to the event.
 
         :param name: Event name or ID
         :type name: str
         :param callback: A coroutine callback function, that will be
-            awaited on the with the event data as an argument.
+            awaited with the event data as an argument.
         :type callback: EventCallback
-        :return: A reference to the callback, that can be used
-            with `EventManager.unsubscribe()`.
-        :rtype: EventCallback
+        :return: A callable that unsubscribes the callback when called.
+        :rtype: UnsubscribeFunc
         """
         callbacks = self._callbacks.setdefault(name, [])
         _LOGGER.debug(
             "Registered listener '%s' for event '%s'", callback.__name__, name
         )
         callbacks.append(callback)
-        return callback
+        unsubscribed = False
 
-    def subscribe_once(self, name: str, callback: EventCallback) -> EventCallback:
+        def _unsubscribe() -> None:
+            """Unsubscribe the callback from the event."""
+            nonlocal unsubscribed
+            if not unsubscribed:
+                unsubscribed = True
+                callbacks.remove(callback)
+
+        return _unsubscribe
+
+    def subscribe_once(self, name: str, callback: EventCallback) -> UnsubscribeFunc:
         """Subscribe a callback to the event once.
 
         Callback will be unsubscribed after single event.
@@ -181,37 +190,19 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         :param name: Event name or ID
         :type name: str
         :param callback: A coroutine callback function, that will be
-            awaited on the with the event data as an argument.
+            awaited with the event data as an argument.
         :type callback: EventCallback
-        :return: A reference to the callback, that can be used
-            with `EventManager.unsubscribe()`.
-        :rtype: EventCallback
+        :return: A callable that unsubscribes the callback when called.
+        :rtype: UnsubscribeFunc
         """
 
-        async def _call_once(value: Any) -> Any:
-            """Unsubscribe callback from the event and calls it."""
-            self.unsubscribe(name, _call_once)
+        async def _call_once(value: Any = None) -> Any:
+            """Unsubscribe callback from the event and call it."""
+            unsubscribe()
             return await callback(value)
 
-        return self.subscribe(name, _call_once)
-
-    def unsubscribe(self, name: str, callback: EventCallback) -> bool:
-        """Usubscribe a callback from the event.
-
-        :param name: Event name or ID
-        :type name: str
-        :param callback: A coroutine callback function, previously
-            subscribed to an event using ``subscribe()`` or
-            ``subscribe_once()`` methods.
-        :type callback: EventCallback
-        :return: `True` if callback is found, `False` otherwise.
-        :rtype: bool
-        """
-        if name in self._callbacks and callback in self._callbacks[name]:
-            self._callbacks[name].remove(callback)
-            return True
-
-        return False
+        unsubscribe = self.subscribe(name, _call_once)
+        return unsubscribe
 
     async def _run_callbacks(
         self,
@@ -299,4 +290,5 @@ __all__ = (
     "EventManager",
     "StopPropagation",
     "StopPropagationType",
+    "UnsubscribeFunc",
 )

@@ -22,10 +22,17 @@ Subscribing to events
 
 .. autofunction:: pyplumio.devices.Device.subscribe_once
 
-To remove the previously registered callback, use the
-``unsubscribe()`` method.
+Both ``subscribe()`` and ``subscribe_once()`` return an unsubscribe callable
+(``UnsubscribeFunc``) that takes no arguments and removes the callback when
+called (including canceling a ``subscribe_once()`` subscription before it
+fires):
 
-.. autofunction:: pyplumio.devices.Device.unsubscribe
+.. code-block:: python
+
+    unsubscribe = ecomax.subscribe("heating_temp", my_callback)
+
+    # Later, stop receiving updates:
+    unsubscribe()
 
 Filters
 -------
@@ -254,6 +261,37 @@ when heating temperature will change more the 0.1 degrees Celsius.
 
                 # Wait until disconnected (forever)
                 await conn.wait_until_done()
+
+
+    asyncio.run(main())
+
+
+In the example below, we store the callable returned by ``subscribe()`` and
+call it to unsubscribe once updates are no longer needed.
+
+.. code-block:: python
+
+    import asyncio
+
+    import pyplumio
+
+
+    async def my_callback(value) -> None:
+        """Prints current heating temperature."""
+        print(f"Heating Temperature: {value}")
+
+
+    async def main():
+        """Subscribes to heating temperature and unsubscribes after 30 seconds."""
+        async with pyplumio.serial_for_url("socket://localhost:8899") as conn:
+            async with conn.device("ecomax") as ecomax:
+                # Subscribe and capture the returned unsubscribe callable.
+                unsubscribe = ecomax.subscribe("heating_temp", my_callback)
+
+                await asyncio.sleep(30)
+
+                # Stop receiving updates.
+                unsubscribe()
 
 
     asyncio.run(main())

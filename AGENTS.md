@@ -214,7 +214,7 @@ Do not rely on callback exceptions propagating.
 
 3.4. Consumer API: `get(name, timeout)`, `get_nowait(name, default)`,
 `wait_for(name, timeout)`, `subscribe(name, cb)`,
-`subscribe_once(name, cb)`, `unsubscribe(name, cb)`,
+`subscribe_once(name, cb)` (both return an unsubscribe callable),
 `dispatch_nowait(name, value)`, `load(data)`.
 
 3.5. `@event_listener` marks a method as a listener. Marked methods are
