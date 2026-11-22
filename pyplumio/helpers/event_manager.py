@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable, Coroutine, Generator
-from functools import partial
 import inspect
 import logging
 from types import MappingProxyType
@@ -172,7 +171,16 @@ class EventManager(TaskManager, Generic[_EventDataT]):
             "Registered listener '%s' for event '%s'", callback.__name__, name
         )
         callbacks.append(callback)
-        return partial(self._unsubscribe, name, callback)
+        unsubscribed = False
+
+        def _unsubscribe() -> None:
+            """Unsubscribe the callback from the event."""
+            nonlocal unsubscribed
+            if not unsubscribed:
+                unsubscribed = True
+                callbacks.remove(callback)
+
+        return _unsubscribe
 
     def subscribe_once(self, name: str, callback: EventCallback) -> UnsubscribeFunc:
         """Subscribe a callback to the event once.
@@ -189,16 +197,12 @@ class EventManager(TaskManager, Generic[_EventDataT]):
         """
 
         async def _call_once(value: Any = None) -> Any:
-            """Unsubscribe callback from the event and calls it."""
-            self._unsubscribe(name, _call_once)
+            """Unsubscribe callback from the event and call it."""
+            unsubscribe()
             return await callback(value)
 
-        return self.subscribe(name, _call_once)
-
-    def _unsubscribe(self, name: str, callback: EventCallback) -> None:
-        """Unsubscribe a callback from the event."""
-        if (callbacks := self._callbacks.get(name, None)) and callback in callbacks:
-            callbacks.remove(callback)
+        unsubscribe = self.subscribe(name, _call_once)
+        return unsubscribe
 
     async def _run_callbacks(
         self,

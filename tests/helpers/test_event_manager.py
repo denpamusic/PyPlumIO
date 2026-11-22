@@ -192,6 +192,62 @@ async def test_unsubscribe_same_callback_with_filters(
     callback.assert_not_awaited()
 
 
+async def test_unsubscribe_stale_after_resubscribe(
+    event_manager: EventManager,
+) -> None:
+    """Test that stale unsubscribe call does not remove re-subscribed callback."""
+    callback = AsyncMock(return_value=None)
+    unsub1 = event_manager.subscribe("test_key2", callback)
+    unsub1()
+    unsub2 = event_manager.subscribe("test_key2", callback)
+    unsub1()
+
+    await event_manager.dispatch("test_key2", "test_value1")
+    callback.assert_awaited_once_with("test_value1")
+
+    callback.reset_mock()
+    unsub2()
+    await event_manager.dispatch("test_key2", "test_value2")
+    callback.assert_not_awaited()
+
+
+async def test_unsubscribe_duplicate_callback_idempotent(
+    event_manager: EventManager,
+) -> None:
+    """Test that calling duplicate subscription's unsubscribe twice only removes it."""
+    callback = AsyncMock(return_value=None)
+    unsub1 = event_manager.subscribe("test_key2", callback)
+    unsub2 = event_manager.subscribe("test_key2", callback)
+    unsub1()
+    unsub1()
+
+    await event_manager.dispatch("test_key2", "test_value1")
+    callback.assert_awaited_once_with("test_value1")
+
+    callback.reset_mock()
+    unsub2()
+    await event_manager.dispatch("test_key2", "test_value2")
+    callback.assert_not_awaited()
+
+
+async def test_unsubscribe_after_subscribe_once_fired(
+    event_manager: EventManager,
+) -> None:
+    """Test that unsubscribe after subscribe_once fires does not affect new sub."""
+    callback = AsyncMock(return_value=None)
+    unsub = event_manager.subscribe_once("test_key2", callback)
+    await event_manager.dispatch("test_key2", "test_value1")
+    callback.assert_awaited_once_with("test_value1")
+
+    callback.reset_mock()
+    unsub2 = event_manager.subscribe("test_key2", callback)
+    unsub()
+
+    await event_manager.dispatch("test_key2", "test_value2")
+    callback.assert_awaited_once_with("test_value2")
+    unsub2()
+
+
 async def test_dispatch_with_callback_error(
     event_manager: EventManager, caplog
 ) -> None:
