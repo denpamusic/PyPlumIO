@@ -119,3 +119,7 @@ dmypy.json
 # QLTY
 .qlty/results/
 .qlty/out/
+
+# AI agents
+.agents/
+
