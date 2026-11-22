@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, call, patch
 
 import pytest
 
-from pyplumio.filters import Filter, on_change
+from pyplumio.filters import Filter, on_change, throttle
 from pyplumio.helpers.event_manager import EventManager, StopPropagation, event_listener
 
 
@@ -116,7 +116,7 @@ async def test_load_nowait(event_manager: EventManager) -> None:
 async def test_subscribe(event_manager: EventManager) -> None:
     """Test subscribing to an event."""
     callback = AsyncMock(return_value=True)
-    assert event_manager.subscribe("test_key2", callback) is callback
+    event_manager.subscribe("test_key2", callback)
     event_manager.dispatch_nowait("test_key2", "test_value2")
     event_manager.dispatch_nowait("test_key2", "test_value3")
     await event_manager.wait_until_done()
@@ -133,16 +133,12 @@ async def test_subscribe_once(event_manager: EventManager) -> None:
     callback.assert_awaited_once_with("test_value2")
     callback.reset_mock()
 
-    # Test getting the reference and unsubscribing.
-    with patch(
-        "pyplumio.helpers.event_manager.EventManager.unsubscribe"
-    ) as mock_unsubscribe:
-        callback2 = event_manager.subscribe_once("test_key3", callback)
-        event_manager.unsubscribe("test_key3", callback2)
-        await event_manager.wait_until_done()
-
-    mock_unsubscribe.assert_called_once_with("test_key3", callback2)
+    # Test unsubscribing before the event is dispatched.
+    unsubscribe_callback = event_manager.subscribe_once("test_key3", callback)
+    unsubscribe_callback()
+    await event_manager.dispatch("test_key3", "test_value4")
     callback.assert_not_awaited()
+    unsubscribe_callback()
 
 
 async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
@@ -150,7 +146,7 @@ async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
     callback1 = AsyncMock(return_value=None)
     callback2 = AsyncMock(return_value=None)
     event_manager.subscribe_once("test_key1", callback1)
-    assert event_manager.subscribe("test_key1", callback2) is callback2
+    event_manager.subscribe("test_key1", callback2)
     event_manager.dispatch_nowait("test_key1", "test_value1")
     event_manager.dispatch_nowait("test_key1", "test_value2")
     await event_manager.wait_until_done()
@@ -160,11 +156,39 @@ async def test_subscribe_once_interrupt(event_manager: EventManager) -> None:
 async def test_unsubscribe(event_manager: EventManager) -> None:
     """Test unsubscribing from the event."""
     callback = AsyncMock(return_value=True)
-    event_manager.subscribe("test_key2", callback)
-    assert event_manager.unsubscribe("test_key2", callback)
-    assert not event_manager.unsubscribe("test_key3", callback)
-    event_manager.dispatch_nowait("test_key2", "test_value2")
-    await event_manager.wait_until_done()
+    unsubscribe = event_manager.subscribe("test_key2", callback)
+    await event_manager.dispatch("test_key2", "test_value1")
+    callback.assert_awaited_once_with("test_value1")
+    callback.reset_mock()
+    unsubscribe()
+    await event_manager.dispatch("test_key2", "test_value2")
+    callback.assert_not_awaited()
+    unsubscribe()
+
+
+async def test_unsubscribe_same_callback_with_filters(
+    event_manager: EventManager,
+) -> None:
+    """Test unsubscribing filtered wrappers of the same callback independently."""
+    callback = AsyncMock(return_value=None)
+    unsub_plain = event_manager.subscribe("test_key2", callback)
+    unsub_on_change = event_manager.subscribe("test_key2", on_change(callback))
+    unsub_throttled = event_manager.subscribe("test_key2", throttle(callback, 5))
+
+    unsub_on_change()
+    await event_manager.dispatch("test_key2", "test_value1")
+    assert callback.await_count == 2
+    callback.assert_has_awaits([call("test_value1"), call("test_value1")])
+
+    callback.reset_mock()
+    unsub_throttled()
+    unsub_throttled()
+    await event_manager.dispatch("test_key2", "test_value2")
+    callback.assert_awaited_once_with("test_value2")
+
+    callback.reset_mock()
+    unsub_plain()
+    await event_manager.dispatch("test_key2", "test_value3")
     callback.assert_not_awaited()
 
 
